@@ -66,8 +66,8 @@ export default function HomePage() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
         <div className="text-center">
           <h1 className="text-4xl md:text-6xl font-bold text-gray-900 mb-6">
-            De slimme cockpit voor{' '}
-            <span className="text-blue-600">moderne rijinstructeurs</span>
+            Rijflow{' '}
+            <span className="text-blue-600">Rijles Planner</span>
           </h1>
           <p className="text-xl text-gray-600 mb-8 max-w-3xl mx-auto">
             Beheer je planning, leerlingen en administratie op één plek. 
@@ -94,7 +94,7 @@ export default function HomePage() {
           <div className="flex items-center justify-center gap-8 text-sm text-gray-500">
             <div className="flex items-center gap-2">
               <CheckCircle className="h-4 w-4 text-green-500" />
-              <span>30 dagen gratis proef</span>
+              <span>60 dagen proefperiode</span>
             </div>
             <div className="flex items-center gap-2">
               <CheckCircle className="h-4 w-4 text-green-500" />
@@ -346,7 +346,7 @@ export default function HomePage() {
             Klaar om te beginnen?
           </h2>
           <p className="text-xl text-blue-100 mb-8">
-            Start vandaag nog met je gratis proefperiode van 30 dagen
+            Start vandaag nog met je gratis proefperiode van 60 dagen
           </p>
           <button
             onClick={() => router.push('/auth/signup')}
@@ -396,7 +396,7 @@ export default function HomePage() {
             </div>
           </div>
           <div className="border-t border-gray-800 mt-8 pt-8 text-center text-gray-400">
-            <p>&copy; 2024 RijFlow. Alle rechten voorbehouden.</p>
+            <p>&copy; 2025 RijFlow. Alle rechten voorbehouden.</p>
           </div>
         </div>
       </footer>

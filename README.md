@@ -28,6 +28,12 @@ Een alles-in-één webapp waarmee rijinstructeurs hun hele praktijk kunnen runne
 - **Forms**: React Hook Form
 - **Notifications**: React Hot Toast
 
+## 📱 Platformen
+
+- **Web**: Beschikbaar op https://rijflow-app.vercel.app
+- **Android**: Beschikbaar in Google Play Store
+- **iOS**: Beschikbaar in Apple App Store
+
 ## 📦 Installatie
 
 ### 1. Clone het project
@@ -231,6 +237,51 @@ Zorg ervoor dat je de volgende environment variables instelt in je Vercel projec
 
 - `NEXT_PUBLIC_SUPABASE_URL`
 - `NEXT_PUBLIC_SUPABASE_ANON_KEY`
+
+## 📱 App Store Publicatie
+
+### iOS App Store
+
+Voor het publiceren in de Apple App Store:
+
+1. **Vereisten**:
+   - Apple Developer Account ($99/jaar)
+   - Mac computer met Xcode
+   - App Store Connect toegang
+
+2. **Voorbereiding**:
+   ```bash
+   # Windows (voorbereiding)
+   scripts/prepare-ios.bat
+   
+   # Mac (build en publicatie)
+   ./scripts/build-ios.sh
+   ```
+
+3. **Documentatie**:
+   - Zie `app-store-connect.md` voor volledige handleiding
+   - Zie `assets/app-icon-template.md` voor icon vereisten
+   - Zie `privacy-policy.md` voor privacy policy template
+
+### Android Google Play Store
+
+Voor het publiceren in de Google Play Store:
+
+1. **Vereisten**:
+   - Google Play Console account ($25 eenmalig)
+   - Android app signing key
+
+2. **Build**:
+   ```bash
+   npm run build
+   npx cap sync
+   npx cap build android
+   ```
+
+3. **Publicatie**:
+   - Upload APK/AAB naar Google Play Console
+   - Vul app metadata in
+   - Submit voor review
 
 ## 📱 Gebruik
 
