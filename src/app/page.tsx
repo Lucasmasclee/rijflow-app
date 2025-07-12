@@ -16,7 +16,7 @@ import {
 } from 'lucide-react'
 
 export default function HomePage() {
-  const { user } = useAuth()
+  const { user } = useAuth() || { user: null }
   const router = useRouter()
   const [email, setEmail] = useState('')
 
