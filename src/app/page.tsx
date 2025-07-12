@@ -86,7 +86,7 @@ export default function HomePage() {
               onClick={handleGetStarted}
               className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-3 rounded-lg font-medium flex items-center gap-2"
             >
-              Gratis proberen
+              Registreren
               <ArrowRight className="h-4 w-4" />
             </button>
           </div>
@@ -352,7 +352,7 @@ export default function HomePage() {
             onClick={() => router.push('/auth/signup')}
             className="bg-white hover:bg-gray-100 text-blue-600 px-8 py-3 rounded-lg font-medium text-lg"
           >
-            Gratis proberen
+            Registreren
           </button>
         </div>
       </div>
