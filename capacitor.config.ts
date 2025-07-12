@@ -1,7 +1,7 @@
 import type { CapacitorConfig } from '@capacitor/cli';
 
 const config: CapacitorConfig = {
-  appId: 'com.mascelli.rijflow',
+  appId: 'com.mascelli.rijlesplanner',
   appName: 'RijFlow',
   webDir: '.next',
   server: {
@@ -9,7 +9,9 @@ const config: CapacitorConfig = {
     cleartext: true
   },
   ios: {
-    contentInset: 'always'
+    contentInset: 'always',
+    scheme: 'App',
+    limitsNavigationsToAppBoundDomains: true
   }
 };
 
