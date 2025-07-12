@@ -3,7 +3,7 @@ import type { CapacitorConfig } from '@capacitor/cli';
 const config: CapacitorConfig = {
   appId: 'com.rijflow.app',
   appName: 'RijFlow',
-  webDir: 'out',
+  webDir: '.next',
   server: {
     url: 'https://rijflow-app.vercel.app',
     cleartext: true
