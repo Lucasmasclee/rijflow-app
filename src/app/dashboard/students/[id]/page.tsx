@@ -3,7 +3,7 @@
 import { useAuth } from '@/contexts/AuthContext'
 import { useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
-import { ArrowLeft, Save, User, Mail, Phone, MapPin, Edit2, X, Check } from 'lucide-react'
+import { ArrowLeft, Save, User, Mail, Phone, MapPin, Edit2, X, Check, Copy, Link as LinkIcon } from 'lucide-react'
 import Link from 'next/link'
 import toast from 'react-hot-toast'
 import React from 'react'
@@ -20,6 +20,7 @@ interface Student {
   created_at: string
   lessons_count: number
   last_lesson?: string
+  invite_token?: string
 }
 
 export default function StudentDetailPage({ params }: { params: Promise<{ id: string }> }) {
@@ -38,6 +39,7 @@ export default function StudentDetailPage({ params }: { params: Promise<{ id: st
     notes: ''
   })
   const [showDeleteModal, setShowDeleteModal] = useState(false)
+  const [inviteUrl, setInviteUrl] = useState<string>('')
 
   useEffect(() => {
     if (!loading && !user) {
@@ -87,6 +89,11 @@ export default function StudentDetailPage({ params }: { params: Promise<{ id: st
           address: student.address,
           notes: student.notes || ''
         })
+        
+        // Set invitation URL if invite_token exists
+        if (student.invite_token) {
+          setInviteUrl(`${window.location.origin}/invite/${student.invite_token}`)
+        }
       } catch (error) {
         toast.error('Fout bij het ophalen van de leerling')
         router.push('/dashboard/students')
@@ -410,6 +417,54 @@ export default function StudentDetailPage({ params }: { params: Promise<{ id: st
                 </div>
               </div>
             </div>
+
+            {/* Invitation Link */}
+            {inviteUrl && (
+              <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+                <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+                  <LinkIcon className="h-5 w-5 mr-2" />
+                  Uitnodigingslink
+                </h3>
+                <div className="space-y-3">
+                  <div className="bg-gray-50 p-3 rounded-lg">
+                    <p className="text-xs text-gray-600 mb-2">Uitnodigingslink voor deze leerling:</p>
+                    <div className="flex items-center gap-2">
+                      <input
+                        type="text"
+                        value={inviteUrl}
+                        readOnly
+                        className="flex-1 text-xs bg-white border border-gray-200 rounded px-2 py-1 font-mono"
+                        onFocus={(e) => e.target.select()}
+                      />
+                      <button
+                        onClick={() => {
+                          navigator.clipboard.writeText(inviteUrl);
+                          toast.success('Link gekopieerd!');
+                        }}
+                        className="flex items-center gap-1 bg-blue-600 hover:bg-blue-700 text-white px-2 py-1 rounded text-xs"
+                      >
+                        <Copy className="h-3 w-3" />
+                        Kopieer
+                      </button>
+                    </div>
+                  </div>
+                  <div className="flex gap-2">
+                    <a
+                      href={`mailto:${student.email}?subject=Uitnodiging RijFlow&body=Klik op deze link om je account te activeren: ${inviteUrl}`}
+                      className="flex-1 bg-green-600 hover:bg-green-700 text-white text-center py-2 px-3 rounded text-xs font-medium"
+                    >
+                      Verstuur e-mail
+                    </a>
+                    <a
+                      href={`sms:${student.phone}?body=Je bent uitgenodigd voor RijFlow! Klik op deze link om je account te activeren: ${inviteUrl}`}
+                      className="flex-1 bg-purple-600 hover:bg-purple-700 text-white text-center py-2 px-3 rounded text-xs font-medium"
+                    >
+                      Verstuur SMS
+                    </a>
+                  </div>
+                </div>
+              </div>
+            )}
 
             {/* Quick Actions */}
             <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
