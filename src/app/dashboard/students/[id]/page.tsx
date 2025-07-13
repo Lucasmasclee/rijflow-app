@@ -7,6 +7,7 @@ import { ArrowLeft, Save, User, Mail, Phone, MapPin, Edit2, X, Check } from 'luc
 import Link from 'next/link'
 import toast from 'react-hot-toast'
 import React from 'react'
+import { supabase } from '@/lib/supabase'
 
 interface Student {
   id: string
@@ -53,35 +54,45 @@ export default function StudentDetailPage({ params }: { params: Promise<{ id: st
     getParams()
   }, [params])
 
-  // Load student from localStorage
+  // Load student from Supabase
   useEffect(() => {
     if (!studentId) return
-    
-    const savedStudents = localStorage.getItem('students')
-    if (savedStudents) {
-      const students = JSON.parse(savedStudents)
-      const foundStudent = students.find((s: Student) => s.id === studentId)
-      
-      if (foundStudent) {
-        setStudent(foundStudent)
+
+    const fetchStudent = async () => {
+      try {
+        const { data: student, error } = await supabase
+          .from('students')
+          .select('*')
+          .eq('id', studentId)
+          .single()
+
+        if (error) {
+          toast.error('Fout bij het ophalen van de leerling')
+          router.push('/dashboard/students')
+          return
+        }
+
+        if (!student) {
+          toast.error('Leerling niet gevonden')
+          router.push('/dashboard/students')
+          return
+        }
+
+        setStudent(student)
         setFormData({
-          first_name: foundStudent.first_name,
-          last_name: foundStudent.last_name,
-          email: foundStudent.email,
-          phone: foundStudent.phone,
-          address: foundStudent.address,
-          notes: foundStudent.notes
+          first_name: student.first_name,
+          last_name: student.last_name,
+          email: student.email,
+          phone: student.phone,
+          address: student.address,
+          notes: student.notes || ''
         })
-      } else {
-        // Student not found, redirect back to students list
-        toast.error('Leerling niet gevonden')
+      } catch (error) {
+        toast.error('Fout bij het ophalen van de leerling')
         router.push('/dashboard/students')
       }
-    } else {
-      // No students in localStorage, redirect back
-      toast.error('Geen leerlingen gevonden')
-      router.push('/dashboard/students')
     }
+    fetchStudent()
   }, [studentId, router])
 
   const handleEdit = () => {
@@ -106,39 +117,28 @@ export default function StudentDetailPage({ params }: { params: Promise<{ id: st
   const handleSave = async () => {
     setSaving(true)
     try {
-      // Get existing students from localStorage
-      const savedStudents = localStorage.getItem('students')
-      if (savedStudents) {
-        const students = JSON.parse(savedStudents)
-        
-        // Find and update the student
-        const studentIndex = students.findIndex((s: Student) => s.id === studentId)
-        if (studentIndex !== -1) {
-          students[studentIndex] = {
-            ...students[studentIndex],
-            ...formData
-          }
-          
-          // Save back to localStorage
-          localStorage.setItem('students', JSON.stringify(students))
-          
-          // Update local state
-          if (student) {
-            setStudent({
-              ...student,
-              ...formData
-            })
-          }
-          
-          setIsEditing(false)
-          toast.success('Leerling succesvol bijgewerkt!')
-        } else {
-          toast.error('Leerling niet gevonden')
-        }
-      } else {
-        toast.error('Geen leerlingen gevonden')
+      // Update student in Supabase
+      const { error } = await supabase
+        .from('students')
+        .update({
+          first_name: formData.first_name,
+          last_name: formData.last_name,
+          email: formData.email,
+          phone: formData.phone,
+          address: formData.address,
+          notes: formData.notes
+        })
+        .eq('id', studentId)
+
+      if (error) {
+        toast.error('Fout bij het bijwerken van de leerling')
+        setSaving(false)
+        return
       }
-      
+
+      setStudent(prev => prev ? { ...prev, ...formData } : null)
+      setIsEditing(false)
+      toast.success('Leerling succesvol bijgewerkt!')
       // Simulate API call delay
       await new Promise(resolve => setTimeout(resolve, 1000))
     } catch (error) {
@@ -158,22 +158,19 @@ export default function StudentDetailPage({ params }: { params: Promise<{ id: st
   const handleDeleteStudent = async () => {
     setShowDeleteModal(false)
     try {
-      // Get existing students from localStorage
-      const savedStudents = localStorage.getItem('students')
-      if (savedStudents) {
-        const students = JSON.parse(savedStudents)
-        
-        // Remove the student
-        const updatedStudents = students.filter((s: Student) => s.id !== studentId)
-        
-        // Save back to localStorage
-        localStorage.setItem('students', JSON.stringify(updatedStudents))
-        
-        toast.success('Leerling succesvol verwijderd!')
-        router.push('/dashboard/students')
-      } else {
-        toast.error('Geen leerlingen gevonden')
+      // Delete student from Supabase
+      const { error } = await supabase
+        .from('students')
+        .delete()
+        .eq('id', studentId)
+
+      if (error) {
+        toast.error('Fout bij het verwijderen van de leerling')
+        return
       }
+
+      toast.success('Leerling succesvol verwijderd!')
+      router.push('/dashboard/students')
     } catch (error) {
       toast.error('Er is iets misgegaan bij het verwijderen van de leerling.')
     }
