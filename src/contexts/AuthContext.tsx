@@ -40,46 +40,48 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, [])
 
   const signIn = async (email: string, password: string) => {
-    const { error } = await supabase.auth.signInWithPassword({
+    const { data, error } = await supabase.auth.signInWithPassword({
       email,
       password,
     })
     if (error) throw error
+    // Na succesvolle login: check of user in users-tabel staat, zo niet: voeg toe
+    const userId = data?.user?.id
+    console.log('userId:', userId)
+    if (userId) {
+      const { data: userRows, error: userSelectError } = await supabase
+        .from('users')
+        .select('id')
+        .eq('id', userId)
+        .limit(1)
+      if (userSelectError) throw userSelectError
+      if (!userRows || userRows.length === 0) {
+        // Voeg toe aan users-tabel
+        const insertData = { id: userId, email, role: data?.user?.user_metadata?.role }
+        console.log('insert data:', insertData)
+        const { error: insertError } = await supabase
+          .from('users')
+          .insert([insertData])
+        if (insertError) {
+          console.error('Insert error:', insertError)
+          throw insertError
+        }
+      }
+    }
   }
 
   const signUp = async (email: string, password: string, role: 'instructor' | 'student') => {
-    if (role === 'instructor') {
-      // For instructors, sign up and immediately sign in
-      const { error: signUpError } = await supabase.auth.signUp({
-        email,
-        password,
-        options: {
-          data: {
-            role,
-          },
+    // Alleen registreren, geen insert meer in users-tabel
+    const { error: signUpError } = await supabase.auth.signUp({
+      email,
+      password,
+      options: {
+        data: {
+          role,
         },
-      })
-      if (signUpError) throw signUpError
-
-      // Immediately sign in
-      const { error: signInError } = await supabase.auth.signInWithPassword({
-        email,
-        password,
-      })
-      if (signInError) throw signInError
-    } else {
-      // For students, just sign up (requires email confirmation)
-      const { error } = await supabase.auth.signUp({
-        email,
-        password,
-        options: {
-          data: {
-            role,
-          },
-        },
-      })
-      if (error) throw error
-    }
+      },
+    })
+    if (signUpError) throw signUpError
   }
 
   const signOut = async () => {

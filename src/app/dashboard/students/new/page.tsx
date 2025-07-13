@@ -54,6 +54,9 @@ export default function NewStudentPage() {
         .insert([newStudent])
         .select()
 
+      // Log de volledige response voor debuggen
+      console.log('Supabase response:', { data, error })
+
       if (error) {
         console.error('Error creating student:', error)
         toast.error('Fout bij het toevoegen van de leerling')

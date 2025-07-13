@@ -28,6 +28,7 @@ AI Rooster:
 ● Chatgpt een prompt sturen en vragen voor een json bestand of csv bestand
 ● Voor later: Rekening houden met afstand tussen plaatsen en extra notities voor praktische zaken (Spits enzo)
 
+Voor later
 Chat per leerling (1:1 chat):
 ● Elke leerling heeft een aparte chat met zijn instructeur
 ● Chatgeschiedenis wordt opgeslagen

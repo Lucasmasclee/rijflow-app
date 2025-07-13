@@ -17,6 +17,7 @@ export default function SignUpPage() {
     password: '',
     role: 'instructor' as 'instructor' | 'student'
   })
+  const [emailSent, setEmailSent] = useState(false)
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -24,13 +25,8 @@ export default function SignUpPage() {
 
     try {
       await signUp(formData.email, formData.password, formData.role)
-      if (formData.role === 'instructor') {
-        toast.success('Account aangemaakt! Je bent nu ingelogd.')
-        router.push('/dashboard')
-      } else {
-        toast.success('Account aangemaakt! Controleer je e-mail om je account te bevestigen.')
-        router.push('/auth/signin')
-      }
+      setEmailSent(true)
+      toast.success('Account aangemaakt! Controleer je e-mail om je account te bevestigen.')
     } catch (error: any) {
       toast.error(error.message || 'Er is iets misgegaan bij het aanmaken van je account.')
     } finally {
@@ -52,110 +48,127 @@ export default function SignUpPage() {
           </p>
         </div>
 
-        <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
-          <div className="space-y-4">
-            {/* Role Selection */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-3">
-                Ik ben een...
-              </label>
-              <div className="grid grid-cols-2 gap-3">
-                <button
-                  type="button"
-                  onClick={() => setFormData({ ...formData, role: 'instructor' })}
-                  className={`p-4 border-2 rounded-lg text-center transition-colors ${
-                    formData.role === 'instructor'
-                      ? 'border-blue-500 bg-blue-50 text-blue-700'
-                      : 'border-gray-300 hover:border-gray-400'
-                  }`}
-                >
-                  <div className="font-medium">Rijinstructeur</div>
-                  <div className="text-xs text-gray-500 mt-1">Ik geef rijles</div>
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setFormData({ ...formData, role: 'student' })}
-                  className={`p-4 border-2 rounded-lg text-center transition-colors ${
-                    formData.role === 'student'
-                      ? 'border-blue-500 bg-blue-50 text-blue-700'
-                      : 'border-gray-300 hover:border-gray-400'
-                  }`}
-                >
-                  <div className="font-medium">Leerling</div>
-                  <div className="text-xs text-gray-500 mt-1">Ik volg rijles</div>
-                </button>
-              </div>
-            </div>
-
-            {/* Email */}
-            <div>
-              <label htmlFor="email" className="block text-sm font-medium text-gray-700">
-                E-mailadres
-              </label>
-              <input
-                id="email"
-                name="email"
-                type="email"
-                autoComplete="email"
-                required
-                value={formData.email}
-                onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                placeholder="jouw@email.nl"
-              />
-            </div>
-
-            {/* Password */}
-            <div>
-              <label htmlFor="password" className="block text-sm font-medium text-gray-700">
-                Wachtwoord
-              </label>
-              <div className="mt-1 relative">
-                <input
-                  id="password"
-                  name="password"
-                  type={showPassword ? 'text' : 'password'}
-                  autoComplete="new-password"
-                  required
-                  value={formData.password}
-                  onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                  className="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 pr-10"
-                  placeholder="Minimaal 6 karakters"
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowPassword(!showPassword)}
-                  className="absolute inset-y-0 right-0 pr-3 flex items-center"
-                >
-                  {showPassword ? (
-                    <EyeOff className="h-5 w-5 text-gray-400" />
-                  ) : (
-                    <Eye className="h-5 w-5 text-gray-400" />
-                  )}
-                </button>
-              </div>
-            </div>
-          </div>
-
-          <div>
-            <button
-              type="submit"
-              disabled={loading}
-              className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              {loading ? 'Account aanmaken...' : 'Account aanmaken'}
-            </button>
-          </div>
-
-          <div className="text-center">
-            <p className="text-sm text-gray-600">
-              Heb je al een account?{' '}
-              <Link href="/auth/signin" className="font-medium text-blue-600 hover:text-blue-500">
-                Log in
-              </Link>
+        {emailSent ? (
+          <div className="bg-white rounded-lg shadow p-6 text-center">
+            <div className="text-2xl mb-2">📧</div>
+            <h3 className="text-lg font-semibold mb-2">Bevestig je e-mailadres</h3>
+            <p className="text-gray-700 mb-4">
+              We hebben een bevestigingsmail gestuurd naar <span className="font-semibold">{formData.email}</span>.<br />
+              Klik op de link in de e-mail om je account te activeren.
             </p>
+            <p className="text-gray-500 text-sm">
+              Geen e-mail ontvangen? Controleer je spamfolder of probeer het opnieuw.
+            </p>
+            <Link href="/auth/signin" className="mt-4 inline-block text-blue-600 hover:underline font-medium">
+              Naar inloggen
+            </Link>
           </div>
-        </form>
+        ) : (
+          <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
+            <div className="space-y-4">
+              {/* Role Selection */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-3">
+                  Ik ben een...
+                </label>
+                <div className="grid grid-cols-2 gap-3">
+                  <button
+                    type="button"
+                    onClick={() => setFormData({ ...formData, role: 'instructor' })}
+                    className={`p-4 border-2 rounded-lg text-center transition-colors ${
+                      formData.role === 'instructor'
+                        ? 'border-blue-500 bg-blue-50 text-blue-700'
+                        : 'border-gray-300 hover:border-gray-400'
+                    }`}
+                  >
+                    <div className="font-medium">Rijinstructeur</div>
+                    <div className="text-xs text-gray-500 mt-1">Ik geef rijles</div>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setFormData({ ...formData, role: 'student' })}
+                    className={`p-4 border-2 rounded-lg text-center transition-colors ${
+                      formData.role === 'student'
+                        ? 'border-blue-500 bg-blue-50 text-blue-700'
+                        : 'border-gray-300 hover:border-gray-400'
+                    }`}
+                  >
+                    <div className="font-medium">Leerling</div>
+                    <div className="text-xs text-gray-500 mt-1">Ik volg rijles</div>
+                  </button>
+                </div>
+              </div>
+
+              {/* Email */}
+              <div>
+                <label htmlFor="email" className="block text-sm font-medium text-gray-700">
+                  E-mailadres
+                </label>
+                <input
+                  id="email"
+                  name="email"
+                  type="email"
+                  autoComplete="email"
+                  required
+                  value={formData.email}
+                  onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                  className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                  placeholder="jouw@email.nl"
+                />
+              </div>
+
+              {/* Password */}
+              <div>
+                <label htmlFor="password" className="block text-sm font-medium text-gray-700">
+                  Wachtwoord
+                </label>
+                <div className="mt-1 relative">
+                  <input
+                    id="password"
+                    name="password"
+                    type={showPassword ? 'text' : 'password'}
+                    autoComplete="new-password"
+                    required
+                    value={formData.password}
+                    onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+                    className="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 pr-10"
+                    placeholder="Minimaal 6 karakters"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute inset-y-0 right-0 pr-3 flex items-center"
+                  >
+                    {showPassword ? (
+                      <EyeOff className="h-5 w-5 text-gray-400" />
+                    ) : (
+                      <Eye className="h-5 w-5 text-gray-400" />
+                    )}
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <div>
+              <button
+                type="submit"
+                disabled={loading}
+                className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {loading ? 'Account aanmaken...' : 'Account aanmaken'}
+              </button>
+            </div>
+
+            <div className="text-center">
+              <p className="text-sm text-gray-600">
+                Heb je al een account?{' '}
+                <Link href="/auth/signin" className="font-medium text-blue-600 hover:text-blue-500">
+                  Log in
+                </Link>
+              </p>
+            </div>
+          </form>
+        )}
 
         <div className="mt-6">
           <div className="relative">
