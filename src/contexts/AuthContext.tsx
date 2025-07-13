@@ -86,7 +86,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       // Check of student al gekoppeld is aan een user_id
       const { data: existingStudent, error: selectError } = await supabase
         .from('students')
-        .select('id')
+        .select('id, user_id')
         .eq('id', user.user_metadata.student_id)
         .single()
       
@@ -95,18 +95,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       }
       
       // Als student nog geen user_id heeft, koppel deze dan
-      // if (existingStudent && (!existingStudent.user_id || existingStudent.user_id === null)) {
-      //   const { error: updateError } = await supabase
-      //     .from('students')
-      //     .update({ user_id: user.id, email: user.email })
-      //     .eq('id', user.user_metadata.student_id)
+      if (existingStudent && (!existingStudent.user_id || existingStudent.user_id === null)) {
+        const { error: updateError } = await supabase
+          .from('students')
+          .update({ user_id: user.id, email: user.email })
+          .eq('id', user.user_metadata.student_id)
         
-      //   if (updateError) {
-      //     console.error('Kon student niet koppelen aan user_id bij eerste login:', updateError)
-      //   } else {
-      //     console.log('Student succesvol gekoppeld aan user_id:', user.id)
-      //   }
-      // }
+        if (updateError) {
+          console.error('Kon student niet koppelen aan user_id bij eerste login:', updateError)
+        } else {
+          console.log('Student succesvol gekoppeld aan user_id:', user.id)
+        }
+      }
     }
   }
 
@@ -154,7 +154,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       const { error: updateError } = await supabase
         .from('students')
         .update({ 
-          // user_id: data.user.id, 
+          user_id: data.user.id, 
           email: data.user.email 
         })
         .eq('id', student_id)

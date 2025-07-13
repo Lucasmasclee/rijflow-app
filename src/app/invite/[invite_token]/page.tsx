@@ -78,6 +78,14 @@ export default function InvitePage({ params }: { params: Promise<{ invite_token:
       await signUp(email, password, 'student', student.id)
       
       console.log('Registration completed successfully')
+      
+      // Log de gebruiker automatisch in na registratie
+      console.log('Auto-signing in user after registration...')
+      await supabase.auth.signInWithPassword({
+        email,
+        password,
+      })
+      
       setSuccess(true)
       
       // Redirect naar dashboard na korte delay

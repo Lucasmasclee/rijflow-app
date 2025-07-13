@@ -33,11 +33,26 @@ CREATE POLICY "Instructors can update their own students" ON students
 
 -- Policy for students to view their own data
 CREATE POLICY "Students can view their own data" ON students
-    FOR SELECT USING (auth.uid() = user_id);
+    FOR SELECT USING (
+        auth.uid() = user_id OR 
+        (auth.uid() IS NOT NULL AND 
+         id = (SELECT (user_metadata->>'student_id')::uuid FROM auth.users WHERE id = auth.uid()))
+    );
 
 -- Policy for students to update their own data
 CREATE POLICY "Students can update their own data" ON students
-    FOR UPDATE USING (auth.uid() = user_id);
+    FOR UPDATE USING (
+        auth.uid() = user_id OR 
+        (auth.uid() IS NOT NULL AND 
+         id = (SELECT (user_metadata->>'student_id')::uuid FROM auth.users WHERE id = auth.uid()))
+    );
+
+-- Policy for students to insert their own data (for registration)
+CREATE POLICY "Students can insert their own data" ON students
+    FOR INSERT WITH CHECK (
+        auth.uid() IS NOT NULL AND 
+        id = (SELECT (user_metadata->>'student_id')::uuid FROM auth.users WHERE id = auth.uid())
+    );
 
 -- Policy for anonymous users to view students by invite token (for invitation links)
 CREATE POLICY "Anonymous users can view students by invite token" ON students
@@ -62,10 +77,20 @@ ALTER TABLE student_availability ENABLE ROW LEVEL SECURITY;
 
 -- Policy: student mag eigen beschikbaarheid lezen/schrijven
 CREATE POLICY "Student can manage own availability" ON student_availability
-  FOR ALL USING (auth.uid() = student_id);
+  FOR ALL USING (
+    auth.uid() IN (
+      SELECT user_id 
+      FROM students 
+      WHERE id = student_availability.student_id
+    )
+  );
 
 -- Policy: instructeur mag beschikbaarheid van zijn leerlingen lezen
 CREATE POLICY "Instructor can view student availability" ON student_availability
   FOR SELECT USING (
-    auth.uid() IN (SELECT instructor_id FROM students WHERE id = student_availability.student_id)
+    auth.uid() IN (
+      SELECT instructor_id 
+      FROM students 
+      WHERE id = student_availability.student_id
+    )
   ); 

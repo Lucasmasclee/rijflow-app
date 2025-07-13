@@ -469,6 +469,7 @@ function StudentDashboard() {
   const [notes, setNotes] = useState<string[]>(Array(5).fill(''))
   const [loading, setLoading] = useState(true)
   const [savingIdx, setSavingIdx] = useState<number|null>(null)
+  const [studentId, setStudentId] = useState<string|null>(null)
   const { user } = useAuth()
 
   // Helper om weekbereik te tonen
@@ -477,17 +478,70 @@ function StudentDashboard() {
     return `${start.toLocaleDateString('nl-NL', options)} - ${end.toLocaleDateString('nl-NL', options)}`
   }
 
+  // Haal student ID op basis van user_id
+  useEffect(() => {
+    async function fetchStudentId() {
+      if (!user) return
+      
+      try {
+        console.log('Fetching student ID for user:', user.id)
+        
+        // Eerst proberen via user_id
+        const { data, error } = await supabase
+          .from('students')
+          .select('id')
+          .eq('user_id', user.id)
+          .single()
+        
+        if (error && error.code !== 'PGRST116') {
+          console.error('Error fetching student ID via user_id:', error)
+          
+          // Als dat niet werkt, probeer via student_id in user metadata
+          if (user.user_metadata?.student_id) {
+            console.log('Trying via student_id from metadata:', user.user_metadata.student_id)
+            
+            const { data: metadataData, error: metadataError } = await supabase
+              .from('students')
+              .select('id')
+              .eq('id', user.user_metadata.student_id)
+              .single()
+            
+            if (metadataError) {
+              console.error('Error fetching student ID via metadata:', metadataError)
+              return
+            }
+            
+            if (metadataData) {
+              console.log('Found student ID via metadata:', metadataData.id)
+              setStudentId(metadataData.id)
+            }
+          }
+          return
+        }
+        
+        if (data) {
+          console.log('Found student ID via user_id:', data.id)
+          setStudentId(data.id)
+        }
+      } catch (e) {
+        console.error('Error fetching student ID:', e)
+      }
+    }
+    
+    fetchStudentId()
+  }, [user])
+
   // Ophalen beschikbaarheid bij laden
   useEffect(() => {
     async function fetchAvailability() {
-      if (!user) return
+      if (!studentId) return
       setLoading(true)
       try {
         const weekStarts = weeks.map(w => w.start.toISOString().slice(0,10))
         const { data, error } = await supabase
           .from('student_availability')
           .select('week_start, notes')
-          .eq('student_id', user.id)
+          .eq('student_id', studentId)
           .in('week_start', weekStarts)
         if (error) throw error
         const notesArr = weeks.map(w => {
@@ -496,18 +550,18 @@ function StudentDashboard() {
         })
         setNotes(notesArr)
       } catch (e) {
-        // error afvangen
+        console.error('Error fetching availability:', e)
       } finally {
         setLoading(false)
       }
     }
     fetchAvailability()
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [user])
+  }, [studentId])
 
   // Opslaan van beschikbaarheid bij verlies van focus
   async function handleNoteSave(idx: number) {
-    if (!user) return
+    if (!studentId) return
     setSavingIdx(idx)
     try {
       const value = notes[idx]
@@ -516,7 +570,7 @@ function StudentDashboard() {
         .from('student_availability')
         .upsert([
           {
-            student_id: user.id,
+            student_id: studentId,
             week_start,
             notes: value,
             updated_at: new Date().toISOString(),
