@@ -52,9 +52,10 @@ Roosters maken (lesplanning):
 
 
 Als leerling inloggen:
-● Leerling kan inloggen met e-mail & wachtwoord (Supabase Auth)
-● Ziet alleen zijn/haar eigen profiel
-Chat met instructeur:
+✅● Leerling kan inloggen met e-mail & wachtwoord (Supabase Auth)
+✅● Ziet alleen zijn/haar eigen profiel
+
+Voor later:
 ● Ziet de chat met eigen instructeur
 ● Kan zelf berichten sturen
 
@@ -75,11 +76,14 @@ Ik ben nu hetvolgende proces aan het testen:
 2. Bevestigingsmail openen en account bevestigen✅
 3. Inloggen als rij-instructeur✅
 4. Een leerling aanmaken✅
-5. Een uitnodigingslink naar de leerling sturen
-6. De uitnodigingslink klikken, en een account aanmaken met email en wachtwoord
-7. Inloggen als leerling
+5. Een uitnodigingslink naar de leerling sturen✅
+6. De uitnodigingslink klikken, en een account aanmaken met email en wachtwoord✅
+7. Inloggen als leerling✅
 8. Beschikbaarheid invullen als leerling
-9. Checken of deze beschikbaarheid gezien kan worden door zowel instructeur als leerling
+9. Deze beschikbaarheid synchroniseren voor zowel instructeur als leerling
+
+App mooi maken en elke pagina checken
+App goed laten lijken op telefoon
 
 
 

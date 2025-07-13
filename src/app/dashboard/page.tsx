@@ -445,81 +445,61 @@ function InstructorDashboard() {
 }
 
 function StudentDashboard() {
-  const getWeekDays = () => {
-    const today = new Date()
-    const currentDay = today.getDay() // 0 = Sunday, 1 = Monday, etc.
-    const mondayOffset = currentDay === 0 ? -6 : 1 - currentDay // Adjust for Monday start
-    
-    const weekDays = []
-    for (let i = 0; i < 7; i++) {
-      const date = new Date(today)
-      date.setDate(today.getDate() + mondayOffset + i)
-      
-      const isToday = date.toDateString() === today.toDateString()
-      const dayName = date.toLocaleDateString('nl-NL', { weekday: 'short' })
-      const dayDate = date.toLocaleDateString('nl-NL', { day: '2-digit', month: '2-digit' })
-      
-      // TODO: Replace with actual lesson count from database
-      // For now, showing 0 lessons since user just registered
-      const lessons = 0
-      
-      weekDays.push({
-        name: dayName,
-        date: dayDate,
-        isToday,
-        lessons
-      })
+  // Helper om de maandag van een week te krijgen
+  function getMonday(d: Date) {
+    const date = new Date(d)
+    const day = date.getDay()
+    const diff = date.getDate() - day + (day === 0 ? -6 : 1)
+    return new Date(date.setDate(diff))
+  }
+
+  // Genereer 5 weekbereiken vanaf deze week
+  const weeks = Array.from({ length: 5 }, (_, i) => {
+    const monday = getMonday(new Date())
+    monday.setDate(monday.getDate() + i * 7)
+    const sunday = new Date(monday)
+    sunday.setDate(monday.getDate() + 6)
+    return {
+      start: new Date(monday),
+      end: new Date(sunday),
     }
-    
-    return weekDays
+  })
+
+  // State voor notities per week
+  const [notes, setNotes] = useState<string[]>(Array(5).fill(''))
+
+  // Helper om weekbereik te tonen
+  function formatWeekRange(start: Date, end: Date) {
+    const options: Intl.DateTimeFormatOptions = { day: 'numeric', month: 'long' }
+    return `${start.toLocaleDateString('nl-NL', options)} - ${end.toLocaleDateString('nl-NL', options)}`
   }
 
   return (
     <div className="bg-white rounded-lg shadow-sm">
       <div className="p-6 border-b border-gray-200">
-        <h2 className="text-lg font-semibold text-gray-900">Beschikbaarheid deze week</h2>
-        <p className="text-sm text-gray-600 mt-1">Overzicht van je geplande lessen</p>
+        <h2 className="text-lg font-semibold text-gray-900">Beschikbaarheid komende weken</h2>
+        <p className="text-sm text-gray-600 mt-1">Vul hieronder je beschikbaarheid per week in</p>
       </div>
-      <div className="p-6">
-        <div className="grid grid-cols-7 gap-4">
-          {getWeekDays().map((day, index) => (
-            <div key={index} className="text-center">
-              <div className={`p-4 rounded-lg border-2 ${
-                day.isToday 
-                  ? 'border-blue-500 bg-blue-50' 
-                  : 'border-gray-200 bg-gray-50'
-              }`}>
-                <p className={`text-sm font-medium ${
-                  day.isToday ? 'text-blue-700' : 'text-gray-600'
-                }`}>
-                  {day.name}
-                </p>
-                <p className={`text-xs ${
-                  day.isToday ? 'text-blue-600' : 'text-gray-500'
-                }`}>
-                  {day.date}
-                </p>
-                <div className="mt-2">
-                  <span className={`inline-flex items-center justify-center w-8 h-8 rounded-full text-sm font-bold ${
-                    day.lessons > 0 
-                      ? 'bg-blue-100 text-blue-700' 
-                      : 'bg-gray-100 text-gray-400'
-                  }`}>
-                    {day.lessons}
-                  </span>
-                </div>
-                <p className="text-xs text-gray-500 mt-1">
-                  {day.lessons > 0 ? 'les(sen)' : 'geen lessen'}
-                </p>
-              </div>
+      <div className="p-6 space-y-6">
+        {weeks.map((week, idx) => (
+          <div key={idx} className="flex flex-col md:flex-row md:items-center md:gap-6 border border-gray-200 rounded-lg p-4 bg-gray-50">
+            <div className="w-full md:w-1/3 mb-2 md:mb-0 font-medium text-gray-800">
+              Week {idx + 1}: {formatWeekRange(week.start, week.end)}
             </div>
-          ))}
-        </div>
-        <div className="mt-6 text-center">
-          <p className="text-gray-500 text-sm">
-            Neem contact op met je instructeur om lessen te plannen
-          </p>
-        </div>
+            <div className="flex-1">
+              <textarea
+                className="w-full min-h-[48px] border border-gray-300 rounded-lg p-2 text-sm bg-white"
+                placeholder="Beschikbaarheid voor deze week..."
+                value={notes[idx]}
+                onChange={e => {
+                  const newNotes = [...notes]
+                  newNotes[idx] = e.target.value
+                  setNotes(newNotes)
+                }}
+              />
+            </div>
+          </div>
+        ))}
       </div>
     </div>
   )
