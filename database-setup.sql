@@ -37,4 +37,8 @@ CREATE POLICY "Students can view their own data" ON students
 
 -- Policy for students to update their own data
 CREATE POLICY "Students can update their own data" ON students
-    FOR UPDATE USING (auth.uid() = user_id); 
+    FOR UPDATE USING (auth.uid() = user_id);
+
+-- Policy for anonymous users to view students by invite token (for invitation links)
+CREATE POLICY "Anonymous users can view students by invite token" ON students
+    FOR SELECT USING (invite_token IS NOT NULL); 

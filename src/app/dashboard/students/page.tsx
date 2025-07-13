@@ -270,7 +270,7 @@ export default function StudentsPage() {
                       Bekijk profiel
                     </Link>
                     <Link
-                      href={`/dashboard/chat/${student.id}`}
+                      href={`/dashboard/students/${student.id}`}
                       className="bg-gray-100 hover:bg-gray-200 text-gray-700 p-2 rounded-lg"
                     >
                       <MessageSquare className="h-4 w-4" />

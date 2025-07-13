@@ -116,8 +116,23 @@ export default function NewStudentPage() {
       }
 
       console.log('Student created successfully:', data)
+      
+      // Verify the student was actually saved by fetching it back
+      const { data: verifyData, error: verifyError } = await supabase
+        .from('students')
+        .select('*')
+        .eq('invite_token', invite_token)
+        .single()
+      
+      if (verifyError) {
+        console.error('Verification error:', verifyError)
+        toast.error('Leerling toegevoegd, maar er was een probleem met de verificatie.')
+      } else {
+        console.log('Student verified in database:', verifyData)
+        toast.success('Leerling succesvol toegevoegd!')
+      }
+      
       setInviteToken(invite_token)
-      toast.success('Leerling succesvol toegevoegd!')
       // router.push('/dashboard/students') // Niet direct redirecten
     } catch (error) {
       console.error('Error creating student:', error)
