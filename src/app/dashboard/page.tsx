@@ -505,16 +505,12 @@ function StudentDashboard() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user])
 
-  // Opslaan van beschikbaarheid bij wijziging
-  async function handleNoteChange(idx: number, value: string) {
+  // Opslaan van beschikbaarheid bij verlies van focus
+  async function handleNoteSave(idx: number) {
     if (!user) return
     setSavingIdx(idx)
-    setNotes(prev => {
-      const newArr = [...prev]
-      newArr[idx] = value
-      return newArr
-    })
     try {
+      const value = notes[idx]
       const week_start = weeks[idx].start.toISOString().slice(0,10)
       const { data: existing, error: fetchError } = await supabase
         .from('student_availability')
@@ -559,7 +555,8 @@ function StudentDashboard() {
                 className="w-full min-h-[48px] border border-gray-300 rounded-lg p-2 text-sm bg-white"
                 placeholder="Beschikbaarheid voor deze week..."
                 value={notes[idx]}
-                onChange={e => handleNoteChange(idx, e.target.value)}
+                onChange={e => setNotes(prev => { const newArr = [...prev]; newArr[idx] = e.target.value; return newArr })}
+                onBlur={() => handleNoteSave(idx)}
                 disabled={savingIdx === idx}
               />
               {savingIdx === idx && <div className="text-xs text-blue-500 mt-1">Opslaan...</div>}

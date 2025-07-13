@@ -76,7 +76,7 @@ export default function SignInPage() {
             <div className="space-y-4">
               {/* Email */}
               <div>
-                <label htmlFor="email" className="block text-sm font-medium text-gray-700">
+                <label htmlFor="email" className="block text-sm font-medium text-black-700">
                   E-mailadres
                 </label>
                 <input
