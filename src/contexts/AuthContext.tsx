@@ -49,9 +49,37 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       password,
     })
     if (error) throw error
-    // Extra logging for debugging
+    // Extra logging voor debugging
     console.log('user object:', data?.user)
     console.log('user metadata:', data?.user?.user_metadata)
+
+    // --- Instructeur toevoegen bij eerste login ---
+    const user = data?.user
+    if (user && user.user_metadata?.role === 'instructor') {
+      // Check of instructeur al bestaat
+      const { data: existing, error: selectError } = await supabase
+        .from('instructors')
+        .select('id')
+        .eq('id', user.id)
+        .single()
+      if (selectError && selectError.code !== 'PGRST116') {
+        // Alleen loggen als het een andere error is dan 'not found'
+        console.error('Fout bij check op bestaande instructeur:', selectError)
+      }
+      if (!existing) {
+        // Voeg toe aan instructors-tabel
+        const { error: insertError } = await supabase.from('instructors').insert([
+          {
+            id: user.id,
+            email: user.email,
+            // Voeg hier eventueel default values toe voor name, location, etc.
+          }
+        ])
+        if (insertError) {
+          console.error('Kon instructeur niet toevoegen aan instructors-tabel bij eerste login:', insertError)
+        }
+      }
+    }
   }
 
   const signUp = async (email: string, password: string, role: 'instructor' | 'student') => {
