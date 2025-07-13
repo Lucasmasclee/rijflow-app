@@ -79,8 +79,14 @@ Ik ben nu hetvolgende proces aan het testen:
 5. Een uitnodigingslink naar de leerling sturen✅
 6. De uitnodigingslink klikken, en een account aanmaken met email en wachtwoord✅
 7. Inloggen als leerling✅
-8. Beschikbaarheid invullen als leerling
+8. Beschikbaarheid invullen als leerling✅
 9. Deze beschikbaarheid synchroniseren voor zowel instructeur als leerling
+
+Glitches:
+Op Macbook: bij inloggen is de tekst soms wit
+Op Macbook: beschikbaarheid invullen in student dashboard tekst is wit
+Als leerling uitnodigingslink klikt en email en wachtwoord aanmaakt, moet hij een scherm te zien krijgen met "Bevestig je account in email"
+Leerling beschikbaarheid wordt niet opgeslagen 
 
 App mooi maken en elke pagina checken
 App goed laten lijken op telefoon

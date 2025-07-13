@@ -89,8 +89,7 @@ export default function NewStudentPage() {
         address: formData.address,
         notes: formData.notes,
         instructor_id: user.id,
-        invite_token,
-        user_id: null
+        invite_token
       }
 
       console.log('Attempting to insert student:', newStudent)
