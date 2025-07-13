@@ -2,6 +2,13 @@
 import { useRouter } from 'next/navigation'
 import { useState, useEffect } from 'react'
 import { supabase } from '@/lib/supabase'
+import { createClient } from '@supabase/supabase-js'
+
+// Create a service role client for invite lookups (bypasses RLS)
+const supabaseService = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+)
 
 export default function InvitePage({ params }: { params: Promise<{ invite_token: string }> }) {
   const router = useRouter()
@@ -45,31 +52,60 @@ export default function InvitePage({ params }: { params: Promise<{ invite_token:
       
       console.log('Column check result:', { columnCheck, columnError })
       
-      // Now try to find the student
-      const { data, error } = await supabase
+      // Try a different approach - get all students and filter client-side
+      console.log('Trying alternative approach...')
+      const { data: allStudents, error: allStudentsError } = await supabaseService
         .from('students')
         .select('*')
-        .eq('invite_token', inviteToken)
-        .single()
       
-      console.log('Student lookup result:', { data, error })
+      console.log('All students query result:', { allStudents, allStudentsError })
       
-      if (columnError) {
-        console.error('Column error - invite_token might not exist:', columnError)
-        setError(`Database kolom 'invite_token' bestaat niet. Neem contact op met de beheerder.`)
-      } else if (error) {
-        console.error('Database error:', error)
-        if (error.code === 'PGRST116') {
-          setError('Ongeldige of verlopen uitnodiging.')
-        } else {
-          setError(`Database fout: ${error.message}`)
+      if (allStudentsError) {
+        console.error('Error fetching all students:', allStudentsError)
+        
+        // Fallback: try direct invite token lookup
+        console.log('Trying direct invite token lookup...')
+        const { data: directResult, error: directError } = await supabaseService
+          .from('students')
+          .select('*')
+          .eq('invite_token', inviteToken)
+          .single()
+        
+        console.log('Direct lookup result:', { directResult, directError })
+        
+        if (directError) {
+          setError(`Database fout: ${directError.message}`)
+          return
         }
-      } else if (!data) {
-        console.log('No student found with this invite token')
-        setError('Ongeldige of verlopen uitnodiging.')
+        
+        if (directResult) {
+          console.log('Found student via direct lookup:', directResult)
+          setStudent(directResult)
+          return
+        } else {
+          setError('Ongeldige of verlopen uitnodiging.')
+          return
+        }
+      }
+      
+      if (allStudents && allStudents.length > 0) {
+        console.log('Found students in database:', allStudents.length)
+        console.log('Students:', allStudents)
+        
+        // Find the student with matching invite token
+        const foundStudent = allStudents.find(student => student.invite_token === inviteToken)
+        
+        if (foundStudent) {
+          console.log('Found matching student:', foundStudent)
+          setStudent(foundStudent)
+        } else {
+          console.log('No student found with invite token:', inviteToken)
+          console.log('Available invite tokens:', allStudents.map(s => s.invite_token))
+          setError('Ongeldige of verlopen uitnodiging.')
+        }
       } else {
-        console.log('Student found:', data)
-        setStudent(data)
+        console.log('No students found in database')
+        setError('Geen studenten gevonden in de database.')
       }
     }
     fetchStudent()
