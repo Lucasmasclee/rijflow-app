@@ -7,6 +7,7 @@ import { ArrowLeft, Save, User, Mail, Phone, MapPin } from 'lucide-react'
 import Link from 'next/link'
 import toast from 'react-hot-toast'
 import { supabase } from '@/lib/supabase'
+import { v4 as uuidv4 } from 'uuid';
 
 export default function NewStudentPage() {
   const { user, loading } = useAuth()
@@ -20,6 +21,7 @@ export default function NewStudentPage() {
     address: '',
     notes: ''
   })
+  const [inviteToken, setInviteToken] = useState<string | null>(null)
 
   useEffect(() => {
     if (!loading && !user) {
@@ -37,6 +39,8 @@ export default function NewStudentPage() {
         return
       }
 
+      // Genereer unieke invite_token
+      const invite_token = uuidv4();
       // Create new student object for database
       const newStudent = {
         first_name: formData.first_name,
@@ -46,7 +50,8 @@ export default function NewStudentPage() {
         address: formData.address,
         notes: formData.notes,
         instructor_id: user.id,
-        rijschool_id: user.id // For now, using user.id as rijschool_id
+        invite_token,
+        user_id: null
       }
 
       const { data, error } = await supabase
@@ -63,8 +68,9 @@ export default function NewStudentPage() {
         return
       }
 
+      setInviteToken(invite_token)
       toast.success('Leerling succesvol toegevoegd!')
-      router.push('/dashboard/students')
+      // router.push('/dashboard/students') // Niet direct redirecten
     } catch (error) {
       console.error('Error creating student:', error)
       toast.error('Er is iets misgegaan bij het toevoegen van de leerling.')
@@ -93,6 +99,46 @@ export default function NewStudentPage() {
 
   if (!user) {
     return null
+  }
+
+  if (inviteToken) {
+    const inviteUrl = `${window.location.origin}/invite/${inviteToken}`
+    return (
+      <div className="max-w-xl mx-auto mt-16 bg-white rounded-lg shadow p-8 text-center">
+        <h2 className="text-2xl font-bold mb-4">Leerling toegevoegd!</h2>
+        <p className="mb-4">Stuur deze uitnodigingslink naar de leerling:</p>
+        <div className="mb-4">
+          <input
+            type="text"
+            value={inviteUrl}
+            readOnly
+            className="w-full px-3 py-2 border rounded text-center font-mono"
+            onFocus={e => e.target.select()}
+          />
+        </div>
+        <button
+          className="bg-blue-600 text-white px-4 py-2 rounded mr-2"
+          onClick={() => {navigator.clipboard.writeText(inviteUrl); toast.success('Link gekopieerd!')}}
+        >
+          Kopieer link
+        </button>
+        <a
+          className="bg-green-600 text-white px-4 py-2 rounded mr-2"
+          href={`mailto:${formData.email}?subject=Uitnodiging RijFlow&body=Klik op deze link om je account te activeren: ${inviteUrl}`}
+        >
+          Verstuur e-mail
+        </a>
+        <a
+          className="bg-purple-600 text-white px-4 py-2 rounded"
+          href={`sms:${formData.phone}?body=Je bent uitgenodigd voor RijFlow! Klik op deze link om je account te activeren: ${inviteUrl}`}
+        >
+          Verstuur sms
+        </a>
+        <div className="mt-8">
+          <Link href="/dashboard/students" className="text-blue-700 underline">Terug naar leerlingenoverzicht</Link>
+        </div>
+      </div>
+    )
   }
 
   return (

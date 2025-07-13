@@ -6,13 +6,12 @@ export interface User {
   role: 'instructor' | 'student'
 }
 
-export interface Rijschool {
+export interface Instructeur {
   id: string
   name: string
   location: string
   kvk_number: string
   logo_url?: string
-  instructor_id: string
   created_at: string
   updated_at: string
 }
@@ -26,7 +25,7 @@ export interface Student {
   address: string
   notes?: string
   instructor_id: string
-  rijschool_id: string
+  instructeur_id: string
   created_at: string
   updated_at: string
 }

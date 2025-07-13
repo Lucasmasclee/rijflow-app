@@ -7,6 +7,7 @@ import { supabase } from '@/lib/supabase'
 interface AuthContextType {
   user: User | null
   loading: boolean
+  mounted: boolean
   signIn: (email: string, password: string) => Promise<void>
   signUp: (email: string, password: string, role: 'instructor' | 'student') => Promise<void>
   signOut: () => Promise<void>
@@ -17,8 +18,11 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined)
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null)
   const [loading, setLoading] = useState(true)
+  const [mounted, setMounted] = useState(false)
 
   useEffect(() => {
+    setMounted(true)
+    
     // Get initial session
     const getSession = async () => {
       const { data: { session } } = await supabase.auth.getSession()
@@ -45,43 +49,71 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       password,
     })
     if (error) throw error
-    // Na succesvolle login: check of user in users-tabel staat, zo niet: voeg toe
+    // Extra logging
+    console.log('user object:', data?.user)
+    console.log('user metadata:', data?.user?.user_metadata)
+    // Fallback voor rol
     const userId = data?.user?.id
+    const userRole = data?.user?.user_metadata?.role || data?.user?.role || null
     console.log('userId:', userId)
+    console.log('userRole:', userRole)
     if (userId) {
       const { data: userRows, error: userSelectError } = await supabase
         .from('users')
         .select('id')
         .eq('id', userId)
         .limit(1)
-      if (userSelectError) throw userSelectError
+      if (userSelectError) {
+        console.error('User select error:', userSelectError)
+        throw userSelectError
+      }
       if (!userRows || userRows.length === 0) {
         // Voeg toe aan users-tabel
-        const insertData = { id: userId, email, role: data?.user?.user_metadata?.role }
-        console.log('insert data:', insertData)
+        const insertData = { id: userId, email, role: userRole }
+        console.log('Inserting into users:', insertData)
         const { error: insertError } = await supabase
           .from('users')
           .insert([insertData])
         if (insertError) {
-          console.error('Insert error:', insertError)
+          console.error('Insert error (users):', insertError)
           throw insertError
+        }
+      }
+      // Voeg toe aan instructeurs-tabel als rol 'instructor' en nog niet aanwezig
+      if (userRole === 'instructor') {
+        const { data: instrRows, error: instrSelectError } = await supabase
+          .from('instructeurs')
+          .select('id')
+          .eq('id', userId)
+          .limit(1)
+        if (instrSelectError) {
+          console.error('Instructeur select error:', instrSelectError)
+          throw instrSelectError
+        }
+        if (!instrRows || instrRows.length === 0) {
+          console.log('Inserting into instructeurs:', { id: userId, email })
+          const { error: insertInstrError } = await supabase
+            .from('instructeurs')
+            .insert([{ id: userId, email }])
+          if (insertInstrError) {
+            console.error('Insert error (instructeurs):', insertInstrError)
+            throw insertInstrError
+          }
         }
       }
     }
   }
 
   const signUp = async (email: string, password: string, role: 'instructor' | 'student') => {
-    // Alleen registreren, geen insert meer in users-tabel
-    const { error: signUpError } = await supabase.auth.signUp({
+    const { data, error: signUpError } = await supabase.auth.signUp({
       email,
       password,
       options: {
-        data: {
-          role,
-        },
+        data: { role },
       },
     })
     if (signUpError) throw signUpError
+    // Geen insert meer in instructeurs-tabel hier
   }
 
   const signOut = async () => {
@@ -90,7 +122,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }
 
   return (
-    <AuthContext.Provider value={{ user, loading, signIn, signUp, signOut }}>
+    <AuthContext.Provider value={{ user, loading, mounted, signIn, signUp, signOut }}>
       {children}
     </AuthContext.Provider>
   )
@@ -103,6 +135,7 @@ export function useAuth() {
     return {
       user: null,
       loading: false,
+      mounted: false,
       signIn: async () => {},
       signUp: async () => {},
       signOut: async () => {}

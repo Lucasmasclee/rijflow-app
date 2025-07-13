@@ -29,7 +29,7 @@ interface StudentWithScheduleData extends Student {
 }
 
 export default function AISchedulePage() {
-  const { user, loading } = useAuth()
+  const { user, loading, mounted } = useAuth()
   const [currentStep, setCurrentStep] = useState<Step>('instructor')
   const [currentStudentIndex, setCurrentStudentIndex] = useState(0)
   const [loadingStudents, setLoadingStudents] = useState(true)
@@ -95,17 +95,17 @@ export default function AISchedulePage() {
   }
 
   useEffect(() => {
-    if (user && !loading) {
+    if (user && !loading && mounted) {
       fetchInstructorAvailability()
     }
-  }, [user, loading])
+  }, [user, loading, mounted])
 
   // Fetch students when user is available
   useEffect(() => {
-    if (user && !loading) {
+    if (user && !loading && mounted) {
       fetchStudents()
     }
-  }, [user, loading])
+  }, [user, loading, mounted])
 
   // Fetch students from database
   const fetchStudents = async () => {
@@ -323,7 +323,7 @@ export default function AISchedulePage() {
   }
 
   // Show loading state
-  if (loading || loadingStudents) {
+  if (!mounted || loading || loadingStudents) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
@@ -334,8 +334,8 @@ export default function AISchedulePage() {
     )
   }
 
-  // Show empty state if no students
-  if (students.length === 0) {
+  // Show empty state if no students and component is mounted
+  if (mounted && students.length === 0) {
     return (
       <div className="min-h-screen bg-gray-50">
         <nav className="bg-white shadow-sm border-b">
