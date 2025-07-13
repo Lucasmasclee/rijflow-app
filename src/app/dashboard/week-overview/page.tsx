@@ -17,6 +17,7 @@ import {
   Settings
 } from 'lucide-react'
 import Link from 'next/link'
+import { supabase } from '@/lib/supabase'
 
 function getMonday(date: Date) {
   const d = new Date(date)
@@ -38,26 +39,65 @@ export default function WeekOverviewPage() {
   const [showAddLesson, setShowAddLesson] = useState(false)
   const [availability, setAvailability] = useState<any[]>([])
 
+  // Fetch instructor availability from database
+  const fetchAvailability = async () => {
+    if (!user) return
+    
+    try {
+      const { data, error } = await supabase
+        .from('instructor_availability')
+        .select('*')
+        .eq('instructor_id', user.id)
+
+      if (error) {
+        console.error('Error fetching availability:', error)
+        return
+      }
+
+      // Transform database data to UI format
+      if (data && data.length > 0) {
+        const dayNames = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday']
+        const dayDisplayNames = ['Zondag', 'Maandag', 'Dinsdag', 'Woensdag', 'Donderdag', 'Vrijdag', 'Zaterdag']
+        
+        const dbAvailability = data.reduce((acc, item) => {
+          const dayName = dayNames[item.day_of_week]
+          if (dayName) {
+            acc[dayName] = item.available
+          }
+          return acc
+        }, {} as Record<string, boolean>)
+
+        const availabilityData = dayNames.map((day, index) => ({
+          day,
+          name: dayDisplayNames[index],
+          available: dbAvailability[day] ?? (index >= 1 && index <= 5) // Default: weekdays available
+        }))
+
+        setAvailability(availabilityData)
+      } else {
+        // Default availability if no data in database
+        setAvailability([
+          { day: 'monday', name: 'Maandag', available: true },
+          { day: 'tuesday', name: 'Dinsdag', available: true },
+          { day: 'wednesday', name: 'Woensdag', available: true },
+          { day: 'thursday', name: 'Donderdag', available: true },
+          { day: 'friday', name: 'Vrijdag', available: true },
+          { day: 'saturday', name: 'Zaterdag', available: false },
+          { day: 'sunday', name: 'Zondag', available: false }
+        ])
+      }
+    } catch (error) {
+      console.error('Error fetching availability:', error)
+    }
+  }
+
   useEffect(() => {
     if (!loading && !user) {
       router.push('/auth/signin')
     }
     
-    // Load instructor availability from localStorage
-    const savedAvailability = localStorage.getItem('instructorAvailability')
-    if (savedAvailability) {
-      setAvailability(JSON.parse(savedAvailability))
-    } else {
-      // Default availability (weekdays available, weekend not)
-      setAvailability([
-        { day: 'monday', name: 'Maandag', available: true },
-        { day: 'tuesday', name: 'Dinsdag', available: true },
-        { day: 'wednesday', name: 'Woensdag', available: true },
-        { day: 'thursday', name: 'Donderdag', available: true },
-        { day: 'friday', name: 'Vrijdag', available: true },
-        { day: 'saturday', name: 'Zaterdag', available: false },
-        { day: 'sunday', name: 'Zondag', available: false }
-      ])
+    if (user && !loading) {
+      fetchAvailability()
     }
   }, [user, loading, router])
 

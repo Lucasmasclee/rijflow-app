@@ -19,6 +19,8 @@ import {
   X
 } from 'lucide-react'
 import Link from 'next/link'
+import { supabase } from '@/lib/supabase'
+import { Student } from '@/types/database'
 
 export default function DashboardPage() {
   const { user, signOut, loading } = useAuth()
@@ -171,18 +173,40 @@ export default function DashboardPage() {
 }
 
 function InstructorDashboard() {
-  const [students, setStudents] = useState<any[]>([])
+  const { user } = useAuth()
+  const [students, setStudents] = useState<Student[]>([])
+  const [loadingStudents, setLoadingStudents] = useState(true)
+
+  // Fetch students from database
+  const fetchStudents = async () => {
+    if (!user) return
+    
+    try {
+      setLoadingStudents(true)
+      const { data, error } = await supabase
+        .from('students')
+        .select('*')
+        .eq('instructor_id', user.id)
+        .order('first_name', { ascending: true })
+
+      if (error) {
+        console.error('Error fetching students:', error)
+        return
+      }
+
+      setStudents(data || [])
+    } catch (error) {
+      console.error('Error fetching students:', error)
+    } finally {
+      setLoadingStudents(false)
+    }
+  }
 
   useEffect(() => {
-    // Load students from localStorage
-    const savedStudents = localStorage.getItem('students')
-    if (savedStudents) {
-      setStudents(JSON.parse(savedStudents))
-    } else {
-      // Set empty array if no students
-      setStudents([])
+    if (user) {
+      fetchStudents()
     }
-  }, [])
+  }, [user])
 
   const getWeekDays = () => {
     const today = new Date()

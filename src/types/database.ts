@@ -24,6 +24,7 @@ export interface Student {
   email: string
   phone: string
   address: string
+  notes?: string
   instructor_id: string
   rijschool_id: string
   created_at: string
@@ -70,6 +71,17 @@ export interface Availability {
   day_of_week: number // 0-6 (Sunday-Saturday)
   start_time: string
   end_time: string
+  created_at: string
+  updated_at: string
+}
+
+export interface InstructorAvailability {
+  id: string
+  instructor_id: string
+  day_of_week: number // 0-6 (Sunday-Saturday)
+  available: boolean
+  start_time?: string
+  end_time?: string
   created_at: string
   updated_at: string
 } 

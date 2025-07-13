@@ -6,6 +6,7 @@ import { useEffect, useState } from 'react'
 import { ArrowLeft, Save, User, Mail, Phone, MapPin } from 'lucide-react'
 import Link from 'next/link'
 import toast from 'react-hot-toast'
+import { supabase } from '@/lib/supabase'
 
 export default function NewStudentPage() {
   const { user, loading } = useAuth()
@@ -31,31 +32,38 @@ export default function NewStudentPage() {
     setSaving(true)
 
     try {
-      // Create new student object
-      const newStudent = {
-        id: Date.now().toString(), // Simple ID generation
-        ...formData,
-        created_at: new Date().toISOString().split('T')[0],
-        lessons_count: 0,
-        last_lesson: undefined
+      if (!user) {
+        toast.error('Je bent niet ingelogd')
+        return
       }
 
-      // Get existing students from localStorage
-      const existingStudents = localStorage.getItem('students')
-      const students = existingStudents ? JSON.parse(existingStudents) : []
-      
-      // Add new student
-      students.push(newStudent)
-      
-      // Save back to localStorage
-      localStorage.setItem('students', JSON.stringify(students))
-      
-      // Simulate API call delay
-      await new Promise(resolve => setTimeout(resolve, 1000))
-      
+      // Create new student object for database
+      const newStudent = {
+        first_name: formData.first_name,
+        last_name: formData.last_name,
+        email: formData.email,
+        phone: formData.phone,
+        address: formData.address,
+        notes: formData.notes,
+        instructor_id: user.id,
+        rijschool_id: user.id // For now, using user.id as rijschool_id
+      }
+
+      const { data, error } = await supabase
+        .from('students')
+        .insert([newStudent])
+        .select()
+
+      if (error) {
+        console.error('Error creating student:', error)
+        toast.error('Fout bij het toevoegen van de leerling')
+        return
+      }
+
       toast.success('Leerling succesvol toegevoegd!')
       router.push('/dashboard/students')
     } catch (error) {
+      console.error('Error creating student:', error)
       toast.error('Er is iets misgegaan bij het toevoegen van de leerling.')
     } finally {
       setSaving(false)

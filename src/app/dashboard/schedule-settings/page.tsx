@@ -11,6 +11,9 @@ import {
   Check
 } from 'lucide-react'
 import Link from 'next/link'
+import { supabase } from '@/lib/supabase'
+import { InstructorAvailability } from '@/types/database'
+import toast from 'react-hot-toast'
 
 interface DayAvailability {
   day: string
@@ -31,16 +34,64 @@ export default function ScheduleSettingsPage() {
     { day: 'sunday', name: 'Zondag', available: false }
   ])
   const [saved, setSaved] = useState(false)
+  const [loadingAvailability, setLoadingAvailability] = useState(true)
+
+  // Map day names to day numbers (0-6, Sunday-Saturday)
+  const dayToNumber = {
+    'sunday': 0,
+    'monday': 1,
+    'tuesday': 2,
+    'wednesday': 3,
+    'thursday': 4,
+    'friday': 5,
+    'saturday': 6
+  }
+
+  // Fetch availability from database
+  const fetchAvailability = async () => {
+    if (!user) return
+    
+    try {
+      setLoadingAvailability(true)
+      const { data, error } = await supabase
+        .from('instructor_availability')
+        .select('*')
+        .eq('instructor_id', user.id)
+
+      if (error) {
+        console.error('Error fetching availability:', error)
+        return
+      }
+
+      // Transform database data to UI format
+      if (data && data.length > 0) {
+        const dbAvailability = data.reduce((acc, item) => {
+          const dayName = Object.keys(dayToNumber).find(key => dayToNumber[key as keyof typeof dayToNumber] === item.day_of_week)
+          if (dayName) {
+            acc[dayName] = item.available
+          }
+          return acc
+        }, {} as Record<string, boolean>)
+
+        setAvailability(prev => prev.map(day => ({
+          ...day,
+          available: dbAvailability[day.day] ?? day.available
+        })))
+      }
+    } catch (error) {
+      console.error('Error fetching availability:', error)
+    } finally {
+      setLoadingAvailability(false)
+    }
+  }
 
   useEffect(() => {
     if (!loading && !user) {
       router.push('/auth/signin')
     }
     
-    // Load saved availability from localStorage
-    const savedAvailability = localStorage.getItem('instructorAvailability')
-    if (savedAvailability) {
-      setAvailability(JSON.parse(savedAvailability))
+    if (user && !loading) {
+      fetchAvailability()
     }
   }, [user, loading, router])
 
@@ -54,17 +105,54 @@ export default function ScheduleSettingsPage() {
     )
   }
 
-  const saveAvailability = () => {
-    localStorage.setItem('instructorAvailability', JSON.stringify(availability))
-    setSaved(true)
-    setTimeout(() => setSaved(false), 2000)
+  const saveAvailability = async () => {
+    if (!user) return
+    
+    try {
+      // Convert UI format to database format
+      const availabilityData = availability.map(day => ({
+        instructor_id: user.id,
+        day_of_week: dayToNumber[day.day as keyof typeof dayToNumber],
+        available: day.available
+      }))
+
+      // Delete existing availability for this instructor
+      const { error: deleteError } = await supabase
+        .from('instructor_availability')
+        .delete()
+        .eq('instructor_id', user.id)
+
+      if (deleteError) {
+        console.error('Error deleting existing availability:', deleteError)
+        toast.error('Fout bij het opslaan van beschikbaarheid')
+        return
+      }
+
+      // Insert new availability
+      const { error: insertError } = await supabase
+        .from('instructor_availability')
+        .insert(availabilityData)
+
+      if (insertError) {
+        console.error('Error inserting availability:', insertError)
+        toast.error('Fout bij het opslaan van beschikbaarheid')
+        return
+      }
+
+      setSaved(true)
+      toast.success('Beschikbaarheid succesvol opgeslagen!')
+      setTimeout(() => setSaved(false), 2000)
+    } catch (error) {
+      console.error('Error saving availability:', error)
+      toast.error('Fout bij het opslaan van beschikbaarheid')
+    }
   }
 
   const getAvailableDaysCount = () => {
     return availability.filter(day => day.available).length
   }
 
-  if (loading) {
+  if (loading || loadingAvailability) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">

@@ -18,16 +18,10 @@ import {
 } from 'lucide-react'
 import Link from 'next/link'
 import toast from 'react-hot-toast'
+import { supabase } from '@/lib/supabase'
+import { Student } from '@/types/database'
 
-interface Student {
-  id: string
-  first_name: string
-  last_name: string
-  email: string
-  phone: string
-  address: string
-  notes: string
-  created_at: string
+interface StudentWithStats extends Student {
   lessons_count: number
   last_lesson?: string
 }
@@ -35,57 +29,45 @@ interface Student {
 export default function StudentsPage() {
   const { user, loading } = useAuth()
   const router = useRouter()
-  const [students, setStudents] = useState<Student[]>([])
+  const [students, setStudents] = useState<StudentWithStats[]>([])
+  const [loadingStudents, setLoadingStudents] = useState(true)
   const [searchTerm, setSearchTerm] = useState('')
   const [filterStatus, setFilterStatus] = useState('all')
   const [deleteModalStudentId, setDeleteModalStudentId] = useState<string|null>(null)
   const [deleteModalStudentName, setDeleteModalStudentName] = useState<string>('')
 
-  // Load students from localStorage or use mock data
-  const loadStudents = () => {
-    const savedStudents = localStorage.getItem('students')
-    if (savedStudents) {
-      return JSON.parse(savedStudents)
-    }
-    // Return mock data if no saved students
-    return [
-      {
-        id: '1',
-        first_name: 'Jan',
-        last_name: 'Jansen',
-        email: 'jan.jansen@email.nl',
-        phone: '06-12345678',
-        address: 'Hoofdstraat 1, Amsterdam',
-        notes: 'Goede voortgang met parkeren. Moet nog meer oefenen met kijkgedrag in drukke straten.',
-        created_at: '2024-01-15',
-        lessons_count: 12,
-        last_lesson: '2024-01-20'
-      },
-      {
-        id: '2',
-        first_name: 'Piet',
-        last_name: 'Pietersen',
-        email: 'piet.pietersen@email.nl',
-        phone: '06-87654321',
-        address: 'Kerkstraat 15, Rotterdam',
-        notes: 'Nieuwe leerling, eerste les gepland voor volgende week. Heeft al enige ervaring met autorijden.',
-        created_at: '2024-01-10',
-        lessons_count: 8,
-        last_lesson: '2024-01-18'
-      },
-      {
-        id: '3',
-        first_name: 'Marie',
-        last_name: 'de Vries',
-        email: 'marie.devries@email.nl',
-        phone: '06-11223344',
-        address: 'Schoolstraat 8, Utrecht',
-        notes: 'Zeer gemotiveerde leerling. Heeft moeite met parallel parkeren maar maakt goede vorderingen. Theorie-examen behaald.',
-        created_at: '2024-01-05',
-        lessons_count: 15,
-        last_lesson: '2024-01-19'
+  // Fetch students from database
+  const fetchStudents = async () => {
+    if (!user) return
+    
+    try {
+      setLoadingStudents(true)
+      const { data, error } = await supabase
+        .from('students')
+        .select('*')
+        .eq('instructor_id', user.id)
+        .order('first_name', { ascending: true })
+
+      if (error) {
+        console.error('Error fetching students:', error)
+        toast.error('Fout bij het laden van leerlingen')
+        return
       }
-    ]
+
+      // Transform students to include stats (for now, we'll add these later)
+      const studentsWithStats: StudentWithStats[] = (data || []).map(student => ({
+        ...student,
+        lessons_count: 0, // TODO: Calculate from lessons table
+        last_lesson: undefined // TODO: Get from lessons table
+      }))
+
+      setStudents(studentsWithStats)
+    } catch (error) {
+      console.error('Error fetching students:', error)
+      toast.error('Fout bij het laden van leerlingen')
+    } finally {
+      setLoadingStudents(false)
+    }
   }
 
   useEffect(() => {
@@ -94,11 +76,12 @@ export default function StudentsPage() {
     }
   }, [user, loading, router])
 
-  // Load students on component mount
+  // Fetch students when user is available
   useEffect(() => {
-    const loadedStudents = loadStudents()
-    setStudents(loadedStudents)
-  }, [])
+    if (user && !loading) {
+      fetchStudents()
+    }
+  }, [user, loading])
 
   const filteredStudents = students.filter(student => {
     const matchesSearch = student.first_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -117,14 +100,25 @@ export default function StudentsPage() {
     setDeleteModalStudentName(studentName)
   }
 
-  const confirmDeleteStudent = () => {
+  const confirmDeleteStudent = async () => {
     if (!deleteModalStudentId) return
     try {
-      const updatedStudents = students.filter(student => student.id !== deleteModalStudentId)
-      localStorage.setItem('students', JSON.stringify(updatedStudents))
-      setStudents(updatedStudents)
+      const { error } = await supabase
+        .from('students')
+        .delete()
+        .eq('id', deleteModalStudentId)
+
+      if (error) {
+        console.error('Error deleting student:', error)
+        toast.error('Fout bij het verwijderen van de leerling')
+        return
+      }
+
+      // Update local state
+      setStudents(prev => prev.filter(student => student.id !== deleteModalStudentId))
       toast.success('Leerling succesvol verwijderd!')
     } catch (error) {
+      console.error('Error deleting student:', error)
       toast.error('Er is iets misgegaan bij het verwijderen van de leerling.')
     }
     setDeleteModalStudentId(null)
@@ -136,7 +130,7 @@ export default function StudentsPage() {
     setDeleteModalStudentName('')
   }
 
-  if (loading) {
+  if (loading || loadingStudents) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
