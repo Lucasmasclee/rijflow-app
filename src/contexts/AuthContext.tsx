@@ -48,16 +48,38 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }
 
   const signUp = async (email: string, password: string, role: 'instructor' | 'student') => {
-    const { error } = await supabase.auth.signUp({
-      email,
-      password,
-      options: {
-        data: {
-          role,
+    if (role === 'instructor') {
+      // For instructors, sign up and immediately sign in
+      const { error: signUpError } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          data: {
+            role,
+          },
         },
-      },
-    })
-    if (error) throw error
+      })
+      if (signUpError) throw signUpError
+
+      // Immediately sign in
+      const { error: signInError } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      })
+      if (signInError) throw signInError
+    } else {
+      // For students, just sign up (requires email confirmation)
+      const { error } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          data: {
+            role,
+          },
+        },
+      })
+      if (error) throw error
+    }
   }
 
   const signOut = async () => {

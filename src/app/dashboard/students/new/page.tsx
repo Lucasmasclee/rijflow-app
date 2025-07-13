@@ -16,7 +16,8 @@ export default function NewStudentPage() {
     last_name: '',
     email: '',
     phone: '',
-    address: ''
+    address: '',
+    notes: ''
   })
 
   useEffect(() => {
@@ -30,10 +31,26 @@ export default function NewStudentPage() {
     setSaving(true)
 
     try {
-      // In a real app, this would save to Supabase
-      console.log('Saving student:', formData)
+      // Create new student object
+      const newStudent = {
+        id: Date.now().toString(), // Simple ID generation
+        ...formData,
+        created_at: new Date().toISOString().split('T')[0],
+        lessons_count: 0,
+        last_lesson: undefined
+      }
+
+      // Get existing students from localStorage
+      const existingStudents = localStorage.getItem('students')
+      const students = existingStudents ? JSON.parse(existingStudents) : []
       
-      // Simulate API call
+      // Add new student
+      students.push(newStudent)
+      
+      // Save back to localStorage
+      localStorage.setItem('students', JSON.stringify(students))
+      
+      // Simulate API call delay
       await new Promise(resolve => setTimeout(resolve, 1000))
       
       toast.success('Leerling succesvol toegevoegd!')
@@ -125,12 +142,11 @@ export default function NewStudentPage() {
                 
                 <div>
                   <label htmlFor="last_name" className="block text-sm font-medium text-gray-700 mb-1">
-                    Achternaam *
+                    Achternaam
                   </label>
                   <input
                     type="text"
                     id="last_name"
-                    required
                     value={formData.last_name}
                     onChange={(e) => handleInputChange('last_name', e.target.value)}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
@@ -150,12 +166,11 @@ export default function NewStudentPage() {
               <div className="space-y-4">
                 <div>
                   <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
-                    E-mailadres *
+                    E-mailadres
                   </label>
                   <input
                     type="email"
                     id="email"
-                    required
                     value={formData.email}
                     onChange={(e) => handleInputChange('email', e.target.value)}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
@@ -165,12 +180,11 @@ export default function NewStudentPage() {
                 
                 <div>
                   <label htmlFor="phone" className="block text-sm font-medium text-gray-700 mb-1">
-                    Telefoonnummer *
+                    Telefoonnummer
                   </label>
                   <input
                     type="tel"
                     id="phone"
-                    required
                     value={formData.phone}
                     onChange={(e) => handleInputChange('phone', e.target.value)}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
@@ -189,11 +203,10 @@ export default function NewStudentPage() {
               
               <div>
                 <label htmlFor="address" className="block text-sm font-medium text-gray-700 mb-1">
-                  Volledig adres *
+                  Volledig adres
                 </label>
                 <textarea
                   id="address"
-                  required
                   rows={3}
                   value={formData.address}
                   onChange={(e) => handleInputChange('address', e.target.value)}
@@ -205,15 +218,24 @@ export default function NewStudentPage() {
 
             {/* Additional Notes */}
             <div>
+              <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+                <User className="h-5 w-5 mr-2" />
+                Notities
+              </h2>
               <label htmlFor="notes" className="block text-sm font-medium text-gray-700 mb-1">
-                Opmerkingen
+                Voortgang en notities
               </label>
               <textarea
                 id="notes"
-                rows={3}
+                rows={6}
+                value={formData.notes}
+                onChange={(e) => handleInputChange('notes', e.target.value)}
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                placeholder="Optionele opmerkingen over de leerling..."
+                placeholder="Houd hier de voortgang van de leerling bij, belangrijke opmerkingen, sterke punten, verbeterpunten, etc..."
               />
+              <p className="text-sm text-gray-500 mt-1">
+                Gebruik dit veld om de voortgang van de leerling bij te houden. Je kunt dit later altijd bewerken.
+              </p>
             </div>
 
             {/* Form Actions */}
@@ -240,9 +262,9 @@ export default function NewStudentPage() {
         <div className="mt-6 bg-blue-50 border border-blue-200 rounded-lg p-4">
           <h3 className="text-sm font-medium text-blue-900 mb-2">Tips voor het toevoegen van leerlingen</h3>
           <ul className="text-sm text-blue-800 space-y-1">
-            <li>• Zorg ervoor dat alle verplichte velden zijn ingevuld</li>
-            <li>• Het e-mailadres wordt gebruikt voor communicatie en inloggen</li>
+            <li>• Alleen de voornaam is verplicht - alle andere velden zijn optioneel</li>
             <li>• Je kunt later altijd meer informatie toevoegen aan het leerlingprofiel</li>
+            <li>• Het e-mailadres wordt gebruikt voor communicatie en inloggen</li>
             <li>• Na het toevoegen kun je direct lessen plannen voor deze leerling</li>
           </ul>
         </div>

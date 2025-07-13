@@ -1,46 +1,68 @@
 STAPPENPLAN: Van idee naar je eerste klant
 FASE 1: Voorbereiding (Doel: fundament leggen)
 Doelen:
-● MVP maken met Cursor. Dit is af zodra ik zelf het volgende kan doen:
-Als rij-instructeur inloggen:
-● Instructeur kan zich registreren / inloggen via e-mail & wachtwoord (Supabase Auth)
-● Na inloggen komt hij op zijn persoonlijke dashboard
-Een rijschool aanmaken:
-● Mogelijkheid om een rijschoolprofiel in te vullen (naam, locatie, KvK, logo)
-● Rijschool is gekoppeld aan de ingelogde instructeur
-Leerlingen 'aanmaken' en beheren:
-● Nieuwe leerling toevoegen met:
-○ Voor- en achternaam
-○ E-mailadres
-○ Telefoonnummer
-○ Adres
-● Leerlingen verschijnen in een overzicht (lijst of kaarten)
-● Elke leerling heeft een eigen detailpagina
-Per leerling: voortgang & info bijhouden:
-● Instructeur kan notities per leerling toevoegen, bijvoorbeeld per les
-● Voortgangsnotities zijn per datum zichtbaar (bijv. een lijst of tijdlijn)
-● (Later: checkboxen voor onderdelen: parkeren, kijkgedrag, enz.)
+🟡🟡🟡🟡🟡● MVP maken met Cursor. Dit is af zodra ik zelf het volgende kan doen:
+✅✅✅✅✅Als rij-instructeur inloggen:
+✅✅✅✅✅● Instructeur kan zich registreren / inloggen via e-mail & wachtwoord (Supabase Auth)
+✅✅✅✅✅● Na inloggen komt hij op zijn persoonlijke dashboard
+✅✅✅✅✅Een rijschool aanmaken:
+✅✅✅✅✅● Mogelijkheid om een rijschoolprofiel in te vullen (naam, leerlingen toevoegen en bewerken)
+✅✅✅✅✅Leerlingen 'aanmaken' en beheren:
+✅✅✅✅✅● Nieuwe leerling toevoegen met:
+✅✅✅✅✅○ Voor- en achternaam
+✅✅✅✅✅○ E-mailadres
+✅✅✅✅✅○ Telefoonnummer
+✅✅✅✅✅○ Adres
+✅✅✅✅✅● Leerlingen verschijnen in een overzicht (lijst of kaarten)
+✅✅✅✅✅● Elke leerling heeft een eigen detailpagina
+✅✅✅✅✅Per leerling: voortgang & info bijhouden:
+
+AI Rooster:
+✅✅✅✅✅● Instructeur klikt op "AI rooster" en gaat naar de pagina
+✅✅✅✅✅● Instructeur kan zijn eigen beschikbaarheid voor de week intypen
+✅✅✅✅✅● De beschikbaarheid staat al automatisch goed
+● Instructeur gaat vervolgens langs de beschikbaarheid van elke leerling. 
+● Elke leerling heeft een beschikbaarheid voor de week ingevuld in zijn notities, een AI prompt maakt deze notities netjes en overzichtelijk
+● Per leerling kan de instructeur invullen hoeveel lessen die leerling krijgt voor die week en hoeveel minuten per les dat zijn voor die leerling
+● Al deze gegevens voor de instructeur en leerling verwerken naar een goede prompt voor chatgpt
+● Chatgpt een prompt sturen en vragen voor een json bestand of csv bestand
+● Voor later: Rekening houden met afstand tussen plaatsen en extra notities voor praktische zaken (Spits enzo)
+
 Chat per leerling (1:1 chat):
 ● Elke leerling heeft een aparte chat met zijn instructeur
 ● Chatgeschiedenis wordt opgeslagen
 ● Notificatie als er een nieuw bericht is
 ● (Later uitbreiden met bijlagen / emoji / berichten wissen)
+
 Roosters maken (lesplanning):
+● AI roosters laten maken door middel van notities van rijinstructeur + notities van elke leerling
 ● Instructeur ziet kalenderweergave (dag/week)
 ● Kan nieuwe lessen toevoegen (datum, tijd, leerling kiezen)
 ● Kan bestaande lessen verplaatsen (drag & drop)
 ● Leerling ziet geplande lessen (zie hieronder)
+● Instructeur kan notities per leerling toevoegen, bijvoorbeeld per les
+● Voortgangsnotities zijn per datum zichtbaar (bijv. een lijst of tijdlijn)
 ● (Optioneel voor later: automatische herinneringen)
+● Google Maps kunnen openen per les
+● Automatisch een email sturen naar leerling
+● Automatisch een melding sturen naar leerling
+● 
+● 
+
+
 Als leerling inloggen:
 ● Leerling kan inloggen met e-mail & wachtwoord (Supabase Auth)
 ● Ziet alleen zijn/haar eigen profiel
 Chat met instructeur:
 ● Ziet de chat met eigen instructeur
 ● Kan zelf berichten sturen
+
 Beschikbaarheid kunnen invullen:
 ● Leerling kan in een kalender aangeven op welke dagen/tijdstippen hij beschikbaar is
 ● Instructeur ziet deze beschikbaarheid in zijn eigen rooster
 ● (Later: leerling kan verzoeken om les op bepaalde tijd)
+
+
 Totale doel van de MVP:
 Zodra een instructeur en leerling beiden kunnen inloggen, gegevens kunnen beheren, met elkaar kunnen
 chatten, én de instructeur lesplanning en voortgang kan bijhouden, is het MVP klaar voor pilots met

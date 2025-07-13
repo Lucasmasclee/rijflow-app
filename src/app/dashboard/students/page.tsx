@@ -13,9 +13,11 @@ import {
   Mail,
   MapPin,
   Calendar,
-  MessageSquare
+  MessageSquare,
+  X
 } from 'lucide-react'
 import Link from 'next/link'
+import toast from 'react-hot-toast'
 
 interface Student {
   id: string
@@ -24,6 +26,7 @@ interface Student {
   email: string
   phone: string
   address: string
+  notes: string
   created_at: string
   lessons_count: number
   last_lesson?: string
@@ -35,16 +38,17 @@ export default function StudentsPage() {
   const [students, setStudents] = useState<Student[]>([])
   const [searchTerm, setSearchTerm] = useState('')
   const [filterStatus, setFilterStatus] = useState('all')
+  const [deleteModalStudentId, setDeleteModalStudentId] = useState<string|null>(null)
+  const [deleteModalStudentName, setDeleteModalStudentName] = useState<string>('')
 
-  useEffect(() => {
-    if (!loading && !user) {
-      router.push('/auth/signin')
+  // Load students from localStorage or use mock data
+  const loadStudents = () => {
+    const savedStudents = localStorage.getItem('students')
+    if (savedStudents) {
+      return JSON.parse(savedStudents)
     }
-  }, [user, loading, router])
-
-  // Mock data for demonstration
-  useEffect(() => {
-    const mockStudents: Student[] = [
+    // Return mock data if no saved students
+    return [
       {
         id: '1',
         first_name: 'Jan',
@@ -52,6 +56,7 @@ export default function StudentsPage() {
         email: 'jan.jansen@email.nl',
         phone: '06-12345678',
         address: 'Hoofdstraat 1, Amsterdam',
+        notes: 'Goede voortgang met parkeren. Moet nog meer oefenen met kijkgedrag in drukke straten.',
         created_at: '2024-01-15',
         lessons_count: 12,
         last_lesson: '2024-01-20'
@@ -63,6 +68,7 @@ export default function StudentsPage() {
         email: 'piet.pietersen@email.nl',
         phone: '06-87654321',
         address: 'Kerkstraat 15, Rotterdam',
+        notes: 'Nieuwe leerling, eerste les gepland voor volgende week. Heeft al enige ervaring met autorijden.',
         created_at: '2024-01-10',
         lessons_count: 8,
         last_lesson: '2024-01-18'
@@ -74,12 +80,24 @@ export default function StudentsPage() {
         email: 'marie.devries@email.nl',
         phone: '06-11223344',
         address: 'Schoolstraat 8, Utrecht',
+        notes: 'Zeer gemotiveerde leerling. Heeft moeite met parallel parkeren maar maakt goede vorderingen. Theorie-examen behaald.',
         created_at: '2024-01-05',
         lessons_count: 15,
         last_lesson: '2024-01-19'
       }
     ]
-    setStudents(mockStudents)
+  }
+
+  useEffect(() => {
+    if (!loading && !user) {
+      router.push('/auth/signin')
+    }
+  }, [user, loading, router])
+
+  // Load students on component mount
+  useEffect(() => {
+    const loadedStudents = loadStudents()
+    setStudents(loadedStudents)
   }, [])
 
   const filteredStudents = students.filter(student => {
@@ -93,6 +111,30 @@ export default function StudentsPage() {
     
     return matchesSearch
   })
+
+  const handleDeleteStudent = (studentId: string, studentName: string) => {
+    setDeleteModalStudentId(studentId)
+    setDeleteModalStudentName(studentName)
+  }
+
+  const confirmDeleteStudent = () => {
+    if (!deleteModalStudentId) return
+    try {
+      const updatedStudents = students.filter(student => student.id !== deleteModalStudentId)
+      localStorage.setItem('students', JSON.stringify(updatedStudents))
+      setStudents(updatedStudents)
+      toast.success('Leerling succesvol verwijderd!')
+    } catch (error) {
+      toast.error('Er is iets misgegaan bij het verwijderen van de leerling.')
+    }
+    setDeleteModalStudentId(null)
+    setDeleteModalStudentName('')
+  }
+
+  const cancelDeleteStudent = () => {
+    setDeleteModalStudentId(null)
+    setDeleteModalStudentName('')
+  }
 
   if (loading) {
     return (
@@ -188,8 +230,12 @@ export default function StudentsPage() {
                     </h3>
                     <p className="text-sm text-gray-600">{student.email}</p>
                   </div>
-                  <button className="text-gray-400 hover:text-gray-600">
-                    <MoreVertical className="h-4 w-4" />
+                  <button 
+                    onClick={() => handleDeleteStudent(student.id, student.first_name)}
+                    className="text-red-400 hover:text-red-600 p-1 rounded"
+                    title="Leerling verwijderen"
+                  >
+                    <X className="h-4 w-4" />
                   </button>
                 </div>
 
@@ -208,19 +254,34 @@ export default function StudentsPage() {
                   </div>
                 </div>
 
-                <div className="flex gap-2">
-                  <Link
-                    href={`/dashboard/students/${student.id}`}
-                    className="flex-1 bg-blue-600 hover:bg-blue-700 text-white text-center py-2 px-4 rounded-lg text-sm font-medium"
-                  >
-                    Bekijk profiel
-                  </Link>
-                  <Link
-                    href={`/dashboard/chat/${student.id}`}
-                    className="bg-gray-100 hover:bg-gray-200 text-gray-700 p-2 rounded-lg"
-                  >
-                    <MessageSquare className="h-4 w-4" />
-                  </Link>
+                <div className="space-y-3">
+                  {/* Notes Preview */}
+                  {student.notes && (
+                    <div className="bg-gray-50 p-3 rounded-lg">
+                      <p className="text-xs text-gray-600 mb-1">Laatste notities:</p>
+                      <p className="text-sm text-gray-700 line-clamp-2">
+                        {student.notes.length > 100 
+                          ? `${student.notes.substring(0, 100)}...` 
+                          : student.notes
+                        }
+                      </p>
+                    </div>
+                  )}
+                  
+                  <div className="flex gap-2">
+                    <Link
+                      href={`/dashboard/students/${student.id}`}
+                      className="flex-1 bg-blue-600 hover:bg-blue-700 text-white text-center py-2 px-4 rounded-lg text-sm font-medium"
+                    >
+                      Bekijk profiel
+                    </Link>
+                    <Link
+                      href={`/dashboard/chat/${student.id}`}
+                      className="bg-gray-100 hover:bg-gray-200 text-gray-700 p-2 rounded-lg"
+                    >
+                      <MessageSquare className="h-4 w-4" />
+                    </Link>
+                  </div>
                 </div>
               </div>
             </div>
@@ -245,6 +306,28 @@ export default function StudentsPage() {
           </div>
         )}
       </div>
+      {deleteModalStudentId && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-grey bg-opacity-40">
+          <div className="bg-white rounded-lg shadow-lg p-6 w-full max-w-sm">
+            <h2 className="text-lg font-semibold mb-4">Leerling verwijderen</h2>
+            <p className="mb-6">Weet je zeker dat je {deleteModalStudentName} wilt verwijderen? Deze actie kan niet ongedaan worden gemaakt.</p>
+            <div className="flex justify-end gap-2">
+              <button
+                onClick={cancelDeleteStudent}
+                className="px-4 py-2 rounded bg-gray-200 text-gray-700 hover:bg-gray-300"
+              >
+                Annuleren
+              </button>
+              <button
+                onClick={confirmDeleteStudent}
+                className="px-4 py-2 rounded bg-red-600 text-white hover:bg-red-700"
+              >
+                Verwijderen
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 } 

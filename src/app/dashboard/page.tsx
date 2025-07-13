@@ -13,7 +13,10 @@ import {
   LogOut,
   Car,
   Plus,
-  ChevronRight
+  ChevronRight,
+  Edit2,
+  Check,
+  X
 } from 'lucide-react'
 import Link from 'next/link'
 
@@ -21,6 +24,9 @@ export default function DashboardPage() {
   const { user, signOut, loading } = useAuth()
   const router = useRouter()
   const [userRole, setUserRole] = useState<'instructor' | 'student' | null>(null)
+  const [schoolName, setSchoolName] = useState('Mijn Rijschool')
+  const [isEditingSchoolName, setIsEditingSchoolName] = useState(false)
+  const [editingSchoolName, setEditingSchoolName] = useState('')
 
   useEffect(() => {
     if (!loading && !user) {
@@ -40,6 +46,23 @@ export default function DashboardPage() {
     } catch (error) {
       console.error('Error signing out:', error)
     }
+  }
+
+  const handleEditSchoolName = () => {
+    setIsEditingSchoolName(true)
+    setEditingSchoolName(schoolName)
+  }
+
+  const handleSaveSchoolName = () => {
+    if (editingSchoolName.trim()) {
+      setSchoolName(editingSchoolName.trim())
+    }
+    setIsEditingSchoolName(false)
+  }
+
+  const handleCancelEditSchoolName = () => {
+    setIsEditingSchoolName(false)
+    setEditingSchoolName('')
   }
 
   if (loading) {
@@ -68,9 +91,6 @@ export default function DashboardPage() {
               <span className="ml-2 text-xl font-bold text-gray-900">RijFlow</span>
             </div>
             <div className="flex items-center space-x-4">
-              <span className="text-sm text-gray-600">
-                Welkom, {user.email}
-              </span>
               <button
                 onClick={handleSignOut}
                 className="flex items-center gap-2 text-gray-600 hover:text-gray-900 px-3 py-2 rounded-md text-sm font-medium"
@@ -86,9 +106,52 @@ export default function DashboardPage() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Welcome Section */}
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900">
-            Welkom bij RijFlow
-          </h1>
+          <div className="flex items-center gap-3">
+            {isEditingSchoolName ? (
+              <div className="flex items-center gap-2">
+                <input
+                  type="text"
+                  value={editingSchoolName}
+                  onChange={(e) => setEditingSchoolName(e.target.value)}
+                  className="text-3xl font-bold text-gray-900 bg-transparent border-b-2 border-blue-500 focus:outline-none focus:border-blue-600"
+                  autoFocus
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') {
+                      handleSaveSchoolName()
+                    } else if (e.key === 'Escape') {
+                      handleCancelEditSchoolName()
+                    }
+                  }}
+                />
+                <button
+                  onClick={handleSaveSchoolName}
+                  className="p-1 text-green-600 hover:text-green-700 hover:bg-green-50 rounded"
+                >
+                  <Check className="h-5 w-5" />
+                </button>
+                <button
+                  onClick={handleCancelEditSchoolName}
+                  className="p-1 text-red-600 hover:text-red-700 hover:bg-red-50 rounded"
+                >
+                  <X className="h-5 w-5" />
+                </button>
+              </div>
+            ) : (
+              <div className="flex items-center gap-2">
+                <h1 className="text-3xl font-bold text-gray-900">
+                  {schoolName}
+                </h1>
+                {userRole === 'instructor' && (
+                  <button
+                    onClick={handleEditSchoolName}
+                    className="p-1 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded"
+                  >
+                    <Edit2 className="h-5 w-5" />
+                  </button>
+                )}
+              </div>
+            )}
+          </div>
           <p className="text-gray-600 mt-2">
             {userRole === 'instructor' 
               ? 'Beheer je rijschool en leerlingen op één plek'
@@ -108,16 +171,164 @@ export default function DashboardPage() {
 }
 
 function InstructorDashboard() {
+  const [students, setStudents] = useState<any[]>([])
+
+  useEffect(() => {
+    // Load students from localStorage
+    const savedStudents = localStorage.getItem('students')
+    if (savedStudents) {
+      setStudents(JSON.parse(savedStudents))
+    } else {
+      // Set empty array if no students
+      setStudents([])
+    }
+  }, [])
+
+  const getWeekDays = () => {
+    const today = new Date()
+    const currentDay = today.getDay() // 0 = Sunday, 1 = Monday, etc.
+    const mondayOffset = currentDay === 0 ? -6 : 1 - currentDay // Adjust for Monday start
+    
+    const weekDays = []
+    for (let i = 0; i < 7; i++) {
+      const date = new Date(today)
+      date.setDate(today.getDate() + mondayOffset + i)
+      
+      const isToday = date.toDateString() === today.toDateString()
+      const dayName = date.toLocaleDateString('nl-NL', { weekday: 'short' })
+      const dayDate = date.toLocaleDateString('nl-NL', { day: '2-digit', month: '2-digit' })
+      
+      // TODO: Replace with actual lesson count from database
+      // For now, showing 0 lessons since user just registered
+      const lessons = 0
+      
+      weekDays.push({
+        name: dayName,
+        date: dayDate,
+        isToday,
+        lessons
+      })
+    }
+    
+    return weekDays
+  }
+
   return (
-    <div className="space-y-8">
-      {/* Quick Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+    <>
+    <div className="bg-white rounded-lg shadow-sm">
+    <div className="p-6 border-b border-gray-200">
+      <h2 className="text-lg font-semibold text-gray-900">
+        {new Date().toLocaleDateString('nl-NL', { weekday: 'long' }).charAt(0).toUpperCase() + new Date().toLocaleDateString('nl-NL', { weekday: 'long' }).slice(1)} {new Date().toLocaleDateString('nl-NL', { day: '2-digit', month: '2-digit' })}
+      </h2>
+    </div>
+    <div className="p-6">
+      <div className="text-center py-10">
+        <Calendar className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+        <p className="text-gray-500">Nog geen lessen gepland voor vandaag</p>
+        <p className="text-sm text-gray-400 mt-1">Plan je eerste les om te beginnen</p>
+      </div>
+    </div>
+  </div>
+
+  {/* Week Overview */}
+  <div className="bg-white rounded-lg shadow-sm mt-6">
+    <div className="p-6 border-b border-gray-200">
+      <div className="flex items-center justify-between">
+        <h2 className="text-lg font-semibold text-gray-900">Weekoverzicht</h2>
+        <Link
+          href="/dashboard/week-overview"
+          className="flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors"
+        >
+          <Calendar className="h-4 w-4" />
+          Naar weekoverzicht
+        </Link>
+      </div>
+    </div>
+    <div className="p-6">
+      <div className="grid grid-cols-7 gap-4">
+        {getWeekDays().map((day, index) => (
+          <div key={index} className="text-center">
+            <div className={`p-4 rounded-lg border-2 ${
+              day.isToday 
+                ? 'border-blue-500 bg-blue-50' 
+                : 'border-gray-200 bg-gray-50'
+            }`}>
+              <p className={`text-sm font-medium ${
+                day.isToday ? 'text-blue-700' : 'text-gray-600'
+              }`}>
+                {day.name}
+              </p>
+              <p className={`text-xs ${
+                day.isToday ? 'text-blue-600' : 'text-gray-500'
+              }`}>
+                {day.date}
+              </p>
+              <div className="mt-2">
+                <span className={`inline-flex items-center justify-center w-8 h-8 rounded-full text-sm font-bold ${
+                  day.lessons > 0 
+                    ? 'bg-blue-100 text-blue-700' 
+                    : 'bg-gray-100 text-gray-400'
+                }`}>
+                  {day.lessons}
+                </span>
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  </div>
+
+          <div className="space-y-8 mt-8">
+        {/* Leerlingen overzicht */}
+        <div className="bg-white rounded-lg shadow-sm">
+          <div className="p-6 border-b border-gray-200">
+            <div className="flex items-center justify-between">
+              <h2 className="text-lg font-semibold text-gray-900">Leerlingen overzicht</h2>
+              <Link
+                href="/dashboard/students"
+                className="flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors"
+              >
+                <Users className="h-4 w-4" />
+                Leerlingen beheren
+              </Link>
+            </div>
+          </div>
+          <div className="p-6">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              <div className="flex items-center p-4 border border-gray-200 rounded-lg">
+                <Users className="h-8 w-8 text-blue-600" />
+                <div className="ml-4">
+                  <p className="text-sm font-medium text-gray-600">Totaal leerlingen</p>
+                  <p className="text-2xl font-bold text-gray-900">{students.length}</p>
+                </div>
+              </div>
+              <div className="flex items-center p-4 border border-gray-200 rounded-lg">
+                <MessageSquare className="h-8 w-8 text-green-600" />
+                <div className="ml-4">
+                  <p className="text-sm font-medium text-gray-600">Nieuwe chats</p>
+                  <p className="text-2xl font-bold text-gray-900">0</p>
+                </div>
+              </div>
+              <div className="flex items-center p-4 border border-gray-200 rounded-lg">
+                <Calendar className="h-8 w-8 text-orange-600" />
+                <div className="ml-4">
+                  <p className="text-sm font-medium text-gray-600">Actieve leerlingen</p>
+                  <p className="text-2xl font-bold text-gray-900">0</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Quick Stats */}
+      {/* <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
         <div className="bg-white p-6 rounded-lg shadow-sm">
           <div className="flex items-center">
             <Users className="h-8 w-8 text-blue-600" />
             <div className="ml-4">
               <p className="text-sm font-medium text-gray-600">Actieve leerlingen</p>
-              <p className="text-2xl font-bold text-gray-900">12</p>
+              <p className="text-2xl font-bold text-gray-900">0</p>
             </div>
           </div>
         </div>
@@ -126,7 +337,7 @@ function InstructorDashboard() {
             <Calendar className="h-8 w-8 text-green-600" />
             <div className="ml-4">
               <p className="text-sm font-medium text-gray-600">Lessen vandaag</p>
-              <p className="text-2xl font-bold text-gray-900">5</p>
+              <p className="text-2xl font-bold text-gray-900">0</p>
             </div>
           </div>
         </div>
@@ -135,7 +346,7 @@ function InstructorDashboard() {
             <Clock className="h-8 w-8 text-orange-600" />
             <div className="ml-4">
               <p className="text-sm font-medium text-gray-600">Uren deze week</p>
-              <p className="text-2xl font-bold text-gray-900">32</p>
+              <p className="text-2xl font-bold text-gray-900">0</p>
             </div>
           </div>
         </div>
@@ -144,16 +355,16 @@ function InstructorDashboard() {
             <FileText className="h-8 w-8 text-purple-600" />
             <div className="ml-4">
               <p className="text-sm font-medium text-gray-600">Openstaande facturen</p>
-              <p className="text-2xl font-bold text-gray-900">3</p>
+              <p className="text-2xl font-bold text-gray-900">0</p>
             </div>
           </div>
         </div>
-      </div>
+      </div> */}
 
-      {/* Quick Actions */}
-      <div className="bg-white rounded-lg shadow-sm">
+      {/* Beheer rijschool */}
+      {/* <div className="bg-white rounded-lg shadow-sm">
         <div className="p-6 border-b border-gray-200">
-          <h2 className="text-lg font-semibold text-gray-900">Snelle acties</h2>
+          <h2 className="text-lg font-semibold text-gray-900">Beheer rijschool</h2>
         </div>
         <div className="p-6">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -203,46 +414,9 @@ function InstructorDashboard() {
             </Link>
           </div>
         </div>
-      </div>
-
-      {/* Today's Schedule */}
-      <div className="bg-white rounded-lg shadow-sm">
-        <div className="p-6 border-b border-gray-200">
-          <h2 className="text-lg font-semibold text-gray-900">Vandaag's planning</h2>
-        </div>
-        <div className="p-6">
-          <div className="space-y-4">
-            <div className="flex items-center justify-between p-4 border border-gray-200 rounded-lg">
-              <div>
-                <p className="font-medium text-gray-900">Jan Jansen</p>
-                <p className="text-sm text-gray-600">09:00 - 10:00</p>
-              </div>
-              <span className="px-2 py-1 text-xs font-medium bg-green-100 text-green-800 rounded-full">
-                Bevestigd
-              </span>
-            </div>
-            <div className="flex items-center justify-between p-4 border border-gray-200 rounded-lg">
-              <div>
-                <p className="font-medium text-gray-900">Piet Pietersen</p>
-                <p className="text-sm text-gray-600">10:30 - 11:30</p>
-              </div>
-              <span className="px-2 py-1 text-xs font-medium bg-yellow-100 text-yellow-800 rounded-full">
-                In behandeling
-              </span>
-            </div>
-            <div className="flex items-center justify-between p-4 border border-gray-200 rounded-lg">
-              <div>
-                <p className="font-medium text-gray-900">Marie de Vries</p>
-                <p className="text-sm text-gray-600">14:00 - 15:00</p>
-              </div>
-              <span className="px-2 py-1 text-xs font-medium bg-green-100 text-green-800 rounded-full">
-                Bevestigd
-              </span>
-            </div>
-          </div>
-        </div>
-      </div>
+      </div> */}
     </div>
+    </>
   )
 }
 

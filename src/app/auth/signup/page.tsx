@@ -24,8 +24,13 @@ export default function SignUpPage() {
 
     try {
       await signUp(formData.email, formData.password, formData.role)
-      toast.success('Account aangemaakt! Controleer je e-mail om je account te bevestigen.')
-      router.push('/auth/signin')
+      if (formData.role === 'instructor') {
+        toast.success('Account aangemaakt! Je bent nu ingelogd.')
+        router.push('/dashboard')
+      } else {
+        toast.success('Account aangemaakt! Controleer je e-mail om je account te bevestigen.')
+        router.push('/auth/signin')
+      }
     } catch (error: any) {
       toast.error(error.message || 'Er is iets misgegaan bij het aanmaken van je account.')
     } finally {

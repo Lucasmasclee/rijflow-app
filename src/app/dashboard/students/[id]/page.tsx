@@ -1,0 +1,456 @@
+'use client'
+
+import { useAuth } from '@/contexts/AuthContext'
+import { useRouter } from 'next/navigation'
+import { useEffect, useState } from 'react'
+import { ArrowLeft, Save, User, Mail, Phone, MapPin, Edit2, X, Check } from 'lucide-react'
+import Link from 'next/link'
+import toast from 'react-hot-toast'
+import React from 'react'
+
+interface Student {
+  id: string
+  first_name: string
+  last_name: string
+  email: string
+  phone: string
+  address: string
+  notes: string
+  created_at: string
+  lessons_count: number
+  last_lesson?: string
+}
+
+export default function StudentDetailPage({ params }: { params: { id: string } }) {
+  const { user, loading } = useAuth()
+  const router = useRouter()
+  const [student, setStudent] = useState<Student | null>(null)
+  const [isEditing, setIsEditing] = useState(false)
+  const [saving, setSaving] = useState(false)
+  const [formData, setFormData] = useState({
+    first_name: '',
+    last_name: '',
+    email: '',
+    phone: '',
+    address: '',
+    notes: ''
+  })
+  const [showDeleteModal, setShowDeleteModal] = useState(false)
+
+  useEffect(() => {
+    if (!loading && !user) {
+      router.push('/auth/signin')
+    }
+  }, [user, loading, router])
+
+  // Load student from localStorage
+  useEffect(() => {
+    const savedStudents = localStorage.getItem('students')
+    if (savedStudents) {
+      const students = JSON.parse(savedStudents)
+      const foundStudent = students.find((s: Student) => s.id === params.id)
+      
+      if (foundStudent) {
+        setStudent(foundStudent)
+        setFormData({
+          first_name: foundStudent.first_name,
+          last_name: foundStudent.last_name,
+          email: foundStudent.email,
+          phone: foundStudent.phone,
+          address: foundStudent.address,
+          notes: foundStudent.notes
+        })
+      } else {
+        // Student not found, redirect back to students list
+        toast.error('Leerling niet gevonden')
+        router.push('/dashboard/students')
+      }
+    } else {
+      // No students in localStorage, redirect back
+      toast.error('Geen leerlingen gevonden')
+      router.push('/dashboard/students')
+    }
+  }, [params.id, router])
+
+  const handleEdit = () => {
+    setIsEditing(true)
+  }
+
+  const handleCancel = () => {
+    setIsEditing(false)
+    // Reset form data to original values
+    if (student) {
+      setFormData({
+        first_name: student.first_name,
+        last_name: student.last_name,
+        email: student.email,
+        phone: student.phone,
+        address: student.address,
+        notes: student.notes
+      })
+    }
+  }
+
+  const handleSave = async () => {
+    setSaving(true)
+    try {
+      // Get existing students from localStorage
+      const savedStudents = localStorage.getItem('students')
+      if (savedStudents) {
+        const students = JSON.parse(savedStudents)
+        
+        // Find and update the student
+        const studentIndex = students.findIndex((s: Student) => s.id === params.id)
+        if (studentIndex !== -1) {
+          students[studentIndex] = {
+            ...students[studentIndex],
+            ...formData
+          }
+          
+          // Save back to localStorage
+          localStorage.setItem('students', JSON.stringify(students))
+          
+          // Update local state
+          if (student) {
+            setStudent({
+              ...student,
+              ...formData
+            })
+          }
+          
+          setIsEditing(false)
+          toast.success('Leerling succesvol bijgewerkt!')
+        } else {
+          toast.error('Leerling niet gevonden')
+        }
+      } else {
+        toast.error('Geen leerlingen gevonden')
+      }
+      
+      // Simulate API call delay
+      await new Promise(resolve => setTimeout(resolve, 1000))
+    } catch (error) {
+      toast.error('Er is iets misgegaan bij het bijwerken van de leerling.')
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  const handleInputChange = (field: string, value: string) => {
+    setFormData(prev => ({
+      ...prev,
+      [field]: value
+    }))
+  }
+
+  const handleDeleteStudent = async () => {
+    setShowDeleteModal(false)
+    try {
+      // Get existing students from localStorage
+      const savedStudents = localStorage.getItem('students')
+      if (savedStudents) {
+        const students = JSON.parse(savedStudents)
+        
+        // Remove the student
+        const updatedStudents = students.filter((s: Student) => s.id !== params.id)
+        
+        // Save back to localStorage
+        localStorage.setItem('students', JSON.stringify(updatedStudents))
+        
+        toast.success('Leerling succesvol verwijderd!')
+        router.push('/dashboard/students')
+      } else {
+        toast.error('Geen leerlingen gevonden')
+      }
+    } catch (error) {
+      toast.error('Er is iets misgegaan bij het verwijderen van de leerling.')
+    }
+  }
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
+          <p className="mt-4 text-gray-600">Laden...</p>
+        </div>
+      </div>
+    )
+  }
+
+  if (!user || !student) {
+    return null
+  }
+
+  return (
+    <div className="min-h-screen bg-gray-50">
+      {/* Navigation */}
+      <nav className="bg-white shadow-sm border-b">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex justify-between items-center h-16">
+            <div className="flex items-center">
+              <Link href="/dashboard/students" className="text-gray-600 hover:text-gray-900 flex items-center">
+                <ArrowLeft className="h-4 w-4 mr-2" />
+                Terug naar leerlingen
+              </Link>
+            </div>
+            <div className="flex items-center space-x-4">
+              {!isEditing ? (
+                <button
+                  onClick={handleEdit}
+                  className="flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors"
+                >
+                  <Edit2 className="h-4 w-4" />
+                  Bewerken
+                </button>
+              ) : (
+                <div className="flex gap-2">
+                  <button
+                    onClick={handleCancel}
+                    className="flex items-center gap-2 bg-gray-600 text-white px-4 py-2 rounded-lg hover:bg-gray-700 transition-colors"
+                  >
+                    <X className="h-4 w-4" />
+                    Annuleren
+                  </button>
+                  <button
+                    onClick={handleSave}
+                    disabled={saving}
+                    className="flex items-center gap-2 bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors disabled:opacity-50"
+                  >
+                    <Check className="h-4 w-4" />
+                    {saving ? 'Opslaan...' : 'Opslaan'}
+                  </button>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      </nav>
+
+      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {/* Header */}
+        <div className="mb-8">
+          <h1 className="text-3xl font-bold text-gray-900">
+            {student.first_name} {student.last_name}
+          </h1>
+          <p className="text-gray-600 mt-2">
+            Leerling profiel en voortgang
+          </p>
+        </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          {/* Main Content */}
+          <div className="lg:col-span-2 space-y-6">
+            {/* Personal Information */}
+            <div className="bg-white rounded-lg shadow-sm border border-gray-200">
+              <div className="p-6 border-b border-gray-200">
+                <h2 className="text-lg font-semibold text-gray-900 flex items-center">
+                  <User className="h-5 w-5 mr-2" />
+                  Persoonlijke gegevens
+                </h2>
+              </div>
+              <div className="p-6 space-y-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Voornaam
+                    </label>
+                    {isEditing ? (
+                      <input
+                        type="text"
+                        value={formData.first_name}
+                        onChange={(e) => handleInputChange('first_name', e.target.value)}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      />
+                    ) : (
+                      <p className="text-gray-900">{student.first_name}</p>
+                    )}
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Achternaam
+                    </label>
+                    {isEditing ? (
+                      <input
+                        type="text"
+                        value={formData.last_name}
+                        onChange={(e) => handleInputChange('last_name', e.target.value)}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      />
+                    ) : (
+                      <p className="text-gray-900">{student.last_name}</p>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Contact Information */}
+            <div className="bg-white rounded-lg shadow-sm border border-gray-200">
+              <div className="p-6 border-b border-gray-200">
+                <h2 className="text-lg font-semibold text-gray-900 flex items-center">
+                  <Mail className="h-5 w-5 mr-2" />
+                  Contactgegevens
+                </h2>
+              </div>
+              <div className="p-6 space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    E-mailadres
+                  </label>
+                  {isEditing ? (
+                    <input
+                      type="email"
+                      value={formData.email}
+                      onChange={(e) => handleInputChange('email', e.target.value)}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    />
+                  ) : (
+                    <p className="text-gray-900">{student.email}</p>
+                  )}
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Telefoonnummer
+                  </label>
+                  {isEditing ? (
+                    <input
+                      type="tel"
+                      value={formData.phone}
+                      onChange={(e) => handleInputChange('phone', e.target.value)}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    />
+                  ) : (
+                    <p className="text-gray-900">{student.phone}</p>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            {/* Address */}
+            <div className="bg-white rounded-lg shadow-sm border border-gray-200">
+              <div className="p-6 border-b border-gray-200">
+                <h2 className="text-lg font-semibold text-gray-900 flex items-center">
+                  <MapPin className="h-5 w-5 mr-2" />
+                  Adres
+                </h2>
+              </div>
+              <div className="p-6">
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Volledig adres
+                </label>
+                {isEditing ? (
+                  <textarea
+                    rows={3}
+                    value={formData.address}
+                    onChange={(e) => handleInputChange('address', e.target.value)}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  />
+                ) : (
+                  <p className="text-gray-900">{student.address}</p>
+                )}
+              </div>
+            </div>
+
+            {/* Notes */}
+            <div className="bg-white rounded-lg shadow-sm border border-gray-200">
+              <div className="p-6 border-b border-gray-200">
+                <h2 className="text-lg font-semibold text-gray-900 flex items-center">
+                  <User className="h-5 w-5 mr-2" />
+                  Voortgang en notities
+                </h2>
+              </div>
+              <div className="p-6">
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Notities
+                </label>
+                {isEditing ? (
+                  <textarea
+                    rows={8}
+                    value={formData.notes}
+                    onChange={(e) => handleInputChange('notes', e.target.value)}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    placeholder="Houd hier de voortgang van de leerling bij, belangrijke opmerkingen, sterke punten, verbeterpunten, etc..."
+                  />
+                ) : (
+                  <div className="bg-gray-50 p-4 rounded-lg">
+                    <p className="text-gray-900 whitespace-pre-wrap">{student.notes || 'Geen notities toegevoegd.'}</p>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+
+          {/* Sidebar */}
+          <div className="space-y-6">
+            {/* Quick Stats */}
+            <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+              <h3 className="text-lg font-semibold text-gray-900 mb-4">Statistieken</h3>
+              <div className="space-y-4">
+                <div>
+                  <p className="text-sm text-gray-600">Totaal lessen</p>
+                  <p className="text-2xl font-bold text-gray-900">{student.lessons_count}</p>
+                </div>
+                <div>
+                  <p className="text-sm text-gray-600">Laatste les</p>
+                  <p className="text-gray-900">{student.last_lesson ? new Date(student.last_lesson).toLocaleDateString('nl-NL') : 'Nog geen lessen'}</p>
+                </div>
+                <div>
+                  <p className="text-sm text-gray-600">Lid sinds</p>
+                  <p className="text-gray-900">{new Date(student.created_at).toLocaleDateString('nl-NL')}</p>
+                </div>
+              </div>
+            </div>
+
+            {/* Quick Actions */}
+            <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+              <h3 className="text-lg font-semibold text-gray-900 mb-4">Snelle acties</h3>
+              <div className="space-y-3">
+                <Link
+                  href={`/dashboard/lessons/new?student=${student.id}`}
+                  className="block w-full bg-blue-600 hover:bg-blue-700 text-white text-center py-2 px-4 rounded-lg text-sm font-medium"
+                >
+                  Les plannen
+                </Link>
+                <Link
+                  href={`/dashboard/chat/${student.id}`}
+                  className="block w-full bg-green-600 hover:bg-green-700 text-white text-center py-2 px-4 rounded-lg text-sm font-medium"
+                >
+                  Bericht sturen
+                </Link>
+                <button 
+                  onClick={() => setShowDeleteModal(true)}
+                  className="block w-full bg-red-600 hover:bg-red-700 text-white text-center py-2 px-4 rounded-lg text-sm font-medium"
+                >
+                  Leerling verwijderen
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      {showDeleteModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center  bg-opacity-50">
+          <div className="bg-white rounded-lg shadow-lg p-6 w-full max-w-sm">
+            <h2 className="text-lg font-semibold mb-4">Leerling verwijderen</h2>
+            <p className="mb-6">Weet je zeker dat je deze leerling wilt verwijderen? Deze actie kan niet ongedaan worden gemaakt.</p>
+            <div className="flex justify-end gap-2">
+              <button
+                onClick={() => setShowDeleteModal(false)}
+                className="px-4 py-2 rounded bg-gray-200 text-gray-700 hover:bg-gray-300"
+              >
+                Annuleren
+              </button>
+              <button
+                onClick={handleDeleteStudent}
+                className="px-4 py-2 rounded bg-red-600 text-white hover:bg-red-700"
+              >
+                Verwijderen
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  )
+} 
