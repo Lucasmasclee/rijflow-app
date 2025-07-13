@@ -29,6 +29,7 @@ export default function DashboardPage() {
   const [schoolName, setSchoolName] = useState('Mijn Rijschool')
   const [isEditingSchoolName, setIsEditingSchoolName] = useState(false)
   const [editingSchoolName, setEditingSchoolName] = useState('')
+  const [dbTestResult, setDbTestResult] = useState<string>('')
 
   useEffect(() => {
     if (!loading && !user) {
@@ -67,6 +68,71 @@ export default function DashboardPage() {
     setEditingSchoolName('')
   }
 
+  const testDatabase = async () => {
+    if (!user) return
+    
+    console.log('Testing database access...')
+    setDbTestResult('Testing...')
+    
+    try {
+      // Test 1: Check if we can read from students table
+      const { data: readData, error: readError } = await supabase
+        .from('students')
+        .select('*')
+        .limit(5)
+      
+      console.log('Read test:', { readData, readError })
+      
+      // Test 2: Try to insert a test record
+      const testStudent = {
+        first_name: 'Test',
+        last_name: 'Student',
+        email: 'test@example.com',
+        phone: '0612345678',
+        address: 'Test Address',
+        instructor_id: user.id,
+        invite_token: 'test-token-' + Date.now(),
+        user_id: null
+      }
+      
+      const { data: insertData, error: insertError } = await supabase
+        .from('students')
+        .insert([testStudent])
+        .select()
+      
+      console.log('Insert test:', { insertData, insertError })
+      
+      // Test 3: Check table structure
+      const { data: structureData, error: structureError } = await supabase
+        .from('students')
+        .select('*')
+        .limit(1)
+      
+      console.log('Structure test:', { structureData, structureError })
+      
+      let result = 'Database Test Results:\n'
+      result += `Read test: ${readError ? 'FAILED - ' + readError.message : 'SUCCESS'}\n`
+      result += `Insert test: ${insertError ? 'FAILED - ' + insertError.message : 'SUCCESS'}\n`
+      result += `Structure test: ${structureError ? 'FAILED - ' + structureError.message : 'SUCCESS'}\n`
+      
+      if (insertData) {
+        result += `\nTest student created with ID: ${insertData[0]?.id}`
+        
+        // Clean up test data
+        await supabase
+          .from('students')
+          .delete()
+          .eq('email', 'test@example.com')
+      }
+      
+      setDbTestResult(result)
+      
+    } catch (error) {
+      console.error('Database test failed:', error)
+      setDbTestResult(`Test failed: ${error}`)
+    }
+  }
+
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
@@ -93,6 +159,12 @@ export default function DashboardPage() {
               <span className="ml-2 text-xl font-bold text-gray-900">RijFlow</span>
             </div>
             <div className="flex items-center space-x-4">
+              <button
+                onClick={testDatabase}
+                className="flex items-center gap-2 text-gray-600 hover:text-gray-900 px-3 py-2 rounded-md text-sm font-medium"
+              >
+                Test Database
+              </button>
               <button
                 onClick={handleSignOut}
                 className="flex items-center gap-2 text-gray-600 hover:text-gray-900 px-3 py-2 rounded-md text-sm font-medium"
@@ -160,6 +232,14 @@ export default function DashboardPage() {
               : 'Volg je voortgang en communiceer met je instructeur'
             }
           </p>
+          
+          {/* Database Test Results */}
+          {dbTestResult && (
+            <div className="mt-4 p-4 bg-gray-100 rounded-lg">
+              <h3 className="font-semibold text-gray-900 mb-2">Database Test Resultaten:</h3>
+              <pre className="text-sm text-gray-700 whitespace-pre-wrap">{dbTestResult}</pre>
+            </div>
+          )}
         </div>
 
         {userRole === 'instructor' ? (
