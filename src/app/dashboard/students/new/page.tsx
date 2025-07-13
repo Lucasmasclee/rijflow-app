@@ -27,7 +27,42 @@ export default function NewStudentPage() {
     if (!loading && !user) {
       router.push('/auth/signin')
     }
+    if (user) {
+      // Test database connectivity
+      testDatabaseConnection()
+    }
   }, [user, loading, router])
+
+  const testDatabaseConnection = async () => {
+    console.log('Testing database connection...')
+    
+    try {
+      // Test 1: Check if we can access the students table
+      const { data: tableTest, error: tableError } = await supabase
+        .from('students')
+        .select('count')
+        .limit(1)
+      
+      console.log('Table access test:', { tableTest, tableError })
+      
+      // Test 2: Check table structure
+      const { data: structureTest, error: structureError } = await supabase
+        .from('students')
+        .select('*')
+        .limit(1)
+      
+      console.log('Table structure test:', { structureTest, structureError })
+      
+      // Test 3: Check if we can insert (without actually inserting)
+      if (user) {
+        console.log('Current user:', user)
+        console.log('User ID:', user.id)
+      }
+      
+    } catch (error) {
+      console.error('Database connection test failed:', error)
+    }
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -39,8 +74,12 @@ export default function NewStudentPage() {
         return
       }
 
+      console.log('Creating student with user ID:', user.id)
+
       // Genereer unieke invite_token
       const invite_token = uuidv4();
+      console.log('Generated invite token:', invite_token)
+      
       // Create new student object for database
       const newStudent = {
         first_name: formData.first_name,
@@ -54,6 +93,8 @@ export default function NewStudentPage() {
         user_id: null
       }
 
+      console.log('Attempting to insert student:', newStudent)
+
       const { data, error } = await supabase
         .from('students')
         .insert([newStudent])
@@ -64,10 +105,17 @@ export default function NewStudentPage() {
 
       if (error) {
         console.error('Error creating student:', error)
-        toast.error('Fout bij het toevoegen van de leerling')
+        console.error('Error details:', {
+          code: error.code,
+          message: error.message,
+          details: error.details,
+          hint: error.hint
+        })
+        toast.error(`Fout bij het toevoegen van de leerling: ${error.message}`)
         return
       }
 
+      console.log('Student created successfully:', data)
       setInviteToken(invite_token)
       toast.success('Leerling succesvol toegevoegd!')
       // router.push('/dashboard/students') // Niet direct redirecten
