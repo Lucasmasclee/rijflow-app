@@ -2,9 +2,11 @@
 import { useRouter } from 'next/navigation'
 import { useState, useEffect } from 'react'
 import { supabase } from '@/lib/supabase'
+import { useAuth } from '@/contexts/AuthContext'
 
 export default function InvitePage({ params }: { params: Promise<{ invite_token: string }> }) {
   const router = useRouter()
+  const { signUp } = useAuth()
   const [inviteToken, setInviteToken] = useState<string>('')
   const [student, setStudent] = useState<any>(null)
   const [email, setEmail] = useState('')
@@ -69,40 +71,30 @@ export default function InvitePage({ params }: { params: Promise<{ invite_token:
     setLoading(true)
     setError('')
     
-    // Determine the redirect URL - use current origin if available, otherwise use production URL
-    const redirectUrl = typeof window !== 'undefined' 
-      ? `${window.location.origin}/auth/signin`
-      : 'https://rijflow-app.vercel.app/auth/signin'
-    
-    // Registreer de leerling als Supabase user
-    const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
-      email,
-      password,
-      options: {
-        data: { role: 'student', student_id: student.id },
-        emailRedirectTo: redirectUrl
-      }
-    })
-    if (signUpError) {
-      setError(signUpError.message)
-      setLoading(false)
-      return
-    }
-    // Koppel de Supabase user aan de student
-    const userId = signUpData.user?.id
-    if (userId) {
-      await supabase.from('students').update({ user_id: userId, email }).eq('id', student.id)
+    try {
+      console.log('Starting registration for student:', student.id)
+      
+      // Registreer de leerling als Supabase user via AuthContext
+      await signUp(email, password, 'student', student.id)
+      
+      console.log('Registration completed successfully')
       setSuccess(true)
-      // Optioneel: markeer invite als gebruikt
+      
+      // Redirect naar dashboard na korte delay
+      setTimeout(() => {
+        router.push('/dashboard')
+      }, 2000)
+    } catch (error: any) {
+      console.error('Registration error:', error)
+      setError(error.message || 'Er is iets misgegaan bij het aanmaken van je account.')
+    } finally {
+      setLoading(false)
     }
-    setLoading(false)
-    // Log direct in (optioneel: of stuur naar login pagina)
-    router.push('/dashboard')
   }
 
   if (error) return <div className="max-w-xl mx-auto mt-16 bg-white rounded-lg shadow p-8 text-center text-red-600">{error}</div>
   if (!student) return <div className="max-w-xl mx-auto mt-16 bg-white rounded-lg shadow p-8 text-center">Laden...</div>
-  if (success) return <div className="max-w-xl mx-auto mt-16 bg-white rounded-lg shadow p-8 text-center text-green-700">Account aangemaakt! Je kunt nu inloggen.</div>
+  if (success) return <div className="max-w-xl mx-auto mt-16 bg-white rounded-lg shadow p-8 text-center text-green-700">Account aangemaakt! Je wordt doorgestuurd naar je dashboard...</div>
 
   return (
     <form onSubmit={handleRegister} className="max-w-xl mx-auto mt-16 bg-white rounded-lg shadow p-8 text-center space-y-4">
