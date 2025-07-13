@@ -512,31 +512,18 @@ function StudentDashboard() {
     try {
       const value = notes[idx]
       const week_start = weeks[idx].start.toISOString().slice(0,10) // YYYY-MM-DD
-      // Gebruik maybeSingle zodat 404 geen error is
-      const { data: existing, error: fetchError } = await supabase
+      await supabase
         .from('student_availability')
-        .select('id')
-        .eq('student_id', user.id)
-        .eq('week_start', week_start)
-        .maybeSingle()
-      if (fetchError && fetchError.code !== 'PGRST116') {
-        console.error('Fout bij ophalen beschikbaarheid:', fetchError)
-        // Optioneel: toast.error('Fout bij ophalen beschikbaarheid')
-        return
-      }
-      if (existing) {
-        await supabase
-          .from('student_availability')
-          .update({ notes: value, updated_at: new Date().toISOString() })
-          .eq('id', existing.id)
-      } else {
-        await supabase
-          .from('student_availability')
-          .insert({ student_id: user.id, week_start, notes: value })
-      }
+        .upsert([
+          {
+            student_id: user.id,
+            week_start,
+            notes: value,
+            updated_at: new Date().toISOString(),
+          }
+        ], { onConflict: 'student_id,week_start' })
     } catch (e) {
       console.error('Fout bij opslaan beschikbaarheid:', e)
-      // Optioneel: toast.error('Fout bij opslaan beschikbaarheid')
     } finally {
       setSavingIdx(null)
     }
