@@ -95,7 +95,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       }
       
       // Als student nog geen user_id heeft, koppel deze dan
-      if (existingStudent && !existingStudent.user_id) {
+      if (existingStudent && (!existingStudent.user_id || existingStudent.user_id === null)) {
         const { error: updateError } = await supabase
           .from('students')
           .update({ user_id: user.id, email: user.email })
