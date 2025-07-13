@@ -3,9 +3,9 @@ import { useRouter } from 'next/navigation'
 import { useState, useEffect } from 'react'
 import { supabase } from '@/lib/supabase'
 
-export default function InvitePage({ params }: { params: { invite_token: string } }) {
+export default function InvitePage({ params }: { params: Promise<{ invite_token: string }> }) {
   const router = useRouter()
-  const { invite_token } = params
+  const [inviteToken, setInviteToken] = useState<string>('')
   const [student, setStudent] = useState<any>(null)
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
@@ -13,18 +13,29 @@ export default function InvitePage({ params }: { params: { invite_token: string 
   const [error, setError] = useState('')
   const [success, setSuccess] = useState(false)
 
+  // Get params and set invite token
   useEffect(() => {
+    const getParams = async () => {
+      const resolvedParams = await params
+      setInviteToken(resolvedParams.invite_token)
+    }
+    getParams()
+  }, [params])
+
+  useEffect(() => {
+    if (!inviteToken) return
+    
     const fetchStudent = async () => {
       const { data, error } = await supabase
         .from('students')
         .select('*')
-        .eq('invite_token', invite_token)
+        .eq('invite_token', inviteToken)
         .single()
       if (error || !data) setError('Ongeldige of verlopen uitnodiging.')
       else setStudent(data)
     }
     fetchStudent()
-  }, [invite_token])
+  }, [inviteToken])
 
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault()

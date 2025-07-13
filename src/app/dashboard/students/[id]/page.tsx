@@ -21,12 +21,13 @@ interface Student {
   last_lesson?: string
 }
 
-export default function StudentDetailPage({ params }: { params: { id: string } }) {
+export default function StudentDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { user, loading } = useAuth()
   const router = useRouter()
   const [student, setStudent] = useState<Student | null>(null)
   const [isEditing, setIsEditing] = useState(false)
   const [saving, setSaving] = useState(false)
+  const [studentId, setStudentId] = useState<string>('')
   const [formData, setFormData] = useState({
     first_name: '',
     last_name: '',
@@ -43,12 +44,23 @@ export default function StudentDetailPage({ params }: { params: { id: string } }
     }
   }, [user, loading, router])
 
+  // Get params and set student ID
+  useEffect(() => {
+    const getParams = async () => {
+      const resolvedParams = await params
+      setStudentId(resolvedParams.id)
+    }
+    getParams()
+  }, [params])
+
   // Load student from localStorage
   useEffect(() => {
+    if (!studentId) return
+    
     const savedStudents = localStorage.getItem('students')
     if (savedStudents) {
       const students = JSON.parse(savedStudents)
-      const foundStudent = students.find((s: Student) => s.id === params.id)
+      const foundStudent = students.find((s: Student) => s.id === studentId)
       
       if (foundStudent) {
         setStudent(foundStudent)
@@ -70,7 +82,7 @@ export default function StudentDetailPage({ params }: { params: { id: string } }
       toast.error('Geen leerlingen gevonden')
       router.push('/dashboard/students')
     }
-  }, [params.id, router])
+  }, [studentId, router])
 
   const handleEdit = () => {
     setIsEditing(true)
@@ -100,7 +112,7 @@ export default function StudentDetailPage({ params }: { params: { id: string } }
         const students = JSON.parse(savedStudents)
         
         // Find and update the student
-        const studentIndex = students.findIndex((s: Student) => s.id === params.id)
+        const studentIndex = students.findIndex((s: Student) => s.id === studentId)
         if (studentIndex !== -1) {
           students[studentIndex] = {
             ...students[studentIndex],
@@ -152,7 +164,7 @@ export default function StudentDetailPage({ params }: { params: { id: string } }
         const students = JSON.parse(savedStudents)
         
         // Remove the student
-        const updatedStudents = students.filter((s: Student) => s.id !== params.id)
+        const updatedStudents = students.filter((s: Student) => s.id !== studentId)
         
         // Save back to localStorage
         localStorage.setItem('students', JSON.stringify(updatedStudents))
