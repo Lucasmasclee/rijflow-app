@@ -105,11 +105,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }
 
   const signUp = async (email: string, password: string, role: 'instructor' | 'student') => {
+    // Determine the redirect URL - use current origin if available, otherwise use production URL
+    const redirectUrl = typeof window !== 'undefined' 
+      ? `${window.location.origin}/auth/signin`
+      : 'https://rijflow-app.vercel.app/auth/signin'
+    
     const { data, error: signUpError } = await supabase.auth.signUp({
       email,
       password,
       options: {
         data: { role },
+        emailRedirectTo: redirectUrl
       },
     })
     if (signUpError) throw signUpError

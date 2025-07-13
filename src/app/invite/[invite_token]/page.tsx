@@ -115,12 +115,19 @@ export default function InvitePage({ params }: { params: Promise<{ invite_token:
     e.preventDefault()
     setLoading(true)
     setError('')
+    
+    // Determine the redirect URL - use current origin if available, otherwise use production URL
+    const redirectUrl = typeof window !== 'undefined' 
+      ? `${window.location.origin}/auth/signin`
+      : 'https://rijflow-app.vercel.app/auth/signin'
+    
     // Registreer de leerling als Supabase user
     const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
       email,
       password,
       options: {
-        data: { role: 'student', student_id: student.id }
+        data: { role: 'student', student_id: student.id },
+        emailRedirectTo: redirectUrl
       }
     })
     if (signUpError) {
