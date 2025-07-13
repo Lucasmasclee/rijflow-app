@@ -42,3 +42,30 @@ CREATE POLICY "Students can update their own data" ON students
 -- Policy for anonymous users to view students by invite token (for invitation links)
 CREATE POLICY "Anonymous users can view students by invite token" ON students
     FOR SELECT USING (invite_token IS NOT NULL); 
+
+-- Student availability per week
+CREATE TABLE IF NOT EXISTS student_availability (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  student_id UUID REFERENCES students(id) ON DELETE CASCADE NOT NULL,
+  week_start DATE NOT NULL, -- maandag van de week
+  notes TEXT,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+  updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_student_availability_student_id ON student_availability(student_id);
+CREATE INDEX IF NOT EXISTS idx_student_availability_week_start ON student_availability(week_start);
+CREATE UNIQUE INDEX IF NOT EXISTS idx_student_availability_unique ON student_availability(student_id, week_start);
+
+-- Enable RLS
+ALTER TABLE student_availability ENABLE ROW LEVEL SECURITY;
+
+-- Policy: student mag eigen beschikbaarheid lezen/schrijven
+CREATE POLICY "Student can manage own availability" ON student_availability
+  FOR ALL USING (auth.uid() = student_id);
+
+-- Policy: instructeur mag beschikbaarheid van zijn leerlingen lezen
+CREATE POLICY "Instructor can view student availability" ON student_availability
+  FOR SELECT USING (
+    auth.uid() IN (SELECT instructor_id FROM students WHERE id = student_availability.student_id)
+  ); 

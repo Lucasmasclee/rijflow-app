@@ -445,12 +445,13 @@ function InstructorDashboard() {
 }
 
 function StudentDashboard() {
-  // Helper om de maandag van een week te krijgen
   function getMonday(d: Date) {
     const date = new Date(d)
     const day = date.getDay()
     const diff = date.getDate() - day + (day === 0 ? -6 : 1)
-    return new Date(date.setDate(diff))
+    date.setDate(diff)
+    date.setHours(0,0,0,0)
+    return date
   }
 
   // Genereer 5 weekbereiken vanaf deze week
@@ -465,13 +466,78 @@ function StudentDashboard() {
     }
   })
 
-  // State voor notities per week
   const [notes, setNotes] = useState<string[]>(Array(5).fill(''))
+  const [loading, setLoading] = useState(true)
+  const [savingIdx, setSavingIdx] = useState<number|null>(null)
+  const { user } = useAuth()
 
   // Helper om weekbereik te tonen
   function formatWeekRange(start: Date, end: Date) {
     const options: Intl.DateTimeFormatOptions = { day: 'numeric', month: 'long' }
     return `${start.toLocaleDateString('nl-NL', options)} - ${end.toLocaleDateString('nl-NL', options)}`
+  }
+
+  // Ophalen beschikbaarheid bij laden
+  useEffect(() => {
+    async function fetchAvailability() {
+      if (!user) return
+      setLoading(true)
+      try {
+        const weekStarts = weeks.map(w => w.start.toISOString().slice(0,10))
+        const { data, error } = await supabase
+          .from('student_availability')
+          .select('week_start, notes')
+          .eq('student_id', user.id)
+          .in('week_start', weekStarts)
+        if (error) throw error
+        const notesArr = weeks.map(w => {
+          const found = data?.find((row: any) => row.week_start === w.start.toISOString().slice(0,10))
+          return found ? found.notes || '' : ''
+        })
+        setNotes(notesArr)
+      } catch (e) {
+        // error afvangen
+      } finally {
+        setLoading(false)
+      }
+    }
+    fetchAvailability()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user])
+
+  // Opslaan van beschikbaarheid bij wijziging
+  async function handleNoteChange(idx: number, value: string) {
+    if (!user) return
+    setSavingIdx(idx)
+    setNotes(prev => {
+      const newArr = [...prev]
+      newArr[idx] = value
+      return newArr
+    })
+    try {
+      const week_start = weeks[idx].start.toISOString().slice(0,10)
+      const { data: existing, error: fetchError } = await supabase
+        .from('student_availability')
+        .select('id')
+        .eq('student_id', user.id)
+        .eq('week_start', week_start)
+        .single()
+      if (fetchError && fetchError.code !== 'PGRST116') throw fetchError
+      if (existing) {
+        await supabase
+          .from('student_availability')
+          .update({ notes: value, updated_at: new Date().toISOString() })
+          .eq('id', existing.id)
+      } else {
+        await supabase
+          .from('student_availability')
+          .insert({ student_id: user.id, week_start, notes: value })
+      }
+    } catch (e) {
+      // error afvangen
+    } finally {
+      setSavingIdx(null)
+    }
   }
 
   return (
@@ -481,7 +547,9 @@ function StudentDashboard() {
         <p className="text-sm text-gray-600 mt-1">Vul hieronder je beschikbaarheid per week in</p>
       </div>
       <div className="p-6 space-y-6">
-        {weeks.map((week, idx) => (
+        {loading ? (
+          <div className="text-center text-gray-500">Laden...</div>
+        ) : weeks.map((week, idx) => (
           <div key={idx} className="flex flex-col md:flex-row md:items-center md:gap-6 border border-gray-200 rounded-lg p-4 bg-gray-50">
             <div className="w-full md:w-1/3 mb-2 md:mb-0 font-medium text-gray-800">
               Week {idx + 1}: {formatWeekRange(week.start, week.end)}
@@ -491,12 +559,10 @@ function StudentDashboard() {
                 className="w-full min-h-[48px] border border-gray-300 rounded-lg p-2 text-sm bg-white"
                 placeholder="Beschikbaarheid voor deze week..."
                 value={notes[idx]}
-                onChange={e => {
-                  const newNotes = [...notes]
-                  newNotes[idx] = e.target.value
-                  setNotes(newNotes)
-                }}
+                onChange={e => handleNoteChange(idx, e.target.value)}
+                disabled={savingIdx === idx}
               />
+              {savingIdx === idx && <div className="text-xs text-blue-500 mt-1">Opslaan...</div>}
             </div>
           </div>
         ))}

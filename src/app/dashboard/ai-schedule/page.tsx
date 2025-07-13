@@ -26,6 +26,7 @@ interface StudentWithScheduleData extends Student {
   minutes: number
   notes: string
   aiNotes: string
+  availabilityNotes: string[] // Per week, komende 5 weken
 }
 
 export default function AISchedulePage() {
@@ -128,14 +129,43 @@ export default function AISchedulePage() {
         return
       }
 
-      // Transform students to include schedule data
-      const studentsWithScheduleData: StudentWithScheduleData[] = (data || []).map(student => ({
-        ...student,
-        lessons: 1,
-        minutes: 60,
-        notes: '',
-        aiNotes: '',
-      }))
+      // Haal alle student_ids op
+      const studentIds = (data || []).map(s => s.id)
+      // Haal alle beschikbaarheid voor deze leerlingen voor de komende 5 weken op
+      const weeks = Array.from({ length: 5 }, (_, i) => {
+        const today = new Date()
+        const day = today.getDay()
+        const mondayOffset = day === 0 ? -6 : 1 - day
+        const monday = new Date(today)
+        monday.setDate(today.getDate() + mondayOffset + i * 7)
+        monday.setHours(0,0,0,0)
+        return new Date(monday)
+      })
+      const weekStarts = weeks.map(w => w.toISOString().slice(0,10))
+      const { data: availData, error: availError } = await supabase
+        .from('student_availability')
+        .select('student_id, week_start, notes')
+        .in('student_id', studentIds)
+        .in('week_start', weekStarts)
+      if (availError) {
+        console.error('Error fetching availability:', availError)
+      }
+      // Transform students to include schedule data + beschikbaarheid
+      const studentsWithScheduleData: StudentWithScheduleData[] = (data || []).map(student => {
+        // Per week de juiste notitie zoeken
+        const availabilityNotes = weeks.map(week => {
+          const found = availData?.find(row => row.student_id === student.id && row.week_start === week.toISOString().slice(0,10))
+          return found ? found.notes || '' : ''
+        })
+        return {
+          ...student,
+          lessons: 1,
+          minutes: 60,
+          notes: '',
+          aiNotes: '',
+          availabilityNotes,
+        }
+      })
 
       console.log('Transformed students:', studentsWithScheduleData)
       setStudents(studentsWithScheduleData)
@@ -210,8 +240,17 @@ export default function AISchedulePage() {
   }, [availability])
 
   // Genereer prompt voor ChatGPT
+  const weeks = Array.from({ length: 5 }, (_, i) => {
+    const today = new Date()
+    const day = today.getDay()
+    const mondayOffset = day === 0 ? -6 : 1 - day
+    const monday = new Date(today)
+    monday.setDate(today.getDate() + mondayOffset + i * 7)
+    monday.setHours(0,0,0,0)
+    return new Date(monday)
+  })
   const prompt = `Maak een rooster voor deze week.\n\nBeschikbaarheid instructeur:\n${instructorText}\n\nLeerlingen:\n${students.map(s =>
-    `- ${s.first_name} ${s.last_name}:\n  Beschikbaarheid: [hier komt later de AI notitie] \n  Aantal lessen: ${s.lessons}\n  Minuten per les: ${s.minutes}\n  Notities: ${s.notes}`
+    `- ${s.first_name} ${s.last_name}:\n  Beschikbaarheid per week:\n${weeks.map((w, idx) => `    Week ${idx+1}: ${s.availabilityNotes[idx] || 'geen beschikbaarheid ingevuld'}`).join('\n')}\n  Aantal lessen: ${s.lessons}\n  Minuten per les: ${s.minutes}\n  Notities: ${s.notes}`
   ).join('\n\n')}
 \nGeef het resultaat als JSON of CSV.\nVoor later: Houd rekening met afstand tussen plaatsen en extra notities voor praktische zaken (spits, etc).`
 
@@ -246,6 +285,27 @@ export default function AISchedulePage() {
             </div>
             <div className="bg-white rounded-lg shadow-sm p-6 border border-gray-200">
               <div className="font-semibold text-blue-900 mb-4 text-xl">{student.first_name} {student.last_name}</div>
+              {/* Beschikbaarheid komende 5 weken */}
+              <div className="mb-4">
+                <div className="font-medium text-gray-800 mb-2">Beschikbaarheid komende 5 weken:</div>
+                <div className="space-y-2">
+                  {weeks.map((week, idx) => (
+                    <div key={idx} className="flex flex-col md:flex-row md:items-center md:gap-4">
+                      <div className="w-full md:w-1/3 text-xs text-gray-600">
+                        {week.toLocaleDateString('nl-NL', { day: 'numeric', month: 'long' })} - {new Date(week.getTime() + 6*24*60*60*1000).toLocaleDateString('nl-NL', { day: 'numeric', month: 'long' })}
+                      </div>
+                      <div className="flex-1">
+                        <textarea
+                          className="w-full min-h-[32px] border border-gray-200 rounded bg-gray-50 text-xs p-1"
+                          value={student.availabilityNotes[idx]}
+                          readOnly
+                        />
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+              {/* Einde beschikbaarheid */}
               <div className="flex flex-wrap gap-4 mb-4">
                 <label className="flex flex-col">
                   <span className="text-sm text-gray-700">Aantal lessen</span>
