@@ -26,6 +26,8 @@ export interface Student {
   notes?: string
   instructor_id: string
   instructeur_id: string
+  invite_token?: string
+  user_id?: string
   created_at: string
   updated_at: string
 }

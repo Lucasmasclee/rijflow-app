@@ -26,13 +26,51 @@ export default function InvitePage({ params }: { params: Promise<{ invite_token:
     if (!inviteToken) return
     
     const fetchStudent = async () => {
+      console.log('Looking for student with invite_token:', inviteToken)
+      
+      // First, let's see what columns exist in the students table
+      const { data: tableInfo, error: tableError } = await supabase
+        .from('students')
+        .select('*')
+        .limit(1)
+      
+      console.log('Table structure sample:', tableInfo)
+      console.log('Table error:', tableError)
+      
+      // Check if invite_token column exists by trying to select it specifically
+      const { data: columnCheck, error: columnError } = await supabase
+        .from('students')
+        .select('invite_token')
+        .limit(1)
+      
+      console.log('Column check result:', { columnCheck, columnError })
+      
+      // Now try to find the student
       const { data, error } = await supabase
         .from('students')
         .select('*')
         .eq('invite_token', inviteToken)
         .single()
-      if (error || !data) setError('Ongeldige of verlopen uitnodiging.')
-      else setStudent(data)
+      
+      console.log('Student lookup result:', { data, error })
+      
+      if (columnError) {
+        console.error('Column error - invite_token might not exist:', columnError)
+        setError(`Database kolom 'invite_token' bestaat niet. Neem contact op met de beheerder.`)
+      } else if (error) {
+        console.error('Database error:', error)
+        if (error.code === 'PGRST116') {
+          setError('Ongeldige of verlopen uitnodiging.')
+        } else {
+          setError(`Database fout: ${error.message}`)
+        }
+      } else if (!data) {
+        console.log('No student found with this invite token')
+        setError('Ongeldige of verlopen uitnodiging.')
+      } else {
+        console.log('Student found:', data)
+        setStudent(data)
+      }
     }
     fetchStudent()
   }, [inviteToken])
