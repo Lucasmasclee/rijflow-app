@@ -445,117 +445,80 @@ function InstructorDashboard() {
 }
 
 function StudentDashboard() {
+  const getWeekDays = () => {
+    const today = new Date()
+    const currentDay = today.getDay() // 0 = Sunday, 1 = Monday, etc.
+    const mondayOffset = currentDay === 0 ? -6 : 1 - currentDay // Adjust for Monday start
+    
+    const weekDays = []
+    for (let i = 0; i < 7; i++) {
+      const date = new Date(today)
+      date.setDate(today.getDate() + mondayOffset + i)
+      
+      const isToday = date.toDateString() === today.toDateString()
+      const dayName = date.toLocaleDateString('nl-NL', { weekday: 'short' })
+      const dayDate = date.toLocaleDateString('nl-NL', { day: '2-digit', month: '2-digit' })
+      
+      // TODO: Replace with actual lesson count from database
+      // For now, showing 0 lessons since user just registered
+      const lessons = 0
+      
+      weekDays.push({
+        name: dayName,
+        date: dayDate,
+        isToday,
+        lessons
+      })
+    }
+    
+    return weekDays
+  }
+
   return (
-    <div className="space-y-8">
-      {/* Quick Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <div className="bg-white p-6 rounded-lg shadow-sm">
-          <div className="flex items-center">
-            <Calendar className="h-8 w-8 text-blue-600" />
-            <div className="ml-4">
-              <p className="text-sm font-medium text-gray-600">Geplande lessen</p>
-              <p className="text-2xl font-bold text-gray-900">8</p>
-            </div>
-          </div>
-        </div>
-        <div className="bg-white p-6 rounded-lg shadow-sm">
-          <div className="flex items-center">
-            <Clock className="h-8 w-8 text-green-600" />
-            <div className="ml-4">
-              <p className="text-sm font-medium text-gray-600">Uren gereden</p>
-              <p className="text-2xl font-bold text-gray-900">24</p>
-            </div>
-          </div>
-        </div>
-        <div className="bg-white p-6 rounded-lg shadow-sm">
-          <div className="flex items-center">
-            <MessageSquare className="h-8 w-8 text-purple-600" />
-            <div className="ml-4">
-              <p className="text-sm font-medium text-gray-600">Nieuwe berichten</p>
-              <p className="text-2xl font-bold text-gray-900">2</p>
-            </div>
-          </div>
-        </div>
+    <div className="bg-white rounded-lg shadow-sm">
+      <div className="p-6 border-b border-gray-200">
+        <h2 className="text-lg font-semibold text-gray-900">Beschikbaarheid deze week</h2>
+        <p className="text-sm text-gray-600 mt-1">Overzicht van je geplande lessen</p>
       </div>
-
-      {/* Next Lesson */}
-      <div className="bg-white rounded-lg shadow-sm">
-        <div className="p-6 border-b border-gray-200">
-          <h2 className="text-lg font-semibold text-gray-900">Volgende les</h2>
-        </div>
-        <div className="p-6">
-          <div className="flex items-center justify-between p-4 border border-gray-200 rounded-lg">
-            <div>
-              <p className="font-medium text-gray-900">Morgen, 14:00 - 15:00</p>
-              <p className="text-sm text-gray-600">Instructeur: Jan Jansen</p>
-              <p className="text-sm text-gray-600">Locatie: CBR Amsterdam</p>
+      <div className="p-6">
+        <div className="grid grid-cols-7 gap-4">
+          {getWeekDays().map((day, index) => (
+            <div key={index} className="text-center">
+              <div className={`p-4 rounded-lg border-2 ${
+                day.isToday 
+                  ? 'border-blue-500 bg-blue-50' 
+                  : 'border-gray-200 bg-gray-50'
+              }`}>
+                <p className={`text-sm font-medium ${
+                  day.isToday ? 'text-blue-700' : 'text-gray-600'
+                }`}>
+                  {day.name}
+                </p>
+                <p className={`text-xs ${
+                  day.isToday ? 'text-blue-600' : 'text-gray-500'
+                }`}>
+                  {day.date}
+                </p>
+                <div className="mt-2">
+                  <span className={`inline-flex items-center justify-center w-8 h-8 rounded-full text-sm font-bold ${
+                    day.lessons > 0 
+                      ? 'bg-blue-100 text-blue-700' 
+                      : 'bg-gray-100 text-gray-400'
+                  }`}>
+                    {day.lessons}
+                  </span>
+                </div>
+                <p className="text-xs text-gray-500 mt-1">
+                  {day.lessons > 0 ? 'les(sen)' : 'geen lessen'}
+                </p>
+              </div>
             </div>
-            <span className="px-3 py-1 text-sm font-medium bg-blue-100 text-blue-800 rounded-full">
-              Bevestigd
-            </span>
-          </div>
+          ))}
         </div>
-      </div>
-
-      {/* Recent Progress */}
-      <div className="bg-white rounded-lg shadow-sm">
-        <div className="p-6 border-b border-gray-200">
-          <h2 className="text-lg font-semibold text-gray-900">Recente voortgang</h2>
-        </div>
-        <div className="p-6">
-          <div className="space-y-4">
-            <div className="flex items-center justify-between p-4 border border-gray-200 rounded-lg">
-              <div>
-                <p className="font-medium text-gray-900">Parkeren</p>
-                <p className="text-sm text-gray-600">Gisteren geoefend</p>
-              </div>
-              <span className="px-2 py-1 text-xs font-medium bg-green-100 text-green-800 rounded-full">
-                Goed
-              </span>
-            </div>
-            <div className="flex items-center justify-between p-4 border border-gray-200 rounded-lg">
-              <div>
-                <p className="font-medium text-gray-900">Kijkgedrag</p>
-                <p className="text-sm text-gray-600">Vorige week geoefend</p>
-              </div>
-              <span className="px-2 py-1 text-xs font-medium bg-yellow-100 text-yellow-800 rounded-full">
-                Meer oefening nodig
-              </span>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Quick Actions */}
-      <div className="bg-white rounded-lg shadow-sm">
-        <div className="p-6 border-b border-gray-200">
-          <h2 className="text-lg font-semibold text-gray-900">Snelle acties</h2>
-        </div>
-        <div className="p-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <Link
-              href="/dashboard/availability"
-              className="flex items-center p-4 border border-gray-200 rounded-lg hover:border-blue-300 hover:bg-blue-50 transition-colors"
-            >
-              <Calendar className="h-6 w-6 text-blue-600" />
-              <div className="ml-3">
-                <p className="font-medium text-gray-900">Beschikbaarheid</p>
-                <p className="text-sm text-gray-600">Update je agenda</p>
-              </div>
-              <ChevronRight className="h-4 w-4 text-gray-400 ml-auto" />
-            </Link>
-            <Link
-              href="/dashboard/chat"
-              className="flex items-center p-4 border border-gray-200 rounded-lg hover:border-blue-300 hover:bg-blue-50 transition-colors"
-            >
-              <MessageSquare className="h-6 w-6 text-green-600" />
-              <div className="ml-3">
-                <p className="font-medium text-gray-900">Chat</p>
-                <p className="text-sm text-gray-600">Bericht je instructeur</p>
-              </div>
-              <ChevronRight className="h-4 w-4 text-gray-400 ml-auto" />
-            </Link>
-          </div>
+        <div className="mt-6 text-center">
+          <p className="text-gray-500 text-sm">
+            Neem contact op met je instructeur om lessen te plannen
+          </p>
         </div>
       </div>
     </div>

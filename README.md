@@ -77,16 +77,16 @@ CREATE TABLE public.users (
 );
 
 -- Rijschool table
-CREATE TABLE public.rijscholen (
-  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
-  name TEXT NOT NULL,
-  location TEXT NOT NULL,
-  kvk_number TEXT,
-  logo_url TEXT,
-  instructor_id UUID REFERENCES public.users(id) ON DELETE CASCADE,
-  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
-  updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
-);
+-- CREATE TABLE public.instructors (
+--   id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+--   name TEXT NOT NULL,
+--   location TEXT NOT NULL,
+--   kvk_number TEXT,
+--   logo_url TEXT,
+--   instructor_id UUID REFERENCES public.users(id) ON DELETE CASCADE,
+--   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+--   updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+-- );
 
 -- Students table
 CREATE TABLE public.students (
@@ -97,7 +97,7 @@ CREATE TABLE public.students (
   phone TEXT NOT NULL,
   address TEXT NOT NULL,
   instructor_id UUID REFERENCES public.users(id) ON DELETE CASCADE,
-  rijschool_id UUID REFERENCES public.rijscholen(id) ON DELETE CASCADE,
+  instructor_id UUID REFERENCES public.instructors(id) ON DELETE CASCADE,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
@@ -153,7 +153,7 @@ CREATE TABLE public.availability (
 
 -- Row Level Security (RLS)
 ALTER TABLE public.users ENABLE ROW LEVEL SECURITY;
-ALTER TABLE public.rijscholen ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.instructors ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.students ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.lessons ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.progress_notes ENABLE ROW LEVEL SECURITY;
@@ -169,7 +169,7 @@ CREATE POLICY "Users can update own data" ON public.users
   FOR UPDATE USING (auth.uid() = id);
 
 -- Instructors can see their own rijschool
-CREATE POLICY "Instructors can manage own rijschool" ON public.rijscholen
+CREATE POLICY "Instructors can manage own rijschool" ON public.instructors
   FOR ALL USING (auth.uid() = instructor_id);
 
 -- Instructors can see their students

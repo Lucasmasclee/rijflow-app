@@ -49,59 +49,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       password,
     })
     if (error) throw error
-    // Extra logging
+    // Extra logging for debugging
     console.log('user object:', data?.user)
     console.log('user metadata:', data?.user?.user_metadata)
-    // Fallback voor rol
-    const userId = data?.user?.id
-    const userRole = data?.user?.user_metadata?.role || data?.user?.role || null
-    console.log('userId:', userId)
-    console.log('userRole:', userRole)
-    if (userId) {
-      const { data: userRows, error: userSelectError } = await supabase
-        .from('users')
-        .select('id')
-        .eq('id', userId)
-        .limit(1)
-      if (userSelectError) {
-        console.error('User select error:', userSelectError)
-        throw userSelectError
-      }
-      if (!userRows || userRows.length === 0) {
-        // Voeg toe aan users-tabel
-        const insertData = { id: userId, email, role: userRole }
-        console.log('Inserting into users:', insertData)
-        const { error: insertError } = await supabase
-          .from('users')
-          .insert([insertData])
-        if (insertError) {
-          console.error('Insert error (users):', insertError)
-          throw insertError
-        }
-      }
-      // Voeg toe aan instructeurs-tabel als rol 'instructor' en nog niet aanwezig
-      if (userRole === 'instructor') {
-        const { data: instrRows, error: instrSelectError } = await supabase
-          .from('instructeurs')
-          .select('id')
-          .eq('id', userId)
-          .limit(1)
-        if (instrSelectError) {
-          console.error('Instructeur select error:', instrSelectError)
-          throw instrSelectError
-        }
-        if (!instrRows || instrRows.length === 0) {
-          console.log('Inserting into instructeurs:', { id: userId, email })
-          const { error: insertInstrError } = await supabase
-            .from('instructeurs')
-            .insert([{ id: userId, email }])
-          if (insertInstrError) {
-            console.error('Insert error (instructeurs):', insertInstrError)
-            throw insertInstrError
-          }
-        }
-      }
-    }
   }
 
   const signUp = async (email: string, password: string, role: 'instructor' | 'student') => {
