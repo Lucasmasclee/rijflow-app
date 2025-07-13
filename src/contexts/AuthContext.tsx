@@ -69,7 +69,22 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       },
     })
     if (signUpError) throw signUpError
-    // Geen insert meer in instructeurs-tabel hier
+    // Voeg instructeur toe aan instructors-tabel als rol 'instructor' is
+    if (role === 'instructor' && data?.user) {
+      // Vul hier eventueel meer velden in als gewenst
+      const { error: insertError } = await supabase.from('instructors').insert([
+        {
+          id: data.user.id,
+          email: data.user.email,
+          // Voeg hier eventueel default values toe voor name, location, etc.
+        }
+      ])
+      if (insertError) {
+        // Je kunt hier eventueel een rollback doen of een waarschuwing loggen
+        console.error('Kon instructeur niet toevoegen aan instructors-tabel:', insertError)
+        // throw insertError // optioneel, afhankelijk van gewenste UX
+      }
+    }
   }
 
   const signOut = async () => {
