@@ -332,22 +332,9 @@ export default function ScheduleSettingsPage() {
                           type="time"
                           value={day.startTime}
                           onChange={(e) => {
-                            const timeValue = e.target.value
-                            // Ensure the time is in 24-hour format and prevent automatic conversion
-                            if (timeValue) {
-                              const [hours, minutes] = timeValue.split(':')
-                              // Ensure hours are treated as 24-hour format
-                              const hourNum = parseInt(hours, 10)
-                              if (hourNum >= 0 && hourNum <= 23) {
-                                const formattedTime = `${hours.padStart(2, '0')}:${minutes}`
-                                updateDayTime(day.day, 'startTime', formattedTime)
-                              } else {
-                                // If invalid hour, keep the original value
-                                updateDayTime(day.day, 'startTime', timeValue)
-                              }
-                            } else {
-                              updateDayTime(day.day, 'startTime', timeValue)
-                            }
+                            // Directly use the input value without any conversion
+                            // This prevents automatic 12-hour to 24-hour conversion
+                            updateDayTime(day.day, 'startTime', e.target.value)
                           }}
                           className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                           step="900"
@@ -366,22 +353,9 @@ export default function ScheduleSettingsPage() {
                           type="time"
                           value={day.endTime}
                           onChange={(e) => {
-                            const timeValue = e.target.value
-                            // Ensure the time is in 24-hour format and prevent automatic conversion
-                            if (timeValue) {
-                              const [hours, minutes] = timeValue.split(':')
-                              // Ensure hours are treated as 24-hour format
-                              const hourNum = parseInt(hours, 10)
-                              if (hourNum >= 0 && hourNum <= 23) {
-                                const formattedTime = `${hours.padStart(2, '0')}:${minutes}`
-                                updateDayTime(day.day, 'endTime', formattedTime)
-                              } else {
-                                // If invalid hour, keep the original value
-                                updateDayTime(day.day, 'endTime', timeValue)
-                              }
-                            } else {
-                              updateDayTime(day.day, 'endTime', timeValue)
-                            }
+                            // Directly use the input value without any conversion
+                            // This prevents automatic 12-hour to 24-hour conversion
+                            updateDayTime(day.day, 'endTime', e.target.value)
                           }}
                           className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                           step="900"

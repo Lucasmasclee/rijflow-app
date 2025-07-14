@@ -1017,22 +1017,9 @@ export default function WeekOverviewPage() {
                     type="time"
                     value={lessonForm.startTime}
                     onChange={(e) => {
-                      const timeValue = e.target.value
-                      // Ensure the time is in 24-hour format and prevent automatic conversion
-                      if (timeValue) {
-                        const [hours, minutes] = timeValue.split(':')
-                        // Ensure hours are treated as 24-hour format
-                        const hourNum = parseInt(hours, 10)
-                        if (hourNum >= 0 && hourNum <= 23) {
-                          const formattedTime = `${hours.padStart(2, '0')}:${minutes}`
-                          setLessonForm(prev => ({ ...prev, startTime: formattedTime }))
-                        } else {
-                          // If invalid hour, keep the original value
-                          setLessonForm(prev => ({ ...prev, startTime: timeValue }))
-                        }
-                      } else {
-                        setLessonForm(prev => ({ ...prev, startTime: timeValue }))
-                      }
+                      // Directly use the input value without any conversion
+                      // This prevents automatic 12-hour to 24-hour conversion
+                      setLessonForm(prev => ({ ...prev, startTime: e.target.value }))
                     }}
                     step="900"
                     className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
@@ -1055,22 +1042,9 @@ export default function WeekOverviewPage() {
                     type="time"
                     value={lessonForm.endTime}
                     onChange={(e) => {
-                      const timeValue = e.target.value
-                      // Ensure the time is in 24-hour format and prevent automatic conversion
-                      if (timeValue) {
-                        const [hours, minutes] = timeValue.split(':')
-                        // Ensure hours are treated as 24-hour format
-                        const hourNum = parseInt(hours, 10)
-                        if (hourNum >= 0 && hourNum <= 23) {
-                          const formattedTime = `${hours.padStart(2, '0')}:${minutes}`
-                          setLessonForm(prev => ({ ...prev, endTime: formattedTime }))
-                        } else {
-                          // If invalid hour, keep the original value
-                          setLessonForm(prev => ({ ...prev, endTime: timeValue }))
-                        }
-                      } else {
-                        setLessonForm(prev => ({ ...prev, endTime: timeValue }))
-                      }
+                      // Directly use the input value without any conversion
+                      // This prevents automatic 12-hour to 24-hour conversion
+                      setLessonForm(prev => ({ ...prev, endTime: e.target.value }))
                     }}
                     step="900"
                     className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
