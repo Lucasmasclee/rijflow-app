@@ -350,16 +350,14 @@ function InstructorDashboard() {
                         <span className="text-sm text-gray-600">
                           {student?.first_name || 'Onbekende leerling'}
                         </span>
-                        {student?.address && (
-                          <button
-                            onClick={() => openGoogleMaps(student.address)}
-                            className="flex items-center gap-1 bg-green-600 text-white px-2 py-1 rounded text-xs hover:bg-green-700 transition-colors"
-                            title="Open in Google Maps"
-                          >
-                            <ExternalLink className="h-3 w-3" />
-                            Maps
-                          </button>
-                        )}
+                        <button
+                          onClick={() => openGoogleMaps(student?.address || '')}
+                          className="flex items-center gap-1 bg-green-600 text-white px-2 py-1 rounded text-xs hover:bg-green-700 transition-colors"
+                          title="Open in Google Maps"
+                        >
+                          <ExternalLink className="h-3 w-3" />
+                          Maps
+                        </button>
                       </div>
                     </div>
                   )
