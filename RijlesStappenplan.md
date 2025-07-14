@@ -7,6 +7,7 @@ Dashboard met:
 
 Dag overzicht:
 ✅✅✅✅✅- Per les begintijd, eindtijd, leerling, google maps extensie
+- Klikken op een les laat algemene notities van leerling zien
 - Klikken op een les laat notitie geschiedenis voor die leerling zien
 - Klikken op een les laat notities voor die les zien
 - Klikken op een les heeft nieuw inputfield voor nieuwe lesnotities

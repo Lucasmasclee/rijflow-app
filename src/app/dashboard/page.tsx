@@ -17,7 +17,10 @@ import {
   Edit2,
   Check,
   X,
-  ExternalLink
+  ExternalLink,
+  ChevronDown,
+  ChevronUp,
+  User
 } from 'lucide-react'
 import Link from 'next/link'
 import { supabase } from '@/lib/supabase'
@@ -179,6 +182,7 @@ function InstructorDashboard() {
   const [loadingStudents, setLoadingStudents] = useState(true)
   const [lessons, setLessons] = useState<any[]>([])
   const [loadingLessons, setLoadingLessons] = useState(true)
+  const [expandedLessons, setExpandedLessons] = useState<Set<string>>(new Set())
 
   // Fetch students from database
   const fetchStudents = async () => {
@@ -235,7 +239,8 @@ function InstructorDashboard() {
             id,
             first_name,
             last_name,
-            address
+            address,
+            notes
           )
         `)
         .eq('instructor_id', user.id)
@@ -299,6 +304,18 @@ function InstructorDashboard() {
     return weekDays
   }
 
+  const toggleLessonExpansion = (lessonId: string) => {
+    setExpandedLessons(prev => {
+      const newSet = new Set(prev)
+      if (newSet.has(lessonId)) {
+        newSet.delete(lessonId)
+      } else {
+        newSet.add(lessonId)
+      }
+      return newSet
+    })
+  }
+
   return (
     <>
     <div className="bg-white rounded-lg shadow-sm">
@@ -338,27 +355,87 @@ function InstructorDashboard() {
               <div className="space-y-3">
                 {todayLessons.slice(0, 3).map((lesson, index) => {
                   const student = lesson.students || students.find(s => s.id === lesson.student_id)
+                  const isExpanded = expandedLessons.has(lesson.id)
+                  
                   return (
-                    <div key={index} className="flex items-center justify-between p-3 bg-blue-50 rounded-lg">
-                      <div className="flex items-center space-x-3">
-                        <Clock className="h-4 w-4 text-blue-600" />
-                        <span className="text-sm font-medium text-gray-900">
-                          {lesson.start_time.substring(0, 5)} - {lesson.end_time.substring(0, 5)}
-                        </span>
+                    <div key={index} className="bg-blue-50 rounded-lg overflow-hidden">
+                      {/* Ingeklapte versie */}
+                      <div className="flex items-center justify-between p-3">
+                        <div className="flex items-center space-x-3">
+                          <Clock className="h-4 w-4 text-blue-600" />
+                          <span className="text-sm font-medium text-gray-900">
+                            {lesson.start_time.substring(0, 5)} - {lesson.end_time.substring(0, 5)}
+                          </span>
+                        </div>
+                        <div className="flex items-center space-x-3">
+                          <span className="text-sm text-gray-600">
+                            {student?.first_name || 'Onbekende leerling'}
+                          </span>
+                          <button
+                            onClick={() => openGoogleMaps(student?.address || '')}
+                            className="flex items-center gap-1 bg-green-600 text-white px-2 py-1 rounded text-xs hover:bg-green-700 transition-colors"
+                            title="Open in Google Maps"
+                          >
+                            <ExternalLink className="h-3 w-3" />
+                            Maps
+                          </button>
+                          <button
+                            onClick={() => toggleLessonExpansion(lesson.id)}
+                            className="p-1 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded transition-colors"
+                            title={isExpanded ? "Inklappen" : "Uitklappen"}
+                          >
+                            {isExpanded ? (
+                              <ChevronUp className="h-4 w-4" />
+                            ) : (
+                              <ChevronDown className="h-4 w-4" />
+                            )}
+                          </button>
+                        </div>
                       </div>
-                      <div className="flex items-center space-x-3">
-                        <span className="text-sm text-gray-600">
-                          {student?.first_name || 'Onbekende leerling'}
-                        </span>
-                        <button
-                          onClick={() => openGoogleMaps(student?.address || '')}
-                          className="flex items-center gap-1 bg-green-600 text-white px-2 py-1 rounded text-xs hover:bg-green-700 transition-colors"
-                          title="Open in Google Maps"
-                        >
-                          <ExternalLink className="h-3 w-3" />
-                          Maps
-                        </button>
-                      </div>
+                      
+                      {/* Uitgeklapte versie */}
+                      {isExpanded && (
+                        <div className="border-t border-blue-200 bg-white p-4 space-y-4">
+                          {/* Algemene notities van de leerling */}
+                          {student?.notes && (
+                            <div>
+                              <h4 className="text-sm font-medium text-gray-900 mb-2 flex items-center">
+                                <User className="h-4 w-4 mr-2" />
+                                Algemene notities {student.first_name}
+                              </h4>
+                              <div className="bg-gray-50 p-3 rounded-lg">
+                                <p className="text-sm text-gray-700 whitespace-pre-wrap">
+                                  {student.notes}
+                                </p>
+                              </div>
+                            </div>
+                          )}
+                          
+                          {/* Notities van deze les */}
+                          {lesson.notes && (
+                            <div>
+                              <h4 className="text-sm font-medium text-gray-900 mb-2 flex items-center">
+                                <FileText className="h-4 w-4 mr-2" />
+                                Notities van deze les
+                              </h4>
+                              <div className="bg-blue-50 p-3 rounded-lg">
+                                <p className="text-sm text-gray-700 whitespace-pre-wrap">
+                                  {lesson.notes}
+                                </p>
+                              </div>
+                            </div>
+                          )}
+                          
+                          {/* Als er geen notities zijn */}
+                          {!student?.notes && !lesson.notes && (
+                            <div className="text-center py-4">
+                              <p className="text-sm text-gray-500">
+                                Geen notities beschikbaar voor deze les
+                              </p>
+                            </div>
+                          )}
+                        </div>
+                      )}
                     </div>
                   )
                 })}
