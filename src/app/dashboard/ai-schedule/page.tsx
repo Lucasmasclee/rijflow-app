@@ -396,7 +396,7 @@ export default function AISchedulePage() {
               <div className="font-semibold text-blue-900 mb-4 text-xl">{student.first_name} {student.last_name}</div>
               {/* Beschikbaarheid deze week */}
               <div className="mb-4">
-                <div className="font-medium text-gray-800 mb-2">Beschikbaarheid deze week:</div>
+                <div className="font-medium text-gray-800 mb-2">Beschikbaarheid deze week. Dit is aanpasbaar in de laatste stap.</div>
                 <div className="space-y-2">
                   <div className="flex flex-col md:flex-row md:items-center md:gap-4">
                     <div className="w-full md:w-1/3 text-xs text-gray-600">
