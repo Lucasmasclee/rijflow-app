@@ -715,12 +715,31 @@ export default function WeekOverviewPage() {
           -webkit-appearance: none;
           -moz-appearance: none;
           appearance: none;
+          font-family: monospace;
         }
         
         input[type="time"]::-webkit-datetime-edit-hour-field,
         input[type="time"]::-webkit-datetime-edit-minute-field {
           -webkit-appearance: none;
           appearance: none;
+          font-family: monospace;
+        }
+        
+        /* Hide AM/PM field completely */
+        input[type="time"]::-webkit-datetime-edit-ampm-field {
+          display: none !important;
+          width: 0 !important;
+          padding: 0 !important;
+          margin: 0 !important;
+        }
+        
+        /* Force 24-hour format */
+        input[type="time"][data-format="24h"] {
+          -webkit-text-security: none;
+        }
+        
+        input[type="time"][data-format="24h"]::-webkit-datetime-edit {
+          -webkit-text-security: none;
         }
       `}</style>
       {/* Navigation */}
@@ -999,11 +1018,18 @@ export default function WeekOverviewPage() {
                     value={lessonForm.startTime}
                     onChange={(e) => {
                       const timeValue = e.target.value
-                      // Ensure the time is in 24-hour format
+                      // Ensure the time is in 24-hour format and prevent automatic conversion
                       if (timeValue) {
                         const [hours, minutes] = timeValue.split(':')
-                        const formattedTime = `${hours.padStart(2, '0')}:${minutes}`
-                        setLessonForm(prev => ({ ...prev, startTime: formattedTime }))
+                        // Ensure hours are treated as 24-hour format
+                        const hourNum = parseInt(hours, 10)
+                        if (hourNum >= 0 && hourNum <= 23) {
+                          const formattedTime = `${hours.padStart(2, '0')}:${minutes}`
+                          setLessonForm(prev => ({ ...prev, startTime: formattedTime }))
+                        } else {
+                          // If invalid hour, keep the original value
+                          setLessonForm(prev => ({ ...prev, startTime: timeValue }))
+                        }
                       } else {
                         setLessonForm(prev => ({ ...prev, startTime: timeValue }))
                       }
@@ -1017,6 +1043,8 @@ export default function WeekOverviewPage() {
                     data-format="24h"
                     pattern="[0-9]{2}:[0-9]{2}"
                     placeholder="HH:MM"
+                    min="00:00"
+                    max="23:59"
                   />
                 </div>
                 <div>
@@ -1028,11 +1056,18 @@ export default function WeekOverviewPage() {
                     value={lessonForm.endTime}
                     onChange={(e) => {
                       const timeValue = e.target.value
-                      // Ensure the time is in 24-hour format
+                      // Ensure the time is in 24-hour format and prevent automatic conversion
                       if (timeValue) {
                         const [hours, minutes] = timeValue.split(':')
-                        const formattedTime = `${hours.padStart(2, '0')}:${minutes}`
-                        setLessonForm(prev => ({ ...prev, endTime: formattedTime }))
+                        // Ensure hours are treated as 24-hour format
+                        const hourNum = parseInt(hours, 10)
+                        if (hourNum >= 0 && hourNum <= 23) {
+                          const formattedTime = `${hours.padStart(2, '0')}:${minutes}`
+                          setLessonForm(prev => ({ ...prev, endTime: formattedTime }))
+                        } else {
+                          // If invalid hour, keep the original value
+                          setLessonForm(prev => ({ ...prev, endTime: timeValue }))
+                        }
                       } else {
                         setLessonForm(prev => ({ ...prev, endTime: timeValue }))
                       }
@@ -1046,6 +1081,8 @@ export default function WeekOverviewPage() {
                     data-format="24h"
                     pattern="[0-9]{2}:[0-9]{2}"
                     placeholder="HH:MM"
+                    min="00:00"
+                    max="23:59"
                   />
                 </div>
               </div>

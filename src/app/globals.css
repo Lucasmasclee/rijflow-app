@@ -31,6 +31,8 @@ input[type="time"] {
   -moz-appearance: none;
   appearance: none;
   font-family: monospace;
+  /* Force 24-hour format */
+  -webkit-text-security: none;
 }
 
 /* Webkit browsers (Chrome, Safari, Edge) */
@@ -43,11 +45,16 @@ input[type="time"]::-webkit-datetime-edit-minute-field {
   -webkit-appearance: none;
   appearance: none;
   font-family: monospace;
+  /* Force 24-hour format display */
+  -webkit-text-security: none;
 }
 
 /* Hide AM/PM field completely */
 input[type="time"]::-webkit-datetime-edit-ampm-field {
   display: none !important;
+  width: 0 !important;
+  padding: 0 !important;
+  margin: 0 !important;
 }
 
 /* Firefox specific */
@@ -58,15 +65,37 @@ input[type="time"]::-moz-datetime-edit-minute-field {
 
 input[type="time"]::-moz-datetime-edit-ampm-field {
   display: none !important;
+  width: 0 !important;
+  padding: 0 !important;
+  margin: 0 !important;
 }
 
 /* Ensure proper text color and visibility */
 input[type="time"]::-webkit-datetime-edit {
   color: rgb(17 24 39) !important;
   font-family: monospace;
+  /* Force 24-hour format */
+  -webkit-text-security: none;
 }
 
 input[type="time"]::-moz-datetime-edit {
   color: rgb(17 24 39) !important;
   font-family: monospace;
+}
+
+/* Additional rules to prevent 12-hour format conversion */
+input[type="time"][data-format="24h"] {
+  /* Force 24-hour format */
+  -webkit-text-security: none;
+}
+
+input[type="time"][data-format="24h"]::-webkit-datetime-edit {
+  /* Ensure 24-hour format is maintained */
+  -webkit-text-security: none;
+}
+
+/* Prevent any automatic format conversion */
+input[type="time"]:focus {
+  /* Maintain 24-hour format when focused */
+  -webkit-text-security: none;
 }

@@ -331,9 +331,31 @@ export default function ScheduleSettingsPage() {
                         <input
                           type="time"
                           value={day.startTime}
-                          onChange={(e) => updateDayTime(day.day, 'startTime', e.target.value)}
+                          onChange={(e) => {
+                            const timeValue = e.target.value
+                            // Ensure the time is in 24-hour format and prevent automatic conversion
+                            if (timeValue) {
+                              const [hours, minutes] = timeValue.split(':')
+                              // Ensure hours are treated as 24-hour format
+                              const hourNum = parseInt(hours, 10)
+                              if (hourNum >= 0 && hourNum <= 23) {
+                                const formattedTime = `${hours.padStart(2, '0')}:${minutes}`
+                                updateDayTime(day.day, 'startTime', formattedTime)
+                              } else {
+                                // If invalid hour, keep the original value
+                                updateDayTime(day.day, 'startTime', timeValue)
+                              }
+                            } else {
+                              updateDayTime(day.day, 'startTime', timeValue)
+                            }
+                          }}
                           className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                           step="900"
+                          min="00:00"
+                          max="23:59"
+                          data-format="24h"
+                          pattern="[0-9]{2}:[0-9]{2}"
+                          placeholder="HH:MM"
                         />
                       </div>
                       <div>
@@ -343,9 +365,31 @@ export default function ScheduleSettingsPage() {
                         <input
                           type="time"
                           value={day.endTime}
-                          onChange={(e) => updateDayTime(day.day, 'endTime', e.target.value)}
+                          onChange={(e) => {
+                            const timeValue = e.target.value
+                            // Ensure the time is in 24-hour format and prevent automatic conversion
+                            if (timeValue) {
+                              const [hours, minutes] = timeValue.split(':')
+                              // Ensure hours are treated as 24-hour format
+                              const hourNum = parseInt(hours, 10)
+                              if (hourNum >= 0 && hourNum <= 23) {
+                                const formattedTime = `${hours.padStart(2, '0')}:${minutes}`
+                                updateDayTime(day.day, 'endTime', formattedTime)
+                              } else {
+                                // If invalid hour, keep the original value
+                                updateDayTime(day.day, 'endTime', timeValue)
+                              }
+                            } else {
+                              updateDayTime(day.day, 'endTime', timeValue)
+                            }
+                          }}
                           className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                           step="900"
+                          min="00:00"
+                          max="23:59"
+                          data-format="24h"
+                          pattern="[0-9]{2}:[0-9]{2}"
+                          placeholder="HH:MM"
                         />
                       </div>
                     </div>
