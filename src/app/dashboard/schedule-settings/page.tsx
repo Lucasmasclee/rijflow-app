@@ -47,6 +47,33 @@ export default function ScheduleSettingsPage() {
     'saturday': 6
   }
 
+  // Initialize default availability for an instructor
+  const initializeDefaultAvailability = async () => {
+    if (!user) return
+    
+    try {
+      const defaultAvailability = [
+        { instructor_id: user.id, day_of_week: 1, available: true },  // Monday
+        { instructor_id: user.id, day_of_week: 2, available: true },  // Tuesday
+        { instructor_id: user.id, day_of_week: 3, available: true },  // Wednesday
+        { instructor_id: user.id, day_of_week: 4, available: true },  // Thursday
+        { instructor_id: user.id, day_of_week: 5, available: true },  // Friday
+        { instructor_id: user.id, day_of_week: 6, available: false }, // Saturday
+        { instructor_id: user.id, day_of_week: 0, available: false }  // Sunday
+      ]
+
+      const { error } = await supabase
+        .from('instructor_availability')
+        .insert(defaultAvailability)
+
+      if (error) {
+        console.error('Error initializing default availability:', error)
+      }
+    } catch (error) {
+      console.error('Error initializing default availability:', error)
+    }
+  }
+
   // Fetch availability from database
   const fetchAvailability = async () => {
     if (!user) return
@@ -59,6 +86,12 @@ export default function ScheduleSettingsPage() {
         .eq('instructor_id', user.id)
 
       if (error) {
+        // If table doesn't exist, show error message
+        if (error.code === '42P01') {
+          console.error('Instructor availability table not found. Please run the database setup script.')
+          toast.error('Database tabel ontbreekt. Neem contact op met de beheerder.')
+          return
+        }
         console.error('Error fetching availability:', error)
         return
       }
@@ -77,6 +110,9 @@ export default function ScheduleSettingsPage() {
           ...day,
           available: dbAvailability[day.day] ?? day.available
         })))
+      } else {
+        // No data in database, initialize default availability
+        await initializeDefaultAvailability()
       }
     } catch (error) {
       console.error('Error fetching availability:', error)

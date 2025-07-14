@@ -39,6 +39,33 @@ export default function WeekOverviewPage() {
   const [showAddLesson, setShowAddLesson] = useState(false)
   const [availability, setAvailability] = useState<any[]>([])
 
+  // Initialize default availability for an instructor
+  const initializeDefaultAvailability = async () => {
+    if (!user) return
+    
+    try {
+      const defaultAvailability = [
+        { instructor_id: user.id, day_of_week: 1, available: true },  // Monday
+        { instructor_id: user.id, day_of_week: 2, available: true },  // Tuesday
+        { instructor_id: user.id, day_of_week: 3, available: true },  // Wednesday
+        { instructor_id: user.id, day_of_week: 4, available: true },  // Thursday
+        { instructor_id: user.id, day_of_week: 5, available: true },  // Friday
+        { instructor_id: user.id, day_of_week: 6, available: false }, // Saturday
+        { instructor_id: user.id, day_of_week: 0, available: false }  // Sunday
+      ]
+
+      const { error } = await supabase
+        .from('instructor_availability')
+        .insert(defaultAvailability)
+
+      if (error) {
+        console.error('Error initializing default availability:', error)
+      }
+    } catch (error) {
+      console.error('Error initializing default availability:', error)
+    }
+  }
+
   // Fetch instructor availability from database
   const fetchAvailability = async () => {
     if (!user) return
@@ -50,6 +77,20 @@ export default function WeekOverviewPage() {
         .eq('instructor_id', user.id)
 
       if (error) {
+        // If table doesn't exist, use default availability
+        if (error.code === '42P01') {
+          console.log('Instructor availability table not found, using default availability')
+          setAvailability([
+            { day: 'monday', name: 'Maandag', available: true },
+            { day: 'tuesday', name: 'Dinsdag', available: true },
+            { day: 'wednesday', name: 'Woensdag', available: true },
+            { day: 'thursday', name: 'Donderdag', available: true },
+            { day: 'friday', name: 'Vrijdag', available: true },
+            { day: 'saturday', name: 'Zaterdag', available: false },
+            { day: 'sunday', name: 'Zondag', available: false }
+          ])
+          return
+        }
         console.error('Error fetching availability:', error)
         return
       }
@@ -75,7 +116,10 @@ export default function WeekOverviewPage() {
 
         setAvailability(availabilityData)
       } else {
-        // Default availability if no data in database
+        // No data in database, initialize default availability
+        await initializeDefaultAvailability()
+        
+        // Set default availability for UI
         setAvailability([
           { day: 'monday', name: 'Maandag', available: true },
           { day: 'tuesday', name: 'Dinsdag', available: true },
@@ -88,6 +132,16 @@ export default function WeekOverviewPage() {
       }
     } catch (error) {
       console.error('Error fetching availability:', error)
+      // Fallback to default availability on any error
+      setAvailability([
+        { day: 'monday', name: 'Maandag', available: true },
+        { day: 'tuesday', name: 'Dinsdag', available: true },
+        { day: 'wednesday', name: 'Woensdag', available: true },
+        { day: 'thursday', name: 'Donderdag', available: true },
+        { day: 'friday', name: 'Vrijdag', available: true },
+        { day: 'saturday', name: 'Zaterdag', available: false },
+        { day: 'sunday', name: 'Zondag', available: false }
+      ])
     }
   }
 
