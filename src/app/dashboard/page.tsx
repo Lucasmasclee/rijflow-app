@@ -472,6 +472,11 @@ function StudentDashboard() {
   const [studentId, setStudentId] = useState<string|null>(null)
   const { user } = useAuth()
 
+  // Debug log when studentId changes
+  useEffect(() => {
+    console.log('StudentId state changed to:', studentId)
+  }, [studentId])
+
   // Helper om weekbereik te tonen
   function formatWeekRange(start: Date, end: Date) {
     const options: Intl.DateTimeFormatOptions = { day: 'numeric', month: 'long' }
@@ -567,15 +572,24 @@ function StudentDashboard() {
   // Ophalen beschikbaarheid bij laden
   useEffect(() => {
     async function fetchAvailability() {
-      if (!studentId) return
+      if (!studentId) {
+        console.log('No studentId available, skipping availability fetch')
+        return
+      }
+      
+      console.log('Fetching availability for studentId:', studentId)
       setLoading(true)
       try {
         const weekStarts = weeks.map(w => w.start.toISOString().slice(0,10))
+        console.log('Week starts to fetch:', weekStarts)
+        
         const { data, error } = await supabase
           .from('student_availability')
           .select('week_start, notes')
           .eq('student_id', studentId)
           .in('week_start', weekStarts)
+        
+        console.log('Availability query result:', { data, error })
         
         if (error) {
           console.error('Error fetching availability:', error)
@@ -588,6 +602,7 @@ function StudentDashboard() {
           const found = data?.find((row: any) => row.week_start === w.start.toISOString().slice(0,10))
           return found ? found.notes || '' : ''
         })
+        console.log('Processed notes array:', notesArr)
         setNotes(notesArr)
       } catch (e) {
         console.error('Error fetching availability:', e)
@@ -595,6 +610,7 @@ function StudentDashboard() {
         setNotes(Array(5).fill(''))
       } finally {
         setLoading(false)
+        console.log('Availability fetch completed')
       }
     }
     fetchAvailability()

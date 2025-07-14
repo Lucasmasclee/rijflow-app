@@ -72,14 +72,28 @@ CREATE UNIQUE INDEX IF NOT EXISTS idx_student_availability_unique ON student_ava
 -- Enable RLS
 ALTER TABLE student_availability ENABLE ROW LEVEL SECURITY;
 
+-- Drop existing policies if they exist
+DROP POLICY IF EXISTS "Student can manage own availability" ON student_availability;
+DROP POLICY IF EXISTS "Instructor can view student availability" ON student_availability;
+
 -- Policy: student mag eigen beschikbaarheid lezen/schrijven
+-- This policy handles both user_id and metadata cases
 CREATE POLICY "Student can manage own availability" ON student_availability
   FOR ALL USING (
+    -- Case 1: Student is properly linked via user_id
     auth.uid() IN (
       SELECT user_id 
       FROM students 
       WHERE id = student_availability.student_id
     )
+    OR
+    -- Case 2: Student is linked via metadata (fallback)
+    (auth.uid() IS NOT NULL AND 
+     student_availability.student_id = (
+       SELECT (raw_user_meta_data->>'student_id')::uuid 
+       FROM auth.users 
+       WHERE id = auth.uid()
+     ))
   );
 
 -- Policy: instructeur mag beschikbaarheid van zijn leerlingen lezen
