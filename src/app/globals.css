@@ -24,3 +24,26 @@ body {
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
 }
+
+/* Ensure time inputs always display in 24-hour format */
+input[type="time"] {
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+}
+
+input[type="time"]::-webkit-calendar-picker-indicator {
+  background: none;
+}
+
+/* Force 24-hour format display */
+input[type="time"]::-webkit-datetime-edit-hour-field,
+input[type="time"]::-webkit-datetime-edit-minute-field {
+  -webkit-appearance: none;
+  appearance: none;
+}
+
+/* Remove AM/PM display */
+input[type="time"]::-webkit-datetime-edit-ampm-field {
+  display: none;
+}

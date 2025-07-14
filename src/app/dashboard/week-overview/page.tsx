@@ -46,6 +46,14 @@ function isSameDate(date1: Date | string, date2: Date | string): boolean {
   return d1.getTime() === d2.getTime()
 }
 
+// Helper function to format date as YYYY-MM-DD in local timezone
+function formatDateToISO(date: Date): string {
+  const year = date.getFullYear()
+  const month = String(date.getMonth() + 1).padStart(2, '0')
+  const day = String(date.getDate()).padStart(2, '0')
+  return `${year}-${month}-${day}`
+}
+
 interface LessonFormData {
   id?: string
   date: string
@@ -130,8 +138,9 @@ export default function WeekOverviewPage() {
     
     try {
       setLoadingLessons(true)
-      const startDate = getMonday(currentWeek).toISOString().split('T')[0]
-      const endDate = new Date(getMonday(currentWeek).getTime() + 6 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]
+      const monday = getMonday(currentWeek)
+      const startDate = formatDateToISO(monday)
+      const endDate = formatDateToISO(new Date(monday.getTime() + 6 * 24 * 60 * 60 * 1000))
       
       console.log('Fetching lessons for week:', { startDate, endDate, currentWeek }) // Debug log
       
@@ -339,7 +348,7 @@ export default function WeekOverviewPage() {
       const isToday = date.toDateString() === new Date().toDateString()
       const dayName = date.toLocaleDateString('nl-NL', { weekday: 'short' })
       const dayDate = date.toLocaleDateString('nl-NL', { day: '2-digit', month: '2-digit' })
-      const fullDate = date.toISOString().split('T')[0] // Use ISO date format instead of toDateString()
+      const fullDate = formatDateToISO(date) // Use local timezone formatting instead of toISOString()
       
       // Get day of week (0 = Sunday, 1 = Monday, etc.) and convert to our day names
       const dayOfWeek = date.getDay()
@@ -389,7 +398,33 @@ export default function WeekOverviewPage() {
   }
 
   const formatTime = (time: string) => {
-    return time.substring(0, 5) // Format as HH:MM
+    // Ensure time is always displayed in 24-hour format (HH:MM)
+    // Remove any AM/PM and ensure proper formatting
+    if (!time) return ''
+    
+    // If time is already in HH:MM format, return as is
+    if (/^\d{1,2}:\d{2}$/.test(time)) {
+      const [hours, minutes] = time.split(':')
+      return `${hours.padStart(2, '0')}:${minutes}`
+    }
+    
+    // If time is in HH:MM:SS format, remove seconds
+    if (/^\d{1,2}:\d{2}:\d{2}$/.test(time)) {
+      return time.substring(0, 5)
+    }
+    
+    // If time is in HH:MM:SS.mmm format, remove seconds and milliseconds
+    if (/^\d{1,2}:\d{2}:\d{2}\.\d+$/.test(time)) {
+      return time.substring(0, 5)
+    }
+    
+    // Default fallback - try to parse and format
+    try {
+      const [hours, minutes] = time.split(':')
+      return `${hours.padStart(2, '0')}:${minutes.padStart(2, '0')}`
+    } catch {
+      return time
+    }
   }
 
   const getDayLessons = (dayDate: string) => {
@@ -402,7 +437,7 @@ export default function WeekOverviewPage() {
   // Lesson management functions
   const openAddLesson = (date?: string) => {
     setLessonForm({
-      date: date || new Date().toISOString().split('T')[0],
+      date: date || formatDateToISO(new Date()),
       startTime: '09:00',
       endTime: '10:00',
       studentId: '',
@@ -414,7 +449,7 @@ export default function WeekOverviewPage() {
 
   const openAddLessonForDate = (date: Date) => {
     setLessonForm({
-      date: date.toISOString().split('T')[0],
+      date: formatDateToISO(date),
       startTime: '09:00',
       endTime: '10:00',
       studentId: '',
@@ -535,7 +570,7 @@ export default function WeekOverviewPage() {
   const getDayViewLessons = (): DayViewLesson[] => {
     if (!selectedDate) return []
     
-    const selectedDateISO = selectedDate.toISOString().split('T')[0]
+    const selectedDateISO = formatDateToISO(selectedDate)
     
     return lessons
       .filter(lesson => lesson.date === selectedDateISO)
@@ -843,7 +878,12 @@ export default function WeekOverviewPage() {
                     type="time"
                     value={lessonForm.startTime}
                     onChange={(e) => setLessonForm(prev => ({ ...prev, startTime: e.target.value }))}
+                    step="900"
                     className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    style={{ 
+                      '--tw-text-opacity': '1',
+                      color: 'rgb(17 24 39 / var(--tw-text-opacity))'
+                    } as React.CSSProperties}
                   />
                 </div>
                 <div>
@@ -854,7 +894,12 @@ export default function WeekOverviewPage() {
                     type="time"
                     value={lessonForm.endTime}
                     onChange={(e) => setLessonForm(prev => ({ ...prev, endTime: e.target.value }))}
+                    step="900"
                     className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    style={{ 
+                      '--tw-text-opacity': '1',
+                      color: 'rgb(17 24 39 / var(--tw-text-opacity))'
+                    } as React.CSSProperties}
                   />
                 </div>
               </div>

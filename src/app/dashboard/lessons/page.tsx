@@ -141,6 +141,36 @@ export default function LessonsPage() {
     }
   }
 
+  const formatTime = (time: string) => {
+    // Ensure time is always displayed in 24-hour format (HH:MM)
+    // Remove any AM/PM and ensure proper formatting
+    if (!time) return ''
+    
+    // If time is already in HH:MM format, return as is
+    if (/^\d{1,2}:\d{2}$/.test(time)) {
+      const [hours, minutes] = time.split(':')
+      return `${hours.padStart(2, '0')}:${minutes}`
+    }
+    
+    // If time is in HH:MM:SS format, remove seconds
+    if (/^\d{1,2}:\d{2}:\d{2}$/.test(time)) {
+      return time.substring(0, 5)
+    }
+    
+    // If time is in HH:MM:SS.mmm format, remove seconds and milliseconds
+    if (/^\d{1,2}:\d{2}:\d{2}\.\d+$/.test(time)) {
+      return time.substring(0, 5)
+    }
+    
+    // Default fallback - try to parse and format
+    try {
+      const [hours, minutes] = time.split(':')
+      return `${hours.padStart(2, '0')}:${minutes.padStart(2, '0')}`
+    } catch {
+      return time
+    }
+  }
+
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
@@ -294,7 +324,7 @@ export default function LessonsPage() {
                       <div className="flex items-center justify-between mb-2">
                         <div className="flex items-center text-sm text-blue-900">
                           <Clock className="h-3 w-3 mr-1" />
-                          {lesson.start_time} - {lesson.end_time}
+                          {formatTime(lesson.start_time)} - {formatTime(lesson.end_time)}
                         </div>
                         <button className="text-blue-600 hover:text-blue-800">
                           <MoreVertical className="h-3 w-3" />
