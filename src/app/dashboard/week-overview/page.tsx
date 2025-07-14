@@ -399,7 +399,6 @@ export default function WeekOverviewPage() {
 
   const formatTime = (time: string) => {
     // Ensure time is always displayed in 24-hour format (HH:MM)
-    // Remove any AM/PM and ensure proper formatting
     if (!time) return ''
     
     // If time is already in HH:MM format, return as is
@@ -610,6 +609,32 @@ export default function WeekOverviewPage() {
 
   return (
     <div className="min-h-screen bg-gray-50">
+      <style jsx>{`
+        input[type="time"]::-webkit-calendar-picker-indicator {
+          background: transparent;
+          bottom: 0;
+          color: transparent;
+          cursor: pointer;
+          height: auto;
+          left: 0;
+          position: absolute;
+          right: 0;
+          top: 0;
+          width: auto;
+        }
+        
+        input[type="time"] {
+          -webkit-appearance: none;
+          -moz-appearance: none;
+          appearance: none;
+        }
+        
+        input[type="time"]::-webkit-datetime-edit-hour-field,
+        input[type="time"]::-webkit-datetime-edit-minute-field {
+          -webkit-appearance: none;
+          appearance: none;
+        }
+      `}</style>
       {/* Navigation */}
       <nav className="bg-white shadow-sm border-b">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -877,7 +902,17 @@ export default function WeekOverviewPage() {
                   <input
                     type="time"
                     value={lessonForm.startTime}
-                    onChange={(e) => setLessonForm(prev => ({ ...prev, startTime: e.target.value }))}
+                    onChange={(e) => {
+                      const timeValue = e.target.value
+                      // Ensure the time is in 24-hour format
+                      if (timeValue) {
+                        const [hours, minutes] = timeValue.split(':')
+                        const formattedTime = `${hours.padStart(2, '0')}:${minutes}`
+                        setLessonForm(prev => ({ ...prev, startTime: formattedTime }))
+                      } else {
+                        setLessonForm(prev => ({ ...prev, startTime: timeValue }))
+                      }
+                    }}
                     step="900"
                     className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     style={{ 
@@ -885,6 +920,8 @@ export default function WeekOverviewPage() {
                       color: 'rgb(17 24 39 / var(--tw-text-opacity))'
                     } as React.CSSProperties}
                     data-format="24h"
+                    pattern="[0-9]{2}:[0-9]{2}"
+                    placeholder="HH:MM"
                   />
                 </div>
                 <div>
@@ -894,7 +931,17 @@ export default function WeekOverviewPage() {
                   <input
                     type="time"
                     value={lessonForm.endTime}
-                    onChange={(e) => setLessonForm(prev => ({ ...prev, endTime: e.target.value }))}
+                    onChange={(e) => {
+                      const timeValue = e.target.value
+                      // Ensure the time is in 24-hour format
+                      if (timeValue) {
+                        const [hours, minutes] = timeValue.split(':')
+                        const formattedTime = `${hours.padStart(2, '0')}:${minutes}`
+                        setLessonForm(prev => ({ ...prev, endTime: formattedTime }))
+                      } else {
+                        setLessonForm(prev => ({ ...prev, endTime: timeValue }))
+                      }
+                    }}
                     step="900"
                     className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     style={{ 
@@ -902,6 +949,8 @@ export default function WeekOverviewPage() {
                       color: 'rgb(17 24 39 / var(--tw-text-opacity))'
                     } as React.CSSProperties}
                     data-format="24h"
+                    pattern="[0-9]{2}:[0-9]{2}"
+                    placeholder="HH:MM"
                   />
                 </div>
               </div>

@@ -24,6 +24,7 @@ Leerling overzicht:
 ✅✅✅✅✅- Nieuwe leerlingen aanmaken
 ✅✅✅✅✅- Leerlingen bewerken
 ✅✅✅✅✅- Leerlingen verwijderen
+
 - Nieuwe implementatie voor beschikbaarheid van leerlingen:
 - Link sturen waarbij op een of andere manier een leerling een inputfield te zien krijgt met een lijst van Maandag t/m Zondag voor een bepaalde week. Deze moet de leerling dan bewerken en versturen. Dit moet de rij instructeur vervolgens te zien krijgen
 
@@ -58,6 +59,8 @@ AI Rooster
 
 
 
+
+
 Voor later:
 ● Voor later: Een 2e overzicht, waarbij de instructeur kan kiezen welke weekplanning het beste lijkt
 ● Voor later: Rekening houden met afstand tussen plaatsen en extra notities voor praktische zaken (Spits enzo)
@@ -68,7 +71,6 @@ Glitches:
 Op Macbook: bij inloggen is de tekst soms wit
 Op Macbook: beschikbaarheid invullen in student dashboard tekst is wit
 Als leerling uitnodigingslink klikt en email en wachtwoord aanmaakt, moet hij een scherm te zien krijgen met "Bevestig je account in email"
-Lestijden gebruiken 1 pm ipv 13:00
 
 App mooi maken en elke pagina checken
 App goed laten lijken op telefoon
