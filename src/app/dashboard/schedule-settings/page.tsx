@@ -64,7 +64,10 @@ export default function ScheduleSettingsPage() {
 
       const { error } = await supabase
         .from('instructor_availability')
-        .insert(defaultAvailability)
+        .upsert(defaultAvailability, { 
+          onConflict: 'instructor_id,day_of_week',
+          ignoreDuplicates: false 
+        })
 
       if (error) {
         console.error('Error initializing default availability:', error)
@@ -111,8 +114,29 @@ export default function ScheduleSettingsPage() {
           available: dbAvailability[day.day] ?? day.available
         })))
       } else {
-        // No data in database, initialize default availability
+        // No data in database, initialize default availability and fetch again
         await initializeDefaultAvailability()
+        
+        // Fetch the newly created data
+        const { data: newData, error: newError } = await supabase
+          .from('instructor_availability')
+          .select('*')
+          .eq('instructor_id', user.id)
+
+        if (newData && newData.length > 0) {
+          const dbAvailability = newData.reduce((acc, item) => {
+            const dayName = Object.keys(dayToNumber).find(key => dayToNumber[key as keyof typeof dayToNumber] === item.day_of_week)
+            if (dayName) {
+              acc[dayName] = item.available
+            }
+            return acc
+          }, {} as Record<string, boolean>)
+
+          setAvailability(prev => prev.map(day => ({
+            ...day,
+            available: dbAvailability[day.day] ?? day.available
+          })))
+        }
       }
     } catch (error) {
       console.error('Error fetching availability:', error)

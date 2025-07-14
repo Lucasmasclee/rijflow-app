@@ -56,7 +56,10 @@ export default function WeekOverviewPage() {
 
       const { error } = await supabase
         .from('instructor_availability')
-        .insert(defaultAvailability)
+        .upsert(defaultAvailability, { 
+          onConflict: 'instructor_id,day_of_week',
+          ignoreDuplicates: false 
+        })
 
       if (error) {
         console.error('Error initializing default availability:', error)
@@ -119,16 +122,44 @@ export default function WeekOverviewPage() {
         // No data in database, initialize default availability
         await initializeDefaultAvailability()
         
-        // Set default availability for UI
-        setAvailability([
-          { day: 'monday', name: 'Maandag', available: true },
-          { day: 'tuesday', name: 'Dinsdag', available: true },
-          { day: 'wednesday', name: 'Woensdag', available: true },
-          { day: 'thursday', name: 'Donderdag', available: true },
-          { day: 'friday', name: 'Vrijdag', available: true },
-          { day: 'saturday', name: 'Zaterdag', available: false },
-          { day: 'sunday', name: 'Zondag', available: false }
-        ])
+        // Fetch the data again after initialization
+        const { data: newData, error: newError } = await supabase
+          .from('instructor_availability')
+          .select('*')
+          .eq('instructor_id', user.id)
+
+        if (newData && newData.length > 0) {
+          // Transform the newly created data
+          const dayNames = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday']
+          const dayDisplayNames = ['Zondag', 'Maandag', 'Dinsdag', 'Woensdag', 'Donderdag', 'Vrijdag', 'Zaterdag']
+          
+          const dbAvailability = newData.reduce((acc, item) => {
+            const dayName = dayNames[item.day_of_week]
+            if (dayName) {
+              acc[dayName] = item.available
+            }
+            return acc
+          }, {} as Record<string, boolean>)
+
+          const availabilityData = dayNames.map((day, index) => ({
+            day,
+            name: dayDisplayNames[index],
+            available: dbAvailability[day] ?? (index >= 1 && index <= 5) // Default: weekdays available
+          }))
+
+          setAvailability(availabilityData)
+        } else {
+          // Fallback to default availability if still no data
+          setAvailability([
+            { day: 'monday', name: 'Maandag', available: true },
+            { day: 'tuesday', name: 'Dinsdag', available: true },
+            { day: 'wednesday', name: 'Woensdag', available: true },
+            { day: 'thursday', name: 'Donderdag', available: true },
+            { day: 'friday', name: 'Vrijdag', available: true },
+            { day: 'saturday', name: 'Zaterdag', available: false },
+            { day: 'sunday', name: 'Zondag', available: false }
+          ])
+        }
       }
     } catch (error) {
       console.error('Error fetching availability:', error)
