@@ -37,13 +37,13 @@ export default function AISchedulePage() {
 
   // Instructeur beschikbaarheid
   const [availability, setAvailability] = useState([
-    { day: 'monday', available: true },
-    { day: 'tuesday', available: true },
-    { day: 'wednesday', available: true },
-    { day: 'thursday', available: true },
-    { day: 'friday', available: true },
-    { day: 'saturday', available: false },
-    { day: 'sunday', available: false },
+    { day: 'monday', available: true, startTime: '09:00', endTime: '17:00' },
+    { day: 'tuesday', available: true, startTime: '09:00', endTime: '17:00' },
+    { day: 'wednesday', available: true, startTime: '09:00', endTime: '17:00' },
+    { day: 'thursday', available: true, startTime: '09:00', endTime: '17:00' },
+    { day: 'friday', available: true, startTime: '09:00', endTime: '17:00' },
+    { day: 'saturday', available: false, startTime: '09:00', endTime: '17:00' },
+    { day: 'sunday', available: false, startTime: '09:00', endTime: '17:00' },
   ])
 
   // Leerlingen data
@@ -106,11 +106,13 @@ export default function AISchedulePage() {
       if (error) {
         // If table doesn't exist, use default availability
         if (error.code === '42P01') {
-          console.log('Instructor availability table not found, using default availability')
-          setAvailability(DAY_ORDER.map(({ day }) => ({
-            day,
-            available: day !== 'saturday' && day !== 'sunday'
-          })))
+                  console.log('Instructor availability table not found, using default availability')
+        setAvailability(DAY_ORDER.map(({ day }) => ({
+          day,
+          available: day !== 'saturday' && day !== 'sunday',
+          startTime: '09:00',
+          endTime: '17:00'
+        })))
           return
         }
         console.error('Error fetching instructor availability:', error)
@@ -130,14 +132,20 @@ export default function AISchedulePage() {
             return dayNumber === item.day_of_week
           })
           if (dayName) {
-            acc[dayName.day] = item.available
+            acc[dayName.day] = {
+              available: item.available,
+              startTime: item.start_time || '09:00',
+              endTime: item.end_time || '17:00'
+            }
           }
           return acc
-        }, {} as Record<string, boolean>)
+        }, {} as Record<string, { available: boolean; startTime: string; endTime: string }>)
 
         setAvailability(DAY_ORDER.map(({ day }) => ({
           day,
-          available: dbAvailability[day] ?? (day !== 'saturday' && day !== 'sunday')
+          available: dbAvailability[day]?.available ?? (day !== 'saturday' && day !== 'sunday'),
+          startTime: dbAvailability[day]?.startTime ?? '09:00',
+          endTime: dbAvailability[day]?.endTime ?? '17:00'
         })))
       } else {
         // No data in database, initialize default availability and fetch again
@@ -161,14 +169,20 @@ export default function AISchedulePage() {
               return dayNumber === item.day_of_week
             })
             if (dayName) {
-              acc[dayName.day] = item.available
+              acc[dayName.day] = {
+                available: item.available,
+                startTime: item.start_time || '09:00',
+                endTime: item.end_time || '17:00'
+              }
             }
             return acc
-          }, {} as Record<string, boolean>)
+          }, {} as Record<string, { available: boolean; startTime: string; endTime: string }>)
 
           setAvailability(DAY_ORDER.map(({ day }) => ({
             day,
-            available: dbAvailability[day] ?? (day !== 'saturday' && day !== 'sunday')
+            available: dbAvailability[day]?.available ?? (day !== 'saturday' && day !== 'sunday'),
+            startTime: dbAvailability[day]?.startTime ?? '09:00',
+            endTime: dbAvailability[day]?.endTime ?? '17:00'
           })))
         }
       }
@@ -177,7 +191,9 @@ export default function AISchedulePage() {
       // Fallback to default availability on any error
       setAvailability(DAY_ORDER.map(({ day }) => ({
         day,
-        available: day !== 'saturday' && day !== 'sunday'
+        available: day !== 'saturday' && day !== 'sunday',
+        startTime: '09:00',
+        endTime: '17:00'
       })))
     }
   }
@@ -367,7 +383,11 @@ export default function AISchedulePage() {
     const text = DAY_ORDER
       .map(({ day, name }) => {
         const found = availability.find(a => a.day === day)
-        return `${name} ${found && found.available ? 'Hele dag' : 'Niet beschikbaar'}`
+        if (found && found.available) {
+          return `${name} ${found.startTime} - ${found.endTime}`
+        } else {
+          return `${name} Niet beschikbaar`
+        }
       })
       .join('\n')
     setInstructorText(text)
@@ -402,12 +422,56 @@ export default function AISchedulePage() {
           <div className="space-y-6">
             <h2 className="text-2xl font-bold text-gray-900">Jouw Beschikbaarheid</h2>
             <p className="text-gray-600">Controleer je beschikbaarheid voor deze week:</p>
-            <textarea
-              className="w-full h-50 p-4 border border-gray-300 rounded-lg resize-none text-base bg-white shadow-sm"
-              value={instructorText}
-              onChange={(e) => setInstructorText(e.target.value)}
-              placeholder="Bewerk hier je beschikbaarheid..."
-            />
+            
+            {/* Visual availability display */}
+            <div className="bg-white rounded-lg shadow-sm border border-gray-200">
+              <div className="p-6">
+                <h3 className="text-lg font-semibold text-gray-900 mb-4">Dagelijkse beschikbaarheid</h3>
+                <div className="space-y-3">
+                  {DAY_ORDER.map(({ day, name }) => {
+                    const found = availability.find(a => a.day === day)
+                    return (
+                      <div key={day} className="flex items-center justify-between p-3 border border-gray-200 rounded-lg">
+                        <div className="flex items-center">
+                          <div className={`w-4 h-4 rounded-full mr-3 ${
+                            found && found.available ? 'bg-green-500' : 'bg-gray-300'
+                          }`}>
+                            {found && found.available && (
+                              <div className="w-4 h-4 rounded-full bg-green-500 flex items-center justify-center">
+                                <div className="w-2 h-2 rounded-full bg-white"></div>
+                              </div>
+                            )}
+                          </div>
+                          <span className="font-medium text-gray-900">{name}</span>
+                        </div>
+                        <div className="text-right">
+                          {found && found.available ? (
+                            <span className="text-sm text-green-600 font-medium">
+                              {found.startTime} - {found.endTime}
+                            </span>
+                          ) : (
+                            <span className="text-sm text-gray-500">Niet beschikbaar</span>
+                          )}
+                        </div>
+                      </div>
+                    )
+                  })}
+                </div>
+              </div>
+            </div>
+            
+            {/* Editable text area */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Beschikbaarheid als tekst (bewerkbaar)
+              </label>
+              <textarea
+                className="w-full h-32 p-4 border border-gray-300 rounded-lg resize-none text-base bg-white shadow-sm"
+                value={instructorText}
+                onChange={(e) => setInstructorText(e.target.value)}
+                placeholder="Bewerk hier je beschikbaarheid..."
+              />
+            </div>
           </div>
         )
       case 'student-details':

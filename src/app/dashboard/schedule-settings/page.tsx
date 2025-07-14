@@ -19,19 +19,21 @@ interface DayAvailability {
   day: string
   name: string
   available: boolean
+  startTime: string
+  endTime: string
 }
 
 export default function ScheduleSettingsPage() {
   const { user, loading } = useAuth()
   const router = useRouter()
   const [availability, setAvailability] = useState<DayAvailability[]>([
-    { day: 'monday', name: 'Maandag', available: true },
-    { day: 'tuesday', name: 'Dinsdag', available: true },
-    { day: 'wednesday', name: 'Woensdag', available: true },
-    { day: 'thursday', name: 'Donderdag', available: true },
-    { day: 'friday', name: 'Vrijdag', available: true },
-    { day: 'saturday', name: 'Zaterdag', available: false },
-    { day: 'sunday', name: 'Zondag', available: false }
+    { day: 'monday', name: 'Maandag', available: true, startTime: '09:00', endTime: '17:00' },
+    { day: 'tuesday', name: 'Dinsdag', available: true, startTime: '09:00', endTime: '17:00' },
+    { day: 'wednesday', name: 'Woensdag', available: true, startTime: '09:00', endTime: '17:00' },
+    { day: 'thursday', name: 'Donderdag', available: true, startTime: '09:00', endTime: '17:00' },
+    { day: 'friday', name: 'Vrijdag', available: true, startTime: '09:00', endTime: '17:00' },
+    { day: 'saturday', name: 'Zaterdag', available: false, startTime: '09:00', endTime: '17:00' },
+    { day: 'sunday', name: 'Zondag', available: false, startTime: '09:00', endTime: '17:00' }
   ])
   const [saved, setSaved] = useState(false)
   const [loadingAvailability, setLoadingAvailability] = useState(true)
@@ -104,14 +106,20 @@ export default function ScheduleSettingsPage() {
         const dbAvailability = data.reduce((acc, item) => {
           const dayName = Object.keys(dayToNumber).find(key => dayToNumber[key as keyof typeof dayToNumber] === item.day_of_week)
           if (dayName) {
-            acc[dayName] = item.available
+            acc[dayName] = {
+              available: item.available,
+              startTime: item.start_time || '09:00',
+              endTime: item.end_time || '17:00'
+            }
           }
           return acc
-        }, {} as Record<string, boolean>)
+        }, {} as Record<string, { available: boolean; startTime: string; endTime: string }>)
 
         setAvailability(prev => prev.map(day => ({
           ...day,
-          available: dbAvailability[day.day] ?? day.available
+          available: dbAvailability[day.day]?.available ?? day.available,
+          startTime: dbAvailability[day.day]?.startTime ?? day.startTime,
+          endTime: dbAvailability[day.day]?.endTime ?? day.endTime
         })))
       } else {
         // No data in database, initialize default availability and fetch again
@@ -127,14 +135,20 @@ export default function ScheduleSettingsPage() {
           const dbAvailability = newData.reduce((acc, item) => {
             const dayName = Object.keys(dayToNumber).find(key => dayToNumber[key as keyof typeof dayToNumber] === item.day_of_week)
             if (dayName) {
-              acc[dayName] = item.available
+              acc[dayName] = {
+                available: item.available,
+                startTime: item.start_time || '09:00',
+                endTime: item.end_time || '17:00'
+              }
             }
             return acc
-          }, {} as Record<string, boolean>)
+          }, {} as Record<string, { available: boolean; startTime: string; endTime: string }>)
 
           setAvailability(prev => prev.map(day => ({
             ...day,
-            available: dbAvailability[day.day] ?? day.available
+            available: dbAvailability[day.day]?.available ?? day.available,
+            startTime: dbAvailability[day.day]?.startTime ?? day.startTime,
+            endTime: dbAvailability[day.day]?.endTime ?? day.endTime
           })))
         }
       }
@@ -165,6 +179,16 @@ export default function ScheduleSettingsPage() {
     )
   }
 
+  const updateDayTime = (day: string, field: 'startTime' | 'endTime', value: string) => {
+    setAvailability(prev => 
+      prev.map(item => 
+        item.day === day 
+          ? { ...item, [field]: value }
+          : item
+      )
+    )
+  }
+
   const saveAvailability = async () => {
     if (!user) return
     
@@ -173,7 +197,9 @@ export default function ScheduleSettingsPage() {
       const availabilityData = availability.map(day => ({
         instructor_id: user.id,
         day_of_week: dayToNumber[day.day as keyof typeof dayToNumber],
-        available: day.available
+        available: day.available,
+        start_time: day.startTime,
+        end_time: day.endTime
       }))
 
       // Delete existing availability for this instructor
@@ -270,29 +296,60 @@ export default function ScheduleSettingsPage() {
               {availability.map((day) => (
                 <div 
                   key={day.day}
-                  className="flex items-center justify-between p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
+                  className="p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
                 >
-                  <div className="flex items-center">
-                    <div className={`w-4 h-4 rounded-full mr-4 ${
-                      day.available ? 'bg-blue-600' : 'bg-gray-300'
-                    }`}>
-                      {day.available && (
-                        <Check className="w-4 h-4 text-white" />
-                      )}
+                  <div className="flex items-center justify-between mb-4">
+                    <div className="flex items-center">
+                      <div className={`w-4 h-4 rounded-full mr-4 ${
+                        day.available ? 'bg-blue-600' : 'bg-gray-300'
+                      }`}>
+                        {day.available && (
+                          <Check className="w-4 h-4 text-white" />
+                        )}
+                      </div>
+                      <span className="text-lg font-medium text-gray-900">{day.name}</span>
                     </div>
-                    <span className="text-lg font-medium text-gray-900">{day.name}</span>
+                    
+                    <button
+                      onClick={() => toggleDayAvailability(day.day)}
+                      className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                        day.available
+                          ? 'bg-blue-100 text-blue-700 hover:bg-blue-200'
+                          : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                      }`}
+                    >
+                      {day.available ? 'Beschikbaar' : 'Niet beschikbaar'}
+                    </button>
                   </div>
                   
-                  <button
-                    onClick={() => toggleDayAvailability(day.day)}
-                    className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-                      day.available
-                        ? 'bg-blue-100 text-blue-700 hover:bg-blue-200'
-                        : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-                    }`}
-                  >
-                    {day.available ? 'Beschikbaar' : 'Niet beschikbaar'}
-                  </button>
+                  {day.available && (
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                          Starttijd
+                        </label>
+                        <input
+                          type="time"
+                          value={day.startTime}
+                          onChange={(e) => updateDayTime(day.day, 'startTime', e.target.value)}
+                          className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                          step="900"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                          Eindtijd
+                        </label>
+                        <input
+                          type="time"
+                          value={day.endTime}
+                          onChange={(e) => updateDayTime(day.day, 'endTime', e.target.value)}
+                          className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                          step="900"
+                        />
+                      </div>
+                    </div>
+                  )}
                 </div>
               ))}
             </div>

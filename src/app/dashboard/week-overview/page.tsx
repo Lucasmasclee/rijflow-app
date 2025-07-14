@@ -1210,7 +1210,7 @@ export default function WeekOverviewPage() {
                     className="w-full p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors text-left"
                   >
                     <div className="font-medium text-gray-900">
-                      Week {index + 1}
+                      Week {index === 0 ? 'Volgende week' : index + 1}
                     </div>
                     <div className="text-sm text-gray-600">
                       {weekStart.toLocaleDateString('nl-NL', {
@@ -1267,7 +1267,7 @@ export default function WeekOverviewPage() {
               
               <div className="bg-orange-50 border border-orange-200 rounded-lg p-3">
                 <p className="text-sm text-orange-800">
-                  <strong>Let op:</strong> Alle lesnotities worden gewist in de gekopieerde lessen.
+                  <strong>Let op:</strong> Alle les<strong>notities</strong> worden niet meegenomenin.
                 </p>
               </div>
             </div>

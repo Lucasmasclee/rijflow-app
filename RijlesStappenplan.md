@@ -19,8 +19,9 @@ Weekoverzicht:
 ✅✅✅✅✅- Lessen bewerken
 ✅✅✅✅✅- Lessen verwijderen
 ✅✅✅✅✅- Lessen dupliceren
-- 'Kopieer weekplanning naar' Knop
-- Weken om je weekplanning naar te kopiëren
+✅✅✅✅✅- 'Kopieer weekplanning naar' Knop
+✅✅✅✅✅- Weken om je weekplanning naar te kopiëren
+✅✅✅✅✅- Notities voor weekplanning die gekopieerd is verwijderen
 
 Leerling overzicht:
 ✅✅✅✅✅- Nieuwe leerlingen aanmaken
@@ -55,7 +56,6 @@ AI Rooster
 ✅✅✅✅✅- Scherm voor andere notities:
 ✅✅✅✅✅- pauzes
 ✅✅✅✅✅- locatieplanning
-- Meldingen sturen naar leerlingen
 ● Al deze gegevens voor de instructeur en leerling verwerken naar een goede prompt voor chatgpt
 ● Chatgpt een prompt sturen en vragen voor een json bestand of csv bestand
 ● Een overzicht van wat chatgpt gaat toevoegen
@@ -91,8 +91,11 @@ Voor later / Verbeteringen / Ideeën:
 
 
 
-
-
+(ChatGPT vragen wat het beste moment is om de app te lanceren)
+BELANGRIJK: Voor elke functie vragen wat de juiste userflow is. Welke UI elementen, op welke plek etc..
+Elke functie testen
+Hele workflow testen
+Allerlei scenario's testen
 Alles laten controleren door chatgpt
 App mooi maken en elke pagina checken
 App goed laten lijken op telefoon
