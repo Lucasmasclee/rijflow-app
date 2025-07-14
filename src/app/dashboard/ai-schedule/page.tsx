@@ -57,6 +57,7 @@ export default function AISchedulePage() {
     connectLocations: true,
     numberOfBreaks: 2,
     minutesPerBreak: 15,
+    minutesBreakEveryLesson: 5,
     breakAfterEachStudent: false,
     sendNotifications: false,
     additionalSpecifications: ''
@@ -558,8 +559,8 @@ export default function AISchedulePage() {
               {/* Pauze bij elke leerling */}
               <div className="flex items-center justify-between">
                 <div>
-                  <label className="text-sm font-medium text-gray-700">Pauze van {settings.minutesPerBreak} minuten bij elke leerling</label>
-                  <p className="text-xs text-gray-500">Voeg automatisch een pauze toe na elke leerling</p>
+                  <label className="text-sm font-medium text-gray-700">Pauze van {settings.minutesBreakEveryLesson} minuten bij elke leerling</label>
+                  <p className="text-xs text-gray-500">Houdt {settings.minutesBreakEveryLesson} minuten tussen elke les</p>
                 </div>
                 <button
                   type="button"

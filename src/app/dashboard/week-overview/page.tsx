@@ -17,7 +17,9 @@ import {
   Settings,
   Copy,
   X,
-  ExternalLink
+  ExternalLink,
+  Check,
+  AlertTriangle
 } from 'lucide-react'
 import Link from 'next/link'
 import { supabase } from '@/lib/supabase'
@@ -101,6 +103,12 @@ export default function WeekOverviewPage() {
   })
   const [editingLesson, setEditingLesson] = useState<LessonWithStudent | null>(null)
   const [loadingLessons, setLoadingLessons] = useState(true)
+
+  // Copy week functionality
+  const [showCopyModal, setShowCopyModal] = useState(false)
+  const [showConfirmationModal, setShowConfirmationModal] = useState(false)
+  const [selectedTargetWeek, setSelectedTargetWeek] = useState<Date | null>(null)
+  const [copyingLessons, setCopyingLessons] = useState(false)
 
   // Initialize default availability for an instructor
   const initializeDefaultAvailability = async () => {
@@ -592,6 +600,86 @@ export default function WeekOverviewPage() {
     window.open(`https://www.google.com/maps/search/?api=1&query=${encodedAddress}`, '_blank')
   }
 
+  // Get the next 5 weeks for copy functionality
+  const getNext5Weeks = () => {
+    const weeks = []
+    for (let i = 1; i <= 5; i++) {
+      const weekStart = new Date(currentWeek)
+      weekStart.setDate(currentWeek.getDate() + (i * 7))
+      weeks.push(weekStart)
+    }
+    return weeks
+  }
+
+  // Handle copy week button click
+  const handleCopyWeekClick = () => {
+    if (lessons.length === 0) {
+      toast.error('Er zijn geen lessen om te kopiëren')
+      return
+    }
+    setShowCopyModal(true)
+  }
+
+  // Handle week selection for copying
+  const handleWeekSelection = (targetWeek: Date) => {
+    setSelectedTargetWeek(targetWeek)
+    setShowCopyModal(false)
+    setShowConfirmationModal(true)
+  }
+
+  // Handle confirmation and copy lessons
+  const handleConfirmCopy = async () => {
+    if (!selectedTargetWeek || !user) return
+
+    setCopyingLessons(true)
+    try {
+      const currentWeekStart = getMonday(currentWeek)
+      const targetWeekStart = getMonday(selectedTargetWeek)
+
+      // Calculate the day offset between current week and target week
+      const dayOffset = Math.floor((targetWeekStart.getTime() - currentWeekStart.getTime()) / (1000 * 60 * 60 * 24))
+
+      // Copy lessons to target week (duplicate, don't replace)
+      const lessonsToCopy = lessons.map(lesson => {
+        const lessonDate = new Date(lesson.date)
+        const newDate = new Date(lessonDate)
+        newDate.setDate(lessonDate.getDate() + dayOffset)
+        
+        return {
+          date: formatDateToISO(newDate),
+          start_time: lesson.start_time,
+          end_time: lesson.end_time,
+          student_id: lesson.student_id,
+          instructor_id: lesson.instructor_id,
+          status: 'scheduled',
+          // Remove notes as requested
+          notes: null
+        }
+      })
+
+      const { error: insertError } = await supabase
+        .from('lessons')
+        .insert(lessonsToCopy)
+
+      if (insertError) {
+        console.error('Error copying lessons:', insertError)
+        toast.error('Fout bij het kopiëren van lessen')
+        return
+      }
+
+      toast.success('Weekplanning succesvol gekopieerd')
+      
+      // Close modals
+      setShowConfirmationModal(false)
+      setSelectedTargetWeek(null)
+    } catch (error) {
+      console.error('Error copying lessons:', error)
+      toast.error('Fout bij het kopiëren van lessen')
+    } finally {
+      setCopyingLessons(false)
+    }
+  }
+
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
@@ -696,6 +784,13 @@ export default function WeekOverviewPage() {
                 >
                   <Plus className="h-4 w-4" />
                   Les toevoegen
+                </button>
+                <button
+                  onClick={handleCopyWeekClick}
+                  className="flex items-center gap-2 bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700 transition-colors"
+                >
+                  <Copy className="h-4 w-4" />
+                  Kopieer weekplanning naar...
                 </button>
                 <Link
                   href="/dashboard/ai-schedule"
@@ -1077,6 +1172,134 @@ export default function WeekOverviewPage() {
                    </button>
                 </div>
               )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Copy Week Modal */}
+      {showCopyModal && (
+        <div className="fixed inset-0 bg-gray-500 bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 w-full max-w-md mx-4">
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="text-lg font-semibold text-gray-900">
+                Kopieer weekplanning naar...
+              </h3>
+              <button
+                onClick={() => setShowCopyModal(false)}
+                className="text-gray-400 hover:text-gray-600"
+              >
+                <X className="h-5 w-5" />
+              </button>
+            </div>
+            
+            <div className="space-y-3">
+              <p className="text-sm text-gray-600 mb-4">
+                Selecteer een week waarnaar je de huidige weekplanning wilt kopiëren:
+              </p>
+              
+              {getNext5Weeks().map((week, index) => {
+                const weekStart = getMonday(week)
+                const weekEnd = new Date(weekStart)
+                weekEnd.setDate(weekStart.getDate() + 6)
+                
+                return (
+                  <button
+                    key={index}
+                    onClick={() => handleWeekSelection(week)}
+                    className="w-full p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors text-left"
+                  >
+                    <div className="font-medium text-gray-900">
+                      Week {index + 1}
+                    </div>
+                    <div className="text-sm text-gray-600">
+                      {weekStart.toLocaleDateString('nl-NL', {
+                        day: '2-digit',
+                        month: 'long'
+                      })} - {weekEnd.toLocaleDateString('nl-NL', {
+                        day: '2-digit',
+                        month: 'long',
+                        year: 'numeric'
+                      })}
+                    </div>
+                  </button>
+                )
+              })}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Confirmation Modal */}
+      {showConfirmationModal && selectedTargetWeek && (
+        <div className="fixed inset-0 bg-gray-500 bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 w-full max-w-md mx-4">
+            <div className="flex items-center mb-4">
+              <AlertTriangle className="h-6 w-6 text-orange-500 mr-3" />
+              <h3 className="text-lg font-semibold text-gray-900">
+                Bevestig kopiëren
+              </h3>
+            </div>
+            
+            <div className="space-y-4">
+              <p className="text-sm text-gray-600">
+                Je staat op het punt om de weekplanning te kopiëren naar:
+              </p>
+              
+              <div className="bg-gray-50 p-4 rounded-lg">
+                <div className="font-medium text-gray-900">
+                  {(() => {
+                    const weekStart = getMonday(selectedTargetWeek)
+                    const weekEnd = new Date(weekStart)
+                    weekEnd.setDate(weekStart.getDate() + 6)
+                    
+                    return `${weekStart.toLocaleDateString('nl-NL', {
+                      day: '2-digit',
+                      month: 'long'
+                    })} - ${weekEnd.toLocaleDateString('nl-NL', {
+                      day: '2-digit',
+                      month: 'long',
+                      year: 'numeric'
+                    })}`
+                  })()}
+                </div>
+              </div>
+              
+              <div className="bg-orange-50 border border-orange-200 rounded-lg p-3">
+                <p className="text-sm text-orange-800">
+                  <strong>Let op:</strong> Alle lesnotities worden gewist in de gekopieerde lessen.
+                </p>
+              </div>
+            </div>
+            
+            <div className="flex justify-end space-x-3 mt-6">
+              <button
+                onClick={() => {
+                  setShowConfirmationModal(false)
+                  setSelectedTargetWeek(null)
+                }}
+                className="px-4 py-2 text-gray-600 hover:text-gray-800 hover:bg-gray-100 rounded-lg"
+                disabled={copyingLessons}
+              >
+                Annuleren
+              </button>
+              <button
+                onClick={handleConfirmCopy}
+                disabled={copyingLessons}
+                className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+              >
+                {copyingLessons ? (
+                  <>
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                    Kopiëren...
+                  </>
+                ) : (
+                  <>
+                    <Check className="h-4 w-4" />
+                    Kopiëren
+                  </>
+                )}
+              </button>
             </div>
           </div>
         </div>
