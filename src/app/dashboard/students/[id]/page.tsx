@@ -3,7 +3,7 @@
 import { useAuth } from '@/contexts/AuthContext'
 import { useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
-import { ArrowLeft, Save, User, Mail, Phone, MapPin, Edit2, X, Check, Copy, Link as LinkIcon, FileText } from 'lucide-react'
+import { ArrowLeft, Save, User, Mail, Phone, MapPin, Edit2, X, Check, Copy, Link as LinkIcon, FileText, Calendar } from 'lucide-react'
 import Link from 'next/link'
 import toast from 'react-hot-toast'
 import React from 'react'
@@ -21,6 +21,8 @@ interface Student {
   lessons_count: number
   last_lesson?: string
   invite_token?: string
+  default_lessons_per_week?: number
+  default_lesson_duration_minutes?: number
 }
 
 interface ProgressNote {
@@ -48,13 +50,25 @@ export default function StudentDetailPage({ params }: { params: Promise<{ id: st
     email: '',
     phone: '',
     address: '',
-    notes: ''
+    notes: '',
+    default_lessons_per_week: 2,
+    default_lesson_duration_minutes: 60
   })
   const [showDeleteModal, setShowDeleteModal] = useState(false)
   const [inviteUrl, setInviteUrl] = useState<string>('')
   const [progressNotes, setProgressNotes] = useState<ProgressNote[]>([])
   const [newProgressNote, setNewProgressNote] = useState('')
   const [savingProgressNote, setSavingProgressNote] = useState(false)
+  const [lessonStats, setLessonStats] = useState({
+    lessonsCompleted: 0,
+    lessonsScheduled: 0
+  })
+  const [lessonSettings, setLessonSettings] = useState({
+    default_lessons_per_week: 2,
+    default_lesson_duration_minutes: 60
+  })
+  const [isEditingLessonSettings, setIsEditingLessonSettings] = useState(false)
+  const [savingLessonSettings, setSavingLessonSettings] = useState(false)
 
   useEffect(() => {
     if (!loading && !user) {
@@ -102,7 +116,9 @@ export default function StudentDetailPage({ params }: { params: Promise<{ id: st
           email: student.email,
           phone: student.phone,
           address: student.address,
-          notes: student.notes || ''
+          notes: student.notes || '',
+          default_lessons_per_week: student.default_lessons_per_week || 2,
+          default_lesson_duration_minutes: student.default_lesson_duration_minutes || 60
         })
         
         // Set invitation URL if invite_token exists
@@ -143,6 +159,50 @@ export default function StudentDetailPage({ params }: { params: Promise<{ id: st
     }
     fetchProgressNotes()
   }, [studentId, user])
+
+  // Fetch lesson statistics
+  useEffect(() => {
+    if (!studentId) return
+
+    const fetchLessonStats = async () => {
+      try {
+        const today = new Date().toISOString().split('T')[0]
+        
+        // Get completed lessons (date <= today)
+        const { data: completedLessons, error: completedError } = await supabase
+          .from('lessons')
+          .select('id')
+          .eq('student_id', studentId)
+          .lte('date', today)
+          .not('status', 'eq', 'cancelled')
+
+        if (completedError) {
+          console.error('Error fetching completed lessons:', completedError)
+        }
+
+        // Get scheduled lessons (date > today)
+        const { data: scheduledLessons, error: scheduledError } = await supabase
+          .from('lessons')
+          .select('id')
+          .eq('student_id', studentId)
+          .gt('date', today)
+          .not('status', 'eq', 'cancelled')
+
+        if (scheduledError) {
+          console.error('Error fetching scheduled lessons:', scheduledError)
+        }
+
+        setLessonStats({
+          lessonsCompleted: completedLessons?.length || 0,
+          lessonsScheduled: scheduledLessons?.length || 0
+        })
+      } catch (error) {
+        console.error('Error fetching lesson statistics:', error)
+      }
+    }
+
+    fetchLessonStats()
+  }, [studentId])
 
   const handleAddProgressNote = async () => {
     if (!newProgressNote.trim() || !user || !studentId) return
@@ -209,7 +269,9 @@ export default function StudentDetailPage({ params }: { params: Promise<{ id: st
         email: student.email,
         phone: student.phone,
         address: student.address,
-        notes: student.notes
+        notes: student.notes,
+        default_lessons_per_week: student.default_lessons_per_week || 2,
+        default_lesson_duration_minutes: student.default_lesson_duration_minutes || 60
       })
     }
   }
@@ -226,7 +288,9 @@ export default function StudentDetailPage({ params }: { params: Promise<{ id: st
           email: formData.email,
           phone: formData.phone,
           address: formData.address,
-          notes: formData.notes
+          notes: formData.notes,
+          default_lessons_per_week: formData.default_lessons_per_week,
+          default_lesson_duration_minutes: formData.default_lesson_duration_minutes
         })
         .eq('id', studentId)
 
@@ -253,6 +317,61 @@ export default function StudentDetailPage({ params }: { params: Promise<{ id: st
       ...prev,
       [field]: value
     }))
+  }
+
+  const handleLessonSettingsChange = (field: string, value: number) => {
+    setLessonSettings(prev => ({
+      ...prev,
+      [field]: value
+    }))
+  }
+
+  const handleEditLessonSettings = () => {
+    setIsEditingLessonSettings(true)
+    setLessonSettings({
+      default_lessons_per_week: student?.default_lessons_per_week || 2,
+      default_lesson_duration_minutes: student?.default_lesson_duration_minutes || 60
+    })
+  }
+
+  const handleCancelLessonSettings = () => {
+    setIsEditingLessonSettings(false)
+    setLessonSettings({
+      default_lessons_per_week: student?.default_lessons_per_week || 2,
+      default_lesson_duration_minutes: student?.default_lesson_duration_minutes || 60
+    })
+  }
+
+  const handleSaveLessonSettings = async () => {
+    if (!studentId) return
+
+    setSavingLessonSettings(true)
+    try {
+      const { error } = await supabase
+        .from('students')
+        .update({
+          default_lessons_per_week: lessonSettings.default_lessons_per_week,
+          default_lesson_duration_minutes: lessonSettings.default_lesson_duration_minutes
+        })
+        .eq('id', studentId)
+
+      if (error) {
+        toast.error('Fout bij het opslaan van lesinstellingen')
+        return
+      }
+
+      setStudent(prev => prev ? { 
+        ...prev, 
+        default_lessons_per_week: lessonSettings.default_lessons_per_week,
+        default_lesson_duration_minutes: lessonSettings.default_lesson_duration_minutes
+      } : null)
+      setIsEditingLessonSettings(false)
+      toast.success('Lesinstellingen succesvol opgeslagen!')
+    } catch (error) {
+      toast.error('Er is iets misgegaan bij het opslaan van lesinstellingen.')
+    } finally {
+      setSavingLessonSettings(false)
+    }
   }
 
   const handleDeleteStudent = async () => {
@@ -492,6 +611,87 @@ export default function StudentDetailPage({ params }: { params: Promise<{ id: st
               </div>
             </div>
 
+            {/* Lesson Settings */}
+            <div className="bg-white rounded-lg shadow-sm border border-gray-200">
+              <div className="p-6 border-b border-gray-200">
+                <div className="flex items-center justify-between">
+                  <h2 className="text-lg font-semibold text-gray-900 flex items-center">
+                    <Calendar className="h-5 w-5 mr-2" />
+                    Lesinstellingen
+                  </h2>
+                  {!isEditingLessonSettings ? (
+                    <button
+                      onClick={handleEditLessonSettings}
+                      className="flex items-center gap-2 text-blue-600 hover:text-blue-700 px-3 py-1 rounded-md text-sm font-medium"
+                    >
+                      <Edit2 className="h-4 w-4" />
+                      Bewerken
+                    </button>
+                  ) : (
+                    <div className="flex gap-2">
+                      <button
+                        onClick={handleCancelLessonSettings}
+                        className="flex items-center gap-2 text-gray-600 hover:text-gray-700 px-3 py-1 rounded-md text-sm font-medium"
+                      >
+                        <X className="h-4 w-4" />
+                        Annuleren
+                      </button>
+                      <button
+                        onClick={handleSaveLessonSettings}
+                        disabled={savingLessonSettings}
+                        className="flex items-center gap-2 text-green-600 hover:text-green-700 px-3 py-1 rounded-md text-sm font-medium disabled:opacity-50"
+                      >
+                        <Check className="h-4 w-4" />
+                        {savingLessonSettings ? 'Opslaan...' : 'Opslaan'}
+                      </button>
+                    </div>
+                  )}
+                </div>
+              </div>
+              <div className="p-6 space-y-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Standaard aantal lessen per week
+                    </label>
+                    {isEditingLessonSettings ? (
+                      <input
+                        type="number"
+                        min="1"
+                        max="7"
+                        value={lessonSettings.default_lessons_per_week}
+                        onChange={(e) => handleLessonSettingsChange('default_lessons_per_week', parseInt(e.target.value) || 1)}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      />
+                    ) : (
+                      <p className="text-gray-900">{student.default_lessons_per_week || 2} lessen per week</p>
+                    )}
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Standaard lesduur (minuten)
+                    </label>
+                    {isEditingLessonSettings ? (
+                      <input
+                        type="number"
+                        min="30"
+                        max="180"
+                        step="15"
+                        value={lessonSettings.default_lesson_duration_minutes}
+                        onChange={(e) => handleLessonSettingsChange('default_lesson_duration_minutes', parseInt(e.target.value) || 60)}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      />
+                    ) : (
+                      <p className="text-gray-900">{student.default_lesson_duration_minutes || 60} minuten</p>
+                    )}
+                  </div>
+                </div>
+                <p className="text-sm text-gray-500">
+                  Deze instellingen worden gebruikt als standaardwaarden bij het plannen van nieuwe lessen voor deze leerling.
+                </p>
+              </div>
+            </div>
+
             {/* Progress Notes */}
             <div className="bg-white rounded-lg shadow-sm border border-gray-200">
               <div className="p-6 border-b border-gray-200">
@@ -567,6 +767,14 @@ export default function StudentDetailPage({ params }: { params: Promise<{ id: st
                 <div>
                   <p className="text-sm text-gray-600">Totaal lessen</p>
                   <p className="text-2xl font-bold text-gray-900">{student.lessons_count}</p>
+                </div>
+                <div>
+                  <p className="text-sm text-gray-600">Lessen gehad</p>
+                  <p className="text-2xl font-bold text-green-600">{lessonStats.lessonsCompleted}</p>
+                </div>
+                <div>
+                  <p className="text-sm text-gray-600">Lessen ingepland</p>
+                  <p className="text-2xl font-bold text-blue-600">{lessonStats.lessonsScheduled}</p>
                 </div>
                 <div>
                   <p className="text-sm text-gray-600">Laatste les</p>

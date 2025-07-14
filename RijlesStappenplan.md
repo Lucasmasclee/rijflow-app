@@ -12,7 +12,7 @@ Dag overzicht:
 ✅✅✅✅✅- Klikken op een les laat notities voor die les zien
 ✅✅✅✅✅- Klikken op een les heeft nieuw inputfield voor nieuwe lesnotities
 ✅✅✅✅✅- Snelkoppeling naar leerling in lessen van dagoverzicht
-- Knoppen naar vorige en volgende dag
+✅✅✅✅✅- Knoppen naar vorige en volgende dag
 
 Weekoverzicht:
 ✅✅✅✅✅- Nieuwe lessen toevoegen

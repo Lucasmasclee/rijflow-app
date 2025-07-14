@@ -28,6 +28,8 @@ export interface Student {
   instructeur_id: string
   invite_token?: string
   user_id?: string
+  default_lessons_per_week?: number
+  default_lesson_duration_minutes?: number
   created_at: string
   updated_at: string
 }
