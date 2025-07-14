@@ -21,9 +21,9 @@ AI Rooster:
 ✅✅✅✅✅● Instructeur klikt op "AI rooster" en gaat naar de pagina
 ✅✅✅✅✅● Instructeur kan zijn eigen beschikbaarheid voor de week intypen
 ✅✅✅✅✅● De beschikbaarheid staat al automatisch goed
-● Instructeur gaat vervolgens langs de beschikbaarheid van elke leerling. 
-● Elke leerling heeft een beschikbaarheid voor de week ingevuld in zijn notities, een AI prompt maakt deze notities netjes en overzichtelijk
-● Per leerling kan de instructeur invullen hoeveel lessen die leerling krijgt voor die week en hoeveel minuten per les dat zijn voor die leerling
+✅✅✅✅✅● Instructeur gaat vervolgens langs de beschikbaarheid van elke leerling. 
+✅✅✅✅✅● Elke leerling heeft een beschikbaarheid voor de week ingevuld in zijn notities, een AI prompt maakt deze notities netjes en overzichtelijk
+✅✅✅✅✅● Per leerling kan de instructeur invullen hoeveel lessen die leerling krijgt voor die week en hoeveel minuten per les dat zijn voor die leerling
 ● Al deze gegevens voor de instructeur en leerling verwerken naar een goede prompt voor chatgpt
 ● Chatgpt een prompt sturen en vragen voor een json bestand of csv bestand
 ● Voor later: Rekening houden met afstand tussen plaatsen en extra notities voor praktische zaken (Spits enzo)

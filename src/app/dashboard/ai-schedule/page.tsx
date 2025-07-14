@@ -17,7 +17,7 @@ const DAY_ORDER = [
   { day: 'sunday', name: 'Zondag' },
 ]
 
-type Step = 'instructor' | 'student-details' | 'prompt' | 'result'
+type Step = 'instructor' | 'student-details' | 'settings' | 'prompt' | 'result'
 
 
 
@@ -51,6 +51,16 @@ export default function AISchedulePage() {
 
   // Resultaat van ChatGPT (dummy)
   const [aiResult, setAiResult] = useState('')
+
+  // Settings state
+  const [settings, setSettings] = useState({
+    connectLocations: true,
+    numberOfBreaks: 2,
+    minutesPerBreak: 15,
+    breakAfterEachStudent: false,
+    sendNotifications: false,
+    additionalSpecifications: ''
+  })
 
   // Fetch instructor availability from database
   const fetchInstructorAvailability = async () => {
@@ -193,8 +203,11 @@ export default function AISchedulePage() {
         if (currentStudentIndex < students.length - 1) {
           setCurrentStudentIndex(currentStudentIndex + 1)
         } else {
-          setCurrentStep('prompt')
+          setCurrentStep('settings')
         }
+        break
+      case 'settings':
+        setCurrentStep('prompt')
         break
       case 'prompt':
         setCurrentStep('result')
@@ -214,9 +227,12 @@ export default function AISchedulePage() {
           setCurrentStep('instructor')
         }
         break
-      case 'prompt':
+      case 'settings':
         setCurrentStep('student-details')
         setCurrentStudentIndex(students.length - 1)
+        break
+      case 'prompt':
+        setCurrentStep('settings')
         break
       case 'result':
         setCurrentStep('prompt')
@@ -285,24 +301,22 @@ export default function AISchedulePage() {
             </div>
             <div className="bg-white rounded-lg shadow-sm p-6 border border-gray-200">
               <div className="font-semibold text-blue-900 mb-4 text-xl">{student.first_name} {student.last_name}</div>
-              {/* Beschikbaarheid komende 5 weken */}
+              {/* Beschikbaarheid deze week */}
               <div className="mb-4">
-                <div className="font-medium text-gray-800 mb-2">Beschikbaarheid komende 5 weken:</div>
+                <div className="font-medium text-gray-800 mb-2">Beschikbaarheid deze week:</div>
                 <div className="space-y-2">
-                  {weeks.map((week, idx) => (
-                    <div key={idx} className="flex flex-col md:flex-row md:items-center md:gap-4">
-                      <div className="w-full md:w-1/3 text-xs text-gray-600">
-                        {week.toLocaleDateString('nl-NL', { day: 'numeric', month: 'long' })} - {new Date(week.getTime() + 6*24*60*60*1000).toLocaleDateString('nl-NL', { day: 'numeric', month: 'long' })}
-                      </div>
-                      <div className="flex-1">
-                        <textarea
-                          className="w-full min-h-[32px] border border-gray-200 rounded bg-gray-50 text-xs p-1"
-                          value={student.availabilityNotes[idx]}
-                          readOnly
-                        />
-                      </div>
+                  <div className="flex flex-col md:flex-row md:items-center md:gap-4">
+                    <div className="w-full md:w-1/3 text-xs text-gray-600">
+                      {weeks[0].toLocaleDateString('nl-NL', { day: 'numeric', month: 'long' })} - {new Date(weeks[0].getTime() + 6*24*60*60*1000).toLocaleDateString('nl-NL', { day: 'numeric', month: 'long' })}
                     </div>
-                  ))}
+                    <div className="flex-1">
+                      <textarea
+                        className="w-full min-h-[32px] border border-gray-200 rounded bg-gray-50 text-xs p-1"
+                        value={student.availabilityNotes[0]}
+                        readOnly
+                      />
+                    </div>
+                  </div>
                 </div>
               </div>
               {/* Einde beschikbaarheid */}
@@ -340,10 +354,126 @@ export default function AISchedulePage() {
           </div>
         )
 
+      case 'settings':
+        return (
+          <div className="space-y-6">
+            <h2 className="text-2xl font-bold text-gray-900">Instellingen</h2>
+            <p className="text-gray-600">Configureer de instellingen voor het rooster:</p>
+            
+            <div className="space-y-6">
+              {/* Laat locaties op elkaar aansluiten */}
+              <div className="flex items-center justify-between">
+                <div>
+                  <label className="text-sm font-medium text-gray-700">Laat locaties op elkaar aansluiten</label>
+                  <p className="text-xs text-gray-500">Houd rekening met afstand tussen leslocaties</p>
+                </div>
+                <button
+                  type="button"
+                  className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 ${
+                    settings.connectLocations ? 'bg-blue-600' : 'bg-gray-200'
+                  }`}
+                  onClick={() => setSettings(prev => ({ ...prev, connectLocations: !prev.connectLocations }))}
+                >
+                  <span
+                    className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                      settings.connectLocations ? 'translate-x-6' : 'translate-x-1'
+                    }`}
+                  />
+                </button>
+              </div>
+
+              {/* Aantal pauzes */}
+              <div className="flex items-center justify-between">
+                <div>
+                  <label className="text-sm font-medium text-gray-700">Aantal pauzes</label>
+                  <p className="text-xs text-gray-500">Hoeveel pauzes per dag</p>
+                </div>
+                <input
+                  type="number"
+                  min={0}
+                  max={10}
+                  className="w-20 border border-gray-300 rounded px-3 py-2 text-center"
+                  value={settings.numberOfBreaks}
+                  onChange={(e) => setSettings(prev => ({ ...prev, numberOfBreaks: Number(e.target.value) }))}
+                />
+              </div>
+
+              {/* Minuten per pauze */}
+              <div className="flex items-center justify-between">
+                <div>
+                  <label className="text-sm font-medium text-gray-700">Minuten per pauze</label>
+                  <p className="text-xs text-gray-500">Lengte van elke pauze</p>
+                </div>
+                <input
+                  type="number"
+                  min={5}
+                  max={60}
+                  className="w-20 border border-gray-300 rounded px-3 py-2 text-center"
+                  value={settings.minutesPerBreak}
+                  onChange={(e) => setSettings(prev => ({ ...prev, minutesPerBreak: Number(e.target.value) }))}
+                />
+              </div>
+
+              {/* Pauze bij elke leerling */}
+              <div className="flex items-center justify-between">
+                <div>
+                  <label className="text-sm font-medium text-gray-700">Pauze van {settings.minutesPerBreak} minuten bij elke leerling</label>
+                  <p className="text-xs text-gray-500">Voeg automatisch een pauze toe na elke leerling</p>
+                </div>
+                <button
+                  type="button"
+                  className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 ${
+                    settings.breakAfterEachStudent ? 'bg-blue-600' : 'bg-gray-200'
+                  }`}
+                  onClick={() => setSettings(prev => ({ ...prev, breakAfterEachStudent: !prev.breakAfterEachStudent }))}
+                >
+                  <span
+                    className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                      settings.breakAfterEachStudent ? 'translate-x-6' : 'translate-x-1'
+                    }`}
+                  />
+                </button>
+              </div>
+
+              {/* Stuur melding naar alle leerlingen */}
+              <div className="flex items-center justify-between">
+                <div>
+                  <label className="text-sm font-medium text-gray-700">Stuur melding naar alle leerlingen</label>
+                  <p className="text-xs text-gray-500">Verstuur automatisch een bericht wanneer het rooster klaar is</p>
+                </div>
+                <button
+                  type="button"
+                  className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 ${
+                    settings.sendNotifications ? 'bg-blue-600' : 'bg-gray-200'
+                  }`}
+                  onClick={() => setSettings(prev => ({ ...prev, sendNotifications: !prev.sendNotifications }))}
+                >
+                  <span
+                    className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                      settings.sendNotifications ? 'translate-x-6' : 'translate-x-1'
+                    }`}
+                  />
+                </button>
+              </div>
+
+              {/* Meer specificaties */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Meer specificaties</label>
+                <textarea
+                  className="w-full h-32 border border-gray-300 rounded p-3 resize-none"
+                  placeholder="Voeg hier eventuele extra specificaties toe..."
+                  value={settings.additionalSpecifications}
+                  onChange={(e) => setSettings(prev => ({ ...prev, additionalSpecifications: e.target.value }))}
+                />
+              </div>
+            </div>
+          </div>
+        )
+
       case 'prompt':
         return (
           <div className="space-y-6">
-            <h2 className="text-2xl font-bold text-gray-900">Prompt voor ChatGPT</h2>
+            <h2 className="text-2xl font-bold text-gray-900">Bevestigen</h2>
             <p className="text-gray-600">Deze prompt wordt naar ChatGPT gestuurd om het rooster te genereren:</p>
             <textarea
               className="w-full h-40 p-4 border border-blue-300 rounded-lg resize-none text-base bg-blue-50 shadow-sm"
