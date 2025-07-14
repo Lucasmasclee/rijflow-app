@@ -14,6 +14,7 @@ import {
   Car,
   Plus,
   ChevronRight,
+  ChevronLeft,
   Edit2,
   Check,
   X,
@@ -183,6 +184,7 @@ function InstructorDashboard() {
   const [lessons, setLessons] = useState<any[]>([])
   const [loadingLessons, setLoadingLessons] = useState(true)
   const [expandedLessons, setExpandedLessons] = useState<Set<string>>(new Set())
+  const [selectedDate, setSelectedDate] = useState(new Date())
 
   // Fetch students from database
   const fetchStudents = async () => {
@@ -340,6 +342,22 @@ function InstructorDashboard() {
       }
       return newSet
     })
+  }
+
+  const goToPreviousDay = () => {
+    const newDate = new Date(selectedDate)
+    newDate.setDate(selectedDate.getDate() - 1)
+    setSelectedDate(newDate)
+  }
+
+  const goToNextDay = () => {
+    const newDate = new Date(selectedDate)
+    newDate.setDate(selectedDate.getDate() + 1)
+    setSelectedDate(newDate)
+  }
+
+  const goToToday = () => {
+    setSelectedDate(new Date())
   }
 
   // ExpandedLessonView component
@@ -503,21 +521,50 @@ function InstructorDashboard() {
     <>
     <div className="bg-white rounded-lg shadow-sm">
     <div className="p-6 border-b border-gray-200">
-      <h2 className="text-lg font-semibold text-gray-900">
-        {new Date().toLocaleDateString('nl-NL', { weekday: 'long' }).charAt(0).toUpperCase() + new Date().toLocaleDateString('nl-NL', { weekday: 'long' }).slice(1)} {new Date().toLocaleDateString('nl-NL', { day: '2-digit', month: '2-digit' })}
-      </h2>
+      <div className="flex items-center justify-between">
+        <div className="flex items-center space-x-4">
+          <button
+            onClick={goToPreviousDay}
+            className="p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors"
+            title="Vorige dag"
+          >
+            <ChevronLeft className="h-5 w-5" />
+          </button>
+          <h2 className="text-lg font-semibold text-gray-900">
+            {selectedDate.toLocaleDateString('nl-NL', { weekday: 'long' }).charAt(0).toUpperCase() + selectedDate.toLocaleDateString('nl-NL', { weekday: 'long' }).slice(1)} {selectedDate.toLocaleDateString('nl-NL', { day: '2-digit', month: '2-digit' })}
+          </h2>
+          <button
+            onClick={goToNextDay}
+            className="p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors"
+            title="Volgende dag"
+          >
+            <ChevronRight className="h-5 w-5" />
+          </button>
+        </div>
+        <button
+          onClick={goToToday}
+          className="px-3 py-1 text-sm bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+        >
+          Vandaag
+        </button>
+      </div>
     </div>
     <div className="p-6">
       {(() => {
-        const today = new Date()
-        const todayString = today.toISOString().split('T')[0]
-        const todayLessons = lessons.filter(lesson => lesson.date === todayString)
+        const selectedDateString = selectedDate.toISOString().split('T')[0]
+        const selectedDateLessons = lessons.filter(lesson => lesson.date === selectedDateString)
+        const isToday = selectedDate.toDateString() === new Date().toDateString()
         
-        if (todayLessons.length === 0) {
+        if (selectedDateLessons.length === 0) {
           return (
             <div className="text-center py-10">
               <Calendar className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-              <p className="text-gray-500">Nog geen lessen gepland voor vandaag</p>
+              <p className="text-gray-500">
+                {isToday 
+                  ? 'Nog geen lessen gepland voor vandaag'
+                  : `Nog geen lessen gepland voor ${selectedDate.toLocaleDateString('nl-NL', { weekday: 'long', day: '2-digit', month: '2-digit' })}`
+                }
+              </p>
               <p className="text-sm text-gray-400 mt-1">Plan je eerste les om te beginnen</p>
             </div>
           )
@@ -526,7 +573,7 @@ function InstructorDashboard() {
             <div className="space-y-4">
               <div className="flex items-center justify-between">
                 <h3 className="text-lg font-medium text-gray-900">
-                  {todayLessons.length} {todayLessons.length === 1 ? 'les' : 'lessen'} vandaag
+                  {selectedDateLessons.length} {selectedDateLessons.length === 1 ? 'les' : 'lessen'} {isToday ? 'vandaag' : 'op deze dag'}
                 </h3>
                 <Link
                   href="/dashboard/week-overview"
@@ -536,7 +583,7 @@ function InstructorDashboard() {
                 </Link>
               </div>
               <div className="space-y-3">
-                {todayLessons.slice(0, 3).map((lesson, index) => {
+                {selectedDateLessons.slice(0, 3).map((lesson, index) => {
                   const student = lesson.students || students.find(s => s.id === lesson.student_id)
                   const isExpanded = expandedLessons.has(lesson.id)
                   
@@ -554,9 +601,12 @@ function InstructorDashboard() {
                           </span>
                         </div>
                         <div className="flex items-center space-x-3">
-                          <span className="text-sm text-gray-600">
+                          <Link
+                            href={`/dashboard/students/${student?.id}`}
+                            className="text-sm text-gray-600 underline hover:text-gray-900 transition-colors"
+                          >
                             {student?.first_name || 'Onbekende leerling'}
-                          </span>
+                          </Link>
                           <button
                             onClick={(e) => {
                               e.stopPropagation()
@@ -589,10 +639,10 @@ function InstructorDashboard() {
                     </div>
                   )
                 })}
-                {todayLessons.length > 3 && (
+                {selectedDateLessons.length > 3 && (
                   <div className="text-center">
                     <p className="text-sm text-gray-500">
-                      En nog {todayLessons.length - 3} {todayLessons.length - 3 === 1 ? 'les' : 'lessen'} meer
+                      En nog {selectedDateLessons.length - 3} {selectedDateLessons.length - 3 === 1 ? 'les' : 'lessen'} meer
                     </p>
                   </div>
                 )}

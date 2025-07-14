@@ -7,11 +7,12 @@ Dashboard met:
 
 Dag overzicht:
 ✅✅✅✅✅- Per les begintijd, eindtijd, leerling, google maps extensie
-- Klikken op een les laat algemene notities van leerling zien
-- Klikken op een les laat notitie geschiedenis voor die leerling zien
-- Klikken op een les laat notities voor die les zien
-- Klikken op een les heeft nieuw inputfield voor nieuwe lesnotities
-- Samenvatting dagoverzicht
+✅✅✅✅✅- Klikken op een les laat algemene notities van leerling zien
+✅✅✅✅✅- Klikken op een les laat notitie geschiedenis voor die leerling zien
+✅✅✅✅✅- Klikken op een les laat notities voor die les zien
+✅✅✅✅✅- Klikken op een les heeft nieuw inputfield voor nieuwe lesnotities
+✅✅✅✅✅- Snelkoppeling naar leerling in lessen van dagoverzicht
+- Knoppen naar vorige en volgende dag
 
 Weekoverzicht:
 ✅✅✅✅✅- Nieuwe lessen toevoegen
@@ -26,13 +27,15 @@ Leerling overzicht:
 ✅✅✅✅✅- Leerlingen bewerken
 ✅✅✅✅✅- Leerlingen verwijderen
 
+Chatgpt om een systeem vragen om dit zo makkelijk mogelijk te doen
 - Nieuwe implementatie voor beschikbaarheid van leerlingen:
 - Link sturen waarbij op een of andere manier een leerling een inputfield te zien krijgt met een lijst van Maandag t/m Zondag voor een bepaalde week. Deze moet de leerling dan bewerken en versturen. Dit moet de rij instructeur vervolgens te zien krijgen
 
 Specifieke leerling overzicht:
 ✅✅✅✅✅- Adres, telefoonnummer, emailadres, algemene notities
-- Geschiedenis van lesnotities
+✅✅✅✅✅- Geschiedenis van lesnotities
 - Aantal lessen gehad
+- Aantal lessen ingepland
 - Standaard lesuren per week
 - Standaard minuten per les
 
@@ -47,6 +50,7 @@ AI Rooster
 - Beschikbaarheid uren staat automatisch goed
 ✅✅✅✅✅● Instructeur gaat vervolgens langs de beschikbaarheid van elke leerling. 
 ✅✅✅✅✅● Elke leerling heeft een beschikbaarheid voor de week ingevuld in zijn notities, een AI prompt maakt deze notities netjes en overzichtelijk
+- Voor elke leerling staat de correcte standaarduren en standaardminuten per les
 ✅✅✅✅✅● Per leerling kan de instructeur invullen hoeveel lessen die leerling krijgt voor die week en hoeveel minuten per les dat zijn voor die leerling
 - Scherm voor andere notities:
 - pauzes
@@ -62,16 +66,21 @@ AI Rooster
 
 
 
-Voor later:
+Voor later / Verbeteringen:
+- In dagoverzicht elke les volgorde wisselen: "Student, starttijd - eindtijd" ipv "starttijd - eindtijd, student"
+- Simpele wijziging in rooster door middel van een tekst: "Leerling X is ziek deze week, en leerling Y kan toch wel op dinsdag"
+- Voortgangsnotities in ander formaat neerzetten
 ● Voor later: Een 2e overzicht, waarbij de instructeur kan kiezen welke weekplanning het beste lijkt
 ● Voor later: Rekening houden met afstand tussen plaatsen en extra notities voor praktische zaken (Spits enzo)
 - (Voor later) Weekplanning kopiëren 
 - Automatisch een email / sms sturen naar leerlingen met hun ingeplande lessen zodra weekplanning gemaakt is
+- In overzicht per leerling: Lessen gehad: x, Lessen ingepland: y
 
 Glitches:
 Op Macbook: bij inloggen is de tekst soms wit
 Op Macbook: beschikbaarheid invullen in student dashboard tekst is wit
 Als leerling uitnodigingslink klikt en email en wachtwoord aanmaakt, moet hij een scherm te zien krijgen met "Bevestig je account in email"
+Snelkoppeling naar leerling in lessen van dagoverzicht
 
 App mooi maken en elke pagina checken
 App goed laten lijken op telefoon
