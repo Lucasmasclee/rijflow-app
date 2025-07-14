@@ -491,9 +491,9 @@ function StudentDashboard() {
           .from('students')
           .select('id')
           .eq('user_id', user.id)
-          .single()
+          .maybeSingle()
         
-        if (error && error.code !== 'PGRST116') {
+        if (error) {
           console.error('Error fetching student ID via user_id:', error)
           
           // Als dat niet werkt, probeer via student_id in user metadata
@@ -504,7 +504,7 @@ function StudentDashboard() {
               .from('students')
               .select('id')
               .eq('id', user.user_metadata.student_id)
-              .single()
+              .maybeSingle()
             
             if (metadataError) {
               console.error('Error fetching student ID via metadata:', metadataError)
@@ -522,6 +522,39 @@ function StudentDashboard() {
         if (data) {
           console.log('Found student ID via user_id:', data.id)
           setStudentId(data.id)
+        } else {
+          // Als geen data gevonden via user_id, probeer metadata
+          if (user.user_metadata?.student_id) {
+            console.log('No data via user_id, trying via student_id from metadata:', user.user_metadata.student_id)
+            
+            const { data: metadataData, error: metadataError } = await supabase
+              .from('students')
+              .select('id')
+              .eq('id', user.user_metadata.student_id)
+              .maybeSingle()
+            
+            if (metadataError) {
+              console.error('Error fetching student ID via metadata:', metadataError)
+              return
+            }
+            
+            if (metadataData) {
+              console.log('Found student ID via metadata:', metadataData.id)
+              setStudentId(metadataData.id)
+              
+              // Update the user_id in the database to link the student properly
+              const { error: updateError } = await supabase
+                .from('students')
+                .update({ user_id: user.id })
+                .eq('id', metadataData.id)
+              
+              if (updateError) {
+                console.error('Error updating user_id for student:', updateError)
+              } else {
+                console.log('Successfully linked student to user_id')
+              }
+            }
+          }
         }
       } catch (e) {
         console.error('Error fetching student ID:', e)
@@ -543,7 +576,14 @@ function StudentDashboard() {
           .select('week_start, notes')
           .eq('student_id', studentId)
           .in('week_start', weekStarts)
-        if (error) throw error
+        
+        if (error) {
+          console.error('Error fetching availability:', error)
+          // Don't throw error, just set empty notes
+          setNotes(Array(5).fill(''))
+          return
+        }
+        
         const notesArr = weeks.map(w => {
           const found = data?.find((row: any) => row.week_start === w.start.toISOString().slice(0,10))
           return found ? found.notes || '' : ''
@@ -551,6 +591,8 @@ function StudentDashboard() {
         setNotes(notesArr)
       } catch (e) {
         console.error('Error fetching availability:', e)
+        // Set empty notes on error
+        setNotes(Array(5).fill(''))
       } finally {
         setLoading(false)
       }
@@ -566,7 +608,7 @@ function StudentDashboard() {
     try {
       const value = notes[idx]
       const week_start = weeks[idx].start.toISOString().slice(0,10) // YYYY-MM-DD
-      await supabase
+      const { error } = await supabase
         .from('student_availability')
         .upsert([
           {
@@ -576,6 +618,11 @@ function StudentDashboard() {
             updated_at: new Date().toISOString(),
           }
         ], { onConflict: 'student_id,week_start' })
+      
+      if (error) {
+        console.error('Error saving availability:', error)
+        // You could add a toast notification here if you want to show the error to the user
+      }
     } catch (e) {
       console.error('Fout bij opslaan beschikbaarheid:', e)
     } finally {

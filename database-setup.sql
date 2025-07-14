@@ -19,6 +19,14 @@ CREATE INDEX IF NOT EXISTS idx_students_user_id ON students(user_id);
 -- This ensures instructors can only see their own students
 ALTER TABLE students ENABLE ROW LEVEL SECURITY;
 
+-- Drop existing policies if they exist
+DROP POLICY IF EXISTS "Instructors can view their own students" ON students;
+DROP POLICY IF EXISTS "Instructors can insert their own students" ON students;
+DROP POLICY IF EXISTS "Instructors can update their own students" ON students;
+DROP POLICY IF EXISTS "Students can view their own data" ON students;
+DROP POLICY IF EXISTS "Students can update their own data" ON students;
+DROP POLICY IF EXISTS "Students can insert their own data" ON students;
+
 -- Policy for instructors to see their own students
 CREATE POLICY "Instructors can view their own students" ON students
     FOR SELECT USING (auth.uid() = instructor_id);
@@ -33,26 +41,15 @@ CREATE POLICY "Instructors can update their own students" ON students
 
 -- Policy for students to view their own data
 CREATE POLICY "Students can view their own data" ON students
-    FOR SELECT USING (
-        auth.uid() = user_id OR 
-        (auth.uid() IS NOT NULL AND 
-         id = (SELECT (user_metadata->>'student_id')::uuid FROM auth.users WHERE id = auth.uid()))
-    );
+    FOR SELECT USING (auth.uid() = user_id);
 
 -- Policy for students to update their own data
 CREATE POLICY "Students can update their own data" ON students
-    FOR UPDATE USING (
-        auth.uid() = user_id OR 
-        (auth.uid() IS NOT NULL AND 
-         id = (SELECT (user_metadata->>'student_id')::uuid FROM auth.users WHERE id = auth.uid()))
-    );
+    FOR UPDATE USING (auth.uid() = user_id);
 
--- Policy for students to insert their own data (for registration)
+-- Policy for students to insert their own data
 CREATE POLICY "Students can insert their own data" ON students
-    FOR INSERT WITH CHECK (
-        auth.uid() IS NOT NULL AND 
-        id = (SELECT (user_metadata->>'student_id')::uuid FROM auth.users WHERE id = auth.uid())
-    );
+    FOR INSERT WITH CHECK (auth.uid() = user_id);
 
 -- Policy for anonymous users to view students by invite token (for invitation links)
 CREATE POLICY "Anonymous users can view students by invite token" ON students
