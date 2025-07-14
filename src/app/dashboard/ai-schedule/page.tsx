@@ -447,7 +447,7 @@ export default function AISchedulePage() {
                         <div className="text-right">
                           {found && found.available ? (
                             <span className="text-sm text-green-600 font-medium">
-                              {found.startTime} - {found.endTime}
+                              {found.startTime.slice(0,5)} - {found.endTime.slice(0,5)}
                             </span>
                           ) : (
                             <span className="text-sm text-gray-500">Niet beschikbaar</span>

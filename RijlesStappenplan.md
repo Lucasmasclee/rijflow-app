@@ -42,13 +42,13 @@ Specifieke leerling overzicht:
 
 Rooster Instellingen
 ✅✅✅✅✅- Standaard dagen per week dat instructeur beschikbaar is
-- Standaard uren per week dat instructeur beschikbaar is
+✅✅✅✅✅- Standaard uren per week dat instructeur beschikbaar is
 
 AI Rooster
 ✅✅✅✅✅● Instructeur klikt op "AI rooster" en gaat naar de pagina
 ✅✅✅✅✅● Instructeur kan zijn eigen beschikbaarheid voor de week intypen
 ✅✅✅✅✅● Beschikbaarheid dagen staat automatisch goed
-- Beschikbaarheid uren staat automatisch goed
+✅✅✅✅✅- Beschikbaarheid uren staat automatisch goed
 ✅✅✅✅✅● Instructeur gaat vervolgens langs de beschikbaarheid van elke leerling. 
 ✅✅✅✅✅● Elke leerling heeft een beschikbaarheid voor de week ingevuld in zijn notities, een AI prompt maakt deze notities netjes en overzichtelijk
 ✅✅✅✅✅- Voor elke leerling staat de correcte standaarduren en standaardminuten per les
@@ -68,6 +68,7 @@ Op Macbook: bij inloggen is de tekst soms wit
 Op Macbook: beschikbaarheid invullen in student dashboard tekst is wit
 Als leerling uitnodigingslink klikt en email en wachtwoord aanmaakt, moet hij een scherm te zien krijgen met "Bevestig je account in email"
 Snelkoppeling naar leerling in lessen van dagoverzicht
+Tijden na 12 uur worden automatisch vervangen ('18' --> '06')
 
 
 Voor later / Verbeteringen / Ideeën:
