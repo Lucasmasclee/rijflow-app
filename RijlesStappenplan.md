@@ -34,10 +34,10 @@ Chatgpt om een systeem vragen om dit zo makkelijk mogelijk te doen
 Specifieke leerling overzicht:
 ✅✅✅✅✅- Adres, telefoonnummer, emailadres, algemene notities
 ✅✅✅✅✅- Geschiedenis van lesnotities
-- Aantal lessen gehad
-- Aantal lessen ingepland
-- Standaard lesuren per week
-- Standaard minuten per les
+✅✅✅✅✅- Aantal lessen gehad
+✅✅✅✅✅- Aantal lessen ingepland
+✅✅✅✅✅- Standaard lesuren per week
+✅✅✅✅✅- Standaard minuten per les
 
 Rooster Instellingen
 ✅✅✅✅✅- Standaard dagen per week dat instructeur beschikbaar is
@@ -66,7 +66,11 @@ AI Rooster
 
 
 
-Voor later / Verbeteringen:
+Voor later / Verbeteringen / Ideeën:
+- Badges per leerling voor: Theorie gehaald, examen ingepland (met optie voor datum erbij) (Dit zou aan algemene notities moeten worden toegevoegd)
+- Todolist in dashboard (Zoals bijvoorbeeld: factuur sturen naar Leerling X)
+- Automatisch naar huidige les scrollen (En uitklappen)
+- In dagoverzicht tussen elke 2 lessen de reistijd weergeven
 - In dagoverzicht elke les volgorde wisselen: "Student, starttijd - eindtijd" ipv "starttijd - eindtijd, student"
 - Simpele wijziging in rooster door middel van een tekst: "Leerling X is ziek deze week, en leerling Y kan toch wel op dinsdag"
 - Voortgangsnotities in ander formaat neerzetten

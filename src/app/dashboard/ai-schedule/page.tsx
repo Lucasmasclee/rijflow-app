@@ -258,8 +258,8 @@ export default function AISchedulePage() {
         })
         return {
           ...student,
-          lessons: 1,
-          minutes: 60,
+          lessons: student.default_lessons_per_week || 2,
+          minutes: student.default_lesson_duration_minutes || 60,
           notes: '',
           aiNotes: '',
           availabilityNotes,
@@ -285,6 +285,29 @@ export default function AISchedulePage() {
     setStudents(prev => prev.map(s =>
       s.id === id ? { ...s, [field]: value } : s
     ))
+  }
+
+  // Helper functie om te controleren of een waarde afwijkt van de standaard
+  const isValueDifferentFromDefault = (student: StudentWithScheduleData, field: 'lessons' | 'minutes') => {
+    if (field === 'lessons') {
+      return student.lessons !== (student.default_lessons_per_week || 2)
+    } else {
+      return student.minutes !== (student.default_lesson_duration_minutes || 60)
+    }
+  }
+
+  // Helper functie om waarden terug te zetten naar standaard
+  const resetToDefault = (studentId: string) => {
+    const student = students.find(s => s.id === studentId)
+    if (student) {
+      setStudents(prev => prev.map(s =>
+        s.id === studentId ? {
+          ...s,
+          lessons: student.default_lessons_per_week || 2,
+          minutes: student.default_lesson_duration_minutes || 60
+        } : s
+      ))
+    }
   }
 
   // Navigation handlers
@@ -417,26 +440,49 @@ export default function AISchedulePage() {
               {/* Einde beschikbaarheid */}
               <div className="flex flex-wrap gap-4 mb-4">
                 <label className="flex flex-col">
-                  <span className="text-sm text-gray-700">Aantal lessen</span>
-                  <input
-                    type="number"
-                    min={1}
-                    className="border rounded px-3 py-2 w-24"
-                    value={student.lessons}
-                    onChange={e => handleStudentChange(student.id, 'lessons', Number(e.target.value))}
-                  />
+                  <span className="text-sm text-gray-700">Aantal lessen per week</span>
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="number"
+                      min={1}
+                      className={`border rounded px-3 py-2 w-24 ${isValueDifferentFromDefault(student, 'lessons') ? 'border-orange-300 bg-orange-50' : ''}`}
+                      value={student.lessons}
+                      onChange={e => handleStudentChange(student.id, 'lessons', Number(e.target.value))}
+                    />
+                    <span className="text-xs text-gray-500">(standaard: {student.default_lessons_per_week || 2})</span>
+                    {isValueDifferentFromDefault(student, 'lessons') && (
+                      <span className="text-xs text-orange-600 font-medium">Aangepast</span>
+                    )}
+                  </div>
                 </label>
                 <label className="flex flex-col">
                   <span className="text-sm text-gray-700">Minuten per les</span>
-                  <input
-                    type="number"
-                    min={10}
-                    className="border rounded px-3 py-2 w-24"
-                    value={student.minutes}
-                    onChange={e => handleStudentChange(student.id, 'minutes', Number(e.target.value))}
-                  />
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="number"
+                      min={10}
+                      className={`border rounded px-3 py-2 w-24 ${isValueDifferentFromDefault(student, 'minutes') ? 'border-orange-300 bg-orange-50' : ''}`}
+                      value={student.minutes}
+                      onChange={e => handleStudentChange(student.id, 'minutes', Number(e.target.value))}
+                    />
+                    <span className="text-xs text-gray-500">(standaard: {student.default_lesson_duration_minutes || 60})</span>
+                    {isValueDifferentFromDefault(student, 'minutes') && (
+                      <span className="text-xs text-orange-600 font-medium">Aangepast</span>
+                    )}
+                  </div>
                 </label>
               </div>
+              {(isValueDifferentFromDefault(student, 'lessons') || isValueDifferentFromDefault(student, 'minutes')) && (
+                <div className="mb-4">
+                  <button
+                    type="button"
+                    onClick={() => resetToDefault(student.id)}
+                    className="text-xs text-blue-600 hover:text-blue-800 underline"
+                  >
+                    Terugzetten naar standaardinstellingen
+                  </button>
+                </div>
+              )}
               <label className="block">
                 <span className="text-sm text-gray-700">Notities leerling (vrije tekst, evt. AI samenvatting)</span>
                 <textarea
