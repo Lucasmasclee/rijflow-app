@@ -25,25 +25,48 @@ body {
   font-family: Arial, Helvetica, sans-serif;
 }
 
-/* Ensure time inputs always display in 24-hour format */
+/* Comprehensive 24-hour time input styling */
 input[type="time"] {
   -webkit-appearance: none;
   -moz-appearance: none;
   appearance: none;
+  font-family: monospace;
 }
 
+/* Webkit browsers (Chrome, Safari, Edge) */
 input[type="time"]::-webkit-calendar-picker-indicator {
   background: none;
 }
 
-/* Force 24-hour format display */
 input[type="time"]::-webkit-datetime-edit-hour-field,
 input[type="time"]::-webkit-datetime-edit-minute-field {
   -webkit-appearance: none;
   appearance: none;
+  font-family: monospace;
 }
 
-/* Remove AM/PM display */
+/* Hide AM/PM field completely */
 input[type="time"]::-webkit-datetime-edit-ampm-field {
-  display: none;
+  display: none !important;
+}
+
+/* Firefox specific */
+input[type="time"]::-moz-datetime-edit-hour-field,
+input[type="time"]::-moz-datetime-edit-minute-field {
+  font-family: monospace;
+}
+
+input[type="time"]::-moz-datetime-edit-ampm-field {
+  display: none !important;
+}
+
+/* Ensure proper text color and visibility */
+input[type="time"]::-webkit-datetime-edit {
+  color: rgb(17 24 39) !important;
+  font-family: monospace;
+}
+
+input[type="time"]::-moz-datetime-edit {
+  color: rgb(17 24 39) !important;
+  font-family: monospace;
 }

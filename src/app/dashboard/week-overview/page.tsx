@@ -884,6 +884,7 @@ export default function WeekOverviewPage() {
                       '--tw-text-opacity': '1',
                       color: 'rgb(17 24 39 / var(--tw-text-opacity))'
                     } as React.CSSProperties}
+                    data-format="24h"
                   />
                 </div>
                 <div>
@@ -900,6 +901,7 @@ export default function WeekOverviewPage() {
                       '--tw-text-opacity': '1',
                       color: 'rgb(17 24 39 / var(--tw-text-opacity))'
                     } as React.CSSProperties}
+                    data-format="24h"
                   />
                 </div>
               </div>

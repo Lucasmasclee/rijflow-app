@@ -16,7 +16,8 @@ import {
   ChevronRight,
   Edit2,
   Check,
-  X
+  X,
+  ExternalLink
 } from 'lucide-react'
 import Link from 'next/link'
 import { supabase } from '@/lib/supabase'
@@ -228,7 +229,15 @@ function InstructorDashboard() {
       
       const { data, error } = await supabase
         .from('lessons')
-        .select('*')
+        .select(`
+          *,
+          students (
+            id,
+            first_name,
+            last_name,
+            address
+          )
+        `)
         .eq('instructor_id', user.id)
         .gte('date', startDate)
         .lte('date', endDate)
@@ -254,6 +263,11 @@ function InstructorDashboard() {
       fetchLessons()
     }
   }, [user])
+
+  const openGoogleMaps = (address: string) => {
+    const encodedAddress = encodeURIComponent(address)
+    window.open(`https://www.google.com/maps/search/?api=1&query=${encodedAddress}`, '_blank')
+  }
 
   const getWeekDays = () => {
     const today = new Date()
@@ -322,19 +336,34 @@ function InstructorDashboard() {
                 </Link>
               </div>
               <div className="space-y-3">
-                {todayLessons.slice(0, 3).map((lesson, index) => (
-                  <div key={index} className="flex items-center justify-between p-3 bg-blue-50 rounded-lg">
-                    <div className="flex items-center space-x-3">
-                      <Clock className="h-4 w-4 text-blue-600" />
-                      <span className="text-sm font-medium text-gray-900">
-                        {lesson.start_time.substring(0, 5)} - {lesson.end_time.substring(0, 5)}
-                      </span>
+                {todayLessons.slice(0, 3).map((lesson, index) => {
+                  const student = lesson.students || students.find(s => s.id === lesson.student_id)
+                  return (
+                    <div key={index} className="flex items-center justify-between p-3 bg-blue-50 rounded-lg">
+                      <div className="flex items-center space-x-3">
+                        <Clock className="h-4 w-4 text-blue-600" />
+                        <span className="text-sm font-medium text-gray-900">
+                          {lesson.start_time.substring(0, 5)} - {lesson.end_time.substring(0, 5)}
+                        </span>
+                      </div>
+                      <div className="flex items-center space-x-3">
+                        <span className="text-sm text-gray-600">
+                          {student?.first_name || 'Onbekende leerling'}
+                        </span>
+                        {student?.address && (
+                          <button
+                            onClick={() => openGoogleMaps(student.address)}
+                            className="flex items-center gap-1 bg-green-600 text-white px-2 py-1 rounded text-xs hover:bg-green-700 transition-colors"
+                            title="Open in Google Maps"
+                          >
+                            <ExternalLink className="h-3 w-3" />
+                            Maps
+                          </button>
+                        )}
+                      </div>
                     </div>
-                    <span className="text-sm text-gray-600">
-                      {students.find(s => s.id === lesson.student_id)?.first_name || 'Onbekende leerling'}
-                    </span>
-                  </div>
-                ))}
+                  )
+                })}
                 {todayLessons.length > 3 && (
                   <div className="text-center">
                     <p className="text-sm text-gray-500">
