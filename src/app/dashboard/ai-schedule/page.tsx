@@ -62,6 +62,36 @@ export default function AISchedulePage() {
     additionalSpecifications: ''
   })
 
+  // Initialize default availability for an instructor
+  const initializeDefaultAvailability = async () => {
+    if (!user) return
+    
+    try {
+      const defaultAvailability = [
+        { instructor_id: user.id, day_of_week: 1, available: true },  // Monday
+        { instructor_id: user.id, day_of_week: 2, available: true },  // Tuesday
+        { instructor_id: user.id, day_of_week: 3, available: true },  // Wednesday
+        { instructor_id: user.id, day_of_week: 4, available: true },  // Thursday
+        { instructor_id: user.id, day_of_week: 5, available: true },  // Friday
+        { instructor_id: user.id, day_of_week: 6, available: false }, // Saturday
+        { instructor_id: user.id, day_of_week: 0, available: false }  // Sunday
+      ]
+
+      const { error } = await supabase
+        .from('instructor_availability')
+        .upsert(defaultAvailability, { 
+          onConflict: 'instructor_id,day_of_week',
+          ignoreDuplicates: false 
+        })
+
+      if (error) {
+        console.error('Error initializing default availability:', error)
+      }
+    } catch (error) {
+      console.error('Error initializing default availability:', error)
+    }
+  }
+
   // Fetch instructor availability from database
   const fetchInstructorAvailability = async () => {
     if (!user) return
@@ -73,6 +103,15 @@ export default function AISchedulePage() {
         .eq('instructor_id', user.id)
 
       if (error) {
+        // If table doesn't exist, use default availability
+        if (error.code === '42P01') {
+          console.log('Instructor availability table not found, using default availability')
+          setAvailability(DAY_ORDER.map(({ day }) => ({
+            day,
+            available: day !== 'saturday' && day !== 'sunday'
+          })))
+          return
+        }
         console.error('Error fetching instructor availability:', error)
         return
       }
@@ -97,11 +136,48 @@ export default function AISchedulePage() {
 
         setAvailability(DAY_ORDER.map(({ day }) => ({
           day,
-          available: dbAvailability[day] ?? true
+          available: dbAvailability[day] ?? (day !== 'saturday' && day !== 'sunday')
         })))
+      } else {
+        // No data in database, initialize default availability and fetch again
+        await initializeDefaultAvailability()
+        
+        // Fetch the newly created data
+        const { data: newData, error: newError } = await supabase
+          .from('instructor_availability')
+          .select('*')
+          .eq('instructor_id', user.id)
+
+        if (newData && newData.length > 0) {
+          const dbAvailability = newData.reduce((acc, item) => {
+            const dayName = DAY_ORDER.find(day => {
+              const dayNumber = day.day === 'sunday' ? 0 : 
+                               day.day === 'monday' ? 1 :
+                               day.day === 'tuesday' ? 2 :
+                               day.day === 'wednesday' ? 3 :
+                               day.day === 'thursday' ? 4 :
+                               day.day === 'friday' ? 5 : 6
+              return dayNumber === item.day_of_week
+            })
+            if (dayName) {
+              acc[dayName.day] = item.available
+            }
+            return acc
+          }, {} as Record<string, boolean>)
+
+          setAvailability(DAY_ORDER.map(({ day }) => ({
+            day,
+            available: dbAvailability[day] ?? (day !== 'saturday' && day !== 'sunday')
+          })))
+        }
       }
     } catch (error) {
       console.error('Error fetching instructor availability:', error)
+      // Fallback to default availability on any error
+      setAvailability(DAY_ORDER.map(({ day }) => ({
+        day,
+        available: day !== 'saturday' && day !== 'sunday'
+      })))
     }
   }
 
@@ -152,13 +228,25 @@ export default function AISchedulePage() {
         return new Date(monday)
       })
       const weekStarts = weeks.map(w => w.toISOString().slice(0,10))
-      const { data: availData, error: availError } = await supabase
-        .from('student_availability')
-        .select('student_id, week_start, notes')
-        .in('student_id', studentIds)
-        .in('week_start', weekStarts)
-      if (availError) {
-        console.error('Error fetching availability:', availError)
+      
+      let availData = null
+      let availError = null
+      
+      // Alleen proberen student availability op te halen als er studenten zijn
+      if (studentIds.length > 0) {
+        const { data: availabilityData, error: availabilityError } = await supabase
+          .from('student_availability')
+          .select('student_id, week_start, notes')
+          .in('student_id', studentIds)
+          .in('week_start', weekStarts)
+        
+        availData = availabilityData
+        availError = availabilityError
+        
+        if (availError) {
+          console.error('Error fetching student availability:', availError)
+          // Continue with empty availability data instead of failing
+        }
       }
       // Transform students to include schedule data + beschikbaarheid
       const studentsWithScheduleData: StudentWithScheduleData[] = (data || []).map(student => {
@@ -179,6 +267,11 @@ export default function AISchedulePage() {
 
       console.log('Transformed students:', studentsWithScheduleData)
       setStudents(studentsWithScheduleData)
+      
+      // Als er geen studenten zijn, toon een melding
+      if (studentsWithScheduleData.length === 0) {
+        console.log('No students found for this instructor')
+      }
     } catch (error) {
       console.error('Error fetching students:', error)
     } finally {
