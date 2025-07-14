@@ -490,6 +490,18 @@ function StudentDashboard() {
       
       try {
         console.log('Fetching student ID for user:', user.id)
+        console.log('User metadata:', user.user_metadata)
+        
+        // Test: Check if the student exists at all
+        if (user.user_metadata?.student_id) {
+          console.log('Testing if student exists with ID:', user.user_metadata.student_id)
+          const { data: testData, error: testError } = await supabase
+            .from('students')
+            .select('*')
+            .eq('id', user.user_metadata.student_id)
+          
+          console.log('Direct student lookup result:', { testData, testError })
+        }
         
         // Eerst proberen via user_id
         const { data, error } = await supabase
@@ -497,6 +509,8 @@ function StudentDashboard() {
           .select('id')
           .eq('user_id', user.id)
           .maybeSingle()
+        
+        console.log('Query via user_id result:', { data, error })
         
         if (error) {
           console.error('Error fetching student ID via user_id:', error)
@@ -511,6 +525,8 @@ function StudentDashboard() {
               .eq('id', user.user_metadata.student_id)
               .maybeSingle()
             
+            console.log('Query via metadata result:', { metadataData, metadataError })
+            
             if (metadataError) {
               console.error('Error fetching student ID via metadata:', metadataError)
               return
@@ -519,7 +535,11 @@ function StudentDashboard() {
             if (metadataData) {
               console.log('Found student ID via metadata:', metadataData.id)
               setStudentId(metadataData.id)
+            } else {
+              console.log('No student found via metadata')
             }
+          } else {
+            console.log('No student_id in user metadata')
           }
           return
         }
@@ -528,6 +548,7 @@ function StudentDashboard() {
           console.log('Found student ID via user_id:', data.id)
           setStudentId(data.id)
         } else {
+          console.log('No data found via user_id')
           // Als geen data gevonden via user_id, probeer metadata
           if (user.user_metadata?.student_id) {
             console.log('No data via user_id, trying via student_id from metadata:', user.user_metadata.student_id)
@@ -537,6 +558,8 @@ function StudentDashboard() {
               .select('id')
               .eq('id', user.user_metadata.student_id)
               .maybeSingle()
+            
+            console.log('Query via metadata result:', { metadataData, metadataError })
             
             if (metadataError) {
               console.error('Error fetching student ID via metadata:', metadataError)
@@ -558,7 +581,11 @@ function StudentDashboard() {
               } else {
                 console.log('Successfully linked student to user_id')
               }
+            } else {
+              console.log('No student found via metadata')
             }
+          } else {
+            console.log('No student_id in user metadata')
           }
         }
       } catch (e) {
