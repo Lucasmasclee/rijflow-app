@@ -351,6 +351,7 @@ export default function WeekOverviewPage() {
         name: dayName,
         date: dayDate,
         fullDate: fullDate,
+        actualDate: date, // Store the actual Date object for correct day view
         isToday,
         isAvailable,
         lessons: dayLessons,
@@ -620,12 +621,6 @@ export default function WeekOverviewPage() {
                 </button>
               </div>
               <div className="flex items-center space-x-3">
-                <button
-                  onClick={goToToday}
-                  className="px-4 py-2 text-sm font-medium text-blue-600 hover:text-blue-700 hover:bg-blue-50 rounded-lg"
-                >
-                  Vandaag
-                </button>
                 
                 <button
                   onClick={() => openAddLesson()}
@@ -667,7 +662,7 @@ export default function WeekOverviewPage() {
                           ? 'border-blue-500 bg-blue-50' 
                           : 'border-gray-200 bg-gray-50'
                     }`}
-                    onClick={() => openDayView(new Date(day.fullDate))}
+                    onClick={() => openDayView(day.actualDate)}
                   >
                     <p className={`text-sm font-medium text-center ${
                       !day.isAvailable
