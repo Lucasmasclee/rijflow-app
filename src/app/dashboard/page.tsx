@@ -211,7 +211,8 @@ function InstructorDashboard() {
   const getWeekDays = () => {
     const today = new Date()
     const currentDay = today.getDay() // 0 = Sunday, 1 = Monday, etc.
-    const mondayOffset = currentDay === 0 ? -6 : 1 - currentDay // Adjust for Monday start
+    // Calculate offset to get to Monday (Monday = 1, so if currentDay is 0 (Sunday), we need -6, otherwise 1 - currentDay)
+    const mondayOffset = currentDay === 0 ? -6 : 1 - currentDay
     
     const weekDays = []
     for (let i = 0; i < 7; i++) {
@@ -448,6 +449,7 @@ function StudentDashboard() {
   function getMonday(d: Date) {
     const date = new Date(d)
     const day = date.getDay()
+    // Calculate offset to get to Monday (Monday = 1, so if day is 0 (Sunday), we need -6, otherwise 1 - day)
     const diff = date.getDate() - day + (day === 0 ? -6 : 1)
     date.setDate(diff)
     date.setHours(0,0,0,0)

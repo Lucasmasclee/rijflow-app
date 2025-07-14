@@ -229,11 +229,15 @@ export default function WeekOverviewPage() {
 
       // Transform database data to UI format
       if (data && data.length > 0) {
-        const dayNames = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday']
-        const dayDisplayNames = ['Zondag', 'Maandag', 'Dinsdag', 'Woensdag', 'Donderdag', 'Vrijdag', 'Zaterdag']
+        // Map database day_of_week (0=Sunday, 1=Monday, etc.) to our day names
+        // We want Monday=0, Tuesday=1, ..., Sunday=6
+        const dayNames = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday']
+        const dayDisplayNames = ['Maandag', 'Dinsdag', 'Woensdag', 'Donderdag', 'Vrijdag', 'Zaterdag', 'Zondag']
         
         const dbAvailability = data.reduce((acc, item) => {
-          const dayName = dayNames[item.day_of_week]
+          // Convert database day_of_week to our index (Monday=0, Sunday=6)
+          const dayIndex = item.day_of_week === 0 ? 6 : item.day_of_week - 1
+          const dayName = dayNames[dayIndex]
           if (dayName) {
             acc[dayName] = item.available
           }
@@ -243,7 +247,7 @@ export default function WeekOverviewPage() {
         const availabilityData = dayNames.map((day, index) => ({
           day,
           name: dayDisplayNames[index],
-          available: dbAvailability[day] ?? (index >= 1 && index <= 5) // Default: weekdays available
+          available: dbAvailability[day] ?? (index <= 4) // Default: weekdays available (Monday-Friday)
         }))
 
         setAvailability(availabilityData)
@@ -259,11 +263,13 @@ export default function WeekOverviewPage() {
 
         if (newData && newData.length > 0) {
           // Transform the newly created data
-          const dayNames = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday']
-          const dayDisplayNames = ['Zondag', 'Maandag', 'Dinsdag', 'Woensdag', 'Donderdag', 'Vrijdag', 'Zaterdag']
+          const dayNames = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday']
+          const dayDisplayNames = ['Maandag', 'Dinsdag', 'Woensdag', 'Donderdag', 'Vrijdag', 'Zaterdag', 'Zondag']
           
           const dbAvailability = newData.reduce((acc, item) => {
-            const dayName = dayNames[item.day_of_week]
+            // Convert database day_of_week to our index (Monday=0, Sunday=6)
+            const dayIndex = item.day_of_week === 0 ? 6 : item.day_of_week - 1
+            const dayName = dayNames[dayIndex]
             if (dayName) {
               acc[dayName] = item.available
             }
@@ -273,7 +279,7 @@ export default function WeekOverviewPage() {
           const availabilityData = dayNames.map((day, index) => ({
             day,
             name: dayDisplayNames[index],
-            available: dbAvailability[day] ?? (index >= 1 && index <= 5) // Default: weekdays available
+            available: dbAvailability[day] ?? (index <= 4) // Default: weekdays available (Monday-Friday)
           }))
 
           setAvailability(availabilityData)
@@ -335,10 +341,12 @@ export default function WeekOverviewPage() {
       const dayDate = date.toLocaleDateString('nl-NL', { day: '2-digit', month: '2-digit' })
       const fullDate = date.toISOString().split('T')[0] // Use ISO date format instead of toDateString()
       
-      // Get day of week (0 = Sunday, 1 = Monday, etc.)
+      // Get day of week (0 = Sunday, 1 = Monday, etc.) and convert to our day names
       const dayOfWeek = date.getDay()
-      const dayNames = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday']
-      const dayKey = dayNames[dayOfWeek]
+      // Convert JavaScript day (0=Sunday, 1=Monday) to our day names (Monday=0, Sunday=6)
+      const dayNames = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday']
+      const dayIndex = dayOfWeek === 0 ? 6 : dayOfWeek - 1
+      const dayKey = dayNames[dayIndex]
       
       // Check if instructor is available on this day
       const dayAvailability = availability.find(day => day.day === dayKey)

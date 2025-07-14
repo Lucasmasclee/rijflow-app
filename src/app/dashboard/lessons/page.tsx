@@ -84,7 +84,10 @@ export default function LessonsPage() {
   const getWeekDays = () => {
     const days = []
     const startOfWeek = new Date(currentDate)
-    startOfWeek.setDate(currentDate.getDate() - currentDate.getDay())
+    // Calculate offset to get to Monday (Monday = 1, so if currentDay is 0 (Sunday), we need -6, otherwise 1 - currentDay)
+    const currentDay = currentDate.getDay()
+    const mondayOffset = currentDay === 0 ? -6 : 1 - currentDay
+    startOfWeek.setDate(currentDate.getDate() + mondayOffset)
     
     for (let i = 0; i < 7; i++) {
       const day = new Date(startOfWeek)
@@ -338,7 +341,10 @@ export default function LessonsPage() {
                   {lessons.filter(l => {
                     const lessonDate = new Date(l.date)
                     const weekStart = new Date(currentDate)
-                    weekStart.setDate(currentDate.getDate() - currentDate.getDay())
+                    // Calculate offset to get to Monday (Monday = 1, so if currentDay is 0 (Sunday), we need -6, otherwise 1 - currentDay)
+                    const currentDay = currentDate.getDay()
+                    const mondayOffset = currentDay === 0 ? -6 : 1 - currentDay
+                    weekStart.setDate(currentDate.getDate() + mondayOffset)
                     const weekEnd = new Date(weekStart)
                     weekEnd.setDate(weekStart.getDate() + 6)
                     return lessonDate >= weekStart && lessonDate <= weekEnd
@@ -357,7 +363,10 @@ export default function LessonsPage() {
                   {lessons.filter(l => {
                     const lessonDate = new Date(l.date)
                     const weekStart = new Date(currentDate)
-                    weekStart.setDate(currentDate.getDate() - currentDate.getDay())
+                    // Calculate offset to get to Monday (Monday = 1, so if currentDay is 0 (Sunday), we need -6, otherwise 1 - currentDay)
+                    const currentDay = currentDate.getDay()
+                    const mondayOffset = currentDay === 0 ? -6 : 1 - currentDay
+                    weekStart.setDate(currentDate.getDate() + mondayOffset)
                     const weekEnd = new Date(weekStart)
                     weekEnd.setDate(weekStart.getDate() + 6)
                     return lessonDate >= weekStart && lessonDate <= weekEnd
@@ -376,7 +385,10 @@ export default function LessonsPage() {
                   {new Set(lessons.filter(l => {
                     const lessonDate = new Date(l.date)
                     const weekStart = new Date(currentDate)
-                    weekStart.setDate(currentDate.getDate() - currentDate.getDay())
+                    // Calculate offset to get to Monday (Monday = 1, so if currentDay is 0 (Sunday), we need -6, otherwise 1 - currentDay)
+                    const currentDay = currentDate.getDay()
+                    const mondayOffset = currentDay === 0 ? -6 : 1 - currentDay
+                    weekStart.setDate(currentDate.getDate() + mondayOffset)
                     const weekEnd = new Date(weekStart)
                     weekEnd.setDate(weekStart.getDate() + 6)
                     return lessonDate >= weekStart && lessonDate <= weekEnd

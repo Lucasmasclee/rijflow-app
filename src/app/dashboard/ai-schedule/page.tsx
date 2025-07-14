@@ -221,6 +221,7 @@ export default function AISchedulePage() {
       const weeks = Array.from({ length: 5 }, (_, i) => {
         const today = new Date()
         const day = today.getDay()
+        // Calculate offset to get to Monday (Monday = 1, so if day is 0 (Sunday), we need -6, otherwise 1 - day)
         const mondayOffset = day === 0 ? -6 : 1 - day
         const monday = new Date(today)
         monday.setDate(today.getDate() + mondayOffset + i * 7)
@@ -352,6 +353,7 @@ export default function AISchedulePage() {
   const weeks = Array.from({ length: 5 }, (_, i) => {
     const today = new Date()
     const day = today.getDay()
+    // Calculate offset to get to Monday (Monday = 1, so if day is 0 (Sunday), we need -6, otherwise 1 - day)
     const mondayOffset = day === 0 ? -6 : 1 - day
     const monday = new Date(today)
     monday.setDate(today.getDate() + mondayOffset + i * 7)
