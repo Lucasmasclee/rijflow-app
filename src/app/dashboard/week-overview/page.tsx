@@ -34,6 +34,18 @@ function getMonday(date: Date) {
   return d
 }
 
+// Helper function to compare dates properly, handling timezone issues
+function isSameDate(date1: Date | string, date2: Date | string): boolean {
+  const d1 = new Date(date1)
+  const d2 = new Date(date2)
+  
+  // Set both dates to midnight in local timezone for comparison
+  d1.setHours(0, 0, 0, 0)
+  d2.setHours(0, 0, 0, 0)
+  
+  return d1.getTime() === d2.getTime()
+}
+
 interface LessonFormData {
   id?: string
   date: string
@@ -118,6 +130,11 @@ export default function WeekOverviewPage() {
     
     try {
       setLoadingLessons(true)
+      const startDate = getMonday(currentWeek).toISOString().split('T')[0]
+      const endDate = new Date(getMonday(currentWeek).getTime() + 6 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]
+      
+      console.log('Fetching lessons for week:', { startDate, endDate, currentWeek }) // Debug log
+      
       const { data, error } = await supabase
         .from('lessons')
         .select(`
@@ -130,8 +147,8 @@ export default function WeekOverviewPage() {
           )
         `)
         .eq('instructor_id', user.id)
-        .gte('date', getMonday(currentWeek).toISOString().split('T')[0])
-        .lte('date', new Date(getMonday(currentWeek).getTime() + 6 * 24 * 60 * 60 * 1000).toISOString().split('T')[0])
+        .gte('date', startDate)
+        .lte('date', endDate)
         .order('date', { ascending: true })
         .order('start_time', { ascending: true })
 
@@ -147,6 +164,7 @@ export default function WeekOverviewPage() {
         student: lesson.students
       }))
 
+      console.log('Total lessons fetched:', transformedData.length) // Debug log
       setLessons(transformedData)
     } catch (error) {
       console.error('Error fetching lessons:', error)
@@ -315,7 +333,7 @@ export default function WeekOverviewPage() {
       const isToday = date.toDateString() === new Date().toDateString()
       const dayName = date.toLocaleDateString('nl-NL', { weekday: 'short' })
       const dayDate = date.toLocaleDateString('nl-NL', { day: '2-digit', month: '2-digit' })
-      const fullDate = date.toDateString()
+      const fullDate = date.toISOString().split('T')[0] // Use ISO date format instead of toDateString()
       
       // Get day of week (0 = Sunday, 1 = Monday, etc.)
       const dayOfWeek = date.getDay()
@@ -327,9 +345,7 @@ export default function WeekOverviewPage() {
       const isAvailable = dayAvailability ? dayAvailability.available : true
       
       // Filter lessons for this specific day
-      const dayLessons = lessons.filter(lesson => 
-        new Date(lesson.date).toDateString() === fullDate
-      )
+      const dayLessons = lessons.filter(lesson => lesson.date === fullDate)
       
       weekDays.push({
         name: dayName,
@@ -368,9 +384,10 @@ export default function WeekOverviewPage() {
   }
 
   const getDayLessons = (dayDate: string) => {
-    return lessons.filter(lesson => 
-      new Date(lesson.date).toDateString() === dayDate
-    ).sort((a, b) => a.start_time.localeCompare(b.start_time))
+    return lessons.filter(lesson => {
+      // Compare dates directly as strings since both are now in ISO format
+      return lesson.date === dayDate
+    }).sort((a, b) => a.start_time.localeCompare(b.start_time))
   }
 
   // Lesson management functions
@@ -509,9 +526,10 @@ export default function WeekOverviewPage() {
   const getDayViewLessons = (): DayViewLesson[] => {
     if (!selectedDate) return []
     
-    const dateString = selectedDate.toDateString()
+    const selectedDateISO = selectedDate.toISOString().split('T')[0]
+    
     return lessons
-      .filter(lesson => new Date(lesson.date).toDateString() === dateString)
+      .filter(lesson => lesson.date === selectedDateISO)
       .sort((a, b) => a.start_time.localeCompare(b.start_time))
       .map(lesson => {
         const student = lesson.student || students.find(s => s.id === lesson.student_id)
