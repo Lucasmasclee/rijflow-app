@@ -176,6 +176,8 @@ function InstructorDashboard() {
   const { user } = useAuth()
   const [students, setStudents] = useState<Student[]>([])
   const [loadingStudents, setLoadingStudents] = useState(true)
+  const [lessons, setLessons] = useState<any[]>([])
+  const [loadingLessons, setLoadingLessons] = useState(true)
 
   // Fetch students from database
   const fetchStudents = async () => {
@@ -202,9 +204,54 @@ function InstructorDashboard() {
     }
   }
 
+  // Fetch lessons for current week
+  const fetchLessons = async () => {
+    if (!user) return
+    
+    try {
+      setLoadingLessons(true)
+      
+      // Get current week (Monday to Sunday)
+      const today = new Date()
+      const currentDay = today.getDay()
+      const mondayOffset = currentDay === 0 ? -6 : 1 - currentDay
+      const monday = new Date(today)
+      monday.setDate(today.getDate() + mondayOffset)
+      monday.setHours(0, 0, 0, 0)
+      
+      const sunday = new Date(monday)
+      sunday.setDate(monday.getDate() + 6)
+      sunday.setHours(23, 59, 59, 999)
+      
+      const startDate = monday.toISOString().split('T')[0]
+      const endDate = sunday.toISOString().split('T')[0]
+      
+      const { data, error } = await supabase
+        .from('lessons')
+        .select('*')
+        .eq('instructor_id', user.id)
+        .gte('date', startDate)
+        .lte('date', endDate)
+        .order('date', { ascending: true })
+        .order('start_time', { ascending: true })
+
+      if (error) {
+        console.error('Error fetching lessons:', error)
+        return
+      }
+
+      setLessons(data || [])
+    } catch (error) {
+      console.error('Error fetching lessons:', error)
+    } finally {
+      setLoadingLessons(false)
+    }
+  }
+
   useEffect(() => {
     if (user) {
       fetchStudents()
+      fetchLessons()
     }
   }, [user])
 
@@ -223,15 +270,15 @@ function InstructorDashboard() {
       const dayName = date.toLocaleDateString('nl-NL', { weekday: 'short' })
       const dayDate = date.toLocaleDateString('nl-NL', { day: '2-digit', month: '2-digit' })
       
-      // TODO: Replace with actual lesson count from database
-      // For now, showing 0 lessons since user just registered
-      const lessons = 0
+      // Get actual lesson count for this day
+      const dayDateString = date.toISOString().split('T')[0]
+      const dayLessons = lessons.filter(lesson => lesson.date === dayDateString)
       
       weekDays.push({
         name: dayName,
         date: dayDate,
         isToday,
-        lessons
+        lessons: dayLessons.length
       })
     }
     
@@ -247,11 +294,59 @@ function InstructorDashboard() {
       </h2>
     </div>
     <div className="p-6">
-      <div className="text-center py-10">
-        <Calendar className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-        <p className="text-gray-500">Nog geen lessen gepland voor vandaag</p>
-        <p className="text-sm text-gray-400 mt-1">Plan je eerste les om te beginnen</p>
-      </div>
+      {(() => {
+        const today = new Date()
+        const todayString = today.toISOString().split('T')[0]
+        const todayLessons = lessons.filter(lesson => lesson.date === todayString)
+        
+        if (todayLessons.length === 0) {
+          return (
+            <div className="text-center py-10">
+              <Calendar className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+              <p className="text-gray-500">Nog geen lessen gepland voor vandaag</p>
+              <p className="text-sm text-gray-400 mt-1">Plan je eerste les om te beginnen</p>
+            </div>
+          )
+        } else {
+          return (
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <h3 className="text-lg font-medium text-gray-900">
+                  {todayLessons.length} {todayLessons.length === 1 ? 'les' : 'lessen'} vandaag
+                </h3>
+                <Link
+                  href="/dashboard/week-overview"
+                  className="text-blue-600 hover:text-blue-700 text-sm font-medium"
+                >
+                  Bekijk alle lessen →
+                </Link>
+              </div>
+              <div className="space-y-3">
+                {todayLessons.slice(0, 3).map((lesson, index) => (
+                  <div key={index} className="flex items-center justify-between p-3 bg-blue-50 rounded-lg">
+                    <div className="flex items-center space-x-3">
+                      <Clock className="h-4 w-4 text-blue-600" />
+                      <span className="text-sm font-medium text-gray-900">
+                        {lesson.start_time.substring(0, 5)} - {lesson.end_time.substring(0, 5)}
+                      </span>
+                    </div>
+                    <span className="text-sm text-gray-600">
+                      {students.find(s => s.id === lesson.student_id)?.first_name || 'Onbekende leerling'}
+                    </span>
+                  </div>
+                ))}
+                {todayLessons.length > 3 && (
+                  <div className="text-center">
+                    <p className="text-sm text-gray-500">
+                      En nog {todayLessons.length - 3} {todayLessons.length - 3 === 1 ? 'les' : 'lessen'} meer
+                    </p>
+                  </div>
+                )}
+              </div>
+            </div>
+          )
+        }
+      })()}
     </div>
   </div>
 
@@ -271,35 +366,50 @@ function InstructorDashboard() {
     </div>
     <div className="p-6">
       <div className="grid grid-cols-7 gap-4">
-        {getWeekDays().map((day, index) => (
-          <div key={index} className="text-center">
-            <div className={`p-4 rounded-lg border-2 ${
-              day.isToday 
-                ? 'border-blue-500 bg-blue-50' 
-                : 'border-gray-200 bg-gray-50'
-            }`}>
-              <p className={`text-sm font-medium ${
-                day.isToday ? 'text-blue-700' : 'text-gray-600'
-              }`}>
-                {day.name}
-              </p>
-              <p className={`text-xs ${
-                day.isToday ? 'text-blue-600' : 'text-gray-500'
-              }`}>
-                {day.date}
-              </p>
-              <div className="mt-2">
-                <span className={`inline-flex items-center justify-center w-8 h-8 rounded-full text-sm font-bold ${
-                  day.lessons > 0 
-                    ? 'bg-blue-100 text-blue-700' 
-                    : 'bg-gray-100 text-gray-400'
-                }`}>
-                  {day.lessons}
-                </span>
+        {loadingLessons ? (
+          // Loading state
+          Array.from({ length: 7 }).map((_, index) => (
+            <div key={index} className="text-center">
+              <div className="p-4 rounded-lg border-2 border-gray-200 bg-gray-50">
+                <div className="animate-pulse">
+                  <div className="h-4 bg-gray-300 rounded mb-2"></div>
+                  <div className="h-3 bg-gray-300 rounded mb-2"></div>
+                  <div className="w-8 h-8 bg-gray-300 rounded-full mx-auto"></div>
+                </div>
               </div>
             </div>
-          </div>
-        ))}
+          ))
+        ) : (
+          getWeekDays().map((day, index) => (
+            <div key={index} className="text-center">
+              <div className={`p-4 rounded-lg border-2 ${
+                day.isToday 
+                  ? 'border-blue-500 bg-blue-50' 
+                  : 'border-gray-200 bg-gray-50'
+              }`}>
+                <p className={`text-sm font-medium ${
+                  day.isToday ? 'text-blue-700' : 'text-gray-600'
+                }`}>
+                  {day.name}
+                </p>
+                <p className={`text-xs ${
+                  day.isToday ? 'text-blue-600' : 'text-gray-500'
+                }`}>
+                  {day.date}
+                </p>
+                <div className="mt-2">
+                  <span className={`inline-flex items-center justify-center w-8 h-8 rounded-full text-sm font-bold ${
+                    day.lessons > 0 
+                      ? 'bg-blue-100 text-blue-700' 
+                      : 'bg-gray-100 text-gray-400'
+                  }`}>
+                    {day.lessons}
+                  </span>
+                </div>
+              </div>
+            </div>
+          ))
+        )}
       </div>
     </div>
   </div>
@@ -339,7 +449,12 @@ function InstructorDashboard() {
                 <Calendar className="h-8 w-8 text-orange-600" />
                 <div className="ml-4">
                   <p className="text-sm font-medium text-gray-600">Actieve leerlingen</p>
-                  <p className="text-2xl font-bold text-gray-900">0</p>
+                  <p className="text-2xl font-bold text-gray-900">
+                    {(() => {
+                      const activeStudentIds = new Set(lessons.map(lesson => lesson.student_id))
+                      return activeStudentIds.size
+                    })()}
+                  </p>
                 </div>
               </div>
             </div>
