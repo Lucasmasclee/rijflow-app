@@ -262,6 +262,32 @@ function InstructorDashboard() {
     }
   }
 
+  // Fetch progress notes for a specific student
+  const fetchProgressNotes = async (studentId: string) => {
+    if (!user) return []
+    
+    try {
+      const { data, error } = await supabase
+        .from('progress_notes')
+        .select('*')
+        .eq('student_id', studentId)
+        .eq('instructor_id', user.id)
+        .order('date', { ascending: false })
+        .order('created_at', { ascending: false })
+        .limit(5) // Only fetch the 5 most recent notes
+
+      if (error) {
+        console.error('Error fetching progress notes:', error)
+        return []
+      }
+
+      return data || []
+    } catch (error) {
+      console.error('Error fetching progress notes:', error)
+      return []
+    }
+  }
+
   useEffect(() => {
     if (user) {
       fetchStudents()
@@ -316,6 +342,163 @@ function InstructorDashboard() {
     })
   }
 
+  // ExpandedLessonView component
+  const ExpandedLessonView = ({ lesson, student, onClose }: { 
+    lesson: any, 
+    student: any, 
+    onClose: () => void 
+  }) => {
+    const [progressNotes, setProgressNotes] = useState<any[]>([])
+    const [loadingProgressNotes, setLoadingProgressNotes] = useState(true)
+    const [newProgressNote, setNewProgressNote] = useState('')
+    const [savingProgressNote, setSavingProgressNote] = useState(false)
+
+    // Fetch progress notes when component mounts
+    useEffect(() => {
+      const loadProgressNotes = async () => {
+        if (student?.id) {
+          setLoadingProgressNotes(true)
+          const notes = await fetchProgressNotes(student.id)
+          setProgressNotes(notes)
+          setLoadingProgressNotes(false)
+        }
+      }
+      loadProgressNotes()
+    }, [student?.id])
+
+    const handleAddProgressNote = async () => {
+      if (!newProgressNote.trim() || !user || !student?.id) return
+
+      setSavingProgressNote(true)
+      try {
+        const { data, error } = await supabase
+          .from('progress_notes')
+          .insert({
+            student_id: student.id,
+            instructor_id: user.id,
+            lesson_id: lesson.id,
+            date: new Date().toISOString().split('T')[0],
+            notes: newProgressNote.trim()
+          })
+          .select()
+
+        if (error) {
+          console.error('Error adding progress note:', error)
+          return
+        }
+
+        if (data) {
+          setProgressNotes(prev => [data[0], ...prev])
+          setNewProgressNote('')
+        }
+      } catch (error) {
+        console.error('Error adding progress note:', error)
+      } finally {
+        setSavingProgressNote(false)
+      }
+    }
+
+    return (
+      <div className="border-t border-blue-200 bg-white p-4 space-y-4">
+        {/* Algemene notities van de leerling (alleen zichtbaar) */}
+        {student?.notes && (
+          <div>
+            <h4 className="text-sm font-medium text-gray-900 mb-2 flex items-center">
+              <User className="h-4 w-4 mr-2" />
+              Algemene notities {student.first_name}
+            </h4>
+            <div className="bg-gray-50 p-3 rounded-lg">
+              <p className="text-sm text-gray-700 whitespace-pre-wrap">
+                {student.notes}
+              </p>
+            </div>
+          </div>
+        )}
+        
+        {/* Notities van deze les (alleen zichtbaar) */}
+        {lesson.notes && (
+          <div>
+            <h4 className="text-sm font-medium text-gray-900 mb-2 flex items-center">
+              <FileText className="h-4 w-4 mr-2" />
+              Notities van deze les
+            </h4>
+            <div className="bg-blue-50 p-3 rounded-lg">
+              <p className="text-sm text-gray-700 whitespace-pre-wrap">
+                {lesson.notes}
+              </p>
+            </div>
+          </div>
+        )}
+
+        {/* Voortgangsnotities (zichtbaar en bewerkbaar) */}
+        <div>
+          <h4 className="text-sm font-medium text-gray-900 mb-2 flex items-center">
+            <FileText className="h-4 w-4 mr-2" />
+            Voortgangsnotities
+          </h4>
+          
+          {/* Add new progress note */}
+          <div className="mb-3">
+            <div className="flex gap-2">
+              <textarea
+                rows={2}
+                value={newProgressNote}
+                onChange={(e) => setNewProgressNote(e.target.value)}
+                placeholder="Voeg een voortgangsnotitie toe..."
+                className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+              />
+              <button
+                onClick={handleAddProgressNote}
+                disabled={savingProgressNote || !newProgressNote.trim()}
+                className="bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 text-white px-3 py-2 rounded-lg text-sm font-medium"
+              >
+                {savingProgressNote ? '...' : 'Toevoegen'}
+              </button>
+            </div>
+          </div>
+
+          {/* Progress notes list */}
+          {loadingProgressNotes ? (
+            <div className="text-center py-2">
+              <p className="text-sm text-gray-500">Laden...</p>
+            </div>
+          ) : progressNotes.length === 0 ? (
+            <div className="text-center py-2">
+              <p className="text-sm text-gray-500">Nog geen voortgangsnotities</p>
+            </div>
+          ) : (
+            <div className="space-y-2">
+              {progressNotes.slice(0, 3).map((note) => (
+                <div key={note.id} className="bg-green-50 p-3 rounded-lg">
+                  <div className="flex justify-between items-start mb-1">
+                    <span className="text-xs text-gray-500">
+                      {new Date(note.date).toLocaleDateString('nl-NL')}
+                    </span>
+                  </div>
+                  <p className="text-gray-900 whitespace-pre-wrap text-sm">{note.notes}</p>
+                </div>
+              ))}
+              {progressNotes.length > 3 && (
+                <p className="text-xs text-gray-500 text-center">
+                  En nog {progressNotes.length - 3} meer voortgangsnotities
+                </p>
+              )}
+            </div>
+          )}
+        </div>
+        
+        {/* Als er geen notities zijn */}
+        {!student?.notes && !lesson.notes && progressNotes.length === 0 && (
+          <div className="text-center py-4">
+            <p className="text-sm text-gray-500">
+              Geen notities beschikbaar voor deze les
+            </p>
+          </div>
+        )}
+      </div>
+    )
+  }
+
   return (
     <>
     <div className="bg-white rounded-lg shadow-sm">
@@ -360,7 +543,10 @@ function InstructorDashboard() {
                   return (
                     <div key={index} className="bg-blue-50 rounded-lg overflow-hidden">
                       {/* Ingeklapte versie */}
-                      <div className="flex items-center justify-between p-3">
+                      <div 
+                        className="flex items-center justify-between p-3 cursor-pointer hover:bg-blue-100 transition-colors"
+                        onClick={() => toggleLessonExpansion(lesson.id)}
+                      >
                         <div className="flex items-center space-x-3">
                           <Clock className="h-4 w-4 text-blue-600" />
                           <span className="text-sm font-medium text-gray-900">
@@ -372,69 +558,33 @@ function InstructorDashboard() {
                             {student?.first_name || 'Onbekende leerling'}
                           </span>
                           <button
-                            onClick={() => openGoogleMaps(student?.address || '')}
+                            onClick={(e) => {
+                              e.stopPropagation()
+                              openGoogleMaps(student?.address || '')
+                            }}
                             className="flex items-center gap-1 bg-green-600 text-white px-2 py-1 rounded text-xs hover:bg-green-700 transition-colors"
                             title="Open in Google Maps"
                           >
                             <ExternalLink className="h-3 w-3" />
                             Maps
                           </button>
-                          <button
-                            onClick={() => toggleLessonExpansion(lesson.id)}
-                            className="p-1 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded transition-colors"
-                            title={isExpanded ? "Inklappen" : "Uitklappen"}
-                          >
+                          <div className="p-1 text-gray-400">
                             {isExpanded ? (
                               <ChevronUp className="h-4 w-4" />
                             ) : (
                               <ChevronDown className="h-4 w-4" />
                             )}
-                          </button>
+                          </div>
                         </div>
                       </div>
                       
                       {/* Uitgeklapte versie */}
                       {isExpanded && (
-                        <div className="border-t border-blue-200 bg-white p-4 space-y-4">
-                          {/* Algemene notities van de leerling */}
-                          {student?.notes && (
-                            <div>
-                              <h4 className="text-sm font-medium text-gray-900 mb-2 flex items-center">
-                                <User className="h-4 w-4 mr-2" />
-                                Algemene notities {student.first_name}
-                              </h4>
-                              <div className="bg-gray-50 p-3 rounded-lg">
-                                <p className="text-sm text-gray-700 whitespace-pre-wrap">
-                                  {student.notes}
-                                </p>
-                              </div>
-                            </div>
-                          )}
-                          
-                          {/* Notities van deze les */}
-                          {lesson.notes && (
-                            <div>
-                              <h4 className="text-sm font-medium text-gray-900 mb-2 flex items-center">
-                                <FileText className="h-4 w-4 mr-2" />
-                                Notities van deze les
-                              </h4>
-                              <div className="bg-blue-50 p-3 rounded-lg">
-                                <p className="text-sm text-gray-700 whitespace-pre-wrap">
-                                  {lesson.notes}
-                                </p>
-                              </div>
-                            </div>
-                          )}
-                          
-                          {/* Als er geen notities zijn */}
-                          {!student?.notes && !lesson.notes && (
-                            <div className="text-center py-4">
-                              <p className="text-sm text-gray-500">
-                                Geen notities beschikbaar voor deze les
-                              </p>
-                            </div>
-                          )}
-                        </div>
+                        <ExpandedLessonView 
+                          lesson={lesson} 
+                          student={student} 
+                          onClose={() => toggleLessonExpansion(lesson.id)}
+                        />
                       )}
                     </div>
                   )

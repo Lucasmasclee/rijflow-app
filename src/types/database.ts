@@ -57,6 +57,10 @@ export interface ProgressNote {
   updated_at: string
 }
 
+export interface StudentWithProgressNotes extends Student {
+  progress_notes?: ProgressNote[]
+}
+
 export interface ChatMessage {
   id: string
   student_id: string

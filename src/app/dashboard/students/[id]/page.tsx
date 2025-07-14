@@ -3,7 +3,7 @@
 import { useAuth } from '@/contexts/AuthContext'
 import { useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
-import { ArrowLeft, Save, User, Mail, Phone, MapPin, Edit2, X, Check, Copy, Link as LinkIcon } from 'lucide-react'
+import { ArrowLeft, Save, User, Mail, Phone, MapPin, Edit2, X, Check, Copy, Link as LinkIcon, FileText } from 'lucide-react'
 import Link from 'next/link'
 import toast from 'react-hot-toast'
 import React from 'react'
@@ -23,6 +23,18 @@ interface Student {
   invite_token?: string
 }
 
+interface ProgressNote {
+  id: string
+  student_id: string
+  instructor_id: string
+  lesson_id?: string
+  date: string
+  notes: string
+  topics_covered?: string[]
+  created_at: string
+  updated_at: string
+}
+
 export default function StudentDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { user, loading } = useAuth()
   const router = useRouter()
@@ -40,6 +52,9 @@ export default function StudentDetailPage({ params }: { params: Promise<{ id: st
   })
   const [showDeleteModal, setShowDeleteModal] = useState(false)
   const [inviteUrl, setInviteUrl] = useState<string>('')
+  const [progressNotes, setProgressNotes] = useState<ProgressNote[]>([])
+  const [newProgressNote, setNewProgressNote] = useState('')
+  const [savingProgressNote, setSavingProgressNote] = useState(false)
 
   useEffect(() => {
     if (!loading && !user) {
@@ -101,6 +116,84 @@ export default function StudentDetailPage({ params }: { params: Promise<{ id: st
     }
     fetchStudent()
   }, [studentId, router])
+
+  // Load progress notes from Supabase
+  useEffect(() => {
+    if (!studentId || !user) return
+
+    const fetchProgressNotes = async () => {
+      try {
+        const { data, error } = await supabase
+          .from('progress_notes')
+          .select('*')
+          .eq('student_id', studentId)
+          .eq('instructor_id', user.id)
+          .order('date', { ascending: false })
+          .order('created_at', { ascending: false })
+
+        if (error) {
+          console.error('Error fetching progress notes:', error)
+          return
+        }
+
+        setProgressNotes(data || [])
+      } catch (error) {
+        console.error('Error fetching progress notes:', error)
+      }
+    }
+    fetchProgressNotes()
+  }, [studentId, user])
+
+  const handleAddProgressNote = async () => {
+    if (!newProgressNote.trim() || !user || !studentId) return
+
+    setSavingProgressNote(true)
+    try {
+      const { data, error } = await supabase
+        .from('progress_notes')
+        .insert({
+          student_id: studentId,
+          instructor_id: user.id,
+          date: new Date().toISOString().split('T')[0],
+          notes: newProgressNote.trim()
+        })
+        .select()
+
+      if (error) {
+        toast.error('Fout bij het toevoegen van voortgangsnotitie')
+        return
+      }
+
+      if (data) {
+        setProgressNotes(prev => [data[0], ...prev])
+        setNewProgressNote('')
+        toast.success('Voortgangsnotitie toegevoegd!')
+      }
+    } catch (error) {
+      toast.error('Fout bij het toevoegen van voortgangsnotitie')
+    } finally {
+      setSavingProgressNote(false)
+    }
+  }
+
+  const handleDeleteProgressNote = async (noteId: string) => {
+    try {
+      const { error } = await supabase
+        .from('progress_notes')
+        .delete()
+        .eq('id', noteId)
+
+      if (error) {
+        toast.error('Fout bij het verwijderen van voortgangsnotitie')
+        return
+      }
+
+      setProgressNotes(prev => prev.filter(note => note.id !== noteId))
+      toast.success('Voortgangsnotitie verwijderd!')
+    } catch (error) {
+      toast.error('Fout bij het verwijderen van voortgangsnotitie')
+    }
+  }
 
   const handleEdit = () => {
     setIsEditing(true)
@@ -368,31 +461,99 @@ export default function StudentDetailPage({ params }: { params: Promise<{ id: st
               </div>
             </div>
 
-            {/* Notes */}
+            {/* General Notes */}
             <div className="bg-white rounded-lg shadow-sm border border-gray-200">
               <div className="p-6 border-b border-gray-200">
                 <h2 className="text-lg font-semibold text-gray-900 flex items-center">
                   <User className="h-5 w-5 mr-2" />
-                  Voortgang en notities
+                  Algemene notities
                 </h2>
               </div>
               <div className="p-6">
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Notities
+                  Algemene notities over {student.first_name}
                 </label>
                 {isEditing ? (
                   <textarea
-                    rows={8}
+                    rows={6}
                     value={formData.notes}
                     onChange={(e) => handleInputChange('notes', e.target.value)}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    placeholder="Houd hier de voortgang van de leerling bij, belangrijke opmerkingen, sterke punten, verbeterpunten, etc..."
+                    placeholder="Algemene informatie over de leerling, persoonlijke voorkeuren, bijzonderheden, etc..."
                   />
                 ) : (
                   <div className="bg-gray-50 p-4 rounded-lg">
-                    <p className="text-gray-900 whitespace-pre-wrap">{student.notes || 'Geen notities toegevoegd.'}</p>
+                    <p className="text-gray-900 whitespace-pre-wrap">{student.notes || 'Geen algemene notities toegevoegd.'}</p>
                   </div>
                 )}
+                <p className="text-sm text-gray-500 mt-2">
+                  Deze notities zijn alleen zichtbaar in het leerlingprofiel en worden getoond bij uitgeklapte lessen.
+                </p>
+              </div>
+            </div>
+
+            {/* Progress Notes */}
+            <div className="bg-white rounded-lg shadow-sm border border-gray-200">
+              <div className="p-6 border-b border-gray-200">
+                <h2 className="text-lg font-semibold text-gray-900 flex items-center">
+                  <FileText className="h-5 w-5 mr-2" />
+                  Voortgangsnotities
+                </h2>
+              </div>
+              <div className="p-6 space-y-4">
+                {/* Add new progress note */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Nieuwe voortgangsnotitie toevoegen
+                  </label>
+                  <div className="flex gap-2">
+                    <textarea
+                      rows={3}
+                      value={newProgressNote}
+                      onChange={(e) => setNewProgressNote(e.target.value)}
+                      placeholder="Voeg een nieuwe voortgangsnotitie toe..."
+                      className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    />
+                    <button
+                      onClick={handleAddProgressNote}
+                      disabled={savingProgressNote || !newProgressNote.trim()}
+                      className="bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 text-white px-4 py-2 rounded-lg text-sm font-medium"
+                    >
+                      {savingProgressNote ? 'Toevoegen...' : 'Toevoegen'}
+                    </button>
+                  </div>
+                </div>
+
+                {/* Progress notes list */}
+                <div>
+                  <h3 className="text-sm font-medium text-gray-700 mb-3">Eerdere voortgangsnotities</h3>
+                  {progressNotes.length === 0 ? (
+                    <p className="text-gray-500 text-sm">Nog geen voortgangsnotities toegevoegd.</p>
+                  ) : (
+                    <div className="space-y-3">
+                      {progressNotes.map((note) => (
+                        <div key={note.id} className="bg-blue-50 p-4 rounded-lg">
+                          <div className="flex justify-between items-start mb-2">
+                            <span className="text-xs text-gray-500">
+                              {new Date(note.date).toLocaleDateString('nl-NL')}
+                            </span>
+                            <button
+                              onClick={() => handleDeleteProgressNote(note.id)}
+                              className="text-red-500 hover:text-red-700 text-sm"
+                              title="Verwijder notitie"
+                            >
+                              <X className="h-4 w-4" />
+                            </button>
+                          </div>
+                          <p className="text-gray-900 whitespace-pre-wrap text-sm">{note.notes}</p>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+                <p className="text-sm text-gray-500">
+                  Voortgangsnotities zijn zichtbaar en bewerkbaar in het leerlingprofiel en bij uitgeklapte lessen.
+                </p>
               </div>
             </div>
           </div>
