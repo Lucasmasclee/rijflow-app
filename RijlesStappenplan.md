@@ -62,14 +62,6 @@ Voor later:
 Beschikbaarheid kunnen invullen:
 ● Leerling kan in een kalender aangeven op welke dagen/tijdstippen hij beschikbaar is
 ● Instructeur ziet deze beschikbaarheid in zijn eigen rooster
-● (Later: leerling kan verzoeken om les op bepaalde tijd)
-
-Onboarding flow leerlingen:
-Stap 1: Instructeur voegt leerling toe in het studentoverzicht (Dit is al geprogrammeerd). Na het toevoegen van een student, komt er een bevestiging van het toevoegen, en kan de instructeur op 2 manieren de leerling uitnodigen voor de app:
-Via het telefoonnummer of via de email. Ze krijgen dan via de sms of email een link gestuurd met een uitnodiging. Als leerlingen deze link klikken moet de leerling zijn email en wachtwoord kunnen instellen en direct kunnen inloggen. 
-Als een leerling dit vervolgens doet en bijvoorbeeld zijn besschikbaarheid invult, moeten zowel de instructeur als leerling hetzelfde zien (Het gaat er hier om dat de leerlingen in het leerling overzicht van de instructeur gekoppeld zijn aan leerling accounts.) Maak hiervoor alle code en geef vervolgens aan of ik zelf nog iets in moet stellen in bijvoorbeeld supabase.
-
-
 
 Ik ben nu hetvolgende proces aan het testen:
 1. Registreren als rij-instructeur✅
@@ -80,13 +72,12 @@ Ik ben nu hetvolgende proces aan het testen:
 6. De uitnodigingslink klikken, en een account aanmaken met email en wachtwoord✅
 7. Inloggen als leerling✅
 8. Beschikbaarheid invullen als leerling✅
-9. Deze beschikbaarheid synchroniseren voor zowel instructeur als leerling
+9. Deze beschikbaarheid synchroniseren voor zowel instructeur als leerling✅
 
 Glitches:
 Op Macbook: bij inloggen is de tekst soms wit
 Op Macbook: beschikbaarheid invullen in student dashboard tekst is wit
 Als leerling uitnodigingslink klikt en email en wachtwoord aanmaakt, moet hij een scherm te zien krijgen met "Bevestig je account in email"
-Leerling beschikbaarheid wordt niet opgeslagen 
 
 App mooi maken en elke pagina checken
 App goed laten lijken op telefoon
