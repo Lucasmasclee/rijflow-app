@@ -1,86 +1,92 @@
-STAPPENPLAN: Van idee naar je eerste klant
-FASE 1: Voorbereiding (Doel: fundament leggen)
-Doelen:
-🟡🟡🟡🟡🟡● MVP maken met Cursor. Dit is af zodra ik zelf het volgende kan doen:
-✅✅✅✅✅Als rij-instructeur inloggen:
-✅✅✅✅✅● Instructeur kan zich registreren / inloggen via e-mail & wachtwoord (Supabase Auth)
-✅✅✅✅✅● Na inloggen komt hij op zijn persoonlijke dashboard
-✅✅✅✅✅Een rijschool aanmaken:
-✅✅✅✅✅● Mogelijkheid om een rijschoolprofiel in te vullen (naam, leerlingen toevoegen en bewerken)
-✅✅✅✅✅Leerlingen 'aanmaken' en beheren:
-✅✅✅✅✅● Nieuwe leerling toevoegen met:
-✅✅✅✅✅○ Voor- en achternaam
-✅✅✅✅✅○ E-mailadres
-✅✅✅✅✅○ Telefoonnummer
-✅✅✅✅✅○ Adres
-✅✅✅✅✅● Leerlingen verschijnen in een overzicht (lijst of kaarten)
-✅✅✅✅✅● Elke leerling heeft een eigen detailpagina
-✅✅✅✅✅Per leerling: voortgang & info bijhouden:
+Alle functies in de app:
 
-AI Rooster:
+Dashboard met:
+✅✅✅✅✅- Dag overzicht
+✅✅✅✅✅- Week overzicht
+✅✅✅✅✅- Leerling overzicht
+
+Dag overzicht:
+✅✅✅✅✅- Per les begintijd, eindtijd, leerling, google maps extensie
+- Klikken op een les laat notitie geschiedenis voor die leerling zien
+- Klikken op een les laat notities voor die les zien
+- Klikken op een les heeft nieuw inputfield voor nieuwe lesnotities
+- Samenvatting dagoverzicht
+
+Weekoverzicht:
+✅✅✅✅✅- Nieuwe lessen toevoegen
+✅✅✅✅✅- Lessen bewerken
+✅✅✅✅✅- Lessen verwijderen
+✅✅✅✅✅- Lessen dupliceren
+- Weekplanning kopiëren naar andere weken
+- Zoekbalk voor filteren van lessen: Bijvoorbeeld een naam intypen en alle lessen van die leerling te zien krijgen
+
+Leerling overzicht:
+✅✅✅✅✅- Nieuwe leerlingen aanmaken
+✅✅✅✅✅- Leerlingen bewerken
+✅✅✅✅✅- Leerlingen verwijderen
+- Nieuwe implementatie voor beschikbaarheid van leerlingen:
+- Link sturen waarbij op een of andere manier een leerling een inputfield te zien krijgt met een lijst van Maandag t/m Zondag voor een bepaalde week. Deze moet de leerling dan bewerken en versturen. Dit moet de rij instructeur vervolgens te zien krijgen
+
+Specifieke leerling overzicht:
+✅✅✅✅✅- Adres, telefoonnummer, emailadres, algemene notities
+- Geschiedenis van lesnotities
+- Aantal lessen gehad
+- Standaard lesuren per week
+- Standaard minuten per les
+
+Rooster Instellingen
+✅✅✅✅✅- Standaard dagen per week dat instructeur beschikbaar is
+- Standaard uren per week dat instructeur beschikbaar is
+
+AI Rooster
 ✅✅✅✅✅● Instructeur klikt op "AI rooster" en gaat naar de pagina
 ✅✅✅✅✅● Instructeur kan zijn eigen beschikbaarheid voor de week intypen
-✅✅✅✅✅● De beschikbaarheid staat al automatisch goed
+✅✅✅✅✅● Beschikbaarheid dagen staat automatisch goed
+- Beschikbaarheid uren staat automatisch goed
 ✅✅✅✅✅● Instructeur gaat vervolgens langs de beschikbaarheid van elke leerling. 
 ✅✅✅✅✅● Elke leerling heeft een beschikbaarheid voor de week ingevuld in zijn notities, een AI prompt maakt deze notities netjes en overzichtelijk
 ✅✅✅✅✅● Per leerling kan de instructeur invullen hoeveel lessen die leerling krijgt voor die week en hoeveel minuten per les dat zijn voor die leerling
+- Scherm voor andere notities:
+- pauzes
+- locatieplanning
+- Meldingen sturen naar leerlingen
 ● Al deze gegevens voor de instructeur en leerling verwerken naar een goede prompt voor chatgpt
 ● Chatgpt een prompt sturen en vragen voor een json bestand of csv bestand
-● Voor later: Rekening houden met afstand tussen plaatsen en extra notities voor praktische zaken (Spits enzo)
-
-Voor later
-Chat per leerling (1:1 chat):
-● Elke leerling heeft een aparte chat met zijn instructeur
-● Chatgeschiedenis wordt opgeslagen
-● Notificatie als er een nieuw bericht is
-● (Later uitbreiden met bijlagen / emoji / berichten wissen)
-
-Roosters maken (lesplanning):
-● AI roosters laten maken door middel van notities van rijinstructeur + notities van elke leerling
-● Instructeur ziet kalenderweergave (dag/week)
-● Kan nieuwe lessen toevoegen (datum, tijd, leerling kiezen)
-● Kan bestaande lessen verplaatsen (drag & drop)
-● Leerling ziet geplande lessen (zie hieronder)
-● Instructeur kan notities per leerling toevoegen, bijvoorbeeld per les
-● Voortgangsnotities zijn per datum zichtbaar (bijv. een lijst of tijdlijn)
-● (Optioneel voor later: automatische herinneringen)
-● Google Maps kunnen openen per les
-● Automatisch een email sturen naar leerling
-● Automatisch een melding sturen naar leerling
-● 
-● 
+● Een overzicht van wat chatgpt gaat toevoegen
+● Per les in dit overzicht kunnen selecteren of het wordt toegevoegd (Voor het bewerken van de lessen staat er een tekst: Bewerken kan na het toevoegen van lessen)
+● Alle geselecteerde lessen in dit overzicht toevoegen
 
 
-Als leerling inloggen:
-✅● Leerling kan inloggen met e-mail & wachtwoord (Supabase Auth)
-✅● Ziet alleen zijn/haar eigen profiel
 
 Voor later:
-● Ziet de chat met eigen instructeur
-● Kan zelf berichten sturen
-
-Beschikbaarheid kunnen invullen:
-● Leerling kan in een kalender aangeven op welke dagen/tijdstippen hij beschikbaar is
-● Instructeur ziet deze beschikbaarheid in zijn eigen rooster
-
-Ik ben nu hetvolgende proces aan het testen:
-1. Registreren als rij-instructeur✅
-2. Bevestigingsmail openen en account bevestigen✅
-3. Inloggen als rij-instructeur✅
-4. Een leerling aanmaken✅
-5. Een uitnodigingslink naar de leerling sturen✅
-6. De uitnodigingslink klikken, en een account aanmaken met email en wachtwoord✅
-7. Inloggen als leerling✅
-8. Beschikbaarheid invullen als leerling✅
-9. Deze beschikbaarheid synchroniseren voor zowel instructeur als leerling✅
+● Voor later: Een 2e overzicht, waarbij de instructeur kan kiezen welke weekplanning het beste lijkt
+● Voor later: Rekening houden met afstand tussen plaatsen en extra notities voor praktische zaken (Spits enzo)
+- (Voor later) Weekplanning kopiëren 
+- Automatisch een email / sms sturen naar leerlingen met hun ingeplande lessen zodra weekplanning gemaakt is
 
 Glitches:
 Op Macbook: bij inloggen is de tekst soms wit
 Op Macbook: beschikbaarheid invullen in student dashboard tekst is wit
 Als leerling uitnodigingslink klikt en email en wachtwoord aanmaakt, moet hij een scherm te zien krijgen met "Bevestig je account in email"
+Lestijden gebruiken 1 pm ipv 13:00
 
 App mooi maken en elke pagina checken
 App goed laten lijken op telefoon
+
+Wat NIET in de app moet zitten:
+- Facturatie
+- Betaalsystemen
+- Leerlingen verwerven
+- Aanmeldingssystemen bij rijscholen
+- Een chatfunctie tussen instructeur en leerling
+- Administratie
+
+
+
+
+
+
+
 
 
 
