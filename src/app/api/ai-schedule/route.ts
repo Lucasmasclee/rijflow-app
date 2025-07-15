@@ -31,6 +31,19 @@ export async function POST(request: NextRequest) {
       )
     }
 
+    // Valideer leerling data
+    const invalidStudents = body.students.filter(student => 
+      !student.id || !student.firstName || !student.lastName || 
+      student.lessons < 1 || student.minutes < 30
+    )
+    
+    if (invalidStudents.length > 0) {
+      return NextResponse.json(
+        { error: `${invalidStudents.length} leerlingen hebben ongeldige data` },
+        { status: 400 }
+      )
+    }
+
     // Genereer het rooster met AI
     const aiResponse = await generateAISchedule(body)
 

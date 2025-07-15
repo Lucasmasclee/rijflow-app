@@ -107,16 +107,58 @@ export default function AISchedulePage() {
         .eq('instructor_id', user.id)
 
       if (error) {
-        // If table doesn't exist, use default availability
+        // If table doesn't exist, use default availability and try to create it
         if (error.code === '42P01') {
-          console.log('Instructor availability table not found, using default availability')
-          setAvailability(DAY_ORDER.map(({ day }) => ({
-            day,
-            available: day !== 'saturday' && day !== 'sunday',
-            startTime: '09:00',
-            endTime: '17:00'
-          })))
-          return
+          console.log('Instructor availability table not found, initializing default availability')
+          await initializeDefaultAvailability()
+          // Try to fetch again after initialization
+          const { data: newData, error: newError } = await supabase
+            .from('instructor_availability')
+            .select('*')
+            .eq('instructor_id', user.id)
+            
+          if (newError) {
+            console.error('Error fetching instructor availability after initialization:', newError)
+            // Fallback to default availability
+            setAvailability(DAY_ORDER.map(({ day }) => ({
+              day,
+              available: day !== 'saturday' && day !== 'sunday',
+              startTime: '09:00',
+              endTime: '17:00'
+            })))
+            return
+          }
+          
+          if (newData && newData.length > 0) {
+            // Process the newly created data
+            const dbAvailability = newData.reduce((acc, item) => {
+              const dayName = DAY_ORDER.find(day => {
+                const dayNumber = day.day === 'sunday' ? 0 : 
+                                 day.day === 'monday' ? 1 :
+                                 day.day === 'tuesday' ? 2 :
+                                 day.day === 'wednesday' ? 3 :
+                                 day.day === 'thursday' ? 4 :
+                                 day.day === 'friday' ? 5 : 6
+                return dayNumber === item.day_of_week
+              })
+              if (dayName) {
+                acc[dayName.day] = {
+                  available: item.available,
+                  startTime: item.start_time || '09:00',
+                  endTime: item.end_time || '17:00'
+                }
+              }
+              return acc
+            }, {} as Record<string, { available: boolean; startTime: string; endTime: string }>)
+
+            setAvailability(DAY_ORDER.map(({ day }) => ({
+              day,
+              available: dbAvailability[day]?.available ?? (day !== 'saturday' && day !== 'sunday'),
+              startTime: dbAvailability[day]?.startTime ?? '09:00',
+              endTime: dbAvailability[day]?.endTime ?? '17:00'
+            })))
+            return
+          }
         }
         console.error('Error fetching instructor availability:', error)
         return
@@ -286,7 +328,7 @@ export default function AISchedulePage() {
 
   // Navigation functions
   const handleNext = () => {
-    const steps: Step[] = ['instructor', 'student-details', 'settings', 'prompt', 'result']
+    const steps: Step[] = ['instructor', 'student-details', 'settings', 'prompt', 'selection', 'result']
     const currentIndex = steps.indexOf(currentStep)
     
     if (currentIndex < steps.length - 1) {
@@ -295,7 +337,7 @@ export default function AISchedulePage() {
   }
 
   const handlePrevious = () => {
-    const steps: Step[] = ['instructor', 'student-details', 'settings', 'prompt', 'result']
+    const steps: Step[] = ['instructor', 'student-details', 'settings', 'prompt', 'selection', 'result']
     const currentIndex = steps.indexOf(currentStep)
     
     if (currentIndex > 0) {
@@ -1046,7 +1088,7 @@ export default function AISchedulePage() {
 
         {/* Navigation */}
         <div className="flex gap-3">
-          {currentStep !== 'instructor' && currentStep !== 'selection' && (
+          {currentStep !== 'instructor' && currentStep !== 'selection' && currentStep !== 'result' && (
             <button
               onClick={handlePrevious}
               className="btn btn-secondary flex items-center gap-2"

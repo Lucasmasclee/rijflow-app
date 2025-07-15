@@ -31,6 +31,18 @@ export async function POST(request: NextRequest) {
       notes: lesson.notes || null
     }))
 
+    // Valideer dat alle lessen geldige data hebben
+    const invalidLessons = lessonsToInsert.filter(lesson => 
+      !lesson.date || !lesson.start_time || !lesson.end_time || !lesson.student_id
+    )
+    
+    if (invalidLessons.length > 0) {
+      return NextResponse.json(
+        { error: `${invalidLessons.length} lessen hebben ongeldige data` },
+        { status: 400 }
+      )
+    }
+
     // Voeg lessen toe aan database
     const { data, error } = await supabase
       .from('lessons')

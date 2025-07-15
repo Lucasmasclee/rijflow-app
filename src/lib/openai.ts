@@ -78,13 +78,17 @@ export async function generateAISchedule(request: AIScheduleRequest): Promise<AI
           content: `Je bent een expert rijschool planner. Je krijgt informatie over een instructeur, leerlingen en instellingen. 
           Maak een optimaal lesrooster voor de komende week (maandag t/m vrijdag) en geef het terug als JSON.
           
+          BELANGRIJK: Je moet ALTIJD een geldig JSON object teruggeven in het exacte formaat dat wordt gevraagd.
+          Geef geen extra tekst, uitleg of markdown formatting - alleen pure JSON.
+          
           Regels:
           - Plan alleen op dagen dat de instructeur beschikbaar is
           - Houd rekening met de beschikbaarheid van leerlingen (uit hun notities)
           - Respecteer het aantal lessen en minuten per leerling
           - Plan pauzes volgens de instellingen
           - Geef een duidelijke samenvatting van wat er gepland is
-          - Als er problemen zijn, geef waarschuwingen`
+          - Als er problemen zijn, geef waarschuwingen
+          - Gebruik alleen de studentId die wordt meegegeven, niet de naam als ID`
         },
         {
           role: "user",
@@ -147,7 +151,8 @@ Instellingen:
 - Pauze na elke leerling: ${settings.breakAfterEachStudent ? 'Ja' : 'Nee'}
 ${settings.additionalSpecifications ? `- Extra specificaties: ${settings.additionalSpecifications}` : ''}
 
-Geef het rooster terug als JSON in dit formaat:
+BELANGRIJK: Geef ALTIJD een geldig JSON object terug in exact dit formaat, zonder extra tekst ervoor of erna:
+
 {
   "lessons": [
     {
@@ -173,11 +178,14 @@ ${studentsText}
 }
 
 function parseAIResponse(response: string): AIScheduleResponse {
+  console.log('Attempting to parse AI response:', response)
+  
   // Probeer JSON te extraheren uit de response
   const jsonMatch = response.match(/\{[\s\S]*\}/)
   if (jsonMatch) {
     try {
       const parsed = JSON.parse(jsonMatch[0])
+      console.log('Successfully parsed JSON:', parsed)
       return {
         lessons: parsed.lessons || [],
         summary: parsed.summary || 'Rooster gegenereerd',
@@ -188,11 +196,29 @@ function parseAIResponse(response: string): AIScheduleResponse {
     }
   }
 
+  // Probeer alternatieve JSON formaten
+  try {
+    // Zoek naar JSON arrays
+    const arrayMatch = response.match(/\[[\s\S]*\]/)
+    if (arrayMatch) {
+      const parsed = JSON.parse(arrayMatch[0])
+      console.log('Found JSON array:', parsed)
+      return {
+        lessons: Array.isArray(parsed) ? parsed : [],
+        summary: 'Rooster gegenereerd uit array formaat',
+        warnings: ['AI response was in array formaat']
+      }
+    }
+  } catch (error) {
+    console.error('Error parsing array from AI response:', error)
+  }
+
   // Fallback: maak een basis response
+  console.log('Could not parse AI response, using fallback')
   return {
     lessons: [],
     summary: 'Kon het AI response niet verwerken. Probeer het opnieuw.',
-    warnings: ['AI response kon niet worden geparsed']
+    warnings: ['AI response kon niet worden geparsed', 'Response: ' + response.substring(0, 200) + '...']
   }
 }
 
