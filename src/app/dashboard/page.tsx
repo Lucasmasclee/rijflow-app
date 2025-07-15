@@ -102,7 +102,7 @@ export default function DashboardPage() {
             </div>
             
             {/* Desktop Navigation */}
-            <div className="hidden md:flex items-center space-x-4">
+            {/* <div className="hidden md:flex items-center space-x-4">
               <button
                 onClick={handleSignOut}
                 className="flex items-center gap-2 text-gray-600 hover:text-gray-900 px-3 py-2 rounded-md text-sm font-medium"
@@ -110,7 +110,7 @@ export default function DashboardPage() {
                 <LogOut className="h-4 w-4" />
                 Uitloggen
               </button>
-            </div>
+            </div> */}
 
             {/* Mobile Menu Button */}
             <button
@@ -190,12 +190,12 @@ export default function DashboardPage() {
               </div>
             )}
           </div>
-          <p className="text-gray-600 mt-2">
+          {/* <p className="text-gray-600 mt-2">
             {userRole === 'instructor' 
               ? 'Beheer je rijschool en leerlingen op één plek'
               : 'Volg je voortgang en communiceer met je instructeur'
             }
-          </p>
+          </p> */}
         </div>
 
         {userRole === 'instructor' ? (

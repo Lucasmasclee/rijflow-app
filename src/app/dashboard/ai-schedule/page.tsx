@@ -1,11 +1,13 @@
 'use client'
 
 import Link from 'next/link'
-import { ArrowLeft, ArrowRight, Users, Calendar, Settings, Brain, Check, X } from 'lucide-react'
+import { ArrowLeft, ArrowRight, Users, Calendar, Settings, Brain, Check, X, Clock, MapPin } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { useAuth } from '@/contexts/AuthContext'
 import { supabase } from '@/lib/supabase'
 import { Student } from '@/types/database'
+import { AIScheduleLesson, AIScheduleResponse } from '@/lib/openai'
+import toast from 'react-hot-toast'
 
 const DAY_ORDER = [
   { day: 'monday', name: 'Maandag' },
@@ -17,7 +19,7 @@ const DAY_ORDER = [
   { day: 'sunday', name: 'Zondag' },
 ]
 
-type Step = 'instructor' | 'student-details' | 'settings' | 'prompt' | 'result'
+type Step = 'instructor' | 'student-details' | 'settings' | 'prompt' | 'result' | 'selection'
 
 interface StudentWithScheduleData extends Student {
   lessons: number
@@ -47,8 +49,11 @@ export default function AISchedulePage() {
   // Leerlingen data
   const [students, setStudents] = useState<StudentWithScheduleData[]>([])
 
-  // Resultaat van ChatGPT (dummy)
-  const [aiResult, setAiResult] = useState('')
+  // AI Resultaat
+  const [aiResponse, setAiResponse] = useState<AIScheduleResponse | null>(null)
+  const [selectedLessons, setSelectedLessons] = useState<Set<string>>(new Set())
+  const [isGenerating, setIsGenerating] = useState(false)
+  const [isAddingLessons, setIsAddingLessons] = useState(false)
 
   // Settings state
   const [settings, setSettings] = useState({
@@ -317,11 +322,127 @@ export default function AISchedulePage() {
     setSettings(prev => ({ ...prev, [field]: value }))
   }
 
-  // Send to AI (dummy function)
-  const handleSendToAI = () => {
-    // Simulate AI processing
-    setAiResult('AI-generated schedule will appear here...')
-    setCurrentStep('result')
+  // Send to AI
+  const handleSendToAI = async () => {
+    if (!user) return
+    
+    setIsGenerating(true)
+    
+    try {
+      // Bereid de data voor voor de AI
+      const requestData = {
+        instructorAvailability: availability,
+        students: students.map(student => ({
+          id: student.id,
+          firstName: student.first_name,
+          lastName: student.last_name,
+          lessons: student.lessons,
+          minutes: student.minutes,
+          aiNotes: student.aiNotes,
+          notes: student.notes || ''
+        })),
+        settings
+      }
+
+      // Roep de AI API aan
+      const response = await fetch('/api/ai-schedule', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(requestData)
+      })
+
+      if (!response.ok) {
+        const errorData = await response.json()
+        throw new Error(errorData.error || 'Fout bij het genereren van het rooster')
+      }
+
+      const aiResult = await response.json()
+      setAiResponse(aiResult)
+      
+      // Selecteer alle lessen standaard
+      const lessonIds = aiResult.lessons.map((lesson: AIScheduleLesson, index: number) => index.toString())
+      setSelectedLessons(new Set(lessonIds))
+      
+      setCurrentStep('selection')
+      toast.success('Rooster succesvol gegenereerd!')
+      
+    } catch (error) {
+      console.error('Error generating AI schedule:', error)
+      toast.error(error instanceof Error ? error.message : 'Fout bij het genereren van het rooster')
+    } finally {
+      setIsGenerating(false)
+    }
+  }
+
+  // Handle lesson selection
+  const handleLessonSelection = (lessonIndex: string) => {
+    setSelectedLessons(prev => {
+      const newSet = new Set(prev)
+      if (newSet.has(lessonIndex)) {
+        newSet.delete(lessonIndex)
+      } else {
+        newSet.add(lessonIndex)
+      }
+      return newSet
+    })
+  }
+
+  // Handle bulk lesson selection
+  const handleSelectAll = () => {
+    if (aiResponse) {
+      const allLessonIds = aiResponse.lessons.map((_, index) => index.toString())
+      setSelectedLessons(new Set(allLessonIds))
+    }
+  }
+
+  const handleDeselectAll = () => {
+    setSelectedLessons(new Set())
+  }
+
+  // Add selected lessons to database
+  const handleAddSelectedLessons = async () => {
+    if (!user || !aiResponse) return
+    
+    const selectedLessonData = aiResponse.lessons.filter((_, index) => 
+      selectedLessons.has(index.toString())
+    )
+    
+    if (selectedLessonData.length === 0) {
+      toast.error('Geen lessen geselecteerd')
+      return
+    }
+    
+    setIsAddingLessons(true)
+    
+    try {
+      const response = await fetch('/api/lessons/bulk', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          lessons: selectedLessonData,
+          instructorId: user.id
+        })
+      })
+
+      if (!response.ok) {
+        const errorData = await response.json()
+        throw new Error(errorData.error || 'Fout bij het toevoegen van lessen')
+      }
+
+      const result = await response.json()
+      toast.success(result.message)
+      setCurrentStep('result')
+      
+    } catch (error) {
+      console.error('Error adding lessons:', error)
+      toast.error(error instanceof Error ? error.message : 'Fout bij het toevoegen van lessen')
+    } finally {
+      setIsAddingLessons(false)
+    }
   }
 
   // Render current step
@@ -626,13 +747,151 @@ export default function AISchedulePage() {
                 </p>
                 <button
                   onClick={handleSendToAI}
-                  className="btn btn-primary flex items-center gap-2 mx-auto"
+                  disabled={isGenerating}
+                  className="btn btn-primary flex items-center gap-2 mx-auto disabled:opacity-50"
                 >
-                  <Brain className="h-4 w-4" />
-                  Start AI Planning
+                  {isGenerating ? (
+                    <>
+                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                      AI Planning...
+                    </>
+                  ) : (
+                    <>
+                      <Brain className="h-4 w-4" />
+                      Start AI Planning
+                    </>
+                  )}
                 </button>
               </div>
             </div>
+          </div>
+        )
+
+      case 'selection':
+        return (
+          <div className="space-y-6">
+            <div>
+              <h3 className="text-lg font-semibold mb-4">Selecteer Lessen</h3>
+              <p className="text-gray-600 mb-6">
+                Selecteer welke lessen je wilt toevoegen aan je rooster
+              </p>
+            </div>
+            
+            {aiResponse && (
+              <>
+                {/* Samenvatting */}
+                <div className="card">
+                  <h4 className="font-medium text-gray-900 mb-2">Samenvatting</h4>
+                  <p className="text-gray-600">{aiResponse.summary}</p>
+                  
+                  {aiResponse.warnings && aiResponse.warnings.length > 0 && (
+                    <div className="mt-4 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
+                      <h5 className="font-medium text-yellow-800 mb-2">Waarschuwingen:</h5>
+                      <ul className="text-sm text-yellow-700 space-y-1">
+                        {aiResponse.warnings.map((warning, index) => (
+                          <li key={index}>• {warning}</li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+                </div>
+
+                {/* Bulk selectie */}
+                <div className="card">
+                  <div className="flex items-center justify-between mb-4">
+                    <h4 className="font-medium text-gray-900">
+                      Geselecteerd: {selectedLessons.size} van {aiResponse.lessons.length} lessen
+                    </h4>
+                    <div className="flex gap-2">
+                      <button
+                        onClick={handleSelectAll}
+                        className="text-sm text-blue-600 hover:text-blue-700"
+                      >
+                        Alles selecteren
+                      </button>
+                      <button
+                        onClick={handleDeselectAll}
+                        className="text-sm text-gray-600 hover:text-gray-700"
+                      >
+                        Alles deselecteren
+                      </button>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Lessen lijst */}
+                <div className="space-y-3">
+                  {aiResponse.lessons.map((lesson, index) => (
+                    <div key={index} className="card">
+                      <div className="flex items-center gap-3">
+                        <input
+                          type="checkbox"
+                          checked={selectedLessons.has(index.toString())}
+                          onChange={() => handleLessonSelection(index.toString())}
+                          className="w-4 h-4 text-blue-600 rounded focus:ring-blue-500"
+                        />
+                        
+                        <div className="flex-1">
+                          <div className="flex items-center justify-between mb-2">
+                            <h5 className="font-medium text-gray-900">
+                              {lesson.studentName}
+                            </h5>
+                            <div className="flex items-center gap-2 text-sm text-gray-600">
+                              <Clock className="h-4 w-4" />
+                              {lesson.startTime} - {lesson.endTime}
+                            </div>
+                          </div>
+                          
+                          <div className="flex items-center gap-4 text-sm text-gray-600">
+                            <div className="flex items-center gap-1">
+                              <Calendar className="h-4 w-4" />
+                              {new Date(lesson.date).toLocaleDateString('nl-NL', {
+                                weekday: 'long',
+                                year: 'numeric',
+                                month: 'long',
+                                day: 'numeric'
+                              })}
+                            </div>
+                            {lesson.notes && (
+                              <div className="flex items-center gap-1">
+                                <MapPin className="h-4 w-4" />
+                                {lesson.notes}
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+
+                {/* Toevoegen knop */}
+                <div className="card">
+                  <div className="text-center">
+                    <p className="text-sm text-gray-600 mb-4">
+                      <strong>Tip:</strong> Bewerken kan na het toevoegen van lessen
+                    </p>
+                    <button
+                      onClick={handleAddSelectedLessons}
+                      disabled={selectedLessons.size === 0 || isAddingLessons}
+                      className="btn btn-primary flex items-center gap-2 mx-auto disabled:opacity-50"
+                    >
+                      {isAddingLessons ? (
+                        <>
+                          <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                          Lessen toevoegen...
+                        </>
+                      ) : (
+                        <>
+                          <Check className="h-4 w-4" />
+                          {selectedLessons.size} lessen toevoegen
+                        </>
+                      )}
+                    </button>
+                  </div>
+                </div>
+              </>
+            )}
           </div>
         )
 
@@ -647,10 +906,17 @@ export default function AISchedulePage() {
             </div>
             
             <div className="card">
-              <div className="bg-gray-50 p-4 rounded-lg">
-                <pre className="text-sm text-gray-700 whitespace-pre-wrap">
-                  {aiResult || 'AI resultaat wordt geladen...'}
-                </pre>
+              <div className="text-center py-8">
+                <Check className="h-12 w-12 text-green-600 mx-auto mb-4" />
+                <h4 className="text-lg font-medium text-gray-900 mb-2">
+                  Lessen succesvol toegevoegd!
+                </h4>
+                <p className="text-gray-600 mb-6">
+                  De geselecteerde lessen zijn toegevoegd aan je rooster. Je kunt ze nu bekijken in het weekoverzicht.
+                </p>
+                <Link href="/dashboard/lessons" className="btn btn-primary">
+                  Bekijk weekoverzicht
+                </Link>
               </div>
             </div>
           </div>
@@ -672,6 +938,8 @@ export default function AISchedulePage() {
         return true
       case 'prompt':
         return true
+      case 'selection':
+        return selectedLessons.size > 0
       case 'result':
         return false
       default:
@@ -699,6 +967,7 @@ export default function AISchedulePage() {
     { key: 'student-details', name: 'Leerlingen', icon: Users },
     { key: 'settings', name: 'Instellingen', icon: Settings },
     { key: 'prompt', name: 'AI Planning', icon: Brain },
+    { key: 'selection', name: 'Selectie', icon: Check },
     { key: 'result', name: 'Resultaat', icon: Check }
   ]
 
@@ -777,7 +1046,7 @@ export default function AISchedulePage() {
 
         {/* Navigation */}
         <div className="flex gap-3">
-          {currentStep !== 'instructor' && (
+          {currentStep !== 'instructor' && currentStep !== 'selection' && (
             <button
               onClick={handlePrevious}
               className="btn btn-secondary flex items-center gap-2"
@@ -787,7 +1056,7 @@ export default function AISchedulePage() {
             </button>
           )}
           
-          {currentStep !== 'result' && canGoNext() && (
+          {currentStep !== 'result' && currentStep !== 'selection' && canGoNext() && (
             <button
               onClick={handleNext}
               className="btn btn-primary flex items-center gap-2 ml-auto"

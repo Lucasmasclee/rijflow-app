@@ -545,14 +545,14 @@ export default function StudentDetailPage({ params }: { params: Promise<{ id: st
           </div>
           <div className="card text-center">
             <Calendar className="h-8 w-8 text-green-600 mx-auto mb-2" />
-            <div className="text-2xl font-bold text-gray-900">{lessonStats.lessonsScheduled}</div>
+            <div className="text-2xl font-bold text-gray-900">{lessonStats.lessonsScheduled - lessonStats.lessonsCompleted}</div>
             <div className="text-sm text-gray-600">Geplande lessen</div>
           </div>
-          <div className="card text-center">
+          {/* <div className="card text-center">
             <FileText className="h-8 w-8 text-purple-600 mx-auto mb-2" />
             <div className="text-2xl font-bold text-gray-900">{progressNotes.length}</div>
             <div className="text-sm text-gray-600">Voortgangsnotities</div>
-          </div>
+          </div> */}
         </div>
 
         {/* Contact Information */}
