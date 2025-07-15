@@ -12,13 +12,16 @@ import {
   CheckCircle,
   ArrowRight,
   Star,
-  Car
+  Car,
+  Menu,
+  X
 } from 'lucide-react'
 
 export default function HomePage() {
   const { user } = useAuth() || { user: null }
   const router = useRouter()
   const [email, setEmail] = useState('')
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
 
   const handleGetStarted = () => {
     if (email) {
@@ -36,15 +39,17 @@ export default function HomePage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
-      {/* Navigation */}
-      <nav className="bg-white shadow-sm">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      {/* Mobile Navigation */}
+      <nav className="bg-white shadow-sm safe-area-top">
+        <div className="container-mobile">
           <div className="flex justify-between items-center h-16">
             <div className="flex items-center">
               <Car className="h-8 w-8 text-blue-600" />
               <span className="ml-2 text-xl font-bold text-gray-900">RijFlow</span>
             </div>
-            <div className="flex items-center space-x-4">
+            
+            {/* Desktop Navigation */}
+            <div className="hidden md:flex items-center space-x-4">
               <button
                 onClick={() => router.push('/auth/signin')}
                 className="text-gray-600 hover:text-gray-900 px-3 py-2 rounded-md text-sm font-medium"
@@ -53,28 +58,62 @@ export default function HomePage() {
               </button>
               <button
                 onClick={() => router.push('/auth/signup')}
-                className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md text-sm font-medium"
+                className="btn btn-primary"
+              >
+                Registreren
+              </button>
+            </div>
+
+            {/* Mobile Menu Button */}
+            <button
+              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+              className="md:hidden p-2 rounded-md text-gray-600 hover:text-gray-900"
+            >
+              {mobileMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
+            </button>
+          </div>
+        </div>
+
+        {/* Mobile Menu */}
+        {mobileMenuOpen && (
+          <div className="md:hidden bg-white border-t border-gray-200">
+            <div className="container-mobile py-4 space-y-4">
+              <button
+                onClick={() => {
+                  router.push('/auth/signin')
+                  setMobileMenuOpen(false)
+                }}
+                className="block w-full text-left text-gray-600 hover:text-gray-900 py-2 px-3 rounded-md text-base font-medium"
+              >
+                Inloggen
+              </button>
+              <button
+                onClick={() => {
+                  router.push('/auth/signup')
+                  setMobileMenuOpen(false)
+                }}
+                className="btn btn-primary w-full"
               >
                 Registreren
               </button>
             </div>
           </div>
-        </div>
+        )}
       </nav>
 
       {/* Hero Section */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
+      <div className="container-mobile py-12 md:py-20">
         <div className="text-center">
-          <h1 className="text-4xl md:text-6xl font-bold text-gray-900 mb-6">
+          <h1 className="text-mobile-2xl md:text-4xl lg:text-6xl font-bold text-gray-900 mb-6">
             Rijflow{' '}
             <span className="text-blue-600">Rijles Planner</span>
           </h1>
-          <p className="text-xl text-gray-600 mb-8 max-w-3xl mx-auto">
+          <p className="text-mobile-lg md:text-xl text-gray-600 mb-8 max-w-3xl mx-auto">
             Beheer je planning, leerlingen en administratie op één plek. 
             Werk 30% minder aan administratie en focus op wat echt belangrijk is: je leerlingen.
           </p>
           
-          <div className="flex flex-col sm:flex-row gap-4 justify-center items-center mb-12">
+          <div className="mobile-stack md:flex-row gap-4 justify-center items-center mb-12">
             <input
               type="email"
               placeholder="Je e-mailadres"
@@ -84,14 +123,14 @@ export default function HomePage() {
             />
             <button
               onClick={handleGetStarted}
-              className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-3 rounded-lg font-medium flex items-center gap-2"
+              className="btn btn-primary flex items-center justify-center gap-2 btn-mobile-full md:w-auto"
             >
               Registreren
               <ArrowRight className="h-4 w-4" />
             </button>
           </div>
 
-          <div className="flex items-center justify-center gap-8 text-sm text-gray-500">
+          <div className="mobile-stack md:flex-row items-center justify-center gap-4 md:gap-8 text-sm text-gray-500">
             <div className="flex items-center gap-2">
               <CheckCircle className="h-4 w-4 text-green-500" />
               <span>60 dagen proefperiode</span>
@@ -109,51 +148,51 @@ export default function HomePage() {
       </div>
 
       {/* Problem & Solution Section */}
-      <div className="bg-white py-20">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid md:grid-cols-2 gap-12 items-center">
+      <div className="bg-white py-12 md:py-20">
+        <div className="container-mobile">
+          <div className="mobile-grid md:grid-cols-2 gap-8 md:gap-12 items-start">
             <div>
-              <h2 className="text-3xl font-bold text-gray-900 mb-6">
+              <h2 className="text-mobile-xl md:text-3xl font-bold text-gray-900 mb-6">
                 Het probleem: administratie kost te veel tijd
               </h2>
               <div className="space-y-4">
                 <div className="flex items-start gap-3">
-                  <div className="w-2 h-2 bg-red-500 rounded-full mt-2"></div>
+                  <div className="w-2 h-2 bg-red-500 rounded-full mt-2 flex-shrink-0"></div>
                   <p className="text-gray-600">Leskaartjes, rittenplanning en facturatie handmatig bijhouden</p>
                 </div>
                 <div className="flex items-start gap-3">
-                  <div className="w-2 h-2 bg-red-500 rounded-full mt-2"></div>
+                  <div className="w-2 h-2 bg-red-500 rounded-full mt-2 flex-shrink-0"></div>
                   <p className="text-gray-600">Leerlingen bijhouden met Excel en WhatsApp</p>
                 </div>
                 <div className="flex items-start gap-3">
-                  <div className="w-2 h-2 bg-red-500 rounded-full mt-2"></div>
+                  <div className="w-2 h-2 bg-red-500 rounded-full mt-2 flex-shrink-0"></div>
                   <p className="text-gray-600">Geen centrale plek voor alles</p>
                 </div>
                 <div className="flex items-start gap-3">
-                  <div className="w-2 h-2 bg-red-500 rounded-full mt-2"></div>
+                  <div className="w-2 h-2 bg-red-500 rounded-full mt-2 flex-shrink-0"></div>
                   <p className="text-gray-600">Onhandige tools die niet samenwerken</p>
                 </div>
               </div>
             </div>
             <div>
-              <h2 className="text-3xl font-bold text-gray-900 mb-6">
+              <h2 className="text-mobile-xl md:text-3xl font-bold text-gray-900 mb-6">
                 De oplossing: alles-in-één webapp
               </h2>
               <div className="space-y-4">
                 <div className="flex items-start gap-3">
-                  <div className="w-2 h-2 bg-green-500 rounded-full mt-2"></div>
+                  <div className="w-2 h-2 bg-green-500 rounded-full mt-2 flex-shrink-0"></div>
                   <p className="text-gray-600">Lesplanning met kalender en drag & drop</p>
                 </div>
                 <div className="flex items-start gap-3">
-                  <div className="w-2 h-2 bg-green-500 rounded-full mt-2"></div>
+                  <div className="w-2 h-2 bg-green-500 rounded-full mt-2 flex-shrink-0"></div>
                   <p className="text-gray-600">Leerlingbeheer en voortgang bijhouden</p>
                 </div>
                 <div className="flex items-start gap-3">
-                  <div className="w-2 h-2 bg-green-500 rounded-full mt-2"></div>
+                  <div className="w-2 h-2 bg-green-500 rounded-full mt-2 flex-shrink-0"></div>
                   <p className="text-gray-600">Automatische facturatie en rapportage</p>
                 </div>
                 <div className="flex items-start gap-3">
-                  <div className="w-2 h-2 bg-green-500 rounded-full mt-2"></div>
+                  <div className="w-2 h-2 bg-green-500 rounded-full mt-2 flex-shrink-0"></div>
                   <p className="text-gray-600">Digitale leskaart en communicatie</p>
                 </div>
               </div>
@@ -163,61 +202,61 @@ export default function HomePage() {
       </div>
 
       {/* Features Section */}
-      <div className="bg-gray-50 py-20">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-16">
-            <h2 className="text-3xl font-bold text-gray-900 mb-4">
+      <div className="bg-gray-50 py-12 md:py-20">
+        <div className="container-mobile">
+          <div className="text-center mb-12 md:mb-16">
+            <h2 className="text-mobile-xl md:text-3xl font-bold text-gray-900 mb-4">
               Alles wat je nodig hebt in één app
             </h2>
-            <p className="text-xl text-gray-600">
+            <p className="text-mobile-lg md:text-xl text-gray-600">
               Van lesplanning tot facturatie, alles op één plek
             </p>
           </div>
 
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-            <div className="bg-white p-6 rounded-lg shadow-sm">
+          <div className="mobile-grid md:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
+            <div className="card">
               <Calendar className="h-12 w-12 text-blue-600 mb-4" />
-              <h3 className="text-xl font-semibold text-gray-900 mb-2">Lesplanning</h3>
+              <h3 className="text-lg md:text-xl font-semibold text-gray-900 mb-2">Lesplanning</h3>
               <p className="text-gray-600">
                 Drag & drop planner met dag- en weekoverzicht. Plan lessen eenvoudig en overzichtelijk.
               </p>
             </div>
 
-            <div className="bg-white p-6 rounded-lg shadow-sm">
+            <div className="card">
               <Users className="h-12 w-12 text-blue-600 mb-4" />
-              <h3 className="text-xl font-semibold text-gray-900 mb-2">Leerlingbeheer</h3>
+              <h3 className="text-lg md:text-xl font-semibold text-gray-900 mb-2">Leerlingbeheer</h3>
               <p className="text-gray-600">
                 Profielen, lespakket, voortgang en historie van al je leerlingen op één plek.
               </p>
             </div>
 
-            <div className="bg-white p-6 rounded-lg shadow-sm">
+            <div className="card">
               <FileText className="h-12 w-12 text-blue-600 mb-4" />
-              <h3 className="text-xl font-semibold text-gray-900 mb-2">Facturatie</h3>
+              <h3 className="text-lg md:text-xl font-semibold text-gray-900 mb-2">Facturatie</h3>
               <p className="text-gray-600">
                 Automatische facturen per les of pakket, PDF-export en betalingsstatus.
               </p>
             </div>
 
-            <div className="bg-white p-6 rounded-lg shadow-sm">
+            <div className="card">
               <MessageSquare className="h-12 w-12 text-blue-600 mb-4" />
-              <h3 className="text-xl font-semibold text-gray-900 mb-2">Digitale leskaart</h3>
+              <h3 className="text-lg md:text-xl font-semibold text-gray-900 mb-2">Digitale leskaart</h3>
               <p className="text-gray-600">
                 Wat is behandeld, wie reed, opmerkingen en voortgang per les.
               </p>
             </div>
 
-            <div className="bg-white p-6 rounded-lg shadow-sm">
+            <div className="card">
               <Clock className="h-12 w-12 text-blue-600 mb-4" />
-              <h3 className="text-xl font-semibold text-gray-900 mb-2">Urenregistratie</h3>
+              <h3 className="text-lg md:text-xl font-semibold text-gray-900 mb-2">Urenregistratie</h3>
               <p className="text-gray-600">
                 Automatisch lesuren per maand/week bijhouden voor je administratie.
               </p>
             </div>
 
-            <div className="bg-white p-6 rounded-lg shadow-sm">
+            <div className="card">
               <CheckCircle className="h-12 w-12 text-blue-600 mb-4" />
-              <h3 className="text-xl font-semibold text-gray-900 mb-2">Rapportage</h3>
+              <h3 className="text-lg md:text-xl font-semibold text-gray-900 mb-2">Rapportage</h3>
               <p className="text-gray-600">
                 Overzicht van geplande lessen, open taken en weekplanning.
               </p>
@@ -227,110 +266,110 @@ export default function HomePage() {
       </div>
 
       {/* Pricing Section */}
-      <div className="bg-white py-20">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-16">
-            <h2 className="text-3xl font-bold text-gray-900 mb-4">
+      <div className="bg-white py-12 md:py-20">
+        <div className="container-mobile">
+          <div className="text-center mb-12 md:mb-16">
+            <h2 className="text-mobile-xl md:text-3xl font-bold text-gray-900 mb-4">
               Eenvoudige prijzen
             </h2>
-            <p className="text-xl text-gray-600">
+            <p className="text-mobile-lg md:text-xl text-gray-600">
               Start gratis en upgrade wanneer je groeit
             </p>
           </div>
 
-          <div className="grid md:grid-cols-3 gap-8">
-            <div className="bg-gray-50 p-8 rounded-lg">
-              <h3 className="text-2xl font-bold text-gray-900 mb-2">Freemium</h3>
+          <div className="mobile-grid md:grid-cols-3 gap-6 md:gap-8">
+            <div className="card">
+              <h3 className="text-xl md:text-2xl font-bold text-gray-900 mb-2">Freemium</h3>
               <p className="text-gray-600 mb-6">Perfect om te starten</p>
-              <div className="text-4xl font-bold text-gray-900 mb-6">
-                €0<span className="text-lg font-normal text-gray-600">/maand</span>
+              <div className="text-3xl md:text-4xl font-bold text-gray-900 mb-6">
+                €0<span className="text-base md:text-lg font-normal text-gray-600">/maand</span>
               </div>
               <ul className="space-y-3 mb-8">
                 <li className="flex items-center gap-2">
-                  <CheckCircle className="h-4 w-4 text-green-500" />
+                  <CheckCircle className="h-4 w-4 text-green-500 flex-shrink-0" />
                   <span>1 instructeur</span>
                 </li>
                 <li className="flex items-center gap-2">
-                  <CheckCircle className="h-4 w-4 text-green-500" />
+                  <CheckCircle className="h-4 w-4 text-green-500 flex-shrink-0" />
                   <span>Beperkt aantal leerlingen</span>
                 </li>
                 <li className="flex items-center gap-2">
-                  <CheckCircle className="h-4 w-4 text-green-500" />
+                  <CheckCircle className="h-4 w-4 text-green-500 flex-shrink-0" />
                   <span>Basis planning</span>
                 </li>
               </ul>
               <button
                 onClick={() => router.push('/auth/signup')}
-                className="w-full bg-gray-600 hover:bg-gray-700 text-white py-2 px-4 rounded-lg"
+                className="btn btn-secondary w-full"
               >
                 Gratis starten
               </button>
             </div>
 
-            <div className="bg-blue-600 p-8 rounded-lg text-white relative">
+            <div className="card bg-blue-600 text-white relative">
               <div className="absolute -top-4 left-1/2 transform -translate-x-1/2">
                 <span className="bg-yellow-400 text-gray-900 px-3 py-1 rounded-full text-sm font-medium">
                   Meest populair
                 </span>
               </div>
-              <h3 className="text-2xl font-bold mb-2">Basic</h3>
+              <h3 className="text-xl md:text-2xl font-bold mb-2">Basic</h3>
               <p className="text-blue-100 mb-6">Voor groeiende instructeurs</p>
-              <div className="text-4xl font-bold mb-6">
-                €19<span className="text-lg font-normal text-blue-100">/maand</span>
+              <div className="text-3xl md:text-4xl font-bold mb-6">
+                €19<span className="text-base md:text-lg font-normal text-blue-100">/maand</span>
               </div>
               <ul className="space-y-3 mb-8">
                 <li className="flex items-center gap-2">
-                  <CheckCircle className="h-4 w-4 text-green-400" />
+                  <CheckCircle className="h-4 w-4 text-green-400 flex-shrink-0" />
                   <span>Volledige planning</span>
                 </li>
                 <li className="flex items-center gap-2">
-                  <CheckCircle className="h-4 w-4 text-green-400" />
+                  <CheckCircle className="h-4 w-4 text-green-400 flex-shrink-0" />
                   <span>Leerlingbeheer</span>
                 </li>
                 <li className="flex items-center gap-2">
-                  <CheckCircle className="h-4 w-4 text-green-400" />
+                  <CheckCircle className="h-4 w-4 text-green-400 flex-shrink-0" />
                   <span>Rapportage</span>
                 </li>
                 <li className="flex items-center gap-2">
-                  <CheckCircle className="h-4 w-4 text-green-400" />
+                  <CheckCircle className="h-4 w-4 text-green-400 flex-shrink-0" />
                   <span>Digitale leskaart</span>
                 </li>
               </ul>
               <button
                 onClick={() => router.push('/auth/signup')}
-                className="w-full bg-white hover:bg-gray-100 text-blue-600 py-2 px-4 rounded-lg font-medium"
+                className="btn bg-white hover:bg-gray-100 text-blue-600 w-full font-medium"
               >
                 Start gratis proef
               </button>
             </div>
 
-            <div className="bg-gray-50 p-8 rounded-lg">
-              <h3 className="text-2xl font-bold text-gray-900 mb-2">Pro</h3>
+            <div className="card">
+              <h3 className="text-xl md:text-2xl font-bold text-gray-900 mb-2">Pro</h3>
               <p className="text-gray-600 mb-6">Voor professionals</p>
-              <div className="text-4xl font-bold text-gray-900 mb-6">
-                €39<span className="text-lg font-normal text-gray-600">/maand</span>
+              <div className="text-3xl md:text-4xl font-bold text-gray-900 mb-6">
+                €39<span className="text-base md:text-lg font-normal text-gray-600">/maand</span>
               </div>
               <ul className="space-y-3 mb-8">
                 <li className="flex items-center gap-2">
-                  <CheckCircle className="h-4 w-4 text-green-500" />
+                  <CheckCircle className="h-4 w-4 text-green-500 flex-shrink-0" />
                   <span>Alles uit Basic</span>
                 </li>
                 <li className="flex items-center gap-2">
-                  <CheckCircle className="h-4 w-4 text-green-500" />
+                  <CheckCircle className="h-4 w-4 text-green-500 flex-shrink-0" />
                   <span>Facturatie</span>
                 </li>
                 <li className="flex items-center gap-2">
-                  <CheckCircle className="h-4 w-4 text-green-500" />
+                  <CheckCircle className="h-4 w-4 text-green-500 flex-shrink-0" />
                   <span>Leerlingportal</span>
                 </li>
                 <li className="flex items-center gap-2">
-                  <CheckCircle className="h-4 w-4 text-green-500" />
+                  <CheckCircle className="h-4 w-4 text-green-500 flex-shrink-0" />
                   <span>2+ instructeurs</span>
                 </li>
               </ul>
               <button
                 onClick={() => router.push('/auth/signup')}
-                className="w-full bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded-lg"
+                className="btn btn-primary w-full"
               >
                 Start gratis proef
               </button>
@@ -340,17 +379,17 @@ export default function HomePage() {
       </div>
 
       {/* CTA Section */}
-      <div className="bg-blue-600 py-20">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <h2 className="text-3xl font-bold text-white mb-4">
+      <div className="bg-blue-600 py-12 md:py-20">
+        <div className="container-mobile text-center">
+          <h2 className="text-mobile-xl md:text-3xl font-bold text-white mb-4">
             Klaar om te beginnen?
           </h2>
-          <p className="text-xl text-blue-100 mb-8">
+          <p className="text-mobile-lg md:text-xl text-blue-100 mb-8">
             Start vandaag nog met je gratis proefperiode van 60 dagen
           </p>
           <button
             onClick={() => router.push('/auth/signup')}
-            className="bg-white hover:bg-gray-100 text-blue-600 px-8 py-3 rounded-lg font-medium text-lg"
+            className="btn bg-white hover:bg-gray-100 text-blue-600 text-lg btn-mobile-full md:w-auto"
           >
             Registreren
           </button>
@@ -358,9 +397,9 @@ export default function HomePage() {
       </div>
 
       {/* Footer */}
-      <footer className="bg-gray-900 text-white py-12">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid md:grid-cols-4 gap-8">
+      <footer className="bg-gray-900 text-white py-12 safe-area-bottom">
+        <div className="container-mobile">
+          <div className="mobile-grid md:grid-cols-4 gap-8">
             <div>
               <div className="flex items-center mb-4">
                 <Car className="h-8 w-8 text-blue-400" />

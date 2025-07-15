@@ -3,7 +3,7 @@
 import { useAuth } from '@/contexts/AuthContext'
 import { useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
-import { ArrowLeft, Save, User, Mail, Phone, MapPin, Edit2, X, Check, Copy, Link as LinkIcon, FileText, Calendar } from 'lucide-react'
+import { ArrowLeft, Save, User, Mail, Phone, MapPin, Edit2, X, Check, Copy, Link as LinkIcon, FileText, Calendar, Trash2, Plus, ExternalLink } from 'lucide-react'
 import Link from 'next/link'
 import toast from 'react-hot-toast'
 import React from 'react'
@@ -215,22 +215,24 @@ export default function StudentDetailPage({ params }: { params: Promise<{ id: st
           student_id: studentId,
           instructor_id: user.id,
           date: new Date().toISOString().split('T')[0],
-          notes: newProgressNote.trim()
+          notes: newProgressNote.trim(),
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString()
         })
         .select()
 
       if (error) {
-        toast.error('Fout bij het toevoegen van voortgangsnotitie')
+        console.error('Error adding progress note:', error)
+        toast.error('Fout bij het toevoegen van de notitie')
         return
       }
 
-      if (data) {
-        setProgressNotes(prev => [data[0], ...prev])
-        setNewProgressNote('')
-        toast.success('Voortgangsnotitie toegevoegd!')
-      }
+      setProgressNotes(prev => [data[0], ...prev])
+      setNewProgressNote('')
+      toast.success('Notitie toegevoegd!')
     } catch (error) {
-      toast.error('Fout bij het toevoegen van voortgangsnotitie')
+      console.error('Error adding progress note:', error)
+      toast.error('Er is iets misgegaan bij het toevoegen van de notitie.')
     } finally {
       setSavingProgressNote(false)
     }
@@ -244,14 +246,16 @@ export default function StudentDetailPage({ params }: { params: Promise<{ id: st
         .eq('id', noteId)
 
       if (error) {
-        toast.error('Fout bij het verwijderen van voortgangsnotitie')
+        console.error('Error deleting progress note:', error)
+        toast.error('Fout bij het verwijderen van de notitie')
         return
       }
 
       setProgressNotes(prev => prev.filter(note => note.id !== noteId))
-      toast.success('Voortgangsnotitie verwijderd!')
+      toast.success('Notitie verwijderd!')
     } catch (error) {
-      toast.error('Fout bij het verwijderen van voortgangsnotitie')
+      console.error('Error deleting progress note:', error)
+      toast.error('Er is iets misgegaan bij het verwijderen van de notitie.')
     }
   }
 
@@ -269,7 +273,7 @@ export default function StudentDetailPage({ params }: { params: Promise<{ id: st
         email: student.email,
         phone: student.phone,
         address: student.address,
-        notes: student.notes,
+        notes: student.notes || '',
         default_lessons_per_week: student.default_lessons_per_week || 2,
         default_lesson_duration_minutes: student.default_lesson_duration_minutes || 60
       })
@@ -277,9 +281,10 @@ export default function StudentDetailPage({ params }: { params: Promise<{ id: st
   }
 
   const handleSave = async () => {
+    if (!studentId) return
+
     setSaving(true)
     try {
-      // Update student in Supabase
       const { error } = await supabase
         .from('students')
         .update({
@@ -295,18 +300,22 @@ export default function StudentDetailPage({ params }: { params: Promise<{ id: st
         .eq('id', studentId)
 
       if (error) {
-        toast.error('Fout bij het bijwerken van de leerling')
-        setSaving(false)
+        console.error('Error updating student:', error)
+        toast.error('Fout bij het opslaan van de wijzigingen')
         return
       }
 
-      setStudent(prev => prev ? { ...prev, ...formData } : null)
+      // Update local state
+      setStudent(prev => prev ? {
+        ...prev,
+        ...formData
+      } : null)
+
       setIsEditing(false)
-      toast.success('Leerling succesvol bijgewerkt!')
-      // Simulate API call delay
-      await new Promise(resolve => setTimeout(resolve, 1000))
+      toast.success('Wijzigingen opgeslagen!')
     } catch (error) {
-      toast.error('Er is iets misgegaan bij het bijwerken van de leerling.')
+      console.error('Error updating student:', error)
+      toast.error('Er is iets misgegaan bij het opslaan van de wijzigingen.')
     } finally {
       setSaving(false)
     }
@@ -329,16 +338,16 @@ export default function StudentDetailPage({ params }: { params: Promise<{ id: st
   const handleEditLessonSettings = () => {
     setIsEditingLessonSettings(true)
     setLessonSettings({
-      default_lessons_per_week: student?.default_lessons_per_week || 2,
-      default_lesson_duration_minutes: student?.default_lesson_duration_minutes || 60
+      default_lessons_per_week: formData.default_lessons_per_week,
+      default_lesson_duration_minutes: formData.default_lesson_duration_minutes
     })
   }
 
   const handleCancelLessonSettings = () => {
     setIsEditingLessonSettings(false)
     setLessonSettings({
-      default_lessons_per_week: student?.default_lessons_per_week || 2,
-      default_lesson_duration_minutes: student?.default_lesson_duration_minutes || 60
+      default_lessons_per_week: formData.default_lessons_per_week,
+      default_lesson_duration_minutes: formData.default_lesson_duration_minutes
     })
   }
 
@@ -356,34 +365,45 @@ export default function StudentDetailPage({ params }: { params: Promise<{ id: st
         .eq('id', studentId)
 
       if (error) {
-        toast.error('Fout bij het opslaan van lesinstellingen')
+        console.error('Error updating lesson settings:', error)
+        toast.error('Fout bij het opslaan van de lesinstellingen')
         return
       }
 
-      setStudent(prev => prev ? { 
-        ...prev, 
+      // Update local state
+      setFormData(prev => ({
+        ...prev,
+        default_lessons_per_week: lessonSettings.default_lessons_per_week,
+        default_lesson_duration_minutes: lessonSettings.default_lesson_duration_minutes
+      }))
+
+      setStudent(prev => prev ? {
+        ...prev,
         default_lessons_per_week: lessonSettings.default_lessons_per_week,
         default_lesson_duration_minutes: lessonSettings.default_lesson_duration_minutes
       } : null)
+
       setIsEditingLessonSettings(false)
-      toast.success('Lesinstellingen succesvol opgeslagen!')
+      toast.success('Lesinstellingen opgeslagen!')
     } catch (error) {
-      toast.error('Er is iets misgegaan bij het opslaan van lesinstellingen.')
+      console.error('Error updating lesson settings:', error)
+      toast.error('Er is iets misgegaan bij het opslaan van de lesinstellingen.')
     } finally {
       setSavingLessonSettings(false)
     }
   }
 
   const handleDeleteStudent = async () => {
-    setShowDeleteModal(false)
+    if (!studentId) return
+
     try {
-      // Delete student from Supabase
       const { error } = await supabase
         .from('students')
         .delete()
         .eq('id', studentId)
 
       if (error) {
+        console.error('Error deleting student:', error)
         toast.error('Fout bij het verwijderen van de leerling')
         return
       }
@@ -391,13 +411,19 @@ export default function StudentDetailPage({ params }: { params: Promise<{ id: st
       toast.success('Leerling succesvol verwijderd!')
       router.push('/dashboard/students')
     } catch (error) {
+      console.error('Error deleting student:', error)
       toast.error('Er is iets misgegaan bij het verwijderen van de leerling.')
     }
   }
 
+  const openGoogleMaps = (address: string) => {
+    const encodedAddress = encodeURIComponent(address)
+    window.open(`https://www.google.com/maps/search/?api=1&query=${encodedAddress}`, '_blank')
+  }
+
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center safe-area-top">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
           <p className="mt-4 text-gray-600">Laden...</p>
@@ -411,475 +437,354 @@ export default function StudentDetailPage({ params }: { params: Promise<{ id: st
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Navigation */}
-      <nav className="bg-white shadow-sm border-b">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen bg-gray-50 pb-20">
+      {/* Mobile Navigation */}
+      <nav className="bg-white shadow-sm border-b safe-area-top">
+        <div className="container-mobile">
           <div className="flex justify-between items-center h-16">
             <div className="flex items-center">
-              <Link href="/dashboard/students" className="text-gray-600 hover:text-gray-900 flex items-center">
-                <ArrowLeft className="h-4 w-4 mr-2" />
-                Terug naar leerlingen
+              <Link href="/dashboard/students" className="text-gray-600 hover:text-gray-900 flex items-center gap-2">
+                <ArrowLeft className="h-4 w-4" />
+                <span className="hidden sm:inline">Terug naar leerlingen</span>
               </Link>
             </div>
-            <div className="flex items-center space-x-4">
-              {!isEditing ? (
-                <button
-                  onClick={handleEdit}
-                  className="flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors"
-                >
-                  <Edit2 className="h-4 w-4" />
-                  Bewerken
-                </button>
-              ) : (
-                <div className="flex gap-2">
-                  <button
-                    onClick={handleCancel}
-                    className="flex items-center gap-2 bg-gray-600 text-white px-4 py-2 rounded-lg hover:bg-gray-700 transition-colors"
-                  >
-                    <X className="h-4 w-4" />
-                    Annuleren
-                  </button>
-                  <button
-                    onClick={handleSave}
-                    disabled={saving}
-                    className="flex items-center gap-2 bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors disabled:opacity-50"
-                  >
-                    <Check className="h-4 w-4" />
-                    {saving ? 'Opslaan...' : 'Opslaan'}
-                  </button>
-                </div>
-              )}
+            <div className="flex items-center gap-2">
+              <button
+                onClick={handleEdit}
+                className="p-2 text-blue-600 hover:text-blue-700 hover:bg-blue-50 rounded"
+              >
+                <Edit2 className="h-4 w-4" />
+              </button>
+              <button
+                onClick={() => setShowDeleteModal(true)}
+                className="p-2 text-red-600 hover:text-red-700 hover:bg-red-50 rounded"
+              >
+                <Trash2 className="h-4 w-4" />
+              </button>
             </div>
           </div>
         </div>
       </nav>
 
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div className="container-mobile py-6">
         {/* Header */}
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900">
-            {student.first_name} {student.last_name}
-          </h1>
-          <p className="text-gray-600 mt-2">
-            Leerling profiel en voortgang
-          </p>
-        </div>
-
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* Main Content */}
-          <div className="lg:col-span-2 space-y-6">
-            {/* Personal Information */}
-            <div className="bg-white rounded-lg shadow-sm border border-gray-200">
-              <div className="p-6 border-b border-gray-200">
-                <h2 className="text-lg font-semibold text-gray-900 flex items-center">
-                  <User className="h-5 w-5 mr-2" />
-                  Persoonlijke gegevens
-                </h2>
-              </div>
-              <div className="p-6 space-y-4">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Voornaam
-                    </label>
-                    {isEditing ? (
-                      <input
-                        type="text"
-                        value={formData.first_name}
-                        onChange={(e) => handleInputChange('first_name', e.target.value)}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                      />
-                    ) : (
-                      <p className="text-gray-900">{student.first_name}</p>
-                    )}
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Achternaam
-                    </label>
-                    {isEditing ? (
-                      <input
-                        type="text"
-                        value={formData.last_name}
-                        onChange={(e) => handleInputChange('last_name', e.target.value)}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                      />
-                    ) : (
-                      <p className="text-gray-900">{student.last_name}</p>
-                    )}
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* Contact Information */}
-            <div className="bg-white rounded-lg shadow-sm border border-gray-200">
-              <div className="p-6 border-b border-gray-200">
-                <h2 className="text-lg font-semibold text-gray-900 flex items-center">
-                  <Mail className="h-5 w-5 mr-2" />
-                  Contactgegevens
-                </h2>
-              </div>
-              <div className="p-6 space-y-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    E-mailadres
-                  </label>
-                  {isEditing ? (
-                    <input
-                      type="email"
-                      value={formData.email}
-                      onChange={(e) => handleInputChange('email', e.target.value)}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    />
-                  ) : (
-                    <p className="text-gray-900">{student.email}</p>
-                  )}
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Telefoonnummer
-                  </label>
-                  {isEditing ? (
-                    <input
-                      type="tel"
-                      value={formData.phone}
-                      onChange={(e) => handleInputChange('phone', e.target.value)}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    />
-                  ) : (
-                    <p className="text-gray-900">{student.phone}</p>
-                  )}
-                </div>
-              </div>
-            </div>
-
-            {/* Address */}
-            <div className="bg-white rounded-lg shadow-sm border border-gray-200">
-              <div className="p-6 border-b border-gray-200">
-                <h2 className="text-lg font-semibold text-gray-900 flex items-center">
-                  <MapPin className="h-5 w-5 mr-2" />
-                  Adres
-                </h2>
-              </div>
-              <div className="p-6">
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Volledig adres
-                </label>
-                {isEditing ? (
-                  <textarea
-                    rows={3}
-                    value={formData.address}
-                    onChange={(e) => handleInputChange('address', e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  />
-                ) : (
-                  <p className="text-gray-900">{student.address}</p>
-                )}
-              </div>
-            </div>
-
-            {/* General Notes */}
-            <div className="bg-white rounded-lg shadow-sm border border-gray-200">
-              <div className="p-6 border-b border-gray-200">
-                <h2 className="text-lg font-semibold text-gray-900 flex items-center">
-                  <User className="h-5 w-5 mr-2" />
-                  Algemene notities
-                </h2>
-              </div>
-              <div className="p-6">
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Algemene notities over {student.first_name}
-                </label>
-                {isEditing ? (
-                  <textarea
-                    rows={6}
-                    value={formData.notes}
-                    onChange={(e) => handleInputChange('notes', e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    placeholder="Algemene informatie over de leerling, persoonlijke voorkeuren, bijzonderheden, etc..."
-                  />
-                ) : (
-                  <div className="bg-gray-50 p-4 rounded-lg">
-                    <p className="text-gray-900 whitespace-pre-wrap">{student.notes || 'Geen algemene notities toegevoegd.'}</p>
-                  </div>
-                )}
-                <p className="text-sm text-gray-500 mt-2">
-                  Deze notities zijn alleen zichtbaar in het leerlingprofiel en worden getoond bij uitgeklapte lessen.
-                </p>
-              </div>
-            </div>
-
-            {/* Lesson Settings */}
-            <div className="bg-white rounded-lg shadow-sm border border-gray-200">
-              <div className="p-6 border-b border-gray-200">
-                <div className="flex items-center justify-between">
-                  <h2 className="text-lg font-semibold text-gray-900 flex items-center">
-                    <Calendar className="h-5 w-5 mr-2" />
-                    Lesinstellingen
-                  </h2>
-                  {!isEditingLessonSettings ? (
-                    <button
-                      onClick={handleEditLessonSettings}
-                      className="flex items-center gap-2 text-blue-600 hover:text-blue-700 px-3 py-1 rounded-md text-sm font-medium"
-                    >
-                      <Edit2 className="h-4 w-4" />
-                      Bewerken
-                    </button>
-                  ) : (
-                    <div className="flex gap-2">
-                      <button
-                        onClick={handleCancelLessonSettings}
-                        className="flex items-center gap-2 text-gray-600 hover:text-gray-700 px-3 py-1 rounded-md text-sm font-medium"
-                      >
-                        <X className="h-4 w-4" />
-                        Annuleren
-                      </button>
-                      <button
-                        onClick={handleSaveLessonSettings}
-                        disabled={savingLessonSettings}
-                        className="flex items-center gap-2 text-green-600 hover:text-green-700 px-3 py-1 rounded-md text-sm font-medium disabled:opacity-50"
-                      >
-                        <Check className="h-4 w-4" />
-                        {savingLessonSettings ? 'Opslaan...' : 'Opslaan'}
-                      </button>
-                    </div>
-                  )}
-                </div>
-              </div>
-              <div className="p-6 space-y-4">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Standaard aantal lessen per week
-                    </label>
-                    {isEditingLessonSettings ? (
-                      <input
-                        type="number"
-                        min="1"
-                        max="7"
-                        value={lessonSettings.default_lessons_per_week}
-                        onChange={(e) => handleLessonSettingsChange('default_lessons_per_week', parseInt(e.target.value) || 1)}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                      />
-                    ) : (
-                      <p className="text-gray-900">{student.default_lessons_per_week || 2} lessen per week</p>
-                    )}
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Standaard lesduur (minuten)
-                    </label>
-                    {isEditingLessonSettings ? (
-                      <input
-                        type="number"
-                        min="30"
-                        max="180"
-                        step="15"
-                        value={lessonSettings.default_lesson_duration_minutes}
-                        onChange={(e) => handleLessonSettingsChange('default_lesson_duration_minutes', parseInt(e.target.value) || 60)}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                      />
-                    ) : (
-                      <p className="text-gray-900">{student.default_lesson_duration_minutes || 60} minuten</p>
-                    )}
-                  </div>
-                </div>
-                <p className="text-sm text-gray-500">
-                  Deze instellingen worden gebruikt als standaardwaarden bij het plannen van nieuwe lessen voor deze leerling.
-                </p>
-              </div>
-            </div>
-
-            {/* Progress Notes */}
-            <div className="bg-white rounded-lg shadow-sm border border-gray-200">
-              <div className="p-6 border-b border-gray-200">
-                <h2 className="text-lg font-semibold text-gray-900 flex items-center">
-                  <FileText className="h-5 w-5 mr-2" />
-                  Voortgangsnotities
-                </h2>
-              </div>
-              <div className="p-6 space-y-4">
-                {/* Add new progress note */}
+        <div className="mb-6">
+          {isEditing ? (
+            <div className="space-y-4">
+              <div className="mobile-grid md:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Nieuwe voortgangsnotitie toevoegen
+                    Voornaam *
                   </label>
-                  <div className="flex gap-2">
-                    <textarea
-                      rows={3}
-                      value={newProgressNote}
-                      onChange={(e) => setNewProgressNote(e.target.value)}
-                      placeholder="Voeg een nieuwe voortgangsnotitie toe..."
-                      className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    />
-                    <button
-                      onClick={handleAddProgressNote}
-                      disabled={savingProgressNote || !newProgressNote.trim()}
-                      className="bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 text-white px-4 py-2 rounded-lg text-sm font-medium"
-                    >
-                      {savingProgressNote ? 'Toevoegen...' : 'Toevoegen'}
-                    </button>
-                  </div>
+                  <input
+                    type="text"
+                    value={formData.first_name}
+                    onChange={(e) => handleInputChange('first_name', e.target.value)}
+                    className="w-full px-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    required
+                  />
                 </div>
-
-                {/* Progress notes list */}
                 <div>
-                  <h3 className="text-sm font-medium text-gray-700 mb-3">Eerdere voortgangsnotities</h3>
-                  {progressNotes.length === 0 ? (
-                    <p className="text-gray-500 text-sm">Nog geen voortgangsnotities toegevoegd.</p>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Achternaam *
+                  </label>
+                  <input
+                    type="text"
+                    value={formData.last_name}
+                    onChange={(e) => handleInputChange('last_name', e.target.value)}
+                    className="w-full px-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    required
+                  />
+                </div>
+              </div>
+              <div className="flex gap-3">
+                <button
+                  onClick={handleSave}
+                  disabled={saving}
+                  className="btn btn-primary flex items-center gap-2"
+                >
+                  {saving ? (
+                    <>
+                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                      Opslaan...
+                    </>
                   ) : (
-                    <div className="space-y-3">
-                      {progressNotes.map((note) => (
-                        <div key={note.id} className="bg-blue-50 p-4 rounded-lg">
-                          <div className="flex justify-between items-start mb-2">
-                            <span className="text-xs text-gray-500">
-                              {new Date(note.date).toLocaleDateString('nl-NL')}
-                            </span>
-                            <button
-                              onClick={() => handleDeleteProgressNote(note.id)}
-                              className="text-red-500 hover:text-red-700 text-sm"
-                              title="Verwijder notitie"
-                            >
-                              <X className="h-4 w-4" />
-                            </button>
-                          </div>
-                          <p className="text-gray-900 whitespace-pre-wrap text-sm">{note.notes}</p>
-                        </div>
-                      ))}
-                    </div>
+                    <>
+                      <Check className="h-4 w-4" />
+                      Opslaan
+                    </>
                   )}
-                </div>
-                <p className="text-sm text-gray-500">
-                  Voortgangsnotities zijn zichtbaar en bewerkbaar in het leerlingprofiel en bij uitgeklapte lessen.
-                </p>
-              </div>
-            </div>
-          </div>
-
-          {/* Sidebar */}
-          <div className="space-y-6">
-            {/* Quick Stats */}
-            <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-              <h3 className="text-lg font-semibold text-gray-900 mb-4">Statistieken</h3>
-              <div className="space-y-4">
-                <div>
-                  <p className="text-sm text-gray-600">Totaal lessen</p>
-                  <p className="text-2xl font-bold text-gray-900">{student.lessons_count}</p>
-                </div>
-                <div>
-                  <p className="text-sm text-gray-600">Lessen gehad</p>
-                  <p className="text-2xl font-bold text-green-600">{lessonStats.lessonsCompleted}</p>
-                </div>
-                <div>
-                  <p className="text-sm text-gray-600">Lessen ingepland</p>
-                  <p className="text-2xl font-bold text-blue-600">{lessonStats.lessonsScheduled}</p>
-                </div>
-                <div>
-                  <p className="text-sm text-gray-600">Laatste les</p>
-                  <p className="text-gray-900">{student.last_lesson ? new Date(student.last_lesson).toLocaleDateString('nl-NL') : 'Nog geen lessen'}</p>
-                </div>
-                <div>
-                  <p className="text-sm text-gray-600">Lid sinds</p>
-                  <p className="text-gray-900">{new Date(student.created_at).toLocaleDateString('nl-NL')}</p>
-                </div>
-              </div>
-            </div>
-
-            {/* Invitation Link */}
-            {inviteUrl && (
-              <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-                <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
-                  <LinkIcon className="h-5 w-5 mr-2" />
-                  Uitnodigingslink
-                </h3>
-                <div className="space-y-3">
-                  <div className="bg-gray-50 p-3 rounded-lg">
-                    <p className="text-xs text-gray-600 mb-2">Uitnodigingslink voor deze leerling:</p>
-                    <div className="flex items-center gap-2">
-                      <input
-                        type="text"
-                        value={inviteUrl}
-                        readOnly
-                        className="flex-1 text-xs bg-white border border-gray-200 rounded px-2 py-1 font-mono"
-                        onFocus={(e) => e.target.select()}
-                      />
-                      <button
-                        onClick={() => {
-                          navigator.clipboard.writeText(inviteUrl);
-                          toast.success('Link gekopieerd!');
-                        }}
-                        className="flex items-center gap-1 bg-blue-600 hover:bg-blue-700 text-white px-2 py-1 rounded text-xs"
-                      >
-                        <Copy className="h-3 w-3" />
-                        Kopieer
-                      </button>
-                    </div>
-                  </div>
-                  <div className="flex gap-2">
-                    <a
-                      href={`mailto:${student.email}?subject=Uitnodiging RijFlow&body=Klik op deze link om je account te activeren: ${inviteUrl}`}
-                      className="flex-1 bg-green-600 hover:bg-green-700 text-white text-center py-2 px-3 rounded text-xs font-medium"
-                    >
-                      Verstuur e-mail
-                    </a>
-                    <a
-                      href={`sms:${student.phone}?body=Je bent uitgenodigd voor RijFlow! Klik op deze link om je account te activeren: ${inviteUrl}`}
-                      className="flex-1 bg-purple-600 hover:bg-purple-700 text-white text-center py-2 px-3 rounded text-xs font-medium"
-                    >
-                      Verstuur SMS
-                    </a>
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {/* Quick Actions */}
-            <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-              <h3 className="text-lg font-semibold text-gray-900 mb-4">Snelle acties</h3>
-              <div className="space-y-3">
-                <Link
-                  href={`/dashboard/lessons/new?student=${student.id}`}
-                  className="block w-full bg-blue-600 hover:bg-blue-700 text-white text-center py-2 px-4 rounded-lg text-sm font-medium"
+                </button>
+                <button
+                  onClick={handleCancel}
+                  className="btn btn-secondary flex items-center gap-2"
                 >
-                  Les plannen
-                </Link>
-                <Link
-                  href={`/dashboard/chat/${student.id}`}
-                  className="block w-full bg-green-600 hover:bg-green-700 text-white text-center py-2 px-4 rounded-lg text-sm font-medium"
-                >
-                  Bericht sturen
-                </Link>
-                <button 
-                  onClick={() => setShowDeleteModal(true)}
-                  className="block w-full bg-red-600 hover:bg-red-700 text-white text-center py-2 px-4 rounded-lg text-sm font-medium"
-                >
-                  Leerling verwijderen
+                  <X className="h-4 w-4" />
+                  Annuleren
                 </button>
               </div>
             </div>
+          ) : (
+            <div>
+              <h1 className="text-2xl md:text-3xl font-bold text-gray-900">
+                {student.first_name} {student.last_name}
+              </h1>
+              <p className="text-gray-600 mt-2">
+                Leerling sinds {new Date(student.created_at).toLocaleDateString('nl-NL')}
+              </p>
+            </div>
+          )}
+        </div>
+
+        {/* Stats Cards */}
+        <div className="mobile-grid md:grid-cols-3 gap-4 mb-6">
+          <div className="card text-center">
+            <Calendar className="h-8 w-8 text-blue-600 mx-auto mb-2" />
+            <div className="text-2xl font-bold text-gray-900">{lessonStats.lessonsCompleted}</div>
+            <div className="text-sm text-gray-600">Voltooide lessen</div>
+          </div>
+          <div className="card text-center">
+            <Calendar className="h-8 w-8 text-green-600 mx-auto mb-2" />
+            <div className="text-2xl font-bold text-gray-900">{lessonStats.lessonsScheduled}</div>
+            <div className="text-sm text-gray-600">Geplande lessen</div>
+          </div>
+          <div className="card text-center">
+            <FileText className="h-8 w-8 text-purple-600 mx-auto mb-2" />
+            <div className="text-2xl font-bold text-gray-900">{progressNotes.length}</div>
+            <div className="text-sm text-gray-600">Voortgangsnotities</div>
           </div>
         </div>
+
+        {/* Contact Information */}
+        <div className="card mb-6">
+          <h3 className="text-lg font-semibold mb-4">Contactgegevens</h3>
+          <div className="space-y-3">
+            <div className="flex items-center gap-3">
+              <Mail className="h-4 w-4 text-gray-400" />
+              <span className="text-gray-900">{student.email}</span>
+            </div>
+            {student.phone && (
+              <div className="flex items-center gap-3">
+                <Phone className="h-4 w-4 text-gray-400" />
+                <span className="text-gray-900">{student.phone}</span>
+              </div>
+            )}
+            {student.address && (
+              <div className="flex items-center gap-3">
+                <MapPin className="h-4 w-4 text-gray-400" />
+                <button
+                  onClick={() => openGoogleMaps(student.address)}
+                  className="text-blue-600 hover:text-blue-700 flex items-center gap-1"
+                >
+                  <span>{student.address}</span>
+                  <ExternalLink className="h-3 w-3" />
+                </button>
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Lesson Settings */}
+        <div className="card mb-6">
+          <div className="flex justify-between items-center mb-4">
+            <h3 className="text-lg font-semibold">Lesinstellingen</h3>
+            {!isEditingLessonSettings && (
+              <button
+                onClick={handleEditLessonSettings}
+                className="p-2 text-blue-600 hover:text-blue-700 hover:bg-blue-50 rounded"
+              >
+                <Edit2 className="h-4 w-4" />
+              </button>
+            )}
+          </div>
+          
+          {isEditingLessonSettings ? (
+            <div className="space-y-4">
+              <div className="mobile-grid md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Standaard lessen per week
+                  </label>
+                  <input
+                    type="number"
+                    min="1"
+                    max="7"
+                    value={lessonSettings.default_lessons_per_week}
+                    onChange={(e) => handleLessonSettingsChange('default_lessons_per_week', parseInt(e.target.value))}
+                    className="w-full px-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Lesduur (minuten)
+                  </label>
+                  <input
+                    type="number"
+                    min="30"
+                    max="180"
+                    step="15"
+                    value={lessonSettings.default_lesson_duration_minutes}
+                    onChange={(e) => handleLessonSettingsChange('default_lesson_duration_minutes', parseInt(e.target.value))}
+                    className="w-full px-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  />
+                </div>
+              </div>
+              <div className="flex gap-3">
+                <button
+                  onClick={handleSaveLessonSettings}
+                  disabled={savingLessonSettings}
+                  className="btn btn-primary flex items-center gap-2"
+                >
+                  {savingLessonSettings ? (
+                    <>
+                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                      Opslaan...
+                    </>
+                  ) : (
+                    <>
+                      <Check className="h-4 w-4" />
+                      Opslaan
+                    </>
+                  )}
+                </button>
+                <button
+                  onClick={handleCancelLessonSettings}
+                  className="btn btn-secondary flex items-center gap-2"
+                >
+                  <X className="h-4 w-4" />
+                  Annuleren
+                </button>
+              </div>
+            </div>
+          ) : (
+            <div className="space-y-2 text-sm">
+              <p><strong>Standaard lessen per week:</strong> {formData.default_lessons_per_week}</p>
+              <p><strong>Lesduur:</strong> {formData.default_lesson_duration_minutes} minuten</p>
+            </div>
+          )}
+        </div>
+
+        {/* Notes */}
+        {student.notes && (
+          <div className="card mb-6">
+            <h3 className="text-lg font-semibold mb-4">Notities</h3>
+            <p className="text-gray-700 whitespace-pre-wrap">{student.notes}</p>
+          </div>
+        )}
+
+        {/* Progress Notes */}
+        <div className="card mb-6">
+          <h3 className="text-lg font-semibold mb-4">Voortgangsnotities</h3>
+          
+          <div className="space-y-4">
+            <div>
+              <textarea
+                value={newProgressNote}
+                onChange={(e) => setNewProgressNote(e.target.value)}
+                placeholder="Voeg een nieuwe voortgangsnotitie toe..."
+                className="w-full px-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
+                rows={3}
+              />
+              <button
+                onClick={handleAddProgressNote}
+                disabled={savingProgressNote || !newProgressNote.trim()}
+                className="btn btn-primary mt-2 flex items-center gap-2"
+              >
+                {savingProgressNote ? (
+                  <>
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                    Toevoegen...
+                  </>
+                ) : (
+                  <>
+                    <Plus className="h-4 w-4" />
+                    Notitie toevoegen
+                  </>
+                )}
+              </button>
+            </div>
+
+            {progressNotes.length === 0 ? (
+              <p className="text-gray-500 text-center py-4">Nog geen voortgangsnotities</p>
+            ) : (
+              <div className="space-y-3">
+                {progressNotes.map((note) => (
+                  <div key={note.id} className="p-4 bg-gray-50 rounded-lg">
+                    <div className="flex justify-between items-start mb-2">
+                      <span className="text-sm text-gray-500">
+                        {new Date(note.date).toLocaleDateString('nl-NL')}
+                      </span>
+                      <button
+                        onClick={() => handleDeleteProgressNote(note.id)}
+                        className="p-1 text-red-600 hover:text-red-700 hover:bg-red-50 rounded"
+                      >
+                        <Trash2 className="h-3 w-3" />
+                      </button>
+                    </div>
+                    <p className="text-gray-900 whitespace-pre-wrap">{note.notes}</p>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Invitation Link */}
+        {inviteUrl && (
+          <div className="card mb-6">
+            <h3 className="text-lg font-semibold mb-4">Uitnodigingslink</h3>
+            <div className="space-y-3">
+              <input
+                type="text"
+                value={inviteUrl}
+                readOnly
+                className="w-full px-3 py-3 border border-gray-300 rounded-lg bg-gray-50 text-sm font-mono"
+                onFocus={e => e.target.select()}
+              />
+              <button
+                onClick={() => {
+                  navigator.clipboard.writeText(inviteUrl)
+                  toast.success('Link gekopieerd!')
+                }}
+                className="btn btn-secondary flex items-center gap-2"
+              >
+                <Copy className="h-4 w-4" />
+                Kopieer link
+              </button>
+            </div>
+          </div>
+        )}
       </div>
+
+      {/* Delete Confirmation Modal */}
       {showDeleteModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center  bg-opacity-50">
-          <div className="bg-white rounded-lg shadow-lg p-6 w-full max-w-sm">
-            <h2 className="text-lg font-semibold mb-4">Leerling verwijderen</h2>
-            <p className="mb-6">Weet je zeker dat je deze leerling wilt verwijderen? Deze actie kan niet ongedaan worden gemaakt.</p>
-            <div className="flex justify-end gap-2">
-              <button
-                onClick={() => setShowDeleteModal(false)}
-                className="px-4 py-2 rounded bg-gray-200 text-gray-700 hover:bg-gray-300"
-              >
-                Annuleren
-              </button>
-              <button
-                onClick={handleDeleteStudent}
-                className="px-4 py-2 rounded bg-red-600 text-white hover:bg-red-700"
-              >
-                Verwijderen
-              </button>
+        <div className="modal-overlay" onClick={() => setShowDeleteModal(false)}>
+          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+            <div className="text-center">
+              <div className="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-red-100 mb-4">
+                <Trash2 className="h-6 w-6 text-red-600" />
+              </div>
+              <h3 className="text-lg font-medium text-gray-900 mb-2">
+                Leerling verwijderen
+              </h3>
+              <p className="text-sm text-gray-600 mb-6">
+                Weet je zeker dat je <strong>{student.first_name} {student.last_name}</strong> wilt verwijderen? 
+                Deze actie kan niet ongedaan worden gemaakt.
+              </p>
+              <div className="flex gap-3">
+                <button
+                  onClick={() => setShowDeleteModal(false)}
+                  className="btn btn-secondary flex-1"
+                >
+                  Annuleren
+                </button>
+                <button
+                  onClick={handleDeleteStudent}
+                  className="btn bg-red-600 hover:bg-red-700 text-white flex-1"
+                >
+                  Verwijderen
+                </button>
+              </div>
             </div>
           </div>
         </div>

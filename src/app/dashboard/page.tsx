@@ -21,7 +21,9 @@ import {
   ExternalLink,
   ChevronDown,
   ChevronUp,
-  User
+  User,
+  Home,
+  Menu
 } from 'lucide-react'
 import Link from 'next/link'
 import { supabase } from '@/lib/supabase'
@@ -34,6 +36,7 @@ export default function DashboardPage() {
   const [schoolName, setSchoolName] = useState('Mijn Rijschool')
   const [isEditingSchoolName, setIsEditingSchoolName] = useState(false)
   const [editingSchoolName, setEditingSchoolName] = useState('')
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
 
   useEffect(() => {
     if (!loading && !user) {
@@ -74,7 +77,7 @@ export default function DashboardPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center safe-area-top">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
           <p className="mt-4 text-gray-600">Laden...</p>
@@ -88,16 +91,18 @@ export default function DashboardPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Navigation */}
-      <nav className="bg-white shadow-sm border-b">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen bg-gray-50 pb-20">
+      {/* Mobile Navigation */}
+      <nav className="bg-white shadow-sm border-b safe-area-top">
+        <div className="container-mobile">
           <div className="flex justify-between items-center h-16">
             <div className="flex items-center">
               <Car className="h-8 w-8 text-blue-600" />
               <span className="ml-2 text-xl font-bold text-gray-900">RijFlow</span>
             </div>
-            <div className="flex items-center space-x-4">
+            
+            {/* Desktop Navigation */}
+            <div className="hidden md:flex items-center space-x-4">
               <button
                 onClick={handleSignOut}
                 className="flex items-center gap-2 text-gray-600 hover:text-gray-900 px-3 py-2 rounded-md text-sm font-medium"
@@ -106,21 +111,47 @@ export default function DashboardPage() {
                 Uitloggen
               </button>
             </div>
+
+            {/* Mobile Menu Button */}
+            <button
+              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+              className="md:hidden p-2 rounded-md text-gray-600 hover:text-gray-900"
+            >
+              {mobileMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
+            </button>
           </div>
         </div>
+
+        {/* Mobile Menu */}
+        {mobileMenuOpen && (
+          <div className="md:hidden bg-white border-t border-gray-200">
+            <div className="container-mobile py-4 space-y-4">
+              <button
+                onClick={() => {
+                  handleSignOut()
+                  setMobileMenuOpen(false)
+                }}
+                className="flex items-center gap-2 text-gray-600 hover:text-gray-900 py-2 px-3 rounded-md text-base font-medium w-full text-left"
+              >
+                <LogOut className="h-4 w-4" />
+                Uitloggen
+              </button>
+            </div>
+          </div>
+        )}
       </nav>
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div className="container-mobile py-6">
         {/* Welcome Section */}
-        <div className="mb-8">
+        <div className="mb-6">
           <div className="flex items-center gap-3">
             {isEditingSchoolName ? (
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2 flex-1">
                 <input
                   type="text"
                   value={editingSchoolName}
                   onChange={(e) => setEditingSchoolName(e.target.value)}
-                  className="text-3xl font-bold text-gray-900 bg-transparent border-b-2 border-blue-500 focus:outline-none focus:border-blue-600"
+                  className="text-xl md:text-3xl font-bold text-gray-900 bg-transparent border-b-2 border-blue-500 focus:outline-none focus:border-blue-600 flex-1"
                   autoFocus
                   onKeyDown={(e) => {
                     if (e.key === 'Enter') {
@@ -132,26 +163,26 @@ export default function DashboardPage() {
                 />
                 <button
                   onClick={handleSaveSchoolName}
-                  className="p-1 text-green-600 hover:text-green-700 hover:bg-green-50 rounded"
+                  className="p-2 text-green-600 hover:text-green-700 hover:bg-green-50 rounded"
                 >
                   <Check className="h-5 w-5" />
                 </button>
                 <button
                   onClick={handleCancelEditSchoolName}
-                  className="p-1 text-red-600 hover:text-red-700 hover:bg-red-50 rounded"
+                  className="p-2 text-red-600 hover:text-red-700 hover:bg-red-50 rounded"
                 >
                   <X className="h-5 w-5" />
                 </button>
               </div>
             ) : (
-              <div className="flex items-center gap-2">
-                <h1 className="text-3xl font-bold text-gray-900">
+              <div className="flex items-center gap-2 flex-1">
+                <h1 className="text-xl md:text-3xl font-bold text-gray-900">
                   {schoolName}
                 </h1>
                 {userRole === 'instructor' && (
                   <button
                     onClick={handleEditSchoolName}
-                    className="p-1 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded"
+                    className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded"
                   >
                     <Edit2 className="h-5 w-5" />
                   </button>
@@ -173,6 +204,30 @@ export default function DashboardPage() {
           <StudentDashboard />
         )}
       </div>
+
+      {/* Mobile Bottom Navigation */}
+      <nav className="nav-mobile safe-area-bottom">
+        <div className="container-mobile">
+          <div className="flex justify-around">
+            <Link href="/dashboard" className="nav-mobile-item active">
+              <Home className="h-6 w-6" />
+              <span>Dashboard</span>
+            </Link>
+            <Link href="/dashboard/students" className="nav-mobile-item">
+              <Users className="h-6 w-6" />
+              <span>Leerlingen</span>
+            </Link>
+            <Link href="/dashboard/lessons" className="nav-mobile-item">
+              <Calendar className="h-6 w-6" />
+              <span>Lessen</span>
+            </Link>
+            <Link href="/dashboard/week-overview" className="nav-mobile-item">
+              <Clock className="h-6 w-6" />
+              <span>Week</span>
+            </Link>
+          </div>
+        </div>
+      </nav>
     </div>
   )
 }
@@ -211,28 +266,12 @@ function InstructorDashboard() {
     }
   }
 
-  // Fetch lessons for current week
+  // Fetch lessons from database
   const fetchLessons = async () => {
     if (!user) return
     
     try {
       setLoadingLessons(true)
-      
-      // Get current week (Monday to Sunday)
-      const today = new Date()
-      const currentDay = today.getDay()
-      const mondayOffset = currentDay === 0 ? -6 : 1 - currentDay
-      const monday = new Date(today)
-      monday.setDate(today.getDate() + mondayOffset)
-      monday.setHours(0, 0, 0, 0)
-      
-      const sunday = new Date(monday)
-      sunday.setDate(monday.getDate() + 6)
-      sunday.setHours(23, 59, 59, 999)
-      
-      const startDate = monday.toISOString().split('T')[0]
-      const endDate = sunday.toISOString().split('T')[0]
-      
       const { data, error } = await supabase
         .from('lessons')
         .select(`
@@ -241,13 +280,13 @@ function InstructorDashboard() {
             id,
             first_name,
             last_name,
-            address,
-            notes
+            email,
+            phone,
+            address
           )
         `)
         .eq('instructor_id', user.id)
-        .gte('date', startDate)
-        .lte('date', endDate)
+        .gte('date', new Date().toISOString().split('T')[0])
         .order('date', { ascending: true })
         .order('start_time', { ascending: true })
 
@@ -264,7 +303,7 @@ function InstructorDashboard() {
     }
   }
 
-  // Fetch progress notes for a specific student
+  // Fetch progress notes for a student
   const fetchProgressNotes = async (studentId: string) => {
     if (!user) return []
     
@@ -274,9 +313,8 @@ function InstructorDashboard() {
         .select('*')
         .eq('student_id', studentId)
         .eq('instructor_id', user.id)
-        .order('date', { ascending: false })
         .order('created_at', { ascending: false })
-        .limit(5) // Only fetch the 5 most recent notes
+        .limit(5)
 
       if (error) {
         console.error('Error fetching progress notes:', error)
@@ -290,58 +328,33 @@ function InstructorDashboard() {
     }
   }
 
-  useEffect(() => {
-    if (user) {
-      fetchStudents()
-      fetchLessons()
-    }
-  }, [user])
-
   const openGoogleMaps = (address: string) => {
     const encodedAddress = encodeURIComponent(address)
     window.open(`https://www.google.com/maps/search/?api=1&query=${encodedAddress}`, '_blank')
   }
 
   const getWeekDays = () => {
+    const days = []
     const today = new Date()
-    const currentDay = today.getDay() // 0 = Sunday, 1 = Monday, etc.
-    // Calculate offset to get to Monday (Monday = 1, so if currentDay is 0 (Sunday), we need -6, otherwise 1 - currentDay)
-    const mondayOffset = currentDay === 0 ? -6 : 1 - currentDay
-    
-    const weekDays = []
+    const startOfWeek = new Date(today)
+    startOfWeek.setDate(today.getDate() - today.getDay() + 1) // Monday
+
     for (let i = 0; i < 7; i++) {
-      const date = new Date(today)
-      date.setDate(today.getDate() + mondayOffset + i)
-      
-      const isToday = date.toDateString() === today.toDateString()
-      const dayName = date.toLocaleDateString('nl-NL', { weekday: 'short' })
-      const dayDate = date.toLocaleDateString('nl-NL', { day: '2-digit', month: '2-digit' })
-      
-      // Get actual lesson count for this day
-      const dayDateString = date.toISOString().split('T')[0]
-      const dayLessons = lessons.filter(lesson => lesson.date === dayDateString)
-      
-      weekDays.push({
-        name: dayName,
-        date: dayDate,
-        isToday,
-        lessons: dayLessons.length
-      })
+      const day = new Date(startOfWeek)
+      day.setDate(startOfWeek.getDate() + i)
+      days.push(day)
     }
-    
-    return weekDays
+    return days
   }
 
   const toggleLessonExpansion = (lessonId: string) => {
-    setExpandedLessons(prev => {
-      const newSet = new Set(prev)
-      if (newSet.has(lessonId)) {
-        newSet.delete(lessonId)
-      } else {
-        newSet.add(lessonId)
-      }
-      return newSet
-    })
+    const newExpanded = new Set(expandedLessons)
+    if (newExpanded.has(lessonId)) {
+      newExpanded.delete(lessonId)
+    } else {
+      newExpanded.add(lessonId)
+    }
+    setExpandedLessons(newExpanded)
   }
 
   const goToPreviousDay = () => {
@@ -360,507 +373,320 @@ function InstructorDashboard() {
     setSelectedDate(new Date())
   }
 
-  // ExpandedLessonView component
   const ExpandedLessonView = ({ lesson, student, onClose }: { 
     lesson: any, 
     student: any, 
     onClose: () => void 
   }) => {
     const [progressNotes, setProgressNotes] = useState<any[]>([])
-    const [loadingProgressNotes, setLoadingProgressNotes] = useState(true)
-    const [newProgressNote, setNewProgressNote] = useState('')
-    const [savingProgressNote, setSavingProgressNote] = useState(false)
+    const [newNote, setNewNote] = useState('')
+    const [loadingNotes, setLoadingNotes] = useState(true)
 
-    // Fetch progress notes when component mounts
-    useEffect(() => {
-      const loadProgressNotes = async () => {
-        if (student?.id) {
-          setLoadingProgressNotes(true)
-          const notes = await fetchProgressNotes(student.id)
-          setProgressNotes(notes)
-          setLoadingProgressNotes(false)
-        }
-      }
-      loadProgressNotes()
-    }, [student?.id])
+    const loadProgressNotes = async () => {
+      setLoadingNotes(true)
+      const notes = await fetchProgressNotes(student.id)
+      setProgressNotes(notes)
+      setLoadingNotes(false)
+    }
 
     const handleAddProgressNote = async () => {
-      if (!newProgressNote.trim() || !user || !student?.id) return
+      if (!newNote.trim() || !user) return
 
-      setSavingProgressNote(true)
       try {
-        const { data, error } = await supabase
+        const { error } = await supabase
           .from('progress_notes')
           .insert({
             student_id: student.id,
             instructor_id: user.id,
             lesson_id: lesson.id,
-            date: new Date().toISOString().split('T')[0],
-            notes: newProgressNote.trim()
+            note: newNote.trim(),
+            created_at: new Date().toISOString()
           })
-          .select()
 
         if (error) {
           console.error('Error adding progress note:', error)
           return
         }
 
-        if (data) {
-          setProgressNotes(prev => [data[0], ...prev])
-          setNewProgressNote('')
-        }
+        setNewNote('')
+        await loadProgressNotes()
       } catch (error) {
         console.error('Error adding progress note:', error)
-      } finally {
-        setSavingProgressNote(false)
       }
     }
 
+    useEffect(() => {
+      loadProgressNotes()
+    }, [])
+
     return (
-      <div className="border-t border-blue-200 bg-white p-4 space-y-4">
-        {/* Algemene notities van de leerling (alleen zichtbaar) */}
-        {student?.notes && (
-          <div>
-            <h4 className="text-sm font-medium text-gray-900 mb-2 flex items-center">
-              <User className="h-4 w-4 mr-2" />
-              Algemene notities {student.first_name}
-            </h4>
-            <div className="bg-gray-50 p-3 rounded-lg">
-              <p className="text-sm text-gray-700 whitespace-pre-wrap">
-                {student.notes}
-              </p>
-            </div>
-          </div>
-        )}
-        
-        {/* Notities van deze les (alleen zichtbaar) */}
-        {lesson.notes && (
-          <div>
-            <h4 className="text-sm font-medium text-gray-900 mb-2 flex items-center">
-              <FileText className="h-4 w-4 mr-2" />
-              Notities van deze les
-            </h4>
-            <div className="bg-blue-50 p-3 rounded-lg">
-              <p className="text-sm text-gray-700 whitespace-pre-wrap">
-                {lesson.notes}
-              </p>
-            </div>
-          </div>
-        )}
-
-        {/* Voortgangsnotities (zichtbaar en bewerkbaar) */}
-        <div>
-          <h4 className="text-sm font-medium text-gray-900 mb-2 flex items-center">
-            <FileText className="h-4 w-4 mr-2" />
-            Voortgangsnotities
-          </h4>
-          
-          {/* Add new progress note */}
-          <div className="mb-3">
-            <div className="flex gap-2">
-              <textarea
-                rows={2}
-                value={newProgressNote}
-                onChange={(e) => setNewProgressNote(e.target.value)}
-                placeholder="Voeg een voortgangsnotitie toe..."
-                className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
-              />
-              <button
-                onClick={handleAddProgressNote}
-                disabled={savingProgressNote || !newProgressNote.trim()}
-                className="bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 text-white px-3 py-2 rounded-lg text-sm font-medium"
-              >
-                {savingProgressNote ? '...' : 'Toevoegen'}
-              </button>
-            </div>
+      <div className="modal-overlay" onClick={onClose}>
+        <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+          <div className="flex justify-between items-center mb-4">
+            <h3 className="text-lg font-semibold">Les Details</h3>
+            <button onClick={onClose} className="p-2 hover:bg-gray-100 rounded">
+              <X className="h-5 w-5" />
+            </button>
           </div>
 
-          {/* Progress notes list */}
-          {loadingProgressNotes ? (
-            <div className="text-center py-2">
-              <p className="text-sm text-gray-500">Laden...</p>
+          <div className="space-y-4">
+            {/* Student Info */}
+            <div className="card">
+              <h4 className="font-semibold mb-2">{student.first_name} {student.last_name}</h4>
+              <div className="space-y-1 text-sm text-gray-600">
+                <p>{student.email}</p>
+                <p>{student.phone}</p>
+                <button
+                  onClick={() => openGoogleMaps(student.address)}
+                  className="flex items-center gap-1 text-blue-600 hover:text-blue-700"
+                >
+                  <ExternalLink className="h-3 w-3" />
+                  {student.address}
+                </button>
+              </div>
             </div>
-          ) : progressNotes.length === 0 ? (
-            <div className="text-center py-2">
-              <p className="text-sm text-gray-500">Nog geen voortgangsnotities</p>
+
+            {/* Lesson Info */}
+            <div className="card">
+              <h4 className="font-semibold mb-2">Les Informatie</h4>
+              <div className="space-y-1 text-sm">
+                <p><strong>Datum:</strong> {new Date(lesson.date).toLocaleDateString('nl-NL')}</p>
+                <p><strong>Tijd:</strong> {lesson.start_time} - {lesson.end_time}</p>
+                <p><strong>Type:</strong> {lesson.lesson_type || 'Praktijkles'}</p>
+                <p><strong>Status:</strong> {lesson.status || 'Gepland'}</p>
+              </div>
             </div>
-          ) : (
-            <div className="space-y-2">
-              {progressNotes.slice(0, 3).map((note) => (
-                <div key={note.id} className="bg-green-50 p-3 rounded-lg">
-                  <div className="flex justify-between items-start mb-1">
-                    <span className="text-xs text-gray-500">
-                      {new Date(note.date).toLocaleDateString('nl-NL')}
-                    </span>
+
+            {/* Progress Notes */}
+            <div className="card">
+              <h4 className="font-semibold mb-2">Voortgang</h4>
+              {loadingNotes ? (
+                <p className="text-gray-500">Laden...</p>
+              ) : (
+                <div className="space-y-3">
+                  {progressNotes.map((note, index) => (
+                    <div key={index} className="p-3 bg-gray-50 rounded-lg">
+                      <p className="text-sm">{note.note}</p>
+                      <p className="text-xs text-gray-500 mt-1">
+                        {new Date(note.created_at).toLocaleString('nl-NL')}
+                      </p>
+                    </div>
+                  ))}
+                  
+                  <div className="space-y-2">
+                    <textarea
+                      value={newNote}
+                      onChange={(e) => setNewNote(e.target.value)}
+                      placeholder="Voeg een notitie toe..."
+                      className="w-full p-2 border border-gray-300 rounded-lg resize-none"
+                      rows={3}
+                    />
+                    <button
+                      onClick={handleAddProgressNote}
+                      disabled={!newNote.trim()}
+                      className="btn btn-primary w-full"
+                    >
+                      Notitie toevoegen
+                    </button>
                   </div>
-                  <p className="text-gray-900 whitespace-pre-wrap text-sm">{note.notes}</p>
                 </div>
-              ))}
-              {progressNotes.length > 3 && (
-                <p className="text-xs text-gray-500 text-center">
-                  En nog {progressNotes.length - 3} meer voortgangsnotities
-                </p>
               )}
             </div>
-          )}
-        </div>
-        
-        {/* Als er geen notities zijn */}
-        {!student?.notes && !lesson.notes && progressNotes.length === 0 && (
-          <div className="text-center py-4">
-            <p className="text-sm text-gray-500">
-              Geen notities beschikbaar voor deze les
-            </p>
           </div>
-        )}
+        </div>
       </div>
     )
   }
 
-  return (
-    <>
-    <div className="bg-white rounded-lg shadow-sm">
-    <div className="p-6 border-b border-gray-200">
-      <div className="flex items-center justify-between">
-        <div className="flex items-center space-x-4">
-          <button
-            onClick={goToPreviousDay}
-            className="p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors"
-            title="Vorige dag"
-          >
-            <ChevronLeft className="h-5 w-5" />
-          </button>
-          <h2 className="text-lg font-semibold text-gray-900">
-            {selectedDate.toLocaleDateString('nl-NL', { weekday: 'long' }).charAt(0).toUpperCase() + selectedDate.toLocaleDateString('nl-NL', { weekday: 'long' }).slice(1)} {selectedDate.toLocaleDateString('nl-NL', { day: '2-digit', month: '2-digit' })}
-          </h2>
-          <button
-            onClick={goToNextDay}
-            className="p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors"
-            title="Volgende dag"
-          >
-            <ChevronRight className="h-5 w-5" />
-          </button>
-        </div>
-        <button
-          onClick={goToToday}
-          className="px-3 py-1 text-sm bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-        >
-          Vandaag
-        </button>
-      </div>
-    </div>
-    <div className="p-6">
-      {(() => {
-        const selectedDateString = selectedDate.toISOString().split('T')[0]
-        const selectedDateLessons = lessons.filter(lesson => lesson.date === selectedDateString)
-        const isToday = selectedDate.toDateString() === new Date().toDateString()
-        
-        if (selectedDateLessons.length === 0) {
-          return (
-            <div className="text-center py-10">
-              <Calendar className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-              <p className="text-gray-500">
-                {isToday 
-                  ? 'Nog geen lessen gepland voor vandaag'
-                  : `Nog geen lessen gepland voor ${selectedDate.toLocaleDateString('nl-NL', { weekday: 'long', day: '2-digit', month: '2-digit' })}`
-                }
-              </p>
-              <p className="text-sm text-gray-400 mt-1">Plan je eerste les om te beginnen</p>
-            </div>
-          )
-        } else {
-          return (
-            <div className="space-y-4">
-              <div className="flex items-center justify-between">
-                <h3 className="text-lg font-medium text-gray-900">
-                  {selectedDateLessons.length} {selectedDateLessons.length === 1 ? 'les' : 'lessen'} {isToday ? 'vandaag' : 'op deze dag'}
-                </h3>
-                <Link
-                  href="/dashboard/week-overview"
-                  className="text-blue-600 hover:text-blue-700 text-sm font-medium"
-                >
-                  Bekijk alle lessen →
-                </Link>
-              </div>
-              <div className="space-y-3">
-                {selectedDateLessons.slice(0, 3).map((lesson, index) => {
-                  const student = lesson.students || students.find(s => s.id === lesson.student_id)
-                  const isExpanded = expandedLessons.has(lesson.id)
-                  
-                  return (
-                    <div key={index} className="bg-blue-50 rounded-lg overflow-hidden">
-                      {/* Ingeklapte versie */}
-                      <div 
-                        className="flex items-center justify-between p-3 cursor-pointer hover:bg-blue-100 transition-colors"
-                        onClick={() => toggleLessonExpansion(lesson.id)}
-                      >
-                        <div className="flex items-center space-x-3">
-                          <Clock className="h-4 w-4 text-blue-600" />
-                          <span className="text-sm font-medium text-gray-900">
-                            {lesson.start_time.substring(0, 5)} - {lesson.end_time.substring(0, 5)}
-                          </span>
-                        </div>
-                        <div className="flex items-center space-x-3">
-                          <Link
-                            href={`/dashboard/students/${student?.id}`}
-                            className="text-sm text-gray-600 underline hover:text-gray-900 transition-colors"
-                          >
-                            {student?.first_name || 'Onbekende leerling'}
-                          </Link>
-                          <button
-                            onClick={(e) => {
-                              e.stopPropagation()
-                              openGoogleMaps(student?.address || '')
-                            }}
-                            className="flex items-center gap-1 bg-green-600 text-white px-2 py-1 rounded text-xs hover:bg-green-700 transition-colors"
-                            title="Open in Google Maps"
-                          >
-                            <ExternalLink className="h-3 w-3" />
-                            Maps
-                          </button>
-                          <div className="p-1 text-gray-400">
-                            {isExpanded ? (
-                              <ChevronUp className="h-4 w-4" />
-                            ) : (
-                              <ChevronDown className="h-4 w-4" />
-                            )}
-                          </div>
-                        </div>
-                      </div>
-                      
-                      {/* Uitgeklapte versie */}
-                      {isExpanded && (
-                        <ExpandedLessonView 
-                          lesson={lesson} 
-                          student={student} 
-                          onClose={() => toggleLessonExpansion(lesson.id)}
-                        />
-                      )}
-                    </div>
-                  )
-                })}
-                {selectedDateLessons.length > 3 && (
-                  <div className="text-center">
-                    <p className="text-sm text-gray-500">
-                      En nog {selectedDateLessons.length - 3} {selectedDateLessons.length - 3 === 1 ? 'les' : 'lessen'} meer
-                    </p>
-                  </div>
-                )}
-              </div>
-            </div>
-          )
-        }
-      })()}
-    </div>
-  </div>
+  useEffect(() => {
+    if (user) {
+      fetchStudents()
+      fetchLessons()
+    }
+  }, [user])
 
-  {/* Week Overview */}
-  <div className="bg-white rounded-lg shadow-sm mt-6">
-    <div className="p-6 border-b border-gray-200">
-      <div className="flex items-center justify-between">
-        <h2 className="text-lg font-semibold text-gray-900">Weekoverzicht</h2>
-        <Link
-          href="/dashboard/week-overview"
-          className="flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors"
-        >
-          <Calendar className="h-4 w-4" />
-          Naar weekoverzicht
-        </Link>
+  const todayLessons = lessons.filter(lesson => 
+    lesson.date === selectedDate.toISOString().split('T')[0]
+  )
+
+  return (
+    <div className="space-y-6">
+      {/* Quick Stats */}
+      <div className="mobile-grid md:grid-cols-3 gap-4">
+        <div className="card text-center">
+          <Users className="h-8 w-8 text-blue-600 mx-auto mb-2" />
+          <div className="text-2xl font-bold text-gray-900">{students.length}</div>
+          <div className="text-sm text-gray-600">Leerlingen</div>
+        </div>
+        <div className="card text-center">
+          <Calendar className="h-8 w-8 text-green-600 mx-auto mb-2" />
+          <div className="text-2xl font-bold text-gray-900">{lessons.length}</div>
+          <div className="text-sm text-gray-600">Geplande lessen</div>
+        </div>
+        <div className="card text-center">
+          <Clock className="h-8 w-8 text-purple-600 mx-auto mb-2" />
+          <div className="text-2xl font-bold text-gray-900">{todayLessons.length}</div>
+          <div className="text-sm text-gray-600">Vandaag</div>
+        </div>
       </div>
-    </div>
-    <div className="p-6">
-      <div className="grid grid-cols-7 gap-4">
+
+      {/* Quick Actions */}
+      <div className="card">
+        <h3 className="text-lg font-semibold mb-4">Snelle Acties</h3>
+        <div className="mobile-grid md:grid-cols-2 gap-4">
+          <Link
+            href="/dashboard/students/new"
+            className="btn btn-primary flex items-center justify-center gap-2"
+          >
+            <Plus className="h-4 w-4" />
+            Nieuwe leerling
+          </Link>
+          <Link
+            href="/dashboard/lessons"
+            className="btn btn-secondary flex items-center justify-center gap-2"
+          >
+            <Calendar className="h-4 w-4" />
+            Les plannen
+          </Link>
+        </div>
+      </div>
+
+      {/* Today's Lessons */}
+      <div className="card">
+        <div className="flex justify-between items-center mb-4">
+          <h3 className="text-lg font-semibold">Lessen vandaag</h3>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={goToPreviousDay}
+              className="p-2 hover:bg-gray-100 rounded"
+            >
+              <ChevronLeft className="h-4 w-4" />
+            </button>
+            <button
+              onClick={goToToday}
+              className="text-sm text-blue-600 hover:text-blue-700"
+            >
+              Vandaag
+            </button>
+            <button
+              onClick={goToNextDay}
+              className="p-2 hover:bg-gray-100 rounded"
+            >
+              <ChevronRight className="h-4 w-4" />
+            </button>
+          </div>
+        </div>
+
+        <div className="text-sm text-gray-600 mb-4">
+          {selectedDate.toLocaleDateString('nl-NL', { 
+            weekday: 'long', 
+            year: 'numeric', 
+            month: 'long', 
+            day: 'numeric' 
+          })}
+        </div>
+
         {loadingLessons ? (
-          // Loading state
-          Array.from({ length: 7 }).map((_, index) => (
-            <div key={index} className="text-center">
-              <div className="p-4 rounded-lg border-2 border-gray-200 bg-gray-50">
-                <div className="animate-pulse">
-                  <div className="h-4 bg-gray-300 rounded mb-2"></div>
-                  <div className="h-3 bg-gray-300 rounded mb-2"></div>
-                  <div className="w-8 h-8 bg-gray-300 rounded-full mx-auto"></div>
-                </div>
-              </div>
-            </div>
-          ))
+          <div className="text-center py-8">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
+            <p className="mt-2 text-gray-600">Lessen laden...</p>
+          </div>
+        ) : todayLessons.length === 0 ? (
+          <div className="text-center py-8 text-gray-500">
+            <Calendar className="h-12 w-12 mx-auto mb-2 text-gray-300" />
+            <p>Geen lessen gepland voor vandaag</p>
+          </div>
         ) : (
-          getWeekDays().map((day, index) => (
-            <div key={index} className="text-center">
-              <div className={`p-4 rounded-lg border-2 ${
-                day.isToday 
-                  ? 'border-blue-500 bg-blue-50' 
-                  : 'border-gray-200 bg-gray-50'
-              }`}>
-                <p className={`text-sm font-medium ${
-                  day.isToday ? 'text-blue-700' : 'text-gray-600'
-                }`}>
-                  {day.name}
-                </p>
-                <p className={`text-xs ${
-                  day.isToday ? 'text-blue-600' : 'text-gray-500'
-                }`}>
-                  {day.date}
-                </p>
-                <div className="mt-2">
-                  <span className={`inline-flex items-center justify-center w-8 h-8 rounded-full text-sm font-bold ${
-                    day.lessons > 0 
-                      ? 'bg-blue-100 text-blue-700' 
-                      : 'bg-gray-100 text-gray-400'
-                  }`}>
-                    {day.lessons}
-                  </span>
+          <div className="space-y-3">
+            {todayLessons.map((lesson) => {
+              const student = lesson.students
+              return (
+                <div key={lesson.id} className="border border-gray-200 rounded-lg p-4">
+                  <div className="flex justify-between items-start">
+                    <div className="flex-1">
+                      <h4 className="font-semibold">{student.first_name} {student.last_name}</h4>
+                      <p className="text-sm text-gray-600">
+                        {lesson.start_time} - {lesson.end_time}
+                      </p>
+                      <p className="text-sm text-gray-600">
+                        {lesson.lesson_type || 'Praktijkles'}
+                      </p>
+                    </div>
+                    <button
+                      onClick={() => toggleLessonExpansion(lesson.id)}
+                      className="p-2 hover:bg-gray-100 rounded"
+                    >
+                      {expandedLessons.has(lesson.id) ? (
+                        <ChevronUp className="h-4 w-4" />
+                      ) : (
+                        <ChevronDown className="h-4 w-4" />
+                      )}
+                    </button>
+                  </div>
+                  
+                  {expandedLessons.has(lesson.id) && (
+                    <div className="mt-4 pt-4 border-t border-gray-200">
+                      <div className="space-y-2">
+                        <button
+                          onClick={() => openGoogleMaps(student.address)}
+                          className="flex items-center gap-2 text-blue-600 hover:text-blue-700 text-sm"
+                        >
+                          <ExternalLink className="h-3 w-3" />
+                          {student.address}
+                        </button>
+                        <p className="text-sm text-gray-600">{student.phone}</p>
+                        <p className="text-sm text-gray-600">{student.email}</p>
+                      </div>
+                    </div>
+                  )}
                 </div>
-              </div>
-            </div>
-          ))
+              )
+            })}
+          </div>
+        )}
+      </div>
+
+      {/* Recent Students */}
+      <div className="card">
+        <div className="flex justify-between items-center mb-4">
+          <h3 className="text-lg font-semibold">Recente leerlingen</h3>
+          <Link href="/dashboard/students" className="text-blue-600 hover:text-blue-700 text-sm">
+            Bekijk alle
+          </Link>
+        </div>
+
+        {loadingStudents ? (
+          <div className="text-center py-8">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
+            <p className="mt-2 text-gray-600">Leerlingen laden...</p>
+          </div>
+        ) : students.length === 0 ? (
+          <div className="text-center py-8 text-gray-500">
+            <Users className="h-12 w-12 mx-auto mb-2 text-gray-300" />
+            <p>Nog geen leerlingen toegevoegd</p>
+            <Link href="/dashboard/students/new" className="btn btn-primary mt-4">
+              Eerste leerling toevoegen
+            </Link>
+          </div>
+        ) : (
+          <div className="space-y-3">
+            {students.slice(0, 5).map((student) => (
+              <Link
+                key={student.id}
+                href={`/dashboard/students/${student.id}`}
+                className="flex items-center justify-between p-3 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
+              >
+                <div>
+                  <h4 className="font-medium">{student.first_name} {student.last_name}</h4>
+                  <p className="text-sm text-gray-600">{student.email}</p>
+                </div>
+                <ChevronRight className="h-4 w-4 text-gray-400" />
+              </Link>
+            ))}
+          </div>
         )}
       </div>
     </div>
-  </div>
-
-          <div className="space-y-8 mt-8">
-        {/* Leerlingen overzicht */}
-        <div className="bg-white rounded-lg shadow-sm">
-          <div className="p-6 border-b border-gray-200">
-            <div className="flex items-center justify-between">
-              <h2 className="text-lg font-semibold text-gray-900">Leerlingen overzicht</h2>
-              <Link
-                href="/dashboard/students"
-                className="flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors"
-              >
-                <Users className="h-4 w-4" />
-                Leerlingen beheren
-              </Link>
-            </div>
-          </div>
-          <div className="p-6">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              <div className="flex items-center p-4 border border-gray-200 rounded-lg">
-                <Users className="h-8 w-8 text-blue-600" />
-                <div className="ml-4">
-                  <p className="text-sm font-medium text-gray-600">Totaal leerlingen</p>
-                  <p className="text-2xl font-bold text-gray-900">{students.length}</p>
-                </div>
-              </div>
-              <div className="flex items-center p-4 border border-gray-200 rounded-lg">
-                <MessageSquare className="h-8 w-8 text-green-600" />
-                <div className="ml-4">
-                  <p className="text-sm font-medium text-gray-600">Nieuwe chats</p>
-                  <p className="text-2xl font-bold text-gray-900">0</p>
-                </div>
-              </div>
-              <div className="flex items-center p-4 border border-gray-200 rounded-lg">
-                <Calendar className="h-8 w-8 text-orange-600" />
-                <div className="ml-4">
-                  <p className="text-sm font-medium text-gray-600">Actieve leerlingen</p>
-                  <p className="text-2xl font-bold text-gray-900">
-                    {(() => {
-                      const activeStudentIds = new Set(lessons.map(lesson => lesson.student_id))
-                      return activeStudentIds.size
-                    })()}
-                  </p>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Quick Stats */}
-      {/* <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-        <div className="bg-white p-6 rounded-lg shadow-sm">
-          <div className="flex items-center">
-            <Users className="h-8 w-8 text-blue-600" />
-            <div className="ml-4">
-              <p className="text-sm font-medium text-gray-600">Actieve leerlingen</p>
-              <p className="text-2xl font-bold text-gray-900">0</p>
-            </div>
-          </div>
-        </div>
-        <div className="bg-white p-6 rounded-lg shadow-sm">
-          <div className="flex items-center">
-            <Calendar className="h-8 w-8 text-green-600" />
-            <div className="ml-4">
-              <p className="text-sm font-medium text-gray-600">Lessen vandaag</p>
-              <p className="text-2xl font-bold text-gray-900">0</p>
-            </div>
-          </div>
-        </div>
-        <div className="bg-white p-6 rounded-lg shadow-sm">
-          <div className="flex items-center">
-            <Clock className="h-8 w-8 text-orange-600" />
-            <div className="ml-4">
-              <p className="text-sm font-medium text-gray-600">Uren deze week</p>
-              <p className="text-2xl font-bold text-gray-900">0</p>
-            </div>
-          </div>
-        </div>
-        <div className="bg-white p-6 rounded-lg shadow-sm">
-          <div className="flex items-center">
-            <FileText className="h-8 w-8 text-purple-600" />
-            <div className="ml-4">
-              <p className="text-sm font-medium text-gray-600">Openstaande facturen</p>
-              <p className="text-2xl font-bold text-gray-900">0</p>
-            </div>
-          </div>
-        </div>
-      </div> */}
-
-      {/* Beheer rijschool */}
-      {/* <div className="bg-white rounded-lg shadow-sm">
-        <div className="p-6 border-b border-gray-200">
-          <h2 className="text-lg font-semibold text-gray-900">Beheer rijschool</h2>
-        </div>
-        <div className="p-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-            <Link
-              href="/dashboard/students/new"
-              className="flex items-center p-4 border border-gray-200 rounded-lg hover:border-blue-300 hover:bg-blue-50 transition-colors"
-            >
-              <Plus className="h-6 w-6 text-blue-600" />
-              <div className="ml-3">
-                <p className="font-medium text-gray-900">Nieuwe leerling</p>
-                <p className="text-sm text-gray-600">Voeg leerling toe</p>
-              </div>
-              <ChevronRight className="h-4 w-4 text-gray-400 ml-auto" />
-            </Link>
-            <Link
-              href="/dashboard/lessons/new"
-              className="flex items-center p-4 border border-gray-200 rounded-lg hover:border-blue-300 hover:bg-blue-50 transition-colors"
-            >
-              <Calendar className="h-6 w-6 text-green-600" />
-              <div className="ml-3">
-                <p className="font-medium text-gray-900">Les plannen</p>
-                <p className="text-sm text-gray-600">Nieuwe afspraak</p>
-              </div>
-              <ChevronRight className="h-4 w-4 text-gray-400 ml-auto" />
-            </Link>
-            <Link
-              href="/dashboard/invoices"
-              className="flex items-center p-4 border border-gray-200 rounded-lg hover:border-blue-300 hover:bg-blue-50 transition-colors"
-            >
-              <FileText className="h-6 w-6 text-purple-600" />
-              <div className="ml-3">
-                <p className="font-medium text-gray-900">Facturen</p>
-                <p className="text-sm text-gray-600">Beheer facturatie</p>
-              </div>
-              <ChevronRight className="h-4 w-4 text-gray-400 ml-auto" />
-            </Link>
-            <Link
-              href="/dashboard/settings"
-              className="flex items-center p-4 border border-gray-200 rounded-lg hover:border-blue-300 hover:bg-blue-50 transition-colors"
-            >
-              <Settings className="h-6 w-6 text-gray-600" />
-              <div className="ml-3">
-                <p className="font-medium text-gray-900">Instellingen</p>
-                <p className="text-sm text-gray-600">Rijschool profiel</p>
-              </div>
-              <ChevronRight className="h-4 w-4 text-gray-400 ml-auto" />
-            </Link>
-          </div>
-        </div>
-      </div> */}
-    </div>
-    </>
   )
 }
 
@@ -1095,32 +921,12 @@ function StudentDashboard() {
   }
 
   return (
-    <div className="bg-white rounded-lg shadow-sm">
-      <div className="p-6 border-b border-gray-200">
-        <h2 className="text-lg font-semibold text-gray-900">Beschikbaarheid komende weken</h2>
-        <p className="text-sm text-gray-600 mt-1">Vul hieronder je beschikbaarheid per week in</p>
-      </div>
-      <div className="p-6 space-y-6">
-        {loading ? (
-          <div className="text-center text-gray-500">Laden...</div>
-        ) : weeks.map((week, idx) => (
-          <div key={idx} className="flex flex-col md:flex-row md:items-center md:gap-6 border border-gray-200 rounded-lg p-4 bg-gray-50">
-            <div className="w-full md:w-1/3 mb-2 md:mb-0 font-medium text-gray-800">
-              Week {idx + 1}: {formatWeekRange(week.start, week.end)}
-            </div>
-            <div className="flex-1">
-              <textarea
-                className="w-full min-h-[48px] border border-gray-300 rounded-lg p-2 text-sm bg-white"
-                placeholder="Beschikbaarheid voor deze week..."
-                value={notes[idx]}
-                onChange={e => setNotes(prev => { const newArr = [...prev]; newArr[idx] = e.target.value; return newArr })}
-                onBlur={() => handleNoteSave(idx)}
-                disabled={savingIdx === idx}
-              />
-              {savingIdx === idx && <div className="text-xs text-blue-500 mt-1">Opslaan...</div>}
-            </div>
-          </div>
-        ))}
+    <div className="space-y-6">
+      <div className="card">
+        <h3 className="text-lg font-semibold mb-4">Student Dashboard</h3>
+        <p className="text-gray-600">
+          Student functionaliteit wordt binnenkort toegevoegd.
+        </p>
       </div>
     </div>
   )

@@ -8,7 +8,8 @@ import {
   Settings,
   ArrowLeft,
   Save,
-  Check
+  Check,
+  Clock
 } from 'lucide-react'
 import Link from 'next/link'
 import { supabase } from '@/lib/supabase'
@@ -37,6 +38,7 @@ export default function ScheduleSettingsPage() {
   ])
   const [saved, setSaved] = useState(false)
   const [loadingAvailability, setLoadingAvailability] = useState(true)
+  const [saving, setSaving] = useState(false)
 
   // Map day names to day numbers (0-6, Sunday-Saturday)
   const dayToNumber = {
@@ -193,6 +195,7 @@ export default function ScheduleSettingsPage() {
     if (!user) return
     
     try {
+      setSaving(true)
       // Convert UI format to database format
       const availabilityData = availability.map(day => ({
         instructor_id: user.id,
@@ -202,35 +205,29 @@ export default function ScheduleSettingsPage() {
         end_time: day.endTime
       }))
 
-      // Delete existing availability for this instructor
-      const { error: deleteError } = await supabase
+      const { error } = await supabase
         .from('instructor_availability')
-        .delete()
-        .eq('instructor_id', user.id)
+        .upsert(availabilityData, { 
+          onConflict: 'instructor_id,day_of_week',
+          ignoreDuplicates: false 
+        })
 
-      if (deleteError) {
-        console.error('Error deleting existing availability:', deleteError)
-        toast.error('Fout bij het opslaan van beschikbaarheid')
+      if (error) {
+        console.error('Error saving availability:', error)
+        toast.error('Fout bij het opslaan van de beschikbaarheid')
         return
       }
 
-      // Insert new availability
-      const { error: insertError } = await supabase
-        .from('instructor_availability')
-        .insert(availabilityData)
-
-      if (insertError) {
-        console.error('Error inserting availability:', insertError)
-        toast.error('Fout bij het opslaan van beschikbaarheid')
-        return
-      }
-
-      setSaved(true)
       toast.success('Beschikbaarheid succesvol opgeslagen!')
-      setTimeout(() => setSaved(false), 2000)
+      setSaved(true)
+      
+      // Reset saved state after 3 seconds
+      setTimeout(() => setSaved(false), 3000)
     } catch (error) {
       console.error('Error saving availability:', error)
-      toast.error('Fout bij het opslaan van beschikbaarheid')
+      toast.error('Fout bij het opslaan van de beschikbaarheid')
+    } finally {
+      setSaving(false)
     }
   }
 
@@ -238,9 +235,19 @@ export default function ScheduleSettingsPage() {
     return availability.filter(day => day.available).length
   }
 
-  if (loading || loadingAvailability) {
+  const getTotalHours = () => {
+    return availability
+      .filter(day => day.available)
+      .reduce((total, day) => {
+        const start = parseInt(day.startTime.split(':')[0])
+        const end = parseInt(day.endTime.split(':')[0])
+        return total + (end - start)
+      }, 0)
+  }
+
+  if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center safe-area-top">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
           <p className="mt-4 text-gray-600">Laden...</p>
@@ -254,116 +261,104 @@ export default function ScheduleSettingsPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Navigation */}
-      <nav className="bg-white shadow-sm border-b">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen bg-gray-50 pb-20">
+      {/* Mobile Navigation */}
+      <nav className="bg-white shadow-sm border-b safe-area-top">
+        <div className="container-mobile">
           <div className="flex justify-between items-center h-16">
             <div className="flex items-center">
-              <Link href="/dashboard/week-overview" className="flex items-center text-gray-600 hover:text-gray-900">
-                <ArrowLeft className="h-5 w-5 mr-2" />
-                Terug naar Weekoverzicht
+              <Link href="/dashboard" className="text-gray-600 hover:text-gray-900 flex items-center gap-2">
+                <ArrowLeft className="h-4 w-4" />
+                <span className="hidden sm:inline">Terug naar dashboard</span>
               </Link>
             </div>
             <div className="flex items-center">
               <Settings className="h-8 w-8 text-blue-600" />
-              <span className="ml-2 text-xl font-bold text-gray-900">Rooster Instellingen</span>
+              <span className="ml-2 text-xl font-bold text-gray-900">Instellingen</span>
             </div>
           </div>
         </div>
       </nav>
 
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div className="container-mobile py-6">
         {/* Header */}
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">Beschikbaarheid instellen</h1>
+        <div className="mb-6">
+          <h1 className="text-2xl md:text-3xl font-bold text-gray-900 mb-2">
+            Planning Instellingen
+          </h1>
           <p className="text-gray-600">
-            Geef aan op welke dagen je beschikbaar bent voor rijlessen. Dagen waarop je niet beschikbaar bent worden grijs weergegeven in het weekoverzicht.
+            Configureer je beschikbare tijden voor lesplanning
           </p>
         </div>
 
-        {/* Availability Settings */}
-        <div className="bg-white rounded-lg shadow-sm">
-          <div className="p-6 border-b border-gray-200">
-            <h2 className="text-lg font-semibold text-gray-900">Dagelijkse beschikbaarheid</h2>
-            <p className="text-sm text-gray-600 mt-1">
-              Vink de dagen aan waarop je beschikbaar bent voor rijlessen
-            </p>
+        {/* Stats */}
+        <div className="mobile-grid md:grid-cols-2 gap-4 mb-6">
+          <div className="card text-center">
+            <Calendar className="h-8 w-8 text-blue-600 mx-auto mb-2" />
+            <div className="text-2xl font-bold text-gray-900">{getAvailableDaysCount()}</div>
+            <div className="text-sm text-gray-600">Beschikbare dagen</div>
           </div>
+          <div className="card text-center">
+            <Clock className="h-8 w-8 text-green-600 mx-auto mb-2" />
+            <div className="text-2xl font-bold text-gray-900">{getTotalHours()}</div>
+            <div className="text-sm text-gray-600">Uren per week</div>
+          </div>
+        </div>
+
+        {/* Availability Settings */}
+        <div className="card mb-6">
+          <h3 className="text-lg font-semibold mb-4">Dagelijkse beschikbaarheid</h3>
           
-          <div className="p-6">
+          {loadingAvailability ? (
+            <div className="text-center py-8">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
+              <p className="mt-4 text-gray-600">Beschikbaarheid laden...</p>
+            </div>
+          ) : (
             <div className="space-y-4">
               {availability.map((day) => (
-                <div 
-                  key={day.day}
-                  className="p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
-                >
+                <div key={day.day} className="border border-gray-200 rounded-lg p-4">
                   <div className="flex items-center justify-between mb-4">
-                    <div className="flex items-center">
-                      <div className={`w-4 h-4 rounded-full mr-4 ${
-                        day.available ? 'bg-blue-600' : 'bg-gray-300'
-                      }`}>
-                        {day.available && (
-                          <Check className="w-4 h-4 text-white" />
-                        )}
-                      </div>
-                      <span className="text-lg font-medium text-gray-900">{day.name}</span>
+                    <div className="flex items-center gap-3">
+                      <input
+                        type="checkbox"
+                        checked={day.available}
+                        onChange={() => toggleDayAvailability(day.day)}
+                        className="w-4 h-4 text-blue-600 rounded focus:ring-blue-500"
+                      />
+                      <span className="font-medium text-gray-900">{day.name}</span>
                     </div>
-                    
-                    <button
-                      onClick={() => toggleDayAvailability(day.day)}
-                      className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-                        day.available
-                          ? 'bg-blue-100 text-blue-700 hover:bg-blue-200'
-                          : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-                      }`}
-                    >
+                    <div className={`px-2 py-1 text-xs font-medium rounded-full ${
+                      day.available 
+                        ? 'bg-green-100 text-green-800' 
+                        : 'bg-gray-100 text-gray-600'
+                    }`}>
                       {day.available ? 'Beschikbaar' : 'Niet beschikbaar'}
-                    </button>
+                    </div>
                   </div>
                   
                   {day.available && (
-                    <div className="grid grid-cols-2 gap-4">
+                    <div className="mobile-grid md:grid-cols-2 gap-4">
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
                           Starttijd
                         </label>
                         <input
                           type="time"
                           value={day.startTime}
-                          onChange={(e) => {
-                            // Directly use the input value without any conversion
-                            // This prevents automatic 12-hour to 24-hour conversion
-                            updateDayTime(day.day, 'startTime', e.target.value)
-                          }}
-                          className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                          step="900"
-                          min="00:00"
-                          max="23:59"
-                          data-format="24h"
-                          pattern="[0-9]{2}:[0-9]{2}"
-                          placeholder="HH:MM"
+                          onChange={(e) => updateDayTime(day.day, 'startTime', e.target.value)}
+                          className="w-full px-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                         />
                       </div>
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
                           Eindtijd
                         </label>
                         <input
                           type="time"
                           value={day.endTime}
-                          onChange={(e) => {
-                            // Directly use the input value without any conversion
-                            // This prevents automatic 12-hour to 24-hour conversion
-                            updateDayTime(day.day, 'endTime', e.target.value)
-                          }}
-                          className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                          step="900"
-                          min="00:00"
-                          max="23:59"
-                          data-format="24h"
-                          pattern="[0-9]{2}:[0-9]{2}"
-                          placeholder="HH:MM"
+                          onChange={(e) => updateDayTime(day.day, 'endTime', e.target.value)}
+                          className="w-full px-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                         />
                       </div>
                     </div>
@@ -371,69 +366,33 @@ export default function ScheduleSettingsPage() {
                 </div>
               ))}
             </div>
-
-            {/* Summary */}
-            <div className="mt-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-blue-900">
-                    Samenvatting
-                  </p>
-                  <p className="text-sm text-blue-700">
-                    Je bent beschikbaar op {getAvailableDaysCount()} van de 7 dagen per week
-                  </p>
-                </div>
-                <div className="text-right">
-                  <p className="text-2xl font-bold text-blue-900">
-                    {getAvailableDaysCount()}/7
-                  </p>
-                  <p className="text-xs text-blue-600">dagen beschikbaar</p>
-                </div>
-              </div>
-            </div>
-
-            {/* Save Button */}
-            <div className="mt-6 flex justify-end">
-              <button
-                onClick={saveAvailability}
-                className={`flex items-center gap-2 px-6 py-3 rounded-lg font-medium transition-colors ${
-                  saved
-                    ? 'bg-green-600 text-white'
-                    : 'bg-blue-600 text-white hover:bg-blue-700'
-                }`}
-              >
-                {saved ? (
-                  <>
-                    <Check className="h-4 w-4" />
-                    Opgeslagen!
-                  </>
-                ) : (
-                  <>
-                    <Save className="h-4 w-4" />
-                    Instellingen opslaan
-                  </>
-                )}
-              </button>
-            </div>
-          </div>
+          )}
         </div>
 
-        {/* Information */}
-        <div className="mt-6 bg-white rounded-lg shadow-sm">
-          <div className="p-6">
-            <h3 className="text-lg font-semibold text-gray-900 mb-3">Hoe werkt dit?</h3>
-            <div className="space-y-3 text-sm text-gray-600">
-              <p>
-                • <strong>Beschikbare dagen:</strong> Op deze dagen kun je rijlessen plannen en worden ze normaal weergegeven in het weekoverzicht.
-              </p>
-              <p>
-                • <strong>Niet beschikbare dagen:</strong> Deze dagen worden grijs weergegeven in het weekoverzicht en je kunt er geen lessen plannen.
-              </p>
-              <p>
-                • <strong>Instellingen opslaan:</strong> Je instellingen worden automatisch opgeslagen en blijven bewaard voor toekomstige sessies.
-              </p>
-            </div>
-          </div>
+        {/* Save Button */}
+        <div className="flex justify-end">
+          <button
+            onClick={saveAvailability}
+            disabled={saving}
+            className="btn btn-primary flex items-center gap-2"
+          >
+            {saving ? (
+              <>
+                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                Opslaan...
+              </>
+            ) : saved ? (
+              <>
+                <Check className="h-4 w-4" />
+                Opgeslagen!
+              </>
+            ) : (
+              <>
+                <Save className="h-4 w-4" />
+                Opslaan
+              </>
+            )}
+          </button>
         </div>
       </div>
     </div>

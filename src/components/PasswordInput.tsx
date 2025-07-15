@@ -41,7 +41,7 @@ export default function PasswordInput({
         required={required}
         value={value}
         onChange={onChange}
-        className={`block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 pr-10 ${className}`}
+        className={`block w-full px-3 py-3 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 pr-12 ${className}`}
         placeholder={placeholder}
         suppressHydrationWarning={true}
       />
@@ -49,7 +49,8 @@ export default function PasswordInput({
         <button
           type="button"
           onClick={() => setShowPassword(!showPassword)}
-          className="absolute inset-y-0 right-0 pr-3 flex items-center"
+          className="absolute inset-y-0 right-0 pr-3 flex items-center justify-center w-12 h-full"
+          aria-label={showPassword ? 'Hide password' : 'Show password'}
         >
           {showPassword ? (
             <EyeOff className="h-5 w-5 text-gray-400" />

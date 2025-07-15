@@ -38,19 +38,19 @@ export default function SignUpPage() {
   // Show loading state until component is mounted
   if (!mounted) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
-        <div className="max-w-md w-full space-y-8">
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center py-12 px-4 safe-area-top safe-area-bottom">
+        <div className="w-full max-w-md space-y-8">
           <div className="text-center">
             <div className="inline-flex items-center mb-8">
               <Car className="h-8 w-8 text-blue-600" />
               <span className="ml-2 text-2xl font-bold text-gray-900">RijFlow</span>
             </div>
-            <h2 className="text-3xl font-bold text-gray-900">Account aanmaken</h2>
+            <h2 className="text-2xl md:text-3xl font-bold text-gray-900">Account aanmaken</h2>
             <p className="mt-2 text-sm text-gray-600">
               Start je gratis proefperiode van 30 dagen
             </p>
           </div>
-          <div className="bg-white rounded-lg shadow p-6 text-center">
+          <div className="card text-center">
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
             <p className="mt-4 text-gray-600">Laden...</p>
           </div>
@@ -60,14 +60,14 @@ export default function SignUpPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-md w-full space-y-8">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center py-12 px-4 safe-area-top safe-area-bottom">
+      <div className="w-full max-w-md space-y-8">
         <div className="text-center">
           <Link href="/" className="inline-flex items-center mb-8">
             <Car className="h-8 w-8 text-blue-600" />
             <span className="ml-2 text-2xl font-bold text-gray-900">RijFlow</span>
           </Link>
-          <h2 className="text-3xl font-bold text-gray-900">Account aanmaken</h2>
+          <h2 className="text-2xl md:text-3xl font-bold text-gray-900">Account aanmaken</h2>
           <p className="mt-2 text-sm text-gray-600">
             Start je gratis proefperiode van 30 dagen
           </p>
@@ -75,7 +75,7 @@ export default function SignUpPage() {
 
         <ClientOnly delay={100}>
           {emailSent ? (
-            <div className="bg-white rounded-lg shadow p-6 text-center">
+            <div className="card text-center">
               <div className="text-2xl mb-2">📧</div>
               <h3 className="text-lg font-semibold mb-2">Bevestig je e-mailadres</h3>
               <p className="text-gray-700 mb-4">
@@ -101,7 +101,7 @@ export default function SignUpPage() {
                     <button
                       type="button"
                       onClick={() => setFormData({ ...formData, role: 'instructor' })}
-                      className={`p-4 border-2 rounded-lg text-center transition-colors ${
+                      className={`p-4 border-2 rounded-lg text-center transition-colors min-h-[80px] flex flex-col items-center justify-center ${
                         formData.role === 'instructor'
                           ? 'border-blue-500 bg-blue-50 text-blue-700'
                           : 'border-gray-300 hover:border-gray-400'
@@ -113,7 +113,7 @@ export default function SignUpPage() {
                     <button
                       type="button"
                       onClick={() => setFormData({ ...formData, role: 'student' })}
-                      className={`p-4 border-2 rounded-lg text-center transition-colors ${
+                      className={`p-4 border-2 rounded-lg text-center transition-colors min-h-[80px] flex flex-col items-center justify-center ${
                         formData.role === 'student'
                           ? 'border-blue-500 bg-blue-50 text-blue-700'
                           : 'border-gray-300 hover:border-gray-400'
@@ -127,7 +127,7 @@ export default function SignUpPage() {
 
                 {/* Email */}
                 <div>
-                  <label htmlFor="email" className="block text-sm font-medium text-gray-700">
+                  <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
                     E-mailadres
                   </label>
                   <input
@@ -138,17 +138,17 @@ export default function SignUpPage() {
                     required
                     value={formData.email}
                     onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                    className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                    className="w-full px-3 py-3 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                     placeholder="jouw@email.nl"
                   />
                 </div>
 
                 {/* Password */}
                 <div>
-                  <label htmlFor="password" className="block text-sm font-medium text-gray-700">
+                  <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-2">
                     Wachtwoord
                   </label>
-                  <div className="mt-1">
+                  <div>
                     <PasswordInput
                       id="password"
                       name="password"
@@ -166,7 +166,7 @@ export default function SignUpPage() {
                 <button
                   type="submit"
                   disabled={loading}
-                  className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="btn btn-primary w-full"
                 >
                   {loading ? 'Account aanmaken...' : 'Account aanmaken'}
                 </button>

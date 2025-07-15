@@ -682,7 +682,7 @@ export default function WeekOverviewPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center safe-area-top">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
           <p className="mt-4 text-gray-600">Laden...</p>
@@ -696,7 +696,7 @@ export default function WeekOverviewPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50 pb-20">
       <style jsx>{`
         input[type="time"]::-webkit-calendar-picker-indicator {
           background: transparent;
@@ -742,93 +742,90 @@ export default function WeekOverviewPage() {
           -webkit-text-security: none;
         }
       `}</style>
-      {/* Navigation */}
-      <nav className="bg-white shadow-sm border-b">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      {/* Mobile Navigation */}
+      <nav className="bg-white shadow-sm border-b safe-area-top">
+        <div className="container-mobile">
           <div className="flex justify-between items-center h-16">
             <div className="flex items-center">
-              <Link href="/dashboard" className="flex items-center text-gray-600 hover:text-gray-900">
-                <ArrowLeft className="h-5 w-5 mr-2" />
-                Terug naar Dashboard
+              <Link href="/dashboard" className="text-gray-600 hover:text-gray-900 flex items-center gap-2">
+                <ArrowLeft className="h-4 w-4" />
+                <span className="hidden sm:inline">Terug naar dashboard</span>
               </Link>
             </div>
-            <div className="flex items-center">
-              <Calendar className="h-8 w-8 text-blue-600" />
-              <span className="ml-2 text-xl font-bold text-gray-900">Weekoverzicht</span>
+            <div className="flex items-center gap-2">
+              <button
+                onClick={handleCopyWeekClick}
+                className="p-2 text-blue-600 hover:text-blue-700 hover:bg-blue-50 rounded"
+                title="Kopieer week"
+              >
+                <Copy className="h-4 w-4" />
+              </button>
+              <button
+                onClick={() => openAddLesson()}
+                className="btn btn-primary flex items-center gap-2"
+              >
+                <Plus className="h-4 w-4" />
+                <span className="hidden sm:inline">Nieuwe les</span>
+              </button>
             </div>
           </div>
         </div>
       </nav>
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Week Navigation */}
-        <div className="bg-white rounded-lg shadow-sm mb-6">
-          <div className="p-6 border-b border-gray-200">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center space-x-4">
-                <button
-                  onClick={goToPreviousWeek}
-                  className="p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg"
-                >
-                  <ChevronLeft className="h-5 w-5" />
-                </button>
-                <h2 className="text-xl font-semibold text-gray-900">
-                  {(() => {
-                    const monday = getMonday(currentWeek);
-                    const sunday = new Date(monday);
-                    sunday.setDate(monday.getDate() + 6);
-                    
-                    return `${monday.toLocaleDateString('nl-NL', {
-                      day: '2-digit',
-                      month: 'long'
-                    })} - ${sunday.toLocaleDateString('nl-NL', {
-                      day: '2-digit',
-                      month: 'long',
-                      year: 'numeric'
-                    })}`;
-                  })()}
-                </h2>
-                <button
-                  onClick={goToNextWeek}
-                  className="p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg"
-                >
-                  <ChevronRight className="h-5 w-5" />
-                </button>
-              </div>
-              <div className="flex items-center space-x-3">
-                
-                <button
-                  onClick={() => openAddLesson()}
-                  className="flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors"
-                >
-                  <Plus className="h-4 w-4" />
-                  Les toevoegen
-                </button>
-                <button
-                  onClick={handleCopyWeekClick}
-                  className="flex items-center gap-2 bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700 transition-colors"
-                >
-                  <Copy className="h-4 w-4" />
-                  Kopieer weekplanning naar...
-                </button>
-                <Link
-                  href="/dashboard/ai-schedule"
-                  className="flex items-center gap-2 bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors"
-                >
-                  <Calendar className="h-4 w-4" />
-                  AI Rooster
-                </Link>
-                <Link
-                  href="/dashboard/schedule-settings"
-                  className="flex items-center gap-2 bg-gray-600 text-white px-4 py-2 rounded-lg hover:bg-gray-700 transition-colors"
-                >
-                  <Settings className="h-4 w-4" />
-                  Instellingen
-                </Link>
-              </div>
-            </div>
-          </div>
+      <div className="container-mobile py-6">
+        {/* Header */}
+        <div className="mb-6">
+          <h1 className="text-2xl md:text-3xl font-bold text-gray-900 mb-2">
+            Weekoverzicht
+          </h1>
+          <p className="text-gray-600">
+            Beheer je lesrooster per week
+          </p>
         </div>
+
+        {/* Week Navigation */}
+        <div className="card mb-6">
+          <div className="flex items-center justify-between mb-4">
+            <button
+              onClick={goToPreviousWeek}
+              className="p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg"
+            >
+              <ChevronLeft className="h-5 w-5" />
+            </button>
+            
+            <div className="text-center">
+              <h2 className="text-lg font-semibold text-gray-900">
+                {(() => {
+                  const monday = getMonday(currentWeek);
+                  const sunday = new Date(monday);
+                  sunday.setDate(monday.getDate() + 6);
+                  
+                  return `${monday.toLocaleDateString('nl-NL', {
+                    day: '2-digit',
+                    month: 'long'
+                  })} - ${sunday.toLocaleDateString('nl-NL', {
+                    day: '2-digit',
+                    month: 'long',
+                    year: 'numeric'
+                  })}`;
+                })()}
+              </h2>
+              <button
+                onClick={goToToday}
+                className="text-sm text-blue-600 hover:text-blue-700 mt-1"
+              >
+                Ga naar vandaag
+              </button>
+            </div>
+            
+            <button
+              onClick={goToNextWeek}
+              className="p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg"
+            >
+              <ChevronRight className="h-5 w-5" />
+            </button>
+          </div>
+
 
         {/* Week Calendar */}
         <div className="bg-white rounded-lg shadow-sm">

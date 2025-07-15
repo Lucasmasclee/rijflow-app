@@ -11,7 +11,8 @@ import {
   Clock,
   User,
   MapPin,
-  MoreVertical
+  MoreVertical,
+  ArrowLeft
 } from 'lucide-react'
 import Link from 'next/link'
 
@@ -173,7 +174,7 @@ export default function LessonsPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center safe-area-top">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
           <p className="mt-4 text-gray-600">Laden...</p>
@@ -187,257 +188,207 @@ export default function LessonsPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Navigation */}
-      <nav className="bg-white shadow-sm border-b">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen bg-gray-50 pb-20">
+      {/* Mobile Navigation */}
+      <nav className="bg-white shadow-sm border-b safe-area-top">
+        <div className="container-mobile">
           <div className="flex justify-between items-center h-16">
             <div className="flex items-center">
-              <Link href="/dashboard" className="text-gray-600 hover:text-gray-900">
-                ← Terug naar dashboard
+              <Link href="/dashboard" className="text-gray-600 hover:text-gray-900 flex items-center gap-2">
+                <ArrowLeft className="h-4 w-4" />
+                <span className="hidden sm:inline">Terug naar dashboard</span>
               </Link>
             </div>
-            <div className="flex items-center space-x-4">
-              <span className="text-sm text-gray-600">
-                {user.email}
-              </span>
+            <div className="flex items-center gap-2">
+              <Link
+                href="/dashboard/lessons/new"
+                className="btn btn-primary flex items-center gap-2"
+              >
+                <Plus className="h-4 w-4" />
+                <span className="hidden sm:inline">Nieuwe les</span>
+              </Link>
             </div>
           </div>
         </div>
       </nav>
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div className="container-mobile py-6">
         {/* Header */}
-        <div className="flex justify-between items-center mb-8">
-          <div>
-            <h1 className="text-3xl font-bold text-gray-900">Lesplanning</h1>
-            <p className="text-gray-600 mt-2">
-              Beheer je lessen en planning
-            </p>
-          </div>
-          <Link
-            href="/dashboard/lessons/new"
-            className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg flex items-center gap-2"
-          >
-            <Plus className="h-4 w-4" />
-            Nieuwe les
-          </Link>
+        <div className="mb-6">
+          <h1 className="text-2xl md:text-3xl font-bold text-gray-900 mb-2">
+            Lessen
+          </h1>
+          <p className="text-gray-600">
+            Beheer je lesrooster en planning
+          </p>
         </div>
 
-        {/* Calendar Controls */}
-        <div className="bg-white rounded-lg shadow-sm p-6 mb-6">
-          <div className="flex justify-between items-center">
-            <div className="flex items-center space-x-4">
-              <button
-                onClick={() => {
-                  const newDate = new Date(currentDate)
+        {/* View Mode Toggle */}
+        <div className="card mb-6">
+          <div className="flex rounded-lg bg-gray-100 p-1">
+            <button
+              onClick={() => setViewMode('week')}
+              className={`flex-1 py-2 px-4 rounded-md text-sm font-medium transition-colors ${
+                viewMode === 'week'
+                  ? 'bg-white text-blue-600 shadow-sm'
+                  : 'text-gray-600 hover:text-gray-900'
+              }`}
+            >
+              Week
+            </button>
+            <button
+              onClick={() => setViewMode('month')}
+              className={`flex-1 py-2 px-4 rounded-md text-sm font-medium transition-colors ${
+                viewMode === 'month'
+                  ? 'bg-white text-blue-600 shadow-sm'
+                  : 'text-gray-600 hover:text-gray-900'
+              }`}
+            >
+              Maand
+            </button>
+          </div>
+        </div>
+
+        {/* Calendar Navigation */}
+        <div className="card mb-6">
+          <div className="flex items-center justify-between mb-4">
+            <button
+              onClick={() => {
+                const newDate = new Date(currentDate)
+                if (viewMode === 'week') {
                   newDate.setDate(currentDate.getDate() - 7)
-                  setCurrentDate(newDate)
-                }}
-                className="p-2 hover:bg-gray-100 rounded-lg"
-              >
-                <ChevronLeft className="h-5 w-5" />
-              </button>
-              
-              <h2 className="text-xl font-semibold text-gray-900">
-                {currentDate.toLocaleDateString('nl-NL', { 
-                  month: 'long', 
-                  year: 'numeric' 
-                })}
-              </h2>
-              
-              <button
-                onClick={() => {
-                  const newDate = new Date(currentDate)
-                  newDate.setDate(currentDate.getDate() + 7)
-                  setCurrentDate(newDate)
-                }}
-                className="p-2 hover:bg-gray-100 rounded-lg"
-              >
-                <ChevronRight className="h-5 w-5" />
-              </button>
-            </div>
+                } else {
+                  newDate.setMonth(currentDate.getMonth() - 1)
+                }
+                setCurrentDate(newDate)
+              }}
+              className="p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg"
+            >
+              <ChevronLeft className="h-5 w-5" />
+            </button>
             
-            <div className="flex space-x-2">
-              <button
-                onClick={() => setViewMode('week')}
-                className={`px-3 py-1 rounded-lg text-sm font-medium ${
-                  viewMode === 'week'
-                    ? 'bg-blue-600 text-white'
-                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                }`}
-              >
-                Week
-              </button>
-              <button
-                onClick={() => setViewMode('month')}
-                className={`px-3 py-1 rounded-lg text-sm font-medium ${
-                  viewMode === 'month'
-                    ? 'bg-blue-600 text-white'
-                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                }`}
-              >
-                Maand
-              </button>
-            </div>
-          </div>
-        </div>
-
-        {/* Week Calendar */}
-        <div className="bg-white rounded-lg shadow-sm overflow-hidden">
-          {/* Day Headers */}
-          <div className="grid grid-cols-7 border-b border-gray-200">
-            {getWeekDays().map((day, index) => (
-              <div
-                key={index}
-                className={`p-4 text-center ${
-                  isToday(day) ? 'bg-blue-50' : ''
-                }`}
-              >
-                <div className="text-sm font-medium text-gray-900">
-                  {day.toLocaleDateString('nl-NL', { weekday: 'short' })}
-                </div>
-                <div className={`text-lg font-semibold ${
-                  isToday(day) ? 'text-blue-600' : 'text-gray-700'
-                }`}>
-                  {day.getDate()}
-                </div>
-              </div>
-            ))}
+            <h2 className="text-lg font-semibold text-gray-900">
+              {viewMode === 'week' 
+                ? `Week ${currentDate.getDate()} - ${new Date(currentDate.getTime() + 6 * 24 * 60 * 60 * 1000).getDate()} ${currentDate.toLocaleDateString('nl-NL', { month: 'long', year: 'numeric' })}`
+                : currentDate.toLocaleDateString('nl-NL', { month: 'long', year: 'numeric' })
+              }
+            </h2>
+            
+            <button
+              onClick={() => {
+                const newDate = new Date(currentDate)
+                if (viewMode === 'week') {
+                  newDate.setDate(currentDate.getDate() + 7)
+                } else {
+                  newDate.setMonth(currentDate.getMonth() + 1)
+                }
+                setCurrentDate(newDate)
+              }}
+              className="p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg"
+            >
+              <ChevronRight className="h-5 w-5" />
+            </button>
           </div>
 
-          {/* Calendar Grid */}
-          <div className="grid grid-cols-7 min-h-[600px]">
-            {getWeekDays().map((day, dayIndex) => (
-              <div
-                key={dayIndex}
-                className={`border-r border-gray-200 ${
-                  dayIndex === 6 ? 'border-r-0' : ''
-                }`}
-              >
-                <div className="p-2 space-y-2">
-                  {getLessonsForDate(day).map((lesson) => (
-                    <div
-                      key={lesson.id}
-                      className="bg-blue-50 border border-blue-200 rounded-lg p-3 cursor-pointer hover:bg-blue-100 transition-colors"
-                    >
-                      <div className="flex items-center justify-between mb-2">
-                        <div className="flex items-center text-sm text-blue-900">
-                          <Clock className="h-3 w-3 mr-1" />
-                          {formatTime(lesson.start_time)} - {formatTime(lesson.end_time)}
-                        </div>
-                        <button className="text-blue-600 hover:text-blue-800">
-                          <MoreVertical className="h-3 w-3" />
-                        </button>
+          {/* Week View */}
+          {viewMode === 'week' && (
+            <div className="space-y-4">
+              {getWeekDays().map((day) => {
+                const dayLessons = getLessonsForDate(day)
+                return (
+                  <div key={day.toISOString()} className="border-b border-gray-200 pb-4 last:border-b-0">
+                    <div className={`flex items-center justify-between mb-3 ${
+                      isToday(day) ? 'text-blue-600 font-semibold' : 'text-gray-900'
+                    }`}>
+                      <div className="flex items-center gap-3">
+                        <span className="text-sm font-medium">
+                          {formatDate(day)}
+                        </span>
+                        {isToday(day) && (
+                          <span className="px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded-full">
+                            Vandaag
+                          </span>
+                        )}
                       </div>
-                      
-                      <div className="text-sm font-medium text-blue-900 mb-1">
-                        {lesson.student_name}
-                      </div>
-                      
-                      {lesson.location && (
-                        <div className="flex items-center text-xs text-blue-700 mb-2">
-                          <MapPin className="h-3 w-3 mr-1" />
-                          {lesson.location}
-                        </div>
-                      )}
-                      
-                      <span className={`inline-block px-2 py-1 text-xs font-medium rounded-full ${getStatusColor(lesson.status)}`}>
-                        {getStatusText(lesson.status)}
+                      <span className="text-sm text-gray-500">
+                        {dayLessons.length} {dayLessons.length === 1 ? 'les' : 'lessen'}
                       </span>
                     </div>
-                  ))}
-                  
-                  {getLessonsForDate(day).length === 0 && (
-                    <div className="text-center py-8 text-gray-400">
-                      <Calendar className="h-8 w-8 mx-auto mb-2" />
-                      <p className="text-xs">Geen lessen</p>
-                    </div>
-                  )}
-                </div>
-              </div>
-            ))}
-          </div>
+                    
+                    {dayLessons.length === 0 ? (
+                      <p className="text-gray-500 text-sm py-2">Geen lessen gepland</p>
+                    ) : (
+                      <div className="space-y-2">
+                        {dayLessons.map((lesson) => (
+                          <div key={lesson.id} className="bg-gray-50 rounded-lg p-3">
+                            <div className="flex items-start justify-between">
+                              <div className="flex-1">
+                                <div className="flex items-center gap-2 mb-1">
+                                  <Clock className="h-3 w-3 text-gray-400" />
+                                  <span className="text-sm font-medium text-gray-900">
+                                    {formatTime(lesson.start_time)} - {formatTime(lesson.end_time)}
+                                  </span>
+                                </div>
+                                <div className="flex items-center gap-2 mb-1">
+                                  <User className="h-3 w-3 text-gray-400" />
+                                  <span className="text-sm text-gray-700">
+                                    {lesson.student_name}
+                                  </span>
+                                </div>
+                                {lesson.location && (
+                                  <div className="flex items-center gap-2">
+                                    <MapPin className="h-3 w-3 text-gray-400" />
+                                    <span className="text-sm text-gray-600">
+                                      {lesson.location}
+                                    </span>
+                                  </div>
+                                )}
+                              </div>
+                              <div className="flex items-center gap-2">
+                                <span className={`px-2 py-1 text-xs font-medium rounded-full ${getStatusColor(lesson.status)}`}>
+                                  {getStatusText(lesson.status)}
+                                </span>
+                                <button className="p-1 text-gray-400 hover:text-gray-600">
+                                  <MoreVertical className="h-4 w-4" />
+                                </button>
+                              </div>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                )
+              })}
+            </div>
+          )}
+
+          {/* Month View */}
+          {viewMode === 'month' && (
+            <div className="text-center py-8">
+              <p className="text-gray-500">Maandoverzicht wordt binnenkort toegevoegd</p>
+            </div>
+          )}
         </div>
 
-        {/* Quick Stats */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mt-8">
-          <div className="bg-white p-6 rounded-lg shadow-sm">
-            <div className="flex items-center">
-              <Calendar className="h-8 w-8 text-blue-600" />
-              <div className="ml-4">
-                <p className="text-sm font-medium text-gray-600">Lessen deze week</p>
-                <p className="text-2xl font-bold text-gray-900">
-                  {lessons.filter(l => {
-                    const lessonDate = new Date(l.date)
-                    const weekStart = new Date(currentDate)
-                    // Calculate offset to get to Monday (Monday = 1, so if currentDay is 0 (Sunday), we need -6, otherwise 1 - currentDay)
-                    const currentDay = currentDate.getDay()
-                    const mondayOffset = currentDay === 0 ? -6 : 1 - currentDay
-                    weekStart.setDate(currentDate.getDate() + mondayOffset)
-                    const weekEnd = new Date(weekStart)
-                    weekEnd.setDate(weekStart.getDate() + 6)
-                    return lessonDate >= weekStart && lessonDate <= weekEnd
-                  }).length}
-                </p>
-              </div>
-            </div>
-          </div>
-          
-          <div className="bg-white p-6 rounded-lg shadow-sm">
-            <div className="flex items-center">
-              <Clock className="h-8 w-8 text-green-600" />
-              <div className="ml-4">
-                <p className="text-sm font-medium text-gray-600">Uren deze week</p>
-                <p className="text-2xl font-bold text-gray-900">
-                  {lessons.filter(l => {
-                    const lessonDate = new Date(l.date)
-                    const weekStart = new Date(currentDate)
-                    // Calculate offset to get to Monday (Monday = 1, so if currentDay is 0 (Sunday), we need -6, otherwise 1 - currentDay)
-                    const currentDay = currentDate.getDay()
-                    const mondayOffset = currentDay === 0 ? -6 : 1 - currentDay
-                    weekStart.setDate(currentDate.getDate() + mondayOffset)
-                    const weekEnd = new Date(weekStart)
-                    weekEnd.setDate(weekStart.getDate() + 6)
-                    return lessonDate >= weekStart && lessonDate <= weekEnd
-                  }).length * 1}
-                </p>
-              </div>
-            </div>
-          </div>
-          
-          <div className="bg-white p-6 rounded-lg shadow-sm">
-            <div className="flex items-center">
-              <User className="h-8 w-8 text-purple-600" />
-              <div className="ml-4">
-                <p className="text-sm font-medium text-gray-600">Unieke leerlingen</p>
-                <p className="text-2xl font-bold text-gray-900">
-                  {new Set(lessons.filter(l => {
-                    const lessonDate = new Date(l.date)
-                    const weekStart = new Date(currentDate)
-                    // Calculate offset to get to Monday (Monday = 1, so if currentDay is 0 (Sunday), we need -6, otherwise 1 - currentDay)
-                    const currentDay = currentDate.getDay()
-                    const mondayOffset = currentDay === 0 ? -6 : 1 - currentDay
-                    weekStart.setDate(currentDate.getDate() + mondayOffset)
-                    const weekEnd = new Date(weekStart)
-                    weekEnd.setDate(weekStart.getDate() + 6)
-                    return lessonDate >= weekStart && lessonDate <= weekEnd
-                  }).map(l => l.student_name)).size}
-                </p>
-              </div>
-            </div>
-          </div>
-          
-          <div className="bg-white p-6 rounded-lg shadow-sm">
-            <div className="flex items-center">
-              <Calendar className="h-8 w-8 text-orange-600" />
-              <div className="ml-4">
-                <p className="text-sm font-medium text-gray-600">Vandaag</p>
-                <p className="text-2xl font-bold text-gray-900">
-                  {lessons.filter(l => l.date === new Date().toISOString().split('T')[0]).length}
-                </p>
-              </div>
-            </div>
+        {/* Quick Actions */}
+        <div className="card">
+          <h3 className="text-lg font-semibold mb-4">Snelle acties</h3>
+          <div className="space-y-3">
+            <Link
+              href="/dashboard/lessons/new"
+              className="btn btn-primary w-full flex items-center justify-center gap-2"
+            >
+              <Plus className="h-4 w-4" />
+              Nieuwe les plannen
+            </Link>
+            <Link
+              href="/dashboard/ai-schedule"
+              className="btn btn-secondary w-full flex items-center justify-center gap-2"
+            >
+              <Calendar className="h-4 w-4" />
+              AI-geassisteerde planning
+            </Link>
           </div>
         </div>
       </div>
