@@ -54,6 +54,8 @@ export default function AISchedulePage() {
   const [selectedLessons, setSelectedLessons] = useState<Set<string>>(new Set())
   const [isGenerating, setIsGenerating] = useState(false)
   const [isAddingLessons, setIsAddingLessons] = useState(false)
+  const [aiPrompt, setAiPrompt] = useState<string>('')
+  const [hasGeneratedPrompt, setHasGeneratedPrompt] = useState(false)
 
   // Settings state
   const [settings, setSettings] = useState({
@@ -298,6 +300,11 @@ export default function AISchedulePage() {
     setStudents(prev => prev.map(student => 
       student.id === id ? { ...student, [field]: value } : student
     ))
+    // Reset AI prompt als leerling data wordt gewijzigd
+    if (hasGeneratedPrompt) {
+      setHasGeneratedPrompt(false)
+      setAiPrompt('')
+    }
   }
 
   // Check if value is different from default
@@ -341,7 +348,14 @@ export default function AISchedulePage() {
     const currentIndex = steps.indexOf(currentStep)
     
     if (currentIndex > 0) {
-      setCurrentStep(steps[currentIndex - 1])
+      const previousStep = steps[currentIndex - 1]
+      setCurrentStep(previousStep)
+      
+      // Reset AI prompt als je teruggaat naar eerdere stappen
+      if (previousStep !== 'prompt') {
+        setHasGeneratedPrompt(false)
+        setAiPrompt('')
+      }
     }
   }
 
@@ -350,6 +364,11 @@ export default function AISchedulePage() {
     setAvailability(prev => prev.map(item => 
       item.day === day ? { ...item, available: !item.available } : item
     ))
+    // Reset AI prompt als beschikbaarheid wordt gewijzigd
+    if (hasGeneratedPrompt) {
+      setHasGeneratedPrompt(false)
+      setAiPrompt('')
+    }
   }
 
   // Handle time change
@@ -357,11 +376,92 @@ export default function AISchedulePage() {
     setAvailability(prev => prev.map(item => 
       item.day === day ? { ...item, [field]: value } : item
     ))
+    // Reset AI prompt als tijden worden gewijzigd
+    if (hasGeneratedPrompt) {
+      setHasGeneratedPrompt(false)
+      setAiPrompt('')
+    }
   }
 
   // Handle settings change
   const handleSettingsChange = (field: string, value: any) => {
     setSettings(prev => ({ ...prev, [field]: value }))
+    // Reset AI prompt als instellingen worden gewijzigd
+    if (hasGeneratedPrompt) {
+      setHasGeneratedPrompt(false)
+      setAiPrompt('')
+    }
+  }
+
+  // Generate AI prompt
+  const generateAIPrompt = () => {
+    const requestData = {
+      instructorAvailability: availability,
+      students: students.map((student: StudentWithScheduleData) => ({
+        id: student.id,
+        firstName: student.first_name,
+        lastName: student.last_name,
+        lessons: student.lessons,
+        minutes: student.minutes,
+        aiNotes: student.aiNotes,
+        notes: student.notes || ''
+      })),
+      settings
+    }
+
+    // Genereer de prompt (gebruik dezelfde logica als in openai.ts)
+    const { instructorAvailability: instructorAvail, students: studentsData, settings: settingsData } = requestData
+    
+    // Instructeur beschikbaarheid
+    const availabilityText = instructorAvail
+      .filter((day: any) => day.available)
+      .map((day: any) => `${day.day}: ${day.startTime} - ${day.endTime}`)
+      .join(', ')
+
+    // Leerlingen informatie
+    const studentsText = studentsData.map((student: any) => {
+      const availabilityNotes = student.notes ? `\nBeschikbaarheid: ${student.notes}` : ''
+      const aiNotes = student.aiNotes ? `\nAI Notities: ${student.aiNotes}` : ''
+      
+      return `- ${student.firstName} ${student.lastName}:
+  ${student.lessons} lessen van ${student.minutes} minuten per week${availabilityNotes}${aiNotes}`
+    }).join('\n')
+
+    // Instellingen
+    const prompt = `
+Instellingen:
+- Locaties verbinden: ${settingsData.connectLocations ? 'Ja' : 'Nee'}
+- Aantal pauzes per dag: ${settingsData.numberOfBreaks}
+- Minuten per pauze: ${settingsData.minutesPerBreak}
+- Minuten pauze tussen lessen: ${settingsData.minutesBreakEveryLesson}
+- Pauze na elke leerling: ${settingsData.breakAfterEachStudent ? 'Ja' : 'Nee'}
+${settingsData.additionalSpecifications ? `- Extra specificaties: ${settingsData.additionalSpecifications}` : ''}
+
+BELANGRIJK: Geef ALTIJD een geldig JSON object terug in exact dit formaat, zonder extra tekst ervoor of erna:
+
+{
+  "lessons": [
+    {
+      "date": "YYYY-MM-DD",
+      "startTime": "HH:MM",
+      "endTime": "HH:MM", 
+      "studentId": "student-id",
+      "studentName": "Voornaam Achternaam",
+      "notes": "Optionele notities"
+    }
+  ],
+  "summary": "Samenvatting van het rooster",
+  "warnings": ["Eventuele waarschuwingen"]
+}
+
+Instructeur beschikbaarheid: ${availabilityText}
+
+Leerlingen:
+${studentsText}
+`
+
+    setAiPrompt(prompt)
+    setHasGeneratedPrompt(true)
   }
 
   // Send to AI
@@ -774,38 +874,82 @@ export default function AISchedulePage() {
             <div>
               <h3 className="text-lg font-semibold mb-4">AI Planning</h3>
               <p className="text-gray-600 mb-6">
-                De AI zal een optimaal rooster maken op basis van je instellingen
+                Bekijk de AI prompt en start de planning
               </p>
             </div>
             
-            <div className="card">
-              <div className="text-center py-8">
-                <Brain className="h-12 w-12 text-blue-600 mx-auto mb-4" />
-                <h4 className="text-lg font-medium text-gray-900 mb-2">
-                  Klaar om te plannen
-                </h4>
-                <p className="text-gray-600 mb-6">
-                  Alle instellingen zijn geconfigureerd. De AI zal nu een optimaal rooster maken voor de komende weken.
-                </p>
-                <button
-                  onClick={handleSendToAI}
-                  disabled={isGenerating}
-                  className="btn btn-primary flex items-center gap-2 mx-auto disabled:opacity-50"
-                >
-                  {isGenerating ? (
-                    <>
-                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                      AI Planning...
-                    </>
-                  ) : (
-                    <>
-                      <Brain className="h-4 w-4" />
-                      Start AI Planning
-                    </>
-                  )}
-                </button>
+            {!hasGeneratedPrompt ? (
+              <div className="card">
+                <div className="text-center py-8">
+                  <Brain className="h-12 w-12 text-blue-600 mx-auto mb-4" />
+                  <h4 className="text-lg font-medium text-gray-900 mb-2">
+                    Genereer AI Prompt
+                  </h4>
+                  <p className="text-gray-600 mb-6">
+                    Klik hieronder om de AI prompt te genereren op basis van je instellingen.
+                  </p>
+                  <button
+                    onClick={generateAIPrompt}
+                    className="btn btn-primary flex items-center gap-2 mx-auto"
+                  >
+                    <Brain className="h-4 w-4" />
+                    Genereer Prompt
+                  </button>
+                </div>
               </div>
-            </div>
+            ) : (
+              <>
+                <div className="card">
+                  <div className="flex items-center justify-between mb-4">
+                    <div className="flex items-center gap-2">
+                      <h4 className="text-lg font-medium text-gray-900">AI Prompt</h4>
+                      <span className="px-2 py-1 bg-green-100 text-green-800 text-xs rounded-full">
+                        Gereed
+                      </span>
+                    </div>
+                    <button
+                      onClick={() => setHasGeneratedPrompt(false)}
+                      className="text-sm text-blue-600 hover:text-blue-700"
+                    >
+                      Opnieuw genereren
+                    </button>
+                  </div>
+                  <div className="bg-gray-50 rounded-lg p-4 max-h-96 overflow-y-auto">
+                    <pre className="text-sm text-gray-800 whitespace-pre-wrap font-mono leading-relaxed">
+                      {aiPrompt}
+                    </pre>
+                  </div>
+                </div>
+                
+                <div className="card">
+                  <div className="text-center py-8">
+                    <h4 className="text-lg font-medium text-gray-900 mb-2">
+                      Start AI Planning
+                    </h4>
+                    <p className="text-gray-600 mb-6">
+                      De AI zal nu een optimaal rooster maken op basis van bovenstaande prompt.
+                    </p>
+                    <button
+                      onClick={handleSendToAI}
+                      disabled={isGenerating}
+                      className="btn btn-primary flex items-center gap-2 mx-auto disabled:opacity-50"
+                    >
+                      {isGenerating ? (
+                        <>
+                          <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                          AI Planning...
+                        </>
+                      ) : (
+                        <>
+                          <Brain className="h-4 w-4" />
+                          Start AI Planning
+                        </>
+                      )}
+                    </button>
+                  </div>
+                </div>
+              </>
+            )}
           </div>
         )
 
@@ -979,7 +1123,7 @@ export default function AISchedulePage() {
       case 'settings':
         return true
       case 'prompt':
-        return true
+        return hasGeneratedPrompt
       case 'selection':
         return selectedLessons.size > 0
       case 'result':
@@ -1088,7 +1232,7 @@ export default function AISchedulePage() {
 
         {/* Navigation */}
         <div className="flex gap-3">
-          {currentStep !== 'instructor' && currentStep !== 'selection' && currentStep !== 'result' && (
+          {currentStep !== 'instructor' && currentStep !== 'result' && (
             <button
               onClick={handlePrevious}
               className="btn btn-secondary flex items-center gap-2"
@@ -1098,14 +1242,22 @@ export default function AISchedulePage() {
             </button>
           )}
           
-          {currentStep !== 'result' && currentStep !== 'selection' && canGoNext() && (
-            <button
-              onClick={handleNext}
-              className="btn btn-primary flex items-center gap-2 ml-auto"
-            >
-              Volgende
-              <ArrowRight className="h-4 w-4" />
-            </button>
+          {currentStep !== 'result' && currentStep !== 'selection' && (
+            <div className="ml-auto flex items-center gap-3">
+              {currentStep === 'prompt' && !hasGeneratedPrompt && (
+                <span className="text-sm text-gray-500">
+                  Genereer eerst de AI prompt
+                </span>
+              )}
+              <button
+                onClick={handleNext}
+                disabled={!canGoNext()}
+                className="btn btn-primary flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                Volgende
+                <ArrowRight className="h-4 w-4" />
+              </button>
+            </div>
           )}
         </div>
       </div>
