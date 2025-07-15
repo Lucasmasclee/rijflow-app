@@ -17,7 +17,8 @@ import {
   X,
   ArrowLeft,
   Trash2,
-  Edit
+  Edit,
+  Clock
 } from 'lucide-react'
 import Link from 'next/link'
 import toast from 'react-hot-toast'
@@ -151,7 +152,7 @@ export default function StudentsPage() {
   return (
     <div className="min-h-screen bg-gray-50 pb-20">
       {/* Mobile Navigation */}
-      <nav className="bg-white shadow-sm border-b safe-area-top">
+      {/* <nav className="bg-white shadow-sm border-b safe-area-top">
         <div className="container-mobile">
           <div className="flex justify-between items-center h-16">
             <div className="flex items-center">
@@ -167,7 +168,7 @@ export default function StudentsPage() {
             </div>
           </div>
         </div>
-      </nav>
+      </nav> */}
 
       <div className="container-mobile py-6">
         {/* Header */}
@@ -324,6 +325,29 @@ export default function StudentsPage() {
               </div>
             ))
           )}
+
+<nav className="nav-mobile safe-area-bottom">
+        <div className="container-mobile">
+          <div className="flex justify-around">
+            <Link href="/dashboard" className="nav-mobile-item">
+              <Clock className="h-6 w-6" />
+              <span>Dagplanning</span>
+            </Link>
+            <Link href="/dashboard/lessons" className="nav-mobile-item">
+              <Calendar className="h-6 w-6" />
+              <span>Weekplanning</span>
+            </Link>
+            {/* <Link href="/dashboard" className="nav-mobile-item active">
+              <Home className="h-6 w-6" />
+              <span>Dashboard</span>
+            </Link> */}
+            <Link href="/dashboard/students" className="nav-mobile-item active">
+              <Users className="h-6 w-6" />
+              <span>Leerlingen</span>
+            </Link>
+          </div>
+        </div>
+      </nav>
         </div>
       </div>
 

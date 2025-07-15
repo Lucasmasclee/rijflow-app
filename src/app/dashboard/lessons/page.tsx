@@ -519,11 +519,11 @@ export default function LessonsPage() {
       <nav className="nav-mobile safe-area-bottom">
         <div className="container-mobile">
           <div className="flex justify-around">
-            <Link href="/dashboard" className="nav-mobile-item active">
+            <Link href="/dashboard" className="nav-mobile-item">
               <Clock className="h-6 w-6" />
               <span>Dagplanning</span>
             </Link>
-            <Link href="/dashboard/lessons" className="nav-mobile-item">
+            <Link href="/dashboard/lessons" className="nav-mobile-item active">
               <Calendar className="h-6 w-6" />
               <span>Weekplanning</span>
             </Link>
