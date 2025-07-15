@@ -90,6 +90,94 @@ async function testAISchedule() {
   }
 }
 
+// Test student availability parsing specifically
+async function testStudentAvailability() {
+  console.log('🧪 Testing Student Availability Parsing...')
+  
+  // Test case: Student only available Monday, Tuesday, Friday
+  // Instructor available Monday, Tuesday, Wednesday, Friday
+  // Should only plan on Monday, Tuesday, Friday
+  const testRequest = {
+    instructorAvailability: [
+      { day: 'monday', available: true, startTime: '09:00', endTime: '17:00' },
+      { day: 'tuesday', available: true, startTime: '09:00', endTime: '17:00' },
+      { day: 'wednesday', available: true, startTime: '09:00', endTime: '17:00' },
+      { day: 'thursday', available: false, startTime: '09:00', endTime: '17:00' },
+      { day: 'friday', available: true, startTime: '09:00', endTime: '17:00' },
+      { day: 'saturday', available: false, startTime: '09:00', endTime: '17:00' },
+      { day: 'sunday', available: false, startTime: '09:00', endTime: '17:00' }
+    ],
+    students: [
+      {
+        id: 'test-student-availability',
+        firstName: 'Test',
+        lastName: 'Student',
+        lessons: 3,
+        minutes: 60,
+        aiNotes: 'Test beschikbaarheid',
+        notes: 'maandag ochtend, dinsdag middag, vrijdag ochtend'
+      }
+    ],
+    settings: {
+      connectLocations: true,
+      numberOfBreaks: 1,
+      minutesPerBreak: 15,
+      minutesBreakEveryLesson: 5,
+      breakAfterEachStudent: false,
+      additionalSpecifications: ''
+    }
+  }
+
+  try {
+    console.log('📤 Testing student availability parsing...')
+    console.log('Student notes:', testRequest.students[0].notes)
+    console.log('Instructor available days:', testRequest.instructorAvailability.filter(d => d.available).map(d => d.day))
+    
+    const response = await fetch('/api/ai-schedule', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(testRequest)
+    })
+
+    if (!response.ok) {
+      const errorData = await response.json()
+      console.error('❌ API Error:', errorData)
+      return
+    }
+
+    const result = await response.json()
+    console.log('✅ Student Availability Test Response:', result)
+    
+    // Check if lessons are only on allowed days
+    if (result.lessons && Array.isArray(result.lessons)) {
+      const allowedDays = ['monday', 'tuesday', 'friday']
+      const lessonDays = result.lessons.map(lesson => {
+        const date = new Date(lesson.date)
+        const dayNames = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday']
+        return dayNames[date.getDay()]
+      })
+      
+      console.log('📅 Generated lesson days:', lessonDays)
+      
+      const invalidDays = lessonDays.filter(day => !allowedDays.includes(day))
+      if (invalidDays.length > 0) {
+        console.error('❌ Lessons planned on invalid days:', invalidDays)
+      } else {
+        console.log('✅ All lessons planned on allowed days!')
+      }
+    }
+    
+    if (result.warnings && result.warnings.length > 0) {
+      console.warn('⚠️ Warnings:', result.warnings)
+    }
+    
+  } catch (error) {
+    console.error('❌ Student availability test failed:', error)
+  }
+}
+
 // Test bulk lessons API
 async function testBulkLessons() {
   console.log('🧪 Testing Bulk Lessons API...')
@@ -145,6 +233,9 @@ async function testBulkLessons() {
 console.log('🚀 Starting AI Schedule tests...')
 testAISchedule().then(() => {
   console.log('✅ AI Schedule test completed')
+  return testStudentAvailability()
+}).then(() => {
+  console.log('✅ Student Availability test completed')
   // Uncomment the line below to test bulk lessons (requires valid instructor ID)
   // testBulkLessons()
 }) 

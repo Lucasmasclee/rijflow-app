@@ -472,6 +472,13 @@ Instellingen:
 - Pauze na elke leerling: ${settingsData.breakAfterEachStudent ? 'Ja' : 'Nee'}
 ${settingsData.additionalSpecifications ? `- Extra specificaties: ${settingsData.additionalSpecifications}` : ''}
 
+KRITIEKE BESCHIKBAARHEID REGELS:
+- Plan ALLEEN op dagen dat de instructeur beschikbaar is
+- Plan ALLEEN op dagen dat de leerling beschikbaar is (uit hun notities)
+- Als een leerling specifieke beschikbare dagen heeft, plan dan NOOIT op andere dagen
+- Als er geen overlappende beschikbare dagen zijn, geef dan een waarschuwing
+- Zoek naar Nederlandse en Engelse dagnamen in de notities (maandag/monday, dinsdag/tuesday, etc.)
+
 BELANGRIJK: Geef ALTIJD een geldig JSON object terug in exact dit formaat, zonder extra tekst ervoor of erna:
 
 {
@@ -674,10 +681,18 @@ ${studentsText}
     setIsAddingLessons(true)
     
     try {
+      // Get the current session to get the JWT token
+      const { data: { session } } = await supabase.auth.getSession()
+      
+      if (!session?.access_token) {
+        throw new Error('Geen geldige sessie gevonden')
+      }
+      
       const response = await fetch('/api/lessons/bulk', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          'Authorization': `Bearer ${session.access_token}`
         },
         body: JSON.stringify({
           lessons: selectedLessonData,

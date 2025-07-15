@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { supabase } from '@/lib/supabase'
+import { createClient } from '@supabase/supabase-js'
 import { AIScheduleLesson } from '@/lib/openai'
 
 export async function POST(request: NextRequest) {
@@ -19,6 +19,29 @@ export async function POST(request: NextRequest) {
         { status: 400 }
       )
     }
+
+    // Get the authorization header (JWT token)
+    const authHeader = request.headers.get('authorization')
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+      return NextResponse.json(
+        { error: 'Geen geldige authenticatie token' },
+        { status: 401 }
+      )
+    }
+
+    const token = authHeader.replace('Bearer ', '')
+
+    // Create Supabase client with user's JWT token
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
+    const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+    
+    const supabase = createClient(supabaseUrl, supabaseAnonKey, {
+      global: {
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
+      }
+    })
 
     // Converteer AI lessen naar database formaat
     const lessonsToInsert = lessons.map(lesson => ({

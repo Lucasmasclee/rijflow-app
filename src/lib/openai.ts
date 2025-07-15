@@ -81,14 +81,21 @@ export async function generateAISchedule(request: AIScheduleRequest): Promise<AI
           BELANGRIJK: Je moet ALTIJD een geldig JSON object teruggeven in het exacte formaat dat wordt gevraagd.
           Geef geen extra tekst, uitleg of markdown formatting - alleen pure JSON.
           
-          Regels:
-          - Plan alleen op dagen dat de instructeur beschikbaar is
-          - Houd rekening met de beschikbaarheid van leerlingen (uit hun notities)
+          KRITIEKE REGELS:
+          - Plan ALLEEN op dagen dat de instructeur beschikbaar is
+          - Plan ALLEEN op dagen dat de leerling beschikbaar is (uit hun notities)
+          - Als een leerling specifieke beschikbare dagen heeft, plan dan NOOIT op andere dagen
+          - Als er geen overlappende beschikbare dagen zijn, geef dan een waarschuwing
           - Respecteer het aantal lessen en minuten per leerling
           - Plan pauzes volgens de instellingen
           - Geef een duidelijke samenvatting van wat er gepland is
           - Als er problemen zijn, geef waarschuwingen
-          - Gebruik alleen de studentId die wordt meegegeven, niet de naam als ID`
+          - Gebruik alleen de studentId die wordt meegegeven, niet de naam als ID
+          
+          BESCHIKBAARHEID PARSING:
+          - Zoek naar Nederlandse en Engelse dagnamen in de notities
+          - Maandag/Monday, Dinsdag/Tuesday, Woensdag/Wednesday, etc.
+          - Plan alleen op de dagen die expliciet genoemd worden in de notities`
         },
         {
           role: "user",
@@ -150,6 +157,13 @@ Instellingen:
 - Minuten pauze tussen lessen: ${settings.minutesBreakEveryLesson}
 - Pauze na elke leerling: ${settings.breakAfterEachStudent ? 'Ja' : 'Nee'}
 ${settings.additionalSpecifications ? `- Extra specificaties: ${settings.additionalSpecifications}` : ''}
+
+KRITIEKE BESCHIKBAARHEID REGELS:
+- Plan ALLEEN op dagen dat de instructeur beschikbaar is
+- Plan ALLEEN op dagen dat de leerling beschikbaar is (uit hun notities)
+- Als een leerling specifieke beschikbare dagen heeft, plan dan NOOIT op andere dagen
+- Als er geen overlappende beschikbare dagen zijn, geef dan een waarschuwing
+- Zoek naar Nederlandse en Engelse dagnamen in de notities (maandag/monday, dinsdag/tuesday, etc.)
 
 BELANGRIJK: Geef ALTIJD een geldig JSON object terug in exact dit formaat, zonder extra tekst ervoor of erna:
 
@@ -224,7 +238,7 @@ function parseAIResponse(response: string): AIScheduleResponse {
 
 // Dummy response voor development/testing
 function generateDummyResponse(request: AIScheduleRequest): AIScheduleResponse {
-  const { students } = request
+  const { students, instructorAvailability } = request
   
   // Genereer dummy lessen voor de komende week
   const today = new Date()
@@ -232,14 +246,40 @@ function generateDummyResponse(request: AIScheduleRequest): AIScheduleResponse {
   monday.setDate(today.getDate() + (8 - today.getDay()) % 7) // Volgende maandag
   
   const lessons: AIScheduleLesson[] = []
+  const warnings: string[] = ['Dit is een dummy response. Voeg OPENAI_API_KEY toe voor echte AI planning.']
   
   students.forEach((student, studentIndex) => {
     const studentLessons = student.lessons
     const lessonDuration = student.minutes
     
+    // Parse student availability from notes
+    const studentNotes = student.notes?.toLowerCase() || ''
+    const availableDays = parseStudentAvailability(studentNotes)
+    
+    // Get instructor available days
+    const instructorAvailableDays = instructorAvailability
+      .filter(day => day.available)
+      .map(day => day.day)
+    
+    // Find common available days
+    const commonAvailableDays = availableDays.length > 0 
+      ? availableDays.filter(day => instructorAvailableDays.includes(day))
+      : instructorAvailableDays
+    
+    if (commonAvailableDays.length === 0) {
+      warnings.push(`⚠️ Geen overlappende beschikbare dagen gevonden voor ${student.firstName}. Gebruik instructeur beschikbaarheid.`)
+    }
+    
+    // Use common available days or fallback to instructor availability
+    const daysToUse = commonAvailableDays.length > 0 ? commonAvailableDays : instructorAvailableDays
+    
     for (let i = 0; i < studentLessons; i++) {
+      const dayIndex = i % daysToUse.length
+      const dayName = daysToUse[dayIndex]
+      
       const lessonDate = new Date(monday)
-      lessonDate.setDate(monday.getDate() + (i % 5)) // Maandag t/m vrijdag
+      const dayOffset = getDayOffset(dayName)
+      lessonDate.setDate(monday.getDate() + dayOffset)
       
       const startHour = 9 + (i * 2) // Start om 9:00, 11:00, 13:00, etc.
       const startTime = `${startHour.toString().padStart(2, '0')}:00`
@@ -261,6 +301,35 @@ function generateDummyResponse(request: AIScheduleRequest): AIScheduleResponse {
   return {
     lessons,
     summary: `Dummy rooster gegenereerd met ${lessons.length} lessen voor ${students.length} leerlingen`,
-    warnings: ['Dit is een dummy response. Voeg OPENAI_API_KEY toe voor echte AI planning.']
+    warnings
   }
+}
+
+// Helper function to parse student availability from notes
+function parseStudentAvailability(notes: string): string[] {
+  const availableDays: string[] = []
+  
+  if (notes.includes('maandag') || notes.includes('monday')) availableDays.push('monday')
+  if (notes.includes('dinsdag') || notes.includes('tuesday')) availableDays.push('tuesday')
+  if (notes.includes('woensdag') || notes.includes('wednesday')) availableDays.push('wednesday')
+  if (notes.includes('donderdag') || notes.includes('thursday')) availableDays.push('thursday')
+  if (notes.includes('vrijdag') || notes.includes('friday')) availableDays.push('friday')
+  if (notes.includes('zaterdag') || notes.includes('saturday')) availableDays.push('saturday')
+  if (notes.includes('zondag') || notes.includes('sunday')) availableDays.push('sunday')
+  
+  return availableDays
+}
+
+// Helper function to get day offset from day name
+function getDayOffset(dayName: string): number {
+  const dayMap: { [key: string]: number } = {
+    'monday': 0,
+    'tuesday': 1,
+    'wednesday': 2,
+    'thursday': 3,
+    'friday': 4,
+    'saturday': 5,
+    'sunday': 6
+  }
+  return dayMap[dayName] || 0
 } 
