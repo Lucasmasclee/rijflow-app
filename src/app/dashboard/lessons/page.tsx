@@ -13,24 +13,19 @@ import {
   MapPin,
   MoreVertical,
   ArrowLeft,
-  Users
+  Users,
+  X,
+  Edit2,
+  Trash2,
+  Copy
 } from 'lucide-react'
 import Link from 'next/link'
 import { supabase } from '@/lib/supabase'
+import { Student, Lesson } from '@/types/database'
+import toast from 'react-hot-toast'
 
-interface Lesson {
-  id: string
-  date: string
-  start_time: string
-  end_time: string
-  student_id: string
-  instructor_id: string
-  status: 'scheduled' | 'completed' | 'cancelled'
-  notes?: string
-  location?: string
-  created_at: string
-  updated_at: string
-  students?: {
+interface LessonWithStudent extends Lesson {
+  student?: {
     id: string
     first_name: string
     last_name: string
@@ -38,19 +33,64 @@ interface Lesson {
   }
 }
 
+interface LessonFormData {
+  id?: string
+  date: string
+  startTime: string
+  endTime: string
+  studentId: string
+  notes: string
+}
+
 export default function LessonsPage() {
   const { user, loading } = useAuth()
   const router = useRouter()
   const [currentDate, setCurrentDate] = useState(new Date())
-  const [lessons, setLessons] = useState<Lesson[]>([])
+  const [lessons, setLessons] = useState<LessonWithStudent[]>([])
+  const [students, setStudents] = useState<Student[]>([])
   const [viewMode, setViewMode] = useState<'week' | 'month'>('week')
   const [loadingLessons, setLoadingLessons] = useState(true)
+  
+  // Add/Edit Lesson Modal State
+  const [showAddLesson, setShowAddLesson] = useState(false)
+  const [editingLesson, setEditingLesson] = useState<LessonWithStudent | null>(null)
+  const [lessonForm, setLessonForm] = useState<LessonFormData>({
+    date: '',
+    startTime: '09:00',
+    endTime: '10:00',
+    studentId: '',
+    notes: ''
+  })
 
   useEffect(() => {
     if (!loading && !user) {
       router.push('/auth/signin')
     }
   }, [user, loading, router])
+
+  // Fetch students from database
+  const fetchStudents = async () => {
+    if (!user) return
+    
+    try {
+      const { data, error } = await supabase
+        .from('students')
+        .select('*')
+        .eq('instructor_id', user.id)
+        .order('first_name', { ascending: true })
+
+      if (error) {
+        console.error('Error fetching students:', error)
+        toast.error('Fout bij het laden van leerlingen')
+        return
+      }
+
+      setStudents(data || [])
+    } catch (error) {
+      console.error('Error fetching students:', error)
+      toast.error('Fout bij het laden van leerlingen')
+    }
+  }
 
   // Fetch lessons from database
   const fetchLessons = async () => {
@@ -95,23 +135,37 @@ export default function LessonsPage() {
 
       if (error) {
         console.error('Error fetching lessons:', error)
+        toast.error('Fout bij het laden van lessen')
         return
       }
 
-      console.log('Total lessons fetched:', data?.length || 0) // Debug log
-      setLessons(data || [])
+      // Transform the data to flatten the student information
+      const transformedData = (data || []).map(lesson => ({
+        ...lesson,
+        student: lesson.students
+      }))
+
+      console.log('Total lessons fetched:', transformedData.length) // Debug log
+      setLessons(transformedData)
     } catch (error) {
       console.error('Error fetching lessons:', error)
+      toast.error('Fout bij het laden van lessen')
     } finally {
       setLoadingLessons(false)
     }
   }
 
   useEffect(() => {
-    if (user) {
+    if (user && !loading) {
+      fetchStudents()
+    }
+  }, [user, loading])
+
+  useEffect(() => {
+    if (user && !loading) {
       fetchLessons()
     }
-  }, [user, currentDate, viewMode])
+  }, [user, loading, currentDate, viewMode])
 
   const getMonday = (date: Date) => {
     const day = date.getDay()
@@ -120,7 +174,10 @@ export default function LessonsPage() {
   }
 
   const formatDateToISO = (date: Date) => {
-    return date.toISOString().split('T')[0]
+    const year = date.getFullYear()
+    const month = String(date.getMonth() + 1).padStart(2, '0')
+    const day = String(date.getDate()).padStart(2, '0')
+    return `${year}-${month}-${day}`
   }
 
   const getWeekDays = () => {
@@ -248,6 +305,134 @@ export default function LessonsPage() {
     return lessons.filter(lesson => lesson.date === dateString).length
   }
 
+
+
+  // Lesson management functions
+  const openAddLesson = (date?: string) => {
+    setLessonForm({
+      date: date || formatDateToISO(new Date()),
+      startTime: '09:00',
+      endTime: '10:00',
+      studentId: '',
+      notes: ''
+    })
+    setEditingLesson(null)
+    setShowAddLesson(true)
+  }
+
+  const openAddLessonForDate = (date: Date) => {
+    setLessonForm({
+      date: formatDateToISO(date),
+      startTime: '09:00',
+      endTime: '10:00',
+      studentId: '',
+      notes: ''
+    })
+    setEditingLesson(null)
+    setShowAddLesson(true)
+  }
+
+  const openEditLesson = (lesson: LessonWithStudent) => {
+    setLessonForm({
+      id: lesson.id,
+      date: lesson.date,
+      startTime: lesson.start_time,
+      endTime: lesson.end_time,
+      studentId: lesson.student_id,
+      notes: lesson.notes || ''
+    })
+    setEditingLesson(lesson)
+    setShowAddLesson(true)
+  }
+
+  const duplicateLesson = (lesson: LessonWithStudent) => {
+    setLessonForm({
+      date: lesson.date,
+      startTime: lesson.start_time,
+      endTime: lesson.end_time,
+      studentId: lesson.student_id,
+      notes: lesson.notes || ''
+    })
+    setEditingLesson(null)
+    setShowAddLesson(true)
+  }
+
+  const deleteLesson = async (lessonId: string) => {
+    if (!confirm('Weet je zeker dat je deze les wilt verwijderen?')) return
+
+    try {
+      const { error } = await supabase
+        .from('lessons')
+        .delete()
+        .eq('id', lessonId)
+
+      if (error) {
+        console.error('Error deleting lesson:', error)
+        toast.error('Fout bij het verwijderen van de les')
+        return
+      }
+
+      setLessons(prev => prev.filter(lesson => lesson.id !== lessonId))
+      toast.success('Les succesvol verwijderd!')
+    } catch (error) {
+      console.error('Error deleting lesson:', error)
+      toast.error('Er is iets misgegaan bij het verwijderen van de les.')
+    }
+  }
+
+  const saveLesson = async () => {
+    if (!user || !lessonForm.studentId) {
+      toast.error('Vul alle verplichte velden in')
+      return
+    }
+
+    try {
+      const lessonData = {
+        date: lessonForm.date,
+        start_time: lessonForm.startTime,
+        end_time: lessonForm.endTime,
+        student_id: lessonForm.studentId,
+        instructor_id: user.id,
+        notes: lessonForm.notes || null
+      }
+
+      let result
+      if (editingLesson) {
+        // Update existing lesson
+        result = await supabase
+          .from('lessons')
+          .update(lessonData)
+          .eq('id', editingLesson.id)
+      } else {
+        // Create new lesson
+        result = await supabase
+          .from('lessons')
+          .insert(lessonData)
+      }
+
+      if (result.error) {
+        console.error('Error saving lesson:', result.error)
+        toast.error('Fout bij het opslaan van de les')
+        return
+      }
+
+      await fetchLessons()
+      setShowAddLesson(false)
+      setLessonForm({
+        date: '',
+        startTime: '09:00',
+        endTime: '10:00',
+        studentId: '',
+        notes: ''
+      })
+      setEditingLesson(null)
+      toast.success(editingLesson ? 'Les succesvol bijgewerkt!' : 'Les succesvol toegevoegd!')
+    } catch (error) {
+      console.error('Error saving lesson:', error)
+      toast.error('Er is iets misgegaan bij het opslaan van de les.')
+    }
+  }
+
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center safe-area-top">
@@ -292,13 +477,13 @@ export default function LessonsPage() {
       <div className="card">
           <h3 className="text-lg font-semibold mb-4">Snelle acties</h3>
           <div className="space-y-3">
-            <Link
-              href="/dashboard/lessons/new"
+            <button
+              onClick={() => openAddLesson()}
               className="btn btn-primary w-full flex items-center justify-center gap-2"
             >
               <Plus className="h-4 w-4" />
               Nieuwe les plannen
-            </Link>
+            </button>
             <Link
               href="/dashboard/ai-schedule"
               className="btn btn-secondary w-full flex items-center justify-center gap-2"
@@ -428,19 +613,53 @@ export default function LessonsPage() {
                           <div key={lesson.id} className="bg-gray-50 rounded-lg p-2">
                             <div className="flex items-center justify-between">
                               <div className="flex items-center gap-2">
-                                <User className="h-3 w-3 text-gray-400" />
-                                <span className="text-sm text-gray-700">
-                                  {lesson.students ? `${lesson.students.first_name} ${lesson.students.last_name}` : 'Onbekende leerling'}
+                                <Clock className="h-3 w-3 text-blue-600" />
+                                <span className="text-sm font-medium text-blue-900">
+                                  {formatTime(lesson.start_time)} - {formatTime(lesson.end_time)}
                                 </span>
                               </div>
-                              <div className="flex items-center gap-1">
-                                <span className={`px-2 py-0.5 text-xs font-medium rounded-full ${getStatusColor(lesson.status)}`}>
-                                  {getStatusText(lesson.status)}
-                                </span>
-                                <button className="p-0.5 text-gray-400 hover:text-gray-600">
-                                  <MoreVertical className="h-4 w-4" />
+                              <div className="flex items-center space-x-1">
+                                <button 
+                                  className="p-1 text-blue-600 hover:text-blue-700 hover:bg-blue-200 rounded"
+                                  onClick={(e) => {
+                                    e.stopPropagation()
+                                    openEditLesson(lesson)
+                                  }}
+                                >
+                                  <Edit2 className="h-3 w-3" />
+                                </button>
+                                <button 
+                                  className="p-1 text-green-600 hover:text-green-700 hover:bg-green-200 rounded"
+                                  onClick={(e) => {
+                                    e.stopPropagation()
+                                    duplicateLesson(lesson)
+                                  }}
+                                >
+                                  <Copy className="h-3 w-3" />
+                                </button>
+                                <button 
+                                  className="p-1 text-red-600 hover:text-red-700 hover:bg-red-200 rounded"
+                                  onClick={(e) => {
+                                    e.stopPropagation()
+                                    deleteLesson(lesson.id)
+                                  }}
+                                >
+                                  <Trash2 className="h-3 w-3" />
                                 </button>
                               </div>
+                            </div>
+                            <div className="mt-2">
+                              <div className="flex items-center space-x-2">
+                                <User className="h-3 w-3 text-gray-500" />
+                                <span className="text-xs text-gray-600">
+                                  {lesson.student ? `${lesson.student.first_name} ${lesson.student.last_name}` : 'Onbekende leerling'}
+                                </span>
+                              </div>
+                              {lesson.notes && (
+                                <div className="bg-gray-50 p-2 rounded-lg mt-1">
+                                  <p className="text-xs text-gray-500">{lesson.notes}</p>
+                                </div>
+                              )}
                             </div>
                           </div>
                         ))}
@@ -538,6 +757,134 @@ export default function LessonsPage() {
           </div>
         </div>
       </nav>
+
+      {/* Add/Edit Lesson Modal */}
+      {showAddLesson && (
+        <div className="fixed inset-0 bg-gray-500 bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 w-full max-w-md mx-4">
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="text-lg font-semibold text-gray-900">
+                {editingLesson ? 'Les bewerken' : 'Nieuwe les'}
+              </h3>
+              <button
+                onClick={() => setShowAddLesson(false)}
+                className="text-gray-400 hover:text-gray-600"
+              >
+                <X className="h-5 w-5" />
+              </button>
+            </div>
+            
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Datum *
+                </label>
+                <input
+                  type="date"
+                  value={lessonForm.date}
+                  onChange={(e) => setLessonForm(prev => ({ ...prev, date: e.target.value }))}
+                  className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                />
+              </div>
+              
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Starttijd *
+                  </label>
+                  <input
+                    type="time"
+                    value={lessonForm.startTime}
+                    onChange={(e) => {
+                      setLessonForm(prev => ({ ...prev, startTime: e.target.value }))
+                    }}
+                    step="900"
+                    className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    style={{ 
+                      '--tw-text-opacity': '1',
+                      color: 'rgb(17 24 39 / var(--tw-text-opacity))'
+                    } as React.CSSProperties}
+                    data-format="24h"
+                    pattern="[0-9]{2}:[0-9]{2}"
+                    placeholder="HH:MM"
+                    min="00:00"
+                    max="23:59"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Eindtijd *
+                  </label>
+                  <input
+                    type="time"
+                    value={lessonForm.endTime}
+                    onChange={(e) => {
+                      setLessonForm(prev => ({ ...prev, endTime: e.target.value }))
+                    }}
+                    step="900"
+                    className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    style={{ 
+                      '--tw-text-opacity': '1',
+                      color: 'rgb(17 24 39 / var(--tw-text-opacity))'
+                    } as React.CSSProperties}
+                    data-format="24h"
+                    pattern="[0-9]{2}:[0-9]{2}"
+                    placeholder="HH:MM"
+                    min="00:00"
+                    max="23:59"
+                  />
+                </div>
+              </div>
+              
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Leerling *
+                </label>
+                <select
+                  value={lessonForm.studentId}
+                  onChange={(e) => setLessonForm(prev => ({ ...prev, studentId: e.target.value }))}
+                  className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                >
+                  <option value="">Selecteer een leerling</option>
+                  {students.map(student => (
+                    <option key={student.id} value={student.id}>
+                      {student.first_name} {student.last_name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Notities
+                </label>
+                <textarea
+                  value={lessonForm.notes}
+                  onChange={(e) => setLessonForm(prev => ({ ...prev, notes: e.target.value }))}
+                  rows={3}
+                  className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  placeholder="Optionele notities voor deze les..."
+                />
+              </div>
+            </div>
+            
+            <div className="flex justify-end space-x-3 mt-6">
+              <button
+                onClick={() => setShowAddLesson(false)}
+                className="px-4 py-2 text-gray-600 hover:text-gray-800 hover:bg-gray-100 rounded-lg"
+              >
+                Annuleren
+              </button>
+              <button
+                onClick={saveLesson}
+                className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+              >
+                {editingLesson ? 'Bijwerken' : 'Toevoegen'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 } 
