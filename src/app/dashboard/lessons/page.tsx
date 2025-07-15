@@ -15,15 +15,26 @@ import {
   ArrowLeft
 } from 'lucide-react'
 import Link from 'next/link'
+import { supabase } from '@/lib/supabase'
 
 interface Lesson {
   id: string
   date: string
   start_time: string
   end_time: string
-  student_name: string
+  student_id: string
+  instructor_id: string
   status: 'scheduled' | 'completed' | 'cancelled'
+  notes?: string
   location?: string
+  created_at: string
+  updated_at: string
+  students?: {
+    id: string
+    first_name: string
+    last_name: string
+    address: string
+  }
 }
 
 export default function LessonsPage() {
@@ -32,6 +43,7 @@ export default function LessonsPage() {
   const [currentDate, setCurrentDate] = useState(new Date())
   const [lessons, setLessons] = useState<Lesson[]>([])
   const [viewMode, setViewMode] = useState<'week' | 'month'>('week')
+  const [loadingLessons, setLoadingLessons] = useState(true)
 
   useEffect(() => {
     if (!loading && !user) {
@@ -39,48 +51,64 @@ export default function LessonsPage() {
     }
   }, [user, loading, router])
 
-  // Mock data for demonstration
-  useEffect(() => {
-    const mockLessons: Lesson[] = [
-      {
-        id: '1',
-        date: '2024-01-22',
-        start_time: '09:00',
-        end_time: '10:00',
-        student_name: 'Jan Jansen',
-        status: 'scheduled',
-        location: 'CBR Amsterdam'
-      },
-      {
-        id: '2',
-        date: '2024-01-22',
-        start_time: '10:30',
-        end_time: '11:30',
-        student_name: 'Piet Pietersen',
-        status: 'scheduled',
-        location: 'CBR Rotterdam'
-      },
-      {
-        id: '3',
-        date: '2024-01-22',
-        start_time: '14:00',
-        end_time: '15:00',
-        student_name: 'Marie de Vries',
-        status: 'scheduled',
-        location: 'CBR Utrecht'
-      },
-      {
-        id: '4',
-        date: '2024-01-23',
-        start_time: '09:00',
-        end_time: '10:00',
-        student_name: 'Jan Jansen',
-        status: 'scheduled',
-        location: 'CBR Amsterdam'
+  // Fetch lessons from database
+  const fetchLessons = async () => {
+    if (!user) return
+    
+    try {
+      setLoadingLessons(true)
+      const monday = getMonday(currentDate)
+      const startDate = formatDateToISO(monday)
+      const endDate = formatDateToISO(new Date(monday.getTime() + 6 * 24 * 60 * 60 * 1000))
+      
+      console.log('Fetching lessons for week:', { startDate, endDate }) // Debug log
+      
+      const { data, error } = await supabase
+        .from('lessons')
+        .select(`
+          *,
+          students (
+            id,
+            first_name,
+            last_name,
+            address
+          )
+        `)
+        .eq('instructor_id', user.id)
+        .gte('date', startDate)
+        .lte('date', endDate)
+        .order('date', { ascending: true })
+        .order('start_time', { ascending: true })
+
+      if (error) {
+        console.error('Error fetching lessons:', error)
+        return
       }
-    ]
-    setLessons(mockLessons)
-  }, [])
+
+      console.log('Total lessons fetched:', data?.length || 0) // Debug log
+      setLessons(data || [])
+    } catch (error) {
+      console.error('Error fetching lessons:', error)
+    } finally {
+      setLoadingLessons(false)
+    }
+  }
+
+  useEffect(() => {
+    if (user) {
+      fetchLessons()
+    }
+  }, [user, currentDate])
+
+  const getMonday = (date: Date) => {
+    const day = date.getDay()
+    const diff = date.getDate() - day + (day === 0 ? -6 : 1) // Adjust when day is Sunday
+    return new Date(date.setDate(diff))
+  }
+
+  const formatDateToISO = (date: Date) => {
+    return date.toISOString().split('T')[0]
+  }
 
   const getWeekDays = () => {
     const days = []
@@ -190,7 +218,7 @@ export default function LessonsPage() {
   return (
     <div className="min-h-screen bg-gray-50 pb-20">
       {/* Mobile Navigation */}
-      <nav className="bg-white shadow-sm border-b safe-area-top">
+      {/* <nav className="bg-white shadow-sm border-b safe-area-top">
         <div className="container-mobile">
           <div className="flex justify-between items-center h-16">
             <div className="flex items-center">
@@ -210,7 +238,7 @@ export default function LessonsPage() {
             </div>
           </div>
         </div>
-      </nav>
+      </nav> */}
 
       <div className="container-mobile py-6">
         {/* Header */}
@@ -290,8 +318,16 @@ export default function LessonsPage() {
             </button>
           </div>
 
+          {/* Loading State */}
+          {loadingLessons && (
+            <div className="text-center py-8">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
+              <p className="mt-2 text-gray-600">Lessen laden...</p>
+            </div>
+          )}
+
           {/* Week View */}
-          {viewMode === 'week' && (
+          {viewMode === 'week' && !loadingLessons && (
             <div className="space-y-4">
               {getWeekDays().map((day) => {
                 const dayLessons = getLessonsForDate(day)
@@ -332,7 +368,7 @@ export default function LessonsPage() {
                                 <div className="flex items-center gap-2 mb-1">
                                   <User className="h-3 w-3 text-gray-400" />
                                   <span className="text-sm text-gray-700">
-                                    {lesson.student_name}
+                                    {lesson.students ? `${lesson.students.first_name} ${lesson.students.last_name}` : 'Onbekende leerling'}
                                   </span>
                                 </div>
                                 {lesson.location && (
@@ -340,6 +376,14 @@ export default function LessonsPage() {
                                     <MapPin className="h-3 w-3 text-gray-400" />
                                     <span className="text-sm text-gray-600">
                                       {lesson.location}
+                                    </span>
+                                  </div>
+                                )}
+                                {lesson.students?.address && !lesson.location && (
+                                  <div className="flex items-center gap-2">
+                                    <MapPin className="h-3 w-3 text-gray-400" />
+                                    <span className="text-sm text-gray-600">
+                                      {lesson.students.address}
                                     </span>
                                   </div>
                                 )}

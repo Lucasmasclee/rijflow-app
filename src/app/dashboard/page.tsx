@@ -209,7 +209,7 @@ export default function DashboardPage() {
       <nav className="nav-mobile safe-area-bottom">
         <div className="container-mobile">
           <div className="flex justify-around">
-            <Link href="/dashboard/week-overview" className="nav-mobile-item">
+            <Link href="/dashboard" className="nav-mobile-item active">
               <Clock className="h-6 w-6" />
               <span>Dagplanning</span>
             </Link>
@@ -648,7 +648,7 @@ function InstructorDashboard() {
 
       
 
-      {/* Recent Students */}
+      {/* Recent Students
       <div className="card">
         <div className="flex justify-between items-center mb-4">
           <h3 className="text-lg font-semibold">Leerlingen Dashboard</h3>
@@ -687,7 +687,7 @@ function InstructorDashboard() {
             ))}
           </div>
         )}
-      </div>
+      </div> */}
     </div>
   )
 }
