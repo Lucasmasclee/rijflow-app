@@ -397,20 +397,20 @@ export default function LessonsPage() {
 
           {/* Week View */}
           {viewMode === 'week' && !loadingLessons && (
-            <div className="space-y-4">
+            <div className="space-y-2">
               {getWeekDays().map((day) => {
                 const dayLessons = getLessonsForDate(day)
                 return (
-                  <div key={day.toISOString()} className="border-b border-gray-200 pb-4 last:border-b-0">
-                    <div className={`flex items-center justify-between mb-3 ${
+                  <div key={day.toISOString()} className="border-b border-gray-200 pb-2 last:border-b-0">
+                    <div className={`flex items-center justify-between mb-2 ${
                       isToday(day) ? 'text-blue-600 font-semibold' : 'text-gray-900'
                     }`}>
-                      <div className="flex items-center gap-3">
+                      <div className="flex items-center gap-2">
                         <span className="text-sm font-medium">
                           {formatDate(day)}
                         </span>
                         {isToday(day) && (
-                          <span className="px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded-full">
+                          <span className="px-2 py-0.5 bg-blue-100 text-blue-800 text-xs rounded-full">
                             Vandaag
                           </span>
                         )}
@@ -421,47 +421,23 @@ export default function LessonsPage() {
                     </div>
                     
                     {dayLessons.length === 0 ? (
-                      <p className="text-gray-500 text-sm py-2">Geen lessen gepland</p>
+                      <p className="text-gray-500 text-sm py-1">Geen lessen gepland</p>
                     ) : (
                       <div className="space-y-0.5">
                         {dayLessons.map((lesson) => (
-                          <div key={lesson.id} className="bg-gray-50 rounded-lg p-3">
-                            <div className="flex items-start justify-between">
-                              <div className="flex-1">
-                                {/* <div className="flex items-center gap-2 mb-1">
-                                  <Clock className="h-3 w-3 text-gray-400" />
-                                  <span className="text-sm font-medium text-gray-900">
-                                    {formatTime(lesson.start_time)} - {formatTime(lesson.end_time)}
-                                  </span>
-                                </div> */}
-                                <div className="flex items-center gap-2 mb-1">
-                                  <User className="h-3 w-3 text-gray-400" />
-                                  <span className="text-sm text-gray-700">
-                                    {lesson.students ? `${lesson.students.first_name} ${lesson.students.last_name}` : 'Onbekende leerling'}
-                                  </span>
-                                </div>
-                                {/* {lesson.location && (
-                                  <div className="flex items-center gap-2">
-                                    <MapPin className="h-3 w-3 text-gray-400" />
-                                    <span className="text-sm text-gray-600">
-                                      {lesson.location}
-                                    </span>
-                                  </div>
-                                )} */}
-                                {/* {lesson.students?.address && !lesson.location && (
-                                  <div className="flex items-center gap-2">
-                                    <MapPin className="h-3 w-3 text-gray-400" />
-                                    <span className="text-sm text-gray-600">
-                                      {lesson.students.address}
-                                    </span>
-                                  </div>
-                                )} */}
-                              </div>
+                          <div key={lesson.id} className="bg-gray-50 rounded-lg p-2">
+                            <div className="flex items-center justify-between">
                               <div className="flex items-center gap-2">
-                                <span className={`px-2 py-1 text-xs font-medium rounded-full ${getStatusColor(lesson.status)}`}>
+                                <User className="h-3 w-3 text-gray-400" />
+                                <span className="text-sm text-gray-700">
+                                  {lesson.students ? `${lesson.students.first_name} ${lesson.students.last_name}` : 'Onbekende leerling'}
+                                </span>
+                              </div>
+                              <div className="flex items-center gap-1">
+                                <span className={`px-2 py-0.5 text-xs font-medium rounded-full ${getStatusColor(lesson.status)}`}>
                                   {getStatusText(lesson.status)}
                                 </span>
-                                <button className="p-1 text-gray-400 hover:text-gray-600">
+                                <button className="p-0.5 text-gray-400 hover:text-gray-600">
                                   <MoreVertical className="h-4 w-4" />
                                 </button>
                               </div>
