@@ -9,18 +9,23 @@ async function debugAIScheduleValidation() {
   console.log('📊 Current students data:', students)
   
   // Valideer elke student
+  // Alleen voornaam is verplicht, achternaam is optioneel
   const validationResults = students.map(student => {
     const errors = []
     
     if (!student.id) errors.push('ID ontbreekt')
     if (!student.first_name || student.first_name.trim() === '') errors.push('Voornaam ontbreekt')
-    if (!student.last_name || student.last_name.trim() === '') errors.push('Achternaam ontbreekt')
+    // Achternaam is optioneel, dus geen validatie nodig
     if (!student.lessons || student.lessons < 1) errors.push('Aantal lessen moet minimaal 1 zijn')
     if (!student.minutes || student.minutes < 30) errors.push('Lesduur moet minimaal 30 minuten zijn')
     
     return {
-      student: `${student.first_name || 'Onbekend'} ${student.last_name || 'Onbekend'}`,
+      student: `${student.first_name || 'Onbekend'} ${student.last_name || ''}`,
       id: student.id,
+      firstName: student.first_name,
+      lastName: student.last_name,
+      firstNameLength: student.first_name?.length || 0,
+      lastNameLength: student.last_name?.length || 0,
       lessons: student.lessons,
       minutes: student.minutes,
       errors: errors,
@@ -39,6 +44,10 @@ async function debugAIScheduleValidation() {
     console.error('❌ Invalid students found:')
     invalidStudents.forEach(student => {
       console.error(`  - ${student.student}: ${student.errors.join(', ')}`)
+      console.error(`    ID: ${student.id}`)
+      console.error(`    First Name: "${student.firstName}" (length: ${student.firstNameLength})`)
+      console.error(`    Last Name: "${student.lastName}" (length: ${student.lastNameLength})`)
+      console.error(`    Display Name: "${student.student}"`)
     })
   } else {
     console.log('✅ All students are valid!')
@@ -62,7 +71,7 @@ async function testAPICall() {
       students: students.map(student => ({
         id: student.id,
         firstName: student.first_name || '',
-        lastName: student.last_name || '',
+        lastName: student.last_name || '', // Achternaam is optioneel
         lessons: Math.max(1, student.lessons || student.default_lessons_per_week || 2),
         minutes: Math.max(30, student.minutes || student.default_lesson_duration_minutes || 60),
         aiNotes: student.aiNotes || '',
@@ -97,10 +106,54 @@ async function testAPICall() {
   }
 }
 
-// Expose functions globally
+// Nieuwe functie om database student data direct te controleren
+async function checkDatabaseStudents() {
+  console.log('🗄️ Checking database students directly...')
+  
+  try {
+    const response = await fetch('/api/test-env', {
+      method: 'GET'
+    })
+    
+    if (response.ok) {
+      const data = await response.json()
+      console.log('✅ Database check result:', data)
+      return data
+    } else {
+      console.error('❌ Database check failed')
+      return null
+    }
+  } catch (error) {
+    console.error('❌ Database check error:', error)
+    return null
+  }
+}
+
+// Functie om alle debug functies uit te voeren
+async function runAllDebugChecks() {
+  console.log('🚀 Running all debug checks...')
+  
+  // 1. Valideer huidige student data
+  await debugAIScheduleValidation()
+  
+  // 2. Test API call
+  await testAPICall()
+  
+  // 3. Check database direct
+  await checkDatabaseStudents()
+  
+  console.log('✅ All debug checks completed!')
+}
+
+// Export functies voor gebruik in console
 window.debugAIScheduleValidation = debugAIScheduleValidation
 window.testAPICall = testAPICall
+window.checkDatabaseStudents = checkDatabaseStudents
+window.runAllDebugChecks = runAllDebugChecks
 
-console.log('🚀 Debug functions loaded!')
-console.log('Run debugAIScheduleValidation() to check student data')
-console.log('Run testAPICall() to test the API directly') 
+console.log('🔧 Debug functions loaded!')
+console.log('Available functions:')
+console.log('- debugAIScheduleValidation()')
+console.log('- testAPICall()')
+console.log('- checkDatabaseStudents()')
+console.log('- runAllDebugChecks()') 

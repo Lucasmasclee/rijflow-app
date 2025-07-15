@@ -32,6 +32,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Valideer leerling data met specifieke error messages
+    // Alleen voornaam is verplicht, achternaam is optioneel
     const invalidStudents = []
     
     for (const student of body.students) {
@@ -39,13 +40,13 @@ export async function POST(request: NextRequest) {
       
       if (!student.id) errors.push('ID ontbreekt')
       if (!student.firstName || student.firstName.trim() === '') errors.push('Voornaam ontbreekt')
-      if (!student.lastName || student.lastName.trim() === '') errors.push('Achternaam ontbreekt')
+      // Achternaam is optioneel, dus geen validatie nodig
       if (!student.lessons || student.lessons < 1) errors.push('Aantal lessen moet minimaal 1 zijn')
       if (!student.minutes || student.minutes < 30) errors.push('Lesduur moet minimaal 30 minuten zijn')
       
       if (errors.length > 0) {
         invalidStudents.push({
-          student: `${student.firstName || 'Onbekend'} ${student.lastName || 'Onbekend'}`,
+          student: `${student.firstName || 'Onbekend'} ${student.lastName || ''}`,
           errors
         })
       }

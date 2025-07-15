@@ -262,15 +262,40 @@ export default function AISchedulePage() {
         return
       }
 
+      // Debug: Log raw student data from database
+      console.log('Raw student data from database:', data?.map(s => ({
+        id: s.id,
+        firstName: s.first_name,
+        lastName: s.last_name,
+        email: s.email,
+        hasFirstName: !!s.first_name,
+        hasLastName: !!s.last_name,
+        firstNameLength: s.first_name?.length || 0,
+        lastNameLength: s.last_name?.length || 0,
+        displayName: s.last_name ? `${s.first_name} ${s.last_name}` : s.first_name
+      })))
+
       // Transform students to include schedule data
       const studentsWithScheduleData: StudentWithScheduleData[] = (data || []).map(student => ({
         ...student,
+        // Alleen voornaam is verplicht, achternaam is optioneel
+        first_name: student.first_name || 'Onbekende',
+        last_name: student.last_name || '', // Achternaam kan leeg zijn
         lessons: Math.max(1, student.default_lessons_per_week || 2),
         minutes: Math.max(30, student.default_lesson_duration_minutes || 60),
         notes: student.notes || '',
         aiNotes: '',
         availabilityNotes: []
       }))
+
+      console.log('Transformed students with schedule data:', studentsWithScheduleData.map(s => ({
+        id: s.id,
+        firstName: s.first_name,
+        lastName: s.last_name,
+        displayName: s.last_name ? `${s.first_name} ${s.last_name}` : s.first_name,
+        lessons: s.lessons,
+        minutes: s.minutes
+      })))
 
       setStudents(studentsWithScheduleData)
     } catch (error) {
@@ -431,8 +456,9 @@ export default function AISchedulePage() {
     const studentsText = studentsData.map((student: any) => {
       const availabilityNotes = student.notes ? `\nBeschikbaarheid: ${student.notes}` : ''
       const aiNotes = student.aiNotes ? `\nAI Notities: ${student.aiNotes}` : ''
+      const fullName = student.lastName ? `${student.firstName} ${student.lastName}` : student.firstName
       
-      return `- ${student.firstName} ${student.lastName}:
+      return `- ${fullName}:
   ${student.lessons} lessen van ${student.minutes} minuten per week${availabilityNotes}${aiNotes}`
     }).join('\n')
 
@@ -477,18 +503,64 @@ ${studentsText}
   const handleSendToAI = async () => {
     if (!user) return
     
+    // Check if there are any students at all
+    if (students.length === 0) {
+      toast.error('Geen leerlingen gevonden. Voeg eerst leerlingen toe aan je rijschool.')
+      return
+    }
+    
     setIsGenerating(true)
     
     try {
+      // Debug: Log alle student data voor troubleshooting
+      console.log('All students before validation:', students.map(s => ({
+        id: s.id,
+        firstName: s.first_name,
+        lastName: s.last_name,
+        hasFirstName: !!s.first_name,
+        hasLastName: !!s.last_name,
+        firstNameLength: s.first_name?.length || 0,
+        lastNameLength: s.last_name?.length || 0,
+        displayName: s.last_name ? `${s.first_name} ${s.last_name}` : s.first_name
+      })))
+
       // Filter en bereid de data voor voor de AI met extra validatie
-      const validStudents = students.filter(student => 
-        student.id && 
-        student.first_name && 
-        student.last_name
-      )
+      // Alleen voornaam is verplicht, achternaam is optioneel
+      const validStudents = students.filter(student => {
+        const hasId = !!student.id
+        const hasFirstName = !!student.first_name && student.first_name.trim().length > 0
+        
+        if (!hasId) {
+          console.warn(`Student missing ID:`, student)
+        }
+        if (!hasFirstName) {
+          console.warn(`Student missing first name:`, student)
+        }
+        
+        return hasId && hasFirstName
+      })
 
       if (validStudents.length === 0) {
-        throw new Error('Geen geldige leerlingen gevonden. Controleer of alle leerlingen een naam hebben.')
+        // Provide more detailed error information
+        const invalidStudents = students.filter(student => {
+          const hasId = !!student.id
+          const hasFirstName = !!student.first_name && student.first_name.trim().length > 0
+          return !hasId || !hasFirstName
+        })
+        
+        const errorDetails = invalidStudents.map(student => {
+          const issues = []
+          if (!student.id) issues.push('ID ontbreekt')
+          if (!student.first_name || student.first_name.trim().length === 0) issues.push('Voornaam ontbreekt')
+          return `${student.first_name || 'Onbekend'} ${student.last_name || ''}: ${issues.join(', ')}`
+        }).join('; ')
+        
+        // Show a more user-friendly error message
+        const errorMessage = students.length === 0 
+          ? 'Geen leerlingen gevonden. Voeg eerst leerlingen toe aan je rijschool.'
+          : `Geen geldige leerlingen gevonden. Controleer of alle leerlingen een voornaam hebben. Details: ${errorDetails}`
+        
+        throw new Error(errorMessage)
       }
 
       // Waarschuwing als er leerlingen zijn gefilterd
@@ -508,7 +580,7 @@ ${studentsText}
           return {
             id: student.id,
             firstName: student.first_name || '',
-            lastName: student.last_name || '',
+            lastName: student.last_name || '', // Achternaam is optioneel, kan leeg zijn
             lessons: Math.max(1, lessons), // Zorg ervoor dat het minimaal 1 is
             minutes: Math.max(30, minutes), // Zorg ervoor dat het minimaal 30 is
             aiNotes: student.aiNotes || '',
@@ -521,7 +593,7 @@ ${studentsText}
       // Debug: Log de student data voor validatie
       console.log('Sending student data to AI:', requestData.students.map(s => ({
         id: s.id,
-        name: `${s.firstName} ${s.lastName}`,
+        name: s.lastName ? `${s.firstName} ${s.lastName}` : s.firstName,
         lessons: s.lessons,
         minutes: s.minutes
       })))
@@ -721,7 +793,7 @@ ${studentsText}
                   <div key={student.id} className="card">
                     <div className="flex items-center justify-between mb-4">
                       <h4 className="font-medium text-gray-900">
-                        {student.first_name} {student.last_name}
+                        {student.first_name} {student.last_name || ''}
                       </h4>
                       {(isValueDifferentFromDefault(student, 'lessons') || isValueDifferentFromDefault(student, 'minutes')) && (
                         <button
