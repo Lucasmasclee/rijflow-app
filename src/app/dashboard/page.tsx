@@ -209,21 +209,21 @@ export default function DashboardPage() {
       <nav className="nav-mobile safe-area-bottom">
         <div className="container-mobile">
           <div className="flex justify-around">
-            <Link href="/dashboard" className="nav-mobile-item active">
-              <Home className="h-6 w-6" />
-              <span>Dashboard</span>
-            </Link>
-            <Link href="/dashboard/students" className="nav-mobile-item">
-              <Users className="h-6 w-6" />
-              <span>Leerlingen</span>
+            <Link href="/dashboard/week-overview" className="nav-mobile-item">
+              <Clock className="h-6 w-6" />
+              <span>Dagplanning</span>
             </Link>
             <Link href="/dashboard/lessons" className="nav-mobile-item">
               <Calendar className="h-6 w-6" />
-              <span>Lessen</span>
+              <span>Weekplanning</span>
             </Link>
-            <Link href="/dashboard/week-overview" className="nav-mobile-item">
-              <Clock className="h-6 w-6" />
-              <span>Week</span>
+            {/* <Link href="/dashboard" className="nav-mobile-item active">
+              <Home className="h-6 w-6" />
+              <span>Dashboard</span>
+            </Link> */}
+            <Link href="/dashboard/students" className="nav-mobile-item">
+              <Users className="h-6 w-6" />
+              <span>Leerlingen</span>
             </Link>
           </div>
         </div>
@@ -511,51 +511,11 @@ function InstructorDashboard() {
 
   return (
     <div className="space-y-6">
-      {/* Quick Stats */}
-      <div className="mobile-grid md:grid-cols-3 gap-4">
-        <div className="card text-center">
-          <Users className="h-8 w-8 text-blue-600 mx-auto mb-2" />
-          <div className="text-2xl font-bold text-gray-900">{students.length}</div>
-          <div className="text-sm text-gray-600">Leerlingen</div>
-        </div>
-        <div className="card text-center">
-          <Calendar className="h-8 w-8 text-green-600 mx-auto mb-2" />
-          <div className="text-2xl font-bold text-gray-900">{lessons.length}</div>
-          <div className="text-sm text-gray-600">Geplande lessen</div>
-        </div>
-        <div className="card text-center">
-          <Clock className="h-8 w-8 text-purple-600 mx-auto mb-2" />
-          <div className="text-2xl font-bold text-gray-900">{todayLessons.length}</div>
-          <div className="text-sm text-gray-600">Vandaag</div>
-        </div>
-      </div>
-
-      {/* Quick Actions */}
-      <div className="card">
-        <h3 className="text-lg font-semibold mb-4">Snelle Acties</h3>
-        <div className="mobile-grid md:grid-cols-2 gap-4">
-          <Link
-            href="/dashboard/students/new"
-            className="btn btn-primary flex items-center justify-center gap-2"
-          >
-            <Plus className="h-4 w-4" />
-            Nieuwe leerling
-          </Link>
-          <Link
-            href="/dashboard/lessons"
-            className="btn btn-secondary flex items-center justify-center gap-2"
-          >
-            <Calendar className="h-4 w-4" />
-            Les plannen
-          </Link>
-        </div>
-      </div>
-
-      {/* Today's Lessons */}
-      <div className="card">
+{/* Today's Lessons */}
+<div className="card">
         <div className="flex justify-between items-center mb-4">
           <h3 className="text-lg font-semibold">Lessen vandaag</h3>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1">
             <button
               onClick={goToPreviousDay}
               className="p-2 hover:bg-gray-100 rounded"
@@ -646,10 +606,52 @@ function InstructorDashboard() {
         )}
       </div>
 
+      {/* Quick Stats
+      <div className="mobile-grid md:grid-cols-3 gap-4">
+        <div className="card text-center">
+          <Users className="h-8 w-8 text-blue-600 mx-auto mb-2" />
+          <div className="text-2xl font-bold text-gray-900">{students.length}</div>
+          <div className="text-sm text-gray-600">Leerlingen</div>
+        </div>
+        <div className="card text-center">
+          <Calendar className="h-8 w-8 text-green-600 mx-auto mb-2" />
+          <div className="text-2xl font-bold text-gray-900">{lessons.length}</div>
+          <div className="text-sm text-gray-600">Geplande lessen</div>
+        </div>
+        <div className="card text-center">
+          <Clock className="h-8 w-8 text-purple-600 mx-auto mb-2" />
+          <div className="text-2xl font-bold text-gray-900">{todayLessons.length}</div>
+          <div className="text-sm text-gray-600">Vandaag</div>
+        </div>
+      </div> */}
+
+      {/* Quick Actions
+      <div className="card">
+        <h3 className="text-lg font-semibold mb-4">Snelle Acties</h3>
+        <div className="mobile-grid md:grid-cols-2 gap-4">
+          <Link
+            href="/dashboard/students/new"
+            className="btn btn-primary flex items-center justify-center gap-2"
+          >
+            <Plus className="h-4 w-4" />
+            Nieuwe leerling
+          </Link>
+          <Link
+            href="/dashboard/lessons"
+            className="btn btn-secondary flex items-center justify-center gap-2"
+          >
+            <Calendar className="h-4 w-4" />
+            Les plannen
+          </Link>
+        </div>
+      </div> */}
+
+      
+
       {/* Recent Students */}
       <div className="card">
         <div className="flex justify-between items-center mb-4">
-          <h3 className="text-lg font-semibold">Recente leerlingen</h3>
+          <h3 className="text-lg font-semibold">Leerlingen Dashboard</h3>
           <Link href="/dashboard/students" className="text-blue-600 hover:text-blue-700 text-sm">
             Bekijk alle
           </Link>
