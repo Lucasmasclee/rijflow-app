@@ -31,15 +31,36 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Valideer leerling data
-    const invalidStudents = body.students.filter(student => 
-      !student.id || !student.firstName || !student.lastName || 
-      student.lessons < 1 || student.minutes < 30
-    )
+    // Valideer leerling data met specifieke error messages
+    const invalidStudents = []
+    
+    for (const student of body.students) {
+      const errors = []
+      
+      if (!student.id) errors.push('ID ontbreekt')
+      if (!student.firstName || student.firstName.trim() === '') errors.push('Voornaam ontbreekt')
+      if (!student.lastName || student.lastName.trim() === '') errors.push('Achternaam ontbreekt')
+      if (!student.lessons || student.lessons < 1) errors.push('Aantal lessen moet minimaal 1 zijn')
+      if (!student.minutes || student.minutes < 30) errors.push('Lesduur moet minimaal 30 minuten zijn')
+      
+      if (errors.length > 0) {
+        invalidStudents.push({
+          student: `${student.firstName || 'Onbekend'} ${student.lastName || 'Onbekend'}`,
+          errors
+        })
+      }
+    }
     
     if (invalidStudents.length > 0) {
+      const errorDetails = invalidStudents.map(s => 
+        `${s.student}: ${s.errors.join(', ')}`
+      ).join('; ')
+      
       return NextResponse.json(
-        { error: `${invalidStudents.length} leerlingen hebben ongeldige data` },
+        { 
+          error: `${invalidStudents.length} leerlingen hebben ongeldige data`,
+          details: errorDetails
+        },
         { status: 400 }
       )
     }

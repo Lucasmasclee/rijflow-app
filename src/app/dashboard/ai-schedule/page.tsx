@@ -265,8 +265,8 @@ export default function AISchedulePage() {
       // Transform students to include schedule data
       const studentsWithScheduleData: StudentWithScheduleData[] = (data || []).map(student => ({
         ...student,
-        lessons: student.default_lessons_per_week || 2,
-        minutes: student.default_lesson_duration_minutes || 60,
+        lessons: Math.max(1, student.default_lessons_per_week || 2),
+        minutes: Math.max(30, student.default_lesson_duration_minutes || 60),
         notes: student.notes || '',
         aiNotes: '',
         availabilityNotes: []
@@ -287,6 +287,15 @@ export default function AISchedulePage() {
       window.location.href = '/auth/signin'
     }
   }, [user, loading])
+
+  // Expose state for debugging
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      (window as any).students = students
+      ;(window as any).availability = availability
+      ;(window as any).settings = settings
+    }
+  }, [students, availability, settings])
 
   useEffect(() => {
     if (user && mounted) {
@@ -471,20 +480,51 @@ ${studentsText}
     setIsGenerating(true)
     
     try {
-      // Bereid de data voor voor de AI
+      // Filter en bereid de data voor voor de AI met extra validatie
+      const validStudents = students.filter(student => 
+        student.id && 
+        student.first_name && 
+        student.last_name
+      )
+
+      if (validStudents.length === 0) {
+        throw new Error('Geen geldige leerlingen gevonden. Controleer of alle leerlingen een naam hebben.')
+      }
+
+      // Waarschuwing als er leerlingen zijn gefilterd
+      if (validStudents.length < students.length) {
+        const filteredCount = students.length - validStudents.length
+        console.warn(`${filteredCount} leerlingen zijn gefilterd vanwege ontbrekende gegevens`)
+        toast.error(`${filteredCount} leerlingen zijn overgeslagen vanwege ontbrekende gegevens`)
+      }
+
       const requestData = {
         instructorAvailability: availability,
-        students: students.map(student => ({
-          id: student.id,
-          firstName: student.first_name,
-          lastName: student.last_name,
-          lessons: student.lessons,
-          minutes: student.minutes,
-          aiNotes: student.aiNotes,
-          notes: student.notes || ''
-        })),
+        students: validStudents.map(student => {
+          // Zorg ervoor dat alle verplichte velden aanwezig zijn
+          const lessons = student.lessons || student.default_lessons_per_week || 2
+          const minutes = student.minutes || student.default_lesson_duration_minutes || 60
+          
+          return {
+            id: student.id,
+            firstName: student.first_name || '',
+            lastName: student.last_name || '',
+            lessons: Math.max(1, lessons), // Zorg ervoor dat het minimaal 1 is
+            minutes: Math.max(30, minutes), // Zorg ervoor dat het minimaal 30 is
+            aiNotes: student.aiNotes || '',
+            notes: student.notes || ''
+          }
+        }),
         settings
       }
+
+      // Debug: Log de student data voor validatie
+      console.log('Sending student data to AI:', requestData.students.map(s => ({
+        id: s.id,
+        name: `${s.firstName} ${s.lastName}`,
+        lessons: s.lessons,
+        minutes: s.minutes
+      })))
 
       // Roep de AI API aan
       const response = await fetch('/api/ai-schedule', {
@@ -497,7 +537,10 @@ ${studentsText}
 
       if (!response.ok) {
         const errorData = await response.json()
-        throw new Error(errorData.error || 'Fout bij het genereren van het rooster')
+        const errorMessage = errorData.details 
+          ? `${errorData.error}: ${errorData.details}`
+          : errorData.error || 'Fout bij het genereren van het rooster'
+        throw new Error(errorMessage)
       }
 
       const aiResult = await response.json()
