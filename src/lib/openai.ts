@@ -1,5 +1,12 @@
 import OpenAI from 'openai'
 
+// Debug logging
+console.log('OpenAI API Key check:', {
+  hasKey: !!process.env.OPENAI_API_KEY,
+  keyLength: process.env.OPENAI_API_KEY?.length || 0,
+  keyStart: process.env.OPENAI_API_KEY?.substring(0, 10) + '...' || 'undefined'
+})
+
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY || '',
 })
@@ -47,8 +54,16 @@ export interface AIScheduleResponse {
 
 export async function generateAISchedule(request: AIScheduleRequest): Promise<AIScheduleResponse> {
   try {
+    // Debug logging voor API key check
+    console.log('Checking OpenAI API key in generateAISchedule:', {
+      hasKey: !!process.env.OPENAI_API_KEY,
+      keyLength: process.env.OPENAI_API_KEY?.length || 0,
+      keyStart: process.env.OPENAI_API_KEY?.substring(0, 10) + '...' || 'undefined'
+    })
+    
     // Controleer of API key is ingesteld
     if (!process.env.OPENAI_API_KEY) {
+      console.log('No OpenAI API key found, returning dummy response')
       // Return dummy response voor development/testing
       return generateDummyResponse(request)
     }
