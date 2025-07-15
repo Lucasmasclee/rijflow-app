@@ -687,7 +687,10 @@ ${studentsText}
 
       if (!response.ok) {
         const errorData = await response.json()
-        throw new Error(errorData.error || 'Fout bij het toevoegen van lessen')
+        const errorMessage = errorData.details 
+          ? `${errorData.error}: ${errorData.details}`
+          : errorData.error || 'Fout bij het toevoegen van lessen'
+        throw new Error(errorMessage)
       }
 
       const result = await response.json()

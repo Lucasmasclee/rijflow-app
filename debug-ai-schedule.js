@@ -129,6 +129,30 @@ async function checkDatabaseStudents() {
   }
 }
 
+// Nieuwe functie om lessons table te testen
+async function testLessonsTable() {
+  console.log('📚 Testing lessons table...')
+  
+  try {
+    const response = await fetch('/api/test-lessons', {
+      method: 'GET'
+    })
+    
+    if (response.ok) {
+      const data = await response.json()
+      console.log('✅ Lessons table test result:', data)
+      return data
+    } else {
+      const errorData = await response.json()
+      console.error('❌ Lessons table test failed:', errorData)
+      return errorData
+    }
+  } catch (error) {
+    console.error('❌ Lessons table test error:', error)
+    return null
+  }
+}
+
 // Functie om alle debug functies uit te voeren
 async function runAllDebugChecks() {
   console.log('🚀 Running all debug checks...')
@@ -142,6 +166,9 @@ async function runAllDebugChecks() {
   // 3. Check database direct
   await checkDatabaseStudents()
   
+  // 4. Test lessons table
+  await testLessonsTable()
+  
   console.log('✅ All debug checks completed!')
 }
 
@@ -149,6 +176,7 @@ async function runAllDebugChecks() {
 window.debugAIScheduleValidation = debugAIScheduleValidation
 window.testAPICall = testAPICall
 window.checkDatabaseStudents = checkDatabaseStudents
+window.testLessonsTable = testLessonsTable
 window.runAllDebugChecks = runAllDebugChecks
 
 console.log('🔧 Debug functions loaded!')
@@ -156,4 +184,5 @@ console.log('Available functions:')
 console.log('- debugAIScheduleValidation()')
 console.log('- testAPICall()')
 console.log('- checkDatabaseStudents()')
+console.log('- testLessonsTable()')
 console.log('- runAllDebugChecks()') 

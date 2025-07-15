@@ -43,6 +43,17 @@ export async function POST(request: NextRequest) {
       )
     }
 
+    // Debug: Log de lessen die we gaan toevoegen
+    console.log('Attempting to insert lessons:', lessonsToInsert.map(l => ({
+      date: l.date,
+      start_time: l.start_time,
+      end_time: l.end_time,
+      student_id: l.student_id,
+      instructor_id: l.instructor_id,
+      status: l.status,
+      notes: l.notes
+    })))
+
     // Voeg lessen toe aan database
     const { data, error } = await supabase
       .from('lessons')
@@ -51,8 +62,18 @@ export async function POST(request: NextRequest) {
 
     if (error) {
       console.error('Error inserting lessons:', error)
+      console.error('Error details:', {
+        code: error.code,
+        message: error.message,
+        details: error.details,
+        hint: error.hint
+      })
       return NextResponse.json(
-        { error: 'Fout bij het toevoegen van lessen' },
+        { 
+          error: 'Fout bij het toevoegen van lessen',
+          details: error.message,
+          code: error.code
+        },
         { status: 500 }
       )
     }
