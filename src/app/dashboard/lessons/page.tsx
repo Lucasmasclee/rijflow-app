@@ -58,11 +58,23 @@ export default function LessonsPage() {
     
     try {
       setLoadingLessons(true)
-      const monday = getMonday(currentDate)
-      const startDate = formatDateToISO(monday)
-      const endDate = formatDateToISO(new Date(monday.getTime() + 6 * 24 * 60 * 60 * 1000))
       
-      console.log('Fetching lessons for week:', { startDate, endDate }) // Debug log
+      let startDate: string
+      let endDate: string
+      
+      if (viewMode === 'week') {
+        const monday = getMonday(currentDate)
+        startDate = formatDateToISO(monday)
+        endDate = formatDateToISO(new Date(monday.getTime() + 6 * 24 * 60 * 60 * 1000))
+      } else {
+        // Month view - get first and last day of the month
+        const firstDayOfMonth = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1)
+        const lastDayOfMonth = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 0)
+        startDate = formatDateToISO(firstDayOfMonth)
+        endDate = formatDateToISO(lastDayOfMonth)
+      }
+      
+      console.log(`Fetching lessons for ${viewMode}:`, { startDate, endDate }) // Debug log
       
       const { data, error } = await supabase
         .from('lessons')
@@ -99,7 +111,7 @@ export default function LessonsPage() {
     if (user) {
       fetchLessons()
     }
-  }, [user, currentDate])
+  }, [user, currentDate, viewMode])
 
   const getMonday = (date: Date) => {
     const day = date.getDay()
@@ -199,6 +211,41 @@ export default function LessonsPage() {
     } catch {
       return time
     }
+  }
+
+  // Month view helper functions
+  const getMonthDays = () => {
+    const year = currentDate.getFullYear()
+    const month = currentDate.getMonth()
+    
+    // Get first day of the month
+    const firstDay = new Date(year, month, 1)
+    // Get last day of the month
+    const lastDay = new Date(year, month + 1, 0)
+    
+    // Get the day of week for the first day (0 = Sunday, 1 = Monday, etc.)
+    const firstDayOfWeek = firstDay.getDay()
+    // Convert to Monday = 0, Sunday = 6 format
+    const mondayFirstDayOfWeek = firstDayOfWeek === 0 ? 6 : firstDayOfWeek - 1
+    
+    const days = []
+    
+    // Add empty cells for days before the first day of the month
+    for (let i = 0; i < mondayFirstDayOfWeek; i++) {
+      days.push(null)
+    }
+    
+    // Add all days of the month
+    for (let day = 1; day <= lastDay.getDate(); day++) {
+      days.push(new Date(year, month, day))
+    }
+    
+    return days
+  }
+
+  const getLessonsCountForDate = (date: Date) => {
+    const dateString = date.toISOString().split('T')[0]
+    return lessons.filter(lesson => lesson.date === dateString).length
   }
 
   if (loading) {
@@ -430,9 +477,60 @@ export default function LessonsPage() {
           )}
 
           {/* Month View */}
-          {viewMode === 'month' && (
-            <div className="text-center py-8">
-              <p className="text-gray-500">Maandoverzicht wordt binnenkort toegevoegd</p>
+          {viewMode === 'month' && !loadingLessons && (
+            <div className="space-y-4">
+              {/* Calendar Header */}
+              <div className="grid grid-cols-7 gap-1 text-center text-sm font-medium text-gray-500">
+                <div>Ma</div>
+                <div>Di</div>
+                <div>Wo</div>
+                <div>Do</div>
+                <div>Vr</div>
+                <div>Za</div>
+                <div>Zo</div>
+              </div>
+              
+              {/* Calendar Grid */}
+              <div className="grid grid-cols-7 gap-1">
+                {getMonthDays().map((day, index) => {
+                  if (!day) {
+                    return (
+                      <div key={`empty-${index}`} className="h-12 bg-gray-50 rounded-lg"></div>
+                    )
+                  }
+                  
+                  const lessonsCount = getLessonsCountForDate(day)
+                  const isCurrentDay = isToday(day)
+                  
+                  return (
+                    <div
+                      key={day.toISOString()}
+                      className={`h-12 p-1 rounded-lg border ${
+                        isCurrentDay 
+                          ? 'bg-blue-50 border-blue-200' 
+                          : 'bg-white border-gray-200 hover:bg-gray-50'
+                      }`}
+                    >
+                      <div className="flex flex-col items-center justify-center h-full">
+                        <span className={`text-xs ${
+                          isCurrentDay ? 'text-blue-600 font-semibold' : 'text-gray-900'
+                        }`}>
+                          {day.getDate()}
+                        </span>
+                        {lessonsCount > 0 && (
+                          <span className={`text-xs font-medium px-1 rounded-full ${
+                            isCurrentDay 
+                              ? 'bg-blue-600 text-white' 
+                              : 'bg-blue-100 text-blue-800'
+                          }`}>
+                            {lessonsCount}
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                  )
+                })}
+              </div>
             </div>
           )}
         </div>
