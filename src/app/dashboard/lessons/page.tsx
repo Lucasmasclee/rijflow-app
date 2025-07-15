@@ -12,7 +12,8 @@ import {
   User,
   MapPin,
   MoreVertical,
-  ArrowLeft
+  ArrowLeft,
+  Users
 } from 'lucide-react'
 import Link from 'next/link'
 import { supabase } from '@/lib/supabase'
@@ -240,6 +241,27 @@ export default function LessonsPage() {
         </div>
       </nav> */}
 
+      {/* Quick Actions */}
+      <div className="card">
+          <h3 className="text-lg font-semibold mb-4">Snelle acties</h3>
+          <div className="space-y-3">
+            <Link
+              href="/dashboard/lessons/new"
+              className="btn btn-primary w-full flex items-center justify-center gap-2"
+            >
+              <Plus className="h-4 w-4" />
+              Nieuwe les plannen
+            </Link>
+            <Link
+              href="/dashboard/ai-schedule"
+              className="btn btn-secondary w-full flex items-center justify-center gap-2"
+            >
+              <Calendar className="h-4 w-4" />
+              AI-geassisteerde planning
+            </Link>
+          </div>
+        </div>
+
       <div className="container-mobile py-6">
         {/* Header */}
         <div className="mb-6">
@@ -354,39 +376,39 @@ export default function LessonsPage() {
                     {dayLessons.length === 0 ? (
                       <p className="text-gray-500 text-sm py-2">Geen lessen gepland</p>
                     ) : (
-                      <div className="space-y-2">
+                      <div className="space-y-0.5">
                         {dayLessons.map((lesson) => (
                           <div key={lesson.id} className="bg-gray-50 rounded-lg p-3">
                             <div className="flex items-start justify-between">
                               <div className="flex-1">
-                                <div className="flex items-center gap-2 mb-1">
+                                {/* <div className="flex items-center gap-2 mb-1">
                                   <Clock className="h-3 w-3 text-gray-400" />
                                   <span className="text-sm font-medium text-gray-900">
                                     {formatTime(lesson.start_time)} - {formatTime(lesson.end_time)}
                                   </span>
-                                </div>
+                                </div> */}
                                 <div className="flex items-center gap-2 mb-1">
                                   <User className="h-3 w-3 text-gray-400" />
                                   <span className="text-sm text-gray-700">
                                     {lesson.students ? `${lesson.students.first_name} ${lesson.students.last_name}` : 'Onbekende leerling'}
                                   </span>
                                 </div>
-                                {lesson.location && (
+                                {/* {lesson.location && (
                                   <div className="flex items-center gap-2">
                                     <MapPin className="h-3 w-3 text-gray-400" />
                                     <span className="text-sm text-gray-600">
                                       {lesson.location}
                                     </span>
                                   </div>
-                                )}
-                                {lesson.students?.address && !lesson.location && (
+                                )} */}
+                                {/* {lesson.students?.address && !lesson.location && (
                                   <div className="flex items-center gap-2">
                                     <MapPin className="h-3 w-3 text-gray-400" />
                                     <span className="text-sm text-gray-600">
                                       {lesson.students.address}
                                     </span>
                                   </div>
-                                )}
+                                )} */}
                               </div>
                               <div className="flex items-center gap-2">
                                 <span className={`px-2 py-1 text-xs font-medium rounded-full ${getStatusColor(lesson.status)}`}>
@@ -415,27 +437,33 @@ export default function LessonsPage() {
           )}
         </div>
 
-        {/* Quick Actions */}
-        <div className="card">
-          <h3 className="text-lg font-semibold mb-4">Snelle acties</h3>
-          <div className="space-y-3">
-            <Link
-              href="/dashboard/lessons/new"
-              className="btn btn-primary w-full flex items-center justify-center gap-2"
-            >
-              <Plus className="h-4 w-4" />
-              Nieuwe les plannen
+        
+      </div>
+
+
+
+      <nav className="nav-mobile safe-area-bottom">
+        <div className="container-mobile">
+          <div className="flex justify-around">
+            <Link href="/dashboard" className="nav-mobile-item active">
+              <Clock className="h-6 w-6" />
+              <span>Dagplanning</span>
             </Link>
-            <Link
-              href="/dashboard/ai-schedule"
-              className="btn btn-secondary w-full flex items-center justify-center gap-2"
-            >
-              <Calendar className="h-4 w-4" />
-              AI-geassisteerde planning
+            <Link href="/dashboard/lessons" className="nav-mobile-item">
+              <Calendar className="h-6 w-6" />
+              <span>Weekplanning</span>
+            </Link>
+            {/* <Link href="/dashboard" className="nav-mobile-item active">
+              <Home className="h-6 w-6" />
+              <span>Dashboard</span>
+            </Link> */}
+            <Link href="/dashboard/students" className="nav-mobile-item">
+              <Users className="h-6 w-6" />
+              <span>Leerlingen</span>
             </Link>
           </div>
         </div>
-      </div>
+      </nav>
     </div>
   )
 } 
