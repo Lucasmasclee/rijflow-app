@@ -697,51 +697,6 @@ export default function WeekOverviewPage() {
 
   return (
     <div className="min-h-screen bg-gray-50 pb-20">
-      <style jsx>{`
-        input[type="time"]::-webkit-calendar-picker-indicator {
-          background: transparent;
-          bottom: 0;
-          color: transparent;
-          cursor: pointer;
-          height: auto;
-          left: 0;
-          position: absolute;
-          right: 0;
-          top: 0;
-          width: auto;
-        }
-        
-        input[type="time"] {
-          -webkit-appearance: none;
-          -moz-appearance: none;
-          appearance: none;
-          font-family: monospace;
-        }
-        
-        input[type="time"]::-webkit-datetime-edit-hour-field,
-        input[type="time"]::-webkit-datetime-edit-minute-field {
-          -webkit-appearance: none;
-          appearance: none;
-          font-family: monospace;
-        }
-        
-        /* Hide AM/PM field completely */
-        input[type="time"]::-webkit-datetime-edit-ampm-field {
-          display: none !important;
-          width: 0 !important;
-          padding: 0 !important;
-          margin: 0 !important;
-        }
-        
-        /* Force 24-hour format */
-        input[type="time"][data-format="24h"] {
-          -webkit-text-security: none;
-        }
-        
-        input[type="time"][data-format="24h"]::-webkit-datetime-edit {
-          -webkit-text-security: none;
-        }
-      `}</style>
       {/* Mobile Navigation */}
       <nav className="bg-white shadow-sm border-b safe-area-top">
         <div className="container-mobile">
@@ -771,7 +726,6 @@ export default function WeekOverviewPage() {
           </div>
         </div>
       </nav>
-
       <div className="container-mobile py-6">
         {/* Header */}
         <div className="mb-6">
@@ -782,7 +736,6 @@ export default function WeekOverviewPage() {
             Beheer je lesrooster per week
           </p>
         </div>
-
         {/* Week Navigation */}
         <div className="card mb-6">
           <div className="flex items-center justify-between mb-4">
@@ -792,14 +745,12 @@ export default function WeekOverviewPage() {
             >
               <ChevronLeft className="h-5 w-5" />
             </button>
-            
             <div className="text-center">
               <h2 className="text-lg font-semibold text-gray-900">
                 {(() => {
                   const monday = getMonday(currentWeek);
                   const sunday = new Date(monday);
                   sunday.setDate(monday.getDate() + 6);
-                  
                   return `${monday.toLocaleDateString('nl-NL', {
                     day: '2-digit',
                     month: 'long'
@@ -817,7 +768,6 @@ export default function WeekOverviewPage() {
                 Ga naar vandaag
               </button>
             </div>
-            
             <button
               onClick={goToNextWeek}
               className="p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg"
@@ -825,138 +775,129 @@ export default function WeekOverviewPage() {
               <ChevronRight className="h-5 w-5" />
             </button>
           </div>
-
-
-        {/* Week Calendar */}
-        <div className="bg-white rounded-lg shadow-sm">
-          <div className="p-6">
-            <div className="grid grid-cols-7 gap-4">
-              {getWeekDays().map((day, index) => (
-                <div key={index} className="min-h-[200px]">
-                  <div 
-                    className={`p-3 rounded-lg border-2 mb-3 cursor-pointer hover:bg-gray-50 transition-colors ${
-                      !day.isAvailable
-                        ? 'border-gray-300 bg-gray-100 opacity-60'
-                        : day.isToday 
-                          ? 'border-blue-500 bg-blue-50' 
-                          : 'border-gray-200 bg-gray-50'
-                    }`}
-                    onClick={() => openDayView(day.actualDate)}
-                  >
-                    <p className={`text-sm font-medium text-center ${
-                      !day.isAvailable
-                        ? 'text-gray-500'
-                        : day.isToday 
-                          ? 'text-blue-700' 
-                          : 'text-gray-600'
-                    }`}>
-                      {day.name}
-                    </p>
-                    <p className={`text-xs text-center ${
-                      !day.isAvailable
-                        ? 'text-gray-400'
-                        : day.isToday 
-                          ? 'text-blue-600' 
-                          : 'text-gray-500'
-                    }`}>
-                      {day.date}
-                    </p>
-                    <div className="mt-2 text-center">
-                      <span className={`inline-flex items-center justify-center w-6 h-6 rounded-full text-xs font-bold ${
+          {/* Week Calendar */}
+          <div className="bg-white rounded-lg shadow-sm">
+            <div className="p-6">
+              <div className="grid grid-cols-7 gap-4">
+                {getWeekDays().map((day, index) => (
+                  <div key={index} className="min-h-[200px]">
+                    <div 
+                      className={`p-3 rounded-lg border-2 mb-3 cursor-pointer hover:bg-gray-50 transition-colors ${
                         !day.isAvailable
-                          ? 'bg-gray-200 text-gray-400'
-                          : day.lessonCount > 0 
-                            ? 'bg-blue-100 text-blue-700' 
-                            : 'bg-gray-100 text-gray-400'
+                          ? 'border-gray-300 bg-gray-100 opacity-60'
+                          : day.isToday 
+                            ? 'border-blue-500 bg-blue-50' 
+                            : 'border-gray-200 bg-gray-50'
+                      }`}
+                      onClick={() => openDayView(day.actualDate)}
+                    >
+                      <p className={`text-sm font-medium text-center ${
+                        !day.isAvailable
+                          ? 'text-gray-500'
+                          : day.isToday 
+                            ? 'text-blue-700' 
+                            : 'text-gray-600'
                       }`}>
-                        {day.lessonCount}
-                      </span>
+                        {day.name}
+                      </p>
+                      <p className={`text-xs text-center ${
+                        !day.isAvailable
+                          ? 'text-gray-400'
+                          : day.isToday 
+                            ? 'text-blue-600' 
+                            : 'text-gray-500'
+                      }`}>
+                        {day.date}
+                      </p>
+                      <div className="mt-2 text-center">
+                        <span className={`inline-flex items-center justify-center w-6 h-6 rounded-full text-xs font-bold ${
+                          !day.isAvailable
+                            ? 'bg-gray-200 text-gray-400'
+                            : day.lessonCount > 0 
+                              ? 'bg-blue-100 text-blue-700' 
+                              : 'bg-gray-100 text-gray-400'
+                        }`}>
+                          {day.lessonCount}
+                        </span>
+                      </div>
+                    </div>
+                    {/* Lessons for this day */}
+                    <div className="space-y-2">
+                      {!day.isAvailable ? (
+                        <div className="p-3 text-center text-gray-400 text-sm bg-gray-50 border border-gray-200 rounded-lg">
+                          Niet beschikbaar
+                        </div>
+                      ) : (
+                        <>
+                          {getDayLessons(day.fullDate).map((lesson, lessonIndex) => {
+                            const student = lesson.student || students.find(s => s.id === lesson.student_id)
+                            return (
+                              <div 
+                                key={lessonIndex}
+                                className="p-3 bg-blue-50 border border-blue-200 rounded-lg hover:bg-blue-100 transition-colors"
+                              >
+                                <div className="flex items-center justify-between">
+                                  <div className="flex items-center space-x-2">
+                                    <Clock className="h-3 w-3 text-blue-600" />
+                                    <span className="text-sm font-medium text-blue-900">
+                                      {formatTime(lesson.start_time)} - {formatTime(lesson.end_time)}
+                                    </span>
+                                  </div>
+                                  <div className="flex items-center space-x-1">
+                                    <button 
+                                      className="p-1 text-blue-600 hover:text-blue-700 hover:bg-blue-200 rounded"
+                                      onClick={(e) => {
+                                        e.stopPropagation()
+                                        openEditLesson(lesson)
+                                      }}
+                                    >
+                                      <Edit2 className="h-3 w-3" />
+                                    </button>
+                                    <button 
+                                      className="p-1 text-green-600 hover:text-green-700 hover:bg-green-200 rounded"
+                                      onClick={(e) => {
+                                        e.stopPropagation()
+                                        duplicateLesson(lesson)
+                                      }}
+                                    >
+                                      <Copy className="h-3 w-3" />
+                                    </button>
+                                    <button 
+                                      className="p-1 text-red-600 hover:text-red-700 hover:bg-red-200 rounded"
+                                      onClick={(e) => {
+                                        e.stopPropagation()
+                                        deleteLesson(lesson.id)
+                                      }}
+                                    >
+                                      <Trash2 className="h-3 w-3" />
+                                    </button>
+                                  </div>
+                                </div>
+                                <div className="mt-2">
+                                  <div className="flex items-center space-x-2">
+                                    <User className="h-3 w-3 text-gray-500" />
+                                    <span className="text-xs text-gray-600">
+                                      {student ? `${student.first_name} ${student.last_name}` : 'Onbekende leerling'}
+                                    </span>
+                                  </div>
+                                  {lesson.notes && (
+                                    <div className="bg-gray-50 p-2 rounded-lg mt-1">
+                                      <p className="text-xs text-gray-500">{lesson.notes}</p>
+                                    </div>
+                                  )}
+                                </div>
+                              </div>
+                            )
+                          })}
+                        </>
+                      )}
                     </div>
                   </div>
-                  
-                  {/* Lessons for this day */}
-                  <div className="space-y-2">
-                    {!day.isAvailable ? (
-                      <div className="p-3 text-center text-gray-400 text-sm bg-gray-50 border border-gray-200 rounded-lg">
-                        Niet beschikbaar
-                      </div>
-                    ) : (
-                      <>
-                        {getDayLessons(day.fullDate).map((lesson, lessonIndex) => {
-                          const student = lesson.student || students.find(s => s.id === lesson.student_id)
-                          return (
-                            <div 
-                              key={lessonIndex}
-                              className="p-3 bg-blue-50 border border-blue-200 rounded-lg hover:bg-blue-100 transition-colors"
-                            >
-                              <div className="flex items-center justify-between">
-                                <div className="flex items-center space-x-2">
-                                  <Clock className="h-3 w-3 text-blue-600" />
-                                  <span className="text-sm font-medium text-blue-900">
-                                    {formatTime(lesson.start_time)} - {formatTime(lesson.end_time)}
-                                  </span>
-                                </div>
-                                <div className="flex items-center space-x-1">
-                                  <button 
-                                    className="p-1 text-blue-600 hover:text-blue-700 hover:bg-blue-200 rounded"
-                                    onClick={(e) => {
-                                      e.stopPropagation()
-                                      openEditLesson(lesson)
-                                    }}
-                                  >
-                                    <Edit2 className="h-3 w-3" />
-                                  </button>
-                                  <button 
-                                    className="p-1 text-green-600 hover:text-green-700 hover:bg-green-200 rounded"
-                                    onClick={(e) => {
-                                      e.stopPropagation()
-                                      duplicateLesson(lesson)
-                                    }}
-                                  >
-                                    <Copy className="h-3 w-3" />
-                                  </button>
-                                  <button 
-                                    className="p-1 text-red-600 hover:text-red-700 hover:bg-red-200 rounded"
-                                    onClick={(e) => {
-                                      e.stopPropagation()
-                                      deleteLesson(lesson.id)
-                                    }}
-                                  >
-                                    <Trash2 className="h-3 w-3" />
-                                  </button>
-                                </div>
-                              </div>
-                              <div className="mt-2">
-                                <div className="flex items-center space-x-2">
-                                  <User className="h-3 w-3 text-gray-500" />
-                                  <span className="text-xs text-gray-600">
-                                    {student ? `${student.first_name} ${student.last_name}` : 'Onbekende leerling'}
-                                  </span>
-                                </div>
-                                {lesson.notes && (
-                                  <div className="mt-1">
-                                    <span className="text-xs text-gray-500">{lesson.notes}</span>
-                                  </div>
-                                )}
-                              </div>
-                            </div>
-                          )
-                        })}
-                        
-                        {getDayLessons(day.fullDate).length === 0 && (
-                          <div className="p-3 text-center text-gray-400 text-sm">
-                            Geen lessen
-                          </div>
-                        )}
-                      </>
-                    )}
-                  </div>
-                </div>
-              ))}
+                ))}
+              </div>
             </div>
           </div>
         </div>
-
         {/* Empty State */}
         {lessons.length === 0 && !loadingLessons && (
           <div className="bg-white rounded-lg shadow-sm mt-6">
@@ -975,7 +916,6 @@ export default function WeekOverviewPage() {
           </div>
         )}
       </div>
-
       {/* Add/Edit/Duplicate Lesson Modal */}
       {showAddLesson && (
         <div className="fixed inset-0 bg-gray-500 bg-opacity-50 flex items-center justify-center z-50">
