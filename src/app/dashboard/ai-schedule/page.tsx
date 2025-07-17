@@ -584,6 +584,39 @@ export default function AISchedulePage() {
     }
   }
 
+  // Fetch latest student availability from database for current week
+  const fetchLatestStudentAvailability = async () => {
+    if (!user) return []
+    
+    try {
+      // Calculate the current week starting from next Monday
+      const today = new Date()
+      const nextMonday = new Date(today)
+      nextMonday.setDate(today.getDate() + (8 - today.getDay()) % 7) // Volgende maandag
+      
+      const currentWeekStart = nextMonday.toISOString().slice(0, 10)
+      
+      // Get all student IDs
+      const studentIds = students.map(s => s.id)
+      
+      const { data: availabilityData, error } = await supabase
+        .from('student_availability')
+        .select('student_id, week_start, notes')
+        .in('student_id', studentIds)
+        .eq('week_start', currentWeekStart)
+
+      if (error) {
+        console.error('Error fetching latest student availability:', error)
+        return []
+      }
+
+      return availabilityData || []
+    } catch (error) {
+      console.error('Error fetching latest student availability:', error)
+      return []
+    }
+  }
+
   // Fetch student availability from database
   const fetchStudentAvailability = async (studentsList: StudentWithScheduleData[]) => {
     if (!user || studentsList.length === 0) return
@@ -644,7 +677,8 @@ export default function AISchedulePage() {
         return {
           ...student,
           availabilityNotes,
-          availabilityText
+          availabilityText,
+          notes: availabilityText // Also update the notes field to contain the availability for AI prompt generation
         }
       })
 
@@ -827,18 +861,27 @@ export default function AISchedulePage() {
   }
 
   // Generate AI prompt
-  const generateAIPrompt = () => {
+  const generateAIPrompt = async () => {
+    // Fetch the latest availability data from the database
+    const availabilityData = await fetchLatestStudentAvailability()
+    
     const requestData = {
       instructorAvailability: availability,
-      students: students.map((student: StudentWithScheduleData) => ({
-        id: student.id,
-        firstName: student.first_name,
-        lastName: student.last_name,
-        lessons: student.lessons,
-        minutes: student.minutes,
-        aiNotes: student.aiNotes,
-        notes: student.availabilityText || '' // Use availabilityText instead of notes
-      })),
+      students: students.map((student: StudentWithScheduleData) => {
+        // Get the availability for this student from the database
+        const studentAvailability = availabilityData.find((a: any) => a.student_id === student.id)
+        const availabilityText = studentAvailability?.notes || 'Flexibel beschikbaar'
+        
+        return {
+          id: student.id,
+          firstName: student.first_name,
+          lastName: student.last_name,
+          lessons: student.lessons,
+          minutes: student.minutes,
+          aiNotes: student.aiNotes,
+          notes: availabilityText // Use actual database availability from student_availability table
+        }
+      }),
       settings
     }
 
@@ -887,7 +930,8 @@ export default function AISchedulePage() {
 
     // Leerlingen informatie
     const studentsText = studentsData.map((student: any) => {
-      // Use the actual availability text from the database (student.notes contains the availability)
+      // Use the actual availability text from the student_availability table
+      // student.notes contains the availability from the database (set by fetchStudentAvailability)
       const availabilityText = student.notes ? `\nBeschikbaarheid: ${student.notes}` : ''
       const aiNotes = student.aiNotes ? `\nAI Notities: ${student.aiNotes}` : ''
       const fullName = student.lastName ? `${student.firstName} ${student.lastName}` : student.firstName
@@ -1045,12 +1089,19 @@ OPDRACHT: Maak een optimaal lesrooster voor de komende week op basis van bovenst
         toast.error(`${filteredCount} leerlingen zijn overgeslagen vanwege ontbrekende gegevens`)
       }
 
+      // Fetch the latest availability data from the database
+      const availabilityData = await fetchLatestStudentAvailability()
+      
       const requestData = {
         instructorAvailability: availability,
         students: validStudents.map(student => {
           // Zorg ervoor dat alle verplichte velden aanwezig zijn
           const lessons = student.lessons || student.default_lessons_per_week || 2
           const minutes = student.minutes || student.default_lesson_duration_minutes || 60
+          
+          // Get the availability for this student from the database
+          const studentAvailability = availabilityData.find((a: any) => a.student_id === student.id)
+          const availabilityText = studentAvailability?.notes || 'Flexibel beschikbaar'
           
           return {
             id: student.id,
@@ -1059,7 +1110,7 @@ OPDRACHT: Maak een optimaal lesrooster voor de komende week op basis van bovenst
             lessons: Math.max(1, lessons), // Zorg ervoor dat het minimaal 1 is
             minutes: Math.max(30, minutes), // Zorg ervoor dat het minimaal 30 is
             aiNotes: student.aiNotes || '',
-            notes: student.availabilityText || '' // Use availabilityText which contains the database availability
+            notes: availabilityText // Use actual database availability from student_availability table
           }
         }),
         settings
@@ -1502,7 +1553,7 @@ OPDRACHT: Maak een optimaal lesrooster voor de komende week op basis van bovenst
                     Klik hieronder om de AI prompt te genereren op basis van je instellingen.
                   </p>
                   <button
-                    onClick={generateAIPrompt}
+                    onClick={() => generateAIPrompt()}
                     className="btn btn-primary flex items-center gap-2 mx-auto"
                   >
                     <Brain className="h-4 w-4" />
@@ -1777,7 +1828,7 @@ OPDRACHT: Maak een optimaal lesrooster voor de komende week op basis van bovenst
         <div className="container-mobile">
           <div className="flex justify-between items-center h-16">
             <div className="flex items-center">
-              <Link href="/dashboard" className="text-gray-600 hover:text-gray-900 flex items-center gap-2">
+              <Link href="/dashboard/lessons" className="text-gray-600 hover:text-gray-900 flex items-center gap-2">
                 <ArrowLeft className="h-4 w-4" />
                 <span className="hidden sm:inline">Terug naar dashboard</span>
               </Link>
