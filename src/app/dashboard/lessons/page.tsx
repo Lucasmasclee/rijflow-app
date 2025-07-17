@@ -809,13 +809,13 @@ export default function LessonsPage() {
                   return (
                     <div
                       key={day.toISOString()}
-                      className={`h-12 p-1 rounded-lg border cursor-pointer transition-colors relative group ${
+                      className={`h-12 p-1 rounded-lg border transition-colors relative group ${
                         isCurrentDay 
-                          ? 'bg-blue-50 border-blue-200 hover:bg-blue-100' 
-                          : 'bg-white border-gray-200 hover:bg-gray-100'
+                          ? 'bg-blue-50 border-blue-200' 
+                          : 'bg-white border-gray-200'
                       }`}
-                      onClick={() => router.push(`/dashboard/day-overview/${day.toISOString().split('T')[0]}`)}
-                      title="Klik voor dagoverzicht"
+                      // onClick={() => router.push(`/dashboard/day-overview/${day.toISOString().split('T')[0]}`)}
+                      // title="Klik voor dagoverzicht"
                     >
                       <div className="flex flex-col items-center justify-center h-full">
                         <span className={`text-xs ${

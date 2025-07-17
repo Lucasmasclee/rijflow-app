@@ -452,8 +452,6 @@ function InstructorDashboard() {
               <div className="space-y-1 text-sm">
                 <p><strong>Datum:</strong> {new Date(lesson.date).toLocaleDateString('nl-NL')}</p>
                 <p><strong>Tijd:</strong> {lesson.start_time} - {lesson.end_time}</p>
-                <p><strong>Type:</strong> {lesson.lesson_type || 'Praktijkles'}</p>
-                <p><strong>Status:</strong> {lesson.status || 'Gepland'}</p>
               </div>
             </div>
 
@@ -561,34 +559,31 @@ function InstructorDashboard() {
             {todayLessons.map((lesson) => {
               const student = lesson.students
               return (
-                <div key={lesson.id} className="border border-gray-200 rounded-lg p-4">
-                  <div className="flex justify-between items-start">
+                <div key={lesson.id} className="border border-gray-200 rounded-lg p-4 hover:bg-gray-50 cursor-pointer transition-colors h-16">
+                  <div 
+                    className="flex justify-between items-start"
+                    onClick={() => toggleLessonExpansion(lesson.id)}
+                  >
                     <div className="flex-1">
-                      <h4 className="font-semibold">{student.first_name} {student.last_name || ''}</h4>
-                      <p className="text-sm text-gray-600">
-                        {lesson.start_time} - {lesson.end_time}
-                      </p>
-                      <p className="text-sm text-gray-600">
-                        {lesson.lesson_type || 'Praktijkles'}
-                      </p>
+                      <h4 className="font-semibold">{student.first_name} {student.last_name.charAt(0) + '.' || ''}   {lesson.start_time} - {lesson.end_time}</h4>
                     </div>
-                    <button
-                      onClick={() => toggleLessonExpansion(lesson.id)}
-                      className="p-2 hover:bg-gray-100 rounded"
-                    >
+                    <div className="p-2">
                       {expandedLessons.has(lesson.id) ? (
                         <ChevronUp className="h-4 w-4" />
                       ) : (
                         <ChevronDown className="h-4 w-4" />
                       )}
-                    </button>
+                    </div>
                   </div>
                   
                   {expandedLessons.has(lesson.id) && (
                     <div className="mt-4 pt-4 border-t border-gray-200">
                       <div className="space-y-2">
                         <button
-                          onClick={() => openGoogleMaps(student.address)}
+                          onClick={(e) => {
+                            e.stopPropagation()
+                            openGoogleMaps(student.address)
+                          }}
                           className="flex items-center gap-2 text-blue-600 hover:text-blue-700 text-sm"
                         >
                           <ExternalLink className="h-3 w-3" />
