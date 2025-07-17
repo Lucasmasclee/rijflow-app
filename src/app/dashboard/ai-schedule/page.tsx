@@ -1579,9 +1579,12 @@ OPDRACHT: Maak een optimaal lesrooster voor de komende week op basis van bovenst
                     </button>
                   </div>
                   <div className="bg-gray-50 rounded-lg p-4 max-h-96 overflow-y-auto">
-                    <pre className="text-sm text-gray-800 whitespace-pre-wrap font-mono leading-relaxed">
-                      {aiPrompt}
-                    </pre>
+                    <textarea
+                      value={aiPrompt}
+                      onChange={(e) => setAiPrompt(e.target.value)}
+                      className="w-full h-full min-h-[200px] text-sm text-gray-800 font-mono leading-relaxed bg-transparent border-none focus:ring-0 focus:outline-none resize-y"
+                      spellCheck={false}
+                    />
                   </div>
                 </div>
                 
