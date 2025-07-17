@@ -683,11 +683,42 @@ export default function AISchedulePage() {
     // Genereer de prompt (gebruik dezelfde logica als in openai.ts)
     const { instructorAvailability: instructorAvail, students: studentsData, settings: settingsData } = requestData
     
-    // Instructeur beschikbaarheid
-    const availabilityText = instructorAvail
+    // Bereken de datums voor de komende week
+    const today = new Date()
+    const nextMonday = new Date(today)
+    nextMonday.setDate(today.getDate() + (8 - today.getDay()) % 7) // Volgende maandag
+    
+    const weekDates = []
+    for (let i = 0; i < 7; i++) {
+      const date = new Date(nextMonday)
+      date.setDate(nextMonday.getDate() + i)
+      weekDates.push(date)
+    }
+    
+    // Maak een mapping van dagen naar datums
+    const dayToDateMap = {
+      'monday': weekDates[0],
+      'tuesday': weekDates[1], 
+      'wednesday': weekDates[2],
+      'thursday': weekDates[3],
+      'friday': weekDates[4],
+      'saturday': weekDates[5],
+      'sunday': weekDates[6]
+    }
+    
+    // Instructeur beschikbaarheid met datums
+    const availabilityWithDates = instructorAvail
       .filter((day: any) => day.available)
-      .map((day: any) => `${day.day}: ${day.startTime} - ${day.endTime}`)
-      .join(', ')
+      .map((day: any) => {
+        const date = dayToDateMap[day.day as keyof typeof dayToDateMap]
+        const dateStr = date.toLocaleDateString('nl-NL', { 
+          weekday: 'long', 
+          day: 'numeric', 
+          month: 'long' 
+        })
+        return `${dateStr} (${day.day}): ${day.startTime} - ${day.endTime}`
+      })
+      .join('\n')
 
     // Leerlingen informatie
     const studentsText = studentsData.map((student: any) => {
@@ -699,9 +730,35 @@ export default function AISchedulePage() {
   ${student.lessons} lessen van ${student.minutes} minuten per week${availabilityText}${aiNotes}`
     }).join('\n')
 
+    // Week overzicht met datums
+    const weekOverview = weekDates.map(date => {
+      const dayName = date.toLocaleDateString('nl-NL', { weekday: 'long' }).toLowerCase()
+      const dayKey = dayName === 'maandag' ? 'monday' :
+                    dayName === 'dinsdag' ? 'tuesday' :
+                    dayName === 'woensdag' ? 'wednesday' :
+                    dayName === 'donderdag' ? 'thursday' :
+                    dayName === 'vrijdag' ? 'friday' :
+                    dayName === 'zaterdag' ? 'saturday' : 'sunday'
+      
+      const dayData = instructorAvail.find((d: any) => d.day === dayKey)
+      const isAvailable = dayData?.available || false
+      const timeRange = isAvailable && dayData ? `${dayData.startTime} - ${dayData.endTime}` : 'Niet beschikbaar'
+      
+      return `${date.toLocaleDateString('nl-NL', { 
+        weekday: 'long', 
+        day: 'numeric', 
+        month: 'long' 
+      })}: ${timeRange}`
+    }).join('\n')
+
     // Instellingen
     const prompt = `
-Instellingen:
+PLANNING VOOR DE KOMENDE WEEK (${nextMonday.toLocaleDateString('nl-NL', { day: 'numeric', month: 'long', year: 'numeric' })} - ${weekDates[6].toLocaleDateString('nl-NL', { day: 'numeric', month: 'long', year: 'numeric' })})
+
+WEEK OVERZICHT:
+${weekOverview}
+
+PLANNING INSTELLINGEN:
 - Locaties verbinden: ${settingsData.connectLocations ? 'Ja' : 'Nee'}
 - Aantal pauzes per dag: ${settingsData.numberOfBreaks}
 - Minuten per pauze: ${settingsData.minutesPerBreak}
@@ -709,14 +766,23 @@ Instellingen:
 - Pauze na elke leerling: ${settingsData.breakAfterEachStudent ? 'Ja' : 'Nee'}
 ${settingsData.additionalSpecifications ? `- Extra specificaties: ${settingsData.additionalSpecifications}` : ''}
 
-KRITIEKE BESCHIKBAARHEID REGELS:
-- Plan ALLEEN op dagen dat de instructeur beschikbaar is
-- Plan ALLEEN op dagen dat de leerling beschikbaar is (uit hun notities)
-- Als een leerling specifieke beschikbare dagen heeft, plan dan NOOIT op andere dagen
-- Als er geen overlappende beschikbare dagen zijn, geef dan een waarschuwing
-- Zoek naar Nederlandse en Engelse dagnamen in de notities (maandag/monday, dinsdag/tuesday, etc.)
+KRITIEKE PLANNING REGELS:
+1. Plan ALLEEN op dagen dat de instructeur beschikbaar is (zie week overzicht hierboven)
+2. Plan ALLEEN op dagen dat de leerling beschikbaar is (uit hun beschikbaarheid notities)
+3. Als een leerling specifieke beschikbare dagen heeft, plan dan NOOIT op andere dagen
+4. Zoek naar Nederlandse en Engelse dagnamen in de notities (maandag/monday, dinsdag/tuesday, etc.)
+5. Verdeel de lessen gelijkmatig over de beschikbare dagen
+6. Respecteer de lesduur van elke leerling
+7. Plan pauzes tussen lessen volgens de instellingen
+8. Als er geen overlappende beschikbare dagen zijn, geef dan een waarschuwing
 
-BELANGRIJK: Geef ALTIJD een geldig JSON object terug in exact dit formaat, zonder extra tekst ervoor of erna:
+BESCHIKBARE TIJDEN PER DAG:
+${availabilityWithDates}
+
+LEERLINGEN:
+${studentsText}
+
+BELANGRIJK: Geef ALTIJD een geldig JSON object terug in exact dit formaat, zonder extra tekst ervoor of erna. Gebruik de exacte datums uit het week overzicht hierboven:
 
 {
   "lessons": [
@@ -729,14 +795,11 @@ BELANGRIJK: Geef ALTIJD een geldig JSON object terug in exact dit formaat, zonde
       "notes": "Optionele notities"
     }
   ],
-  "summary": "Samenvatting van het rooster",
+  "summary": "Samenvatting van het rooster voor de komende week",
   "warnings": ["Eventuele waarschuwingen"]
 }
 
-Instructeur beschikbaarheid: ${availabilityText}
-
-Leerlingen:
-${studentsText}
+OPDRACHT: Maak een optimaal lesrooster voor de komende week op basis van bovenstaande informatie. Zorg ervoor dat alle lessen worden ingepland binnen de beschikbare tijden en dat alle regels worden gevolgd.
 `
 
     setAiPrompt(prompt)
