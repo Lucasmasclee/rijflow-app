@@ -85,9 +85,10 @@ export async function generateAISchedule(request: AIScheduleRequest, customPromp
           
           KRITIEKE REGELS:
           - Plan ALLEEN op dagen dat de instructeur beschikbaar is
-          - Plan ALLEEN op dagen dat de leerling beschikbaar is (uit hun notities)
+          - Plan ALLEEN op dagen dat de leerling beschikbaar is (uit hun beschikbaarheid notities)
           - Als een leerling specifieke beschikbare dagen heeft, plan dan NOOIT op andere dagen
-          - Als er geen overlappende beschikbare dagen zijn, geef dan een waarschuwing
+          - Als een leerling specifieke tijden heeft (bijv. "maandag 8:00 - 12:00"), plan dan ALLEEN binnen die tijden
+          - Verdeel de lessen gelijkmatig over de beschikbare dagen
           - Respecteer het aantal lessen en minuten per leerling
           - Plan pauzes volgens de instellingen
           - Geef een duidelijke samenvatting van wat er gepland is
@@ -97,7 +98,8 @@ export async function generateAISchedule(request: AIScheduleRequest, customPromp
           BESCHIKBAARHEID PARSING:
           - Zoek naar Nederlandse en Engelse dagnamen in de notities
           - Maandag/Monday, Dinsdag/Tuesday, Woensdag/Wednesday, etc.
-          - Plan alleen op de dagen die expliciet genoemd worden in de notities`
+          - Plan alleen op de dagen die expliciet genoemd worden in de notities
+          - Als specifieke tijden worden genoemd (bijv. "8:00 - 12:00"), plan dan alleen binnen die tijden`
         },
         {
           role: "user",
@@ -162,10 +164,14 @@ ${settings.additionalSpecifications ? `- Extra specificaties: ${settings.additio
 
 KRITIEKE BESCHIKBAARHEID REGELS:
 - Plan ALLEEN op dagen dat de instructeur beschikbaar is
-- Plan ALLEEN op dagen dat de leerling beschikbaar is (uit hun notities)
+- Plan ALLEEN op dagen dat de leerling beschikbaar is (uit hun beschikbaarheid notities)
 - Als een leerling specifieke beschikbare dagen heeft, plan dan NOOIT op andere dagen
-- Als er geen overlappende beschikbare dagen zijn, geef dan een waarschuwing
 - Zoek naar Nederlandse en Engelse dagnamen in de notities (maandag/monday, dinsdag/tuesday, etc.)
+- Als een leerling specifieke tijden heeft (bijv. "maandag 8:00 - 12:00"), plan dan ALLEEN binnen die tijden
+- Verdeel de lessen gelijkmatig over de beschikbare dagen
+- Respecteer de lesduur van elke leerling
+- Plan pauzes tussen lessen volgens de instellingen
+- Als er geen overlappende beschikbare dagen zijn, geef dan een waarschuwing
 
 BELANGRIJK: Geef ALTIJD een geldig JSON object terug in exact dit formaat, zonder extra tekst ervoor of erna:
 
@@ -257,6 +263,7 @@ function generateDummyResponse(request: AIScheduleRequest): AIScheduleResponse {
     // Parse student availability from notes
     const studentNotes = student.notes?.toLowerCase() || ''
     const availableDays = parseStudentAvailability(studentNotes)
+    const availableDaysWithTimes = parseStudentAvailabilityWithTimes(studentNotes)
     
     // Get instructor available days
     const instructorAvailableDays = instructorAvailability
@@ -283,9 +290,34 @@ function generateDummyResponse(request: AIScheduleRequest): AIScheduleResponse {
       const dayOffset = getDayOffset(dayName)
       lessonDate.setDate(monday.getDate() + dayOffset)
       
-      const startHour = 9 + (i * 2) // Start om 9:00, 11:00, 13:00, etc.
-      const startTime = `${startHour.toString().padStart(2, '0')}:00`
-      const endHour = startHour + Math.floor(lessonDuration / 60)
+      // Check if student has specific times for this day
+      const dayAvailability = availableDaysWithTimes.find(avail => avail.day === dayName)
+      
+      let startHour = 9 + (i * 2) // Default start time
+      let startTime = `${startHour.toString().padStart(2, '0')}:00`
+      
+      if (dayAvailability) {
+        // Use student's specific start time if available
+        const studentStartHour = parseInt(dayAvailability.startTime.split(':')[0])
+        const studentStartMinute = dayAvailability.startTime.split(':')[1]
+        const studentEndHour = parseInt(dayAvailability.endTime.split(':')[0])
+        const studentEndMinute = dayAvailability.endTime.split(':')[1]
+        
+        // Calculate if lesson fits within student's time window
+        const lessonEndHour = studentStartHour + Math.floor(lessonDuration / 60)
+        const lessonEndMinute = lessonDuration % 60
+        
+        if (lessonEndHour < studentEndHour || (lessonEndHour === studentEndHour && lessonEndMinute <= parseInt(studentEndMinute))) {
+          startTime = `${studentStartHour.toString().padStart(2, '0')}:${studentStartMinute}`
+        } else {
+          // Adjust start time to fit within student's window
+          const adjustedStartHour = studentEndHour - Math.floor(lessonDuration / 60)
+          const adjustedStartMinute = studentEndMinute
+          startTime = `${Math.max(studentStartHour, adjustedStartHour).toString().padStart(2, '0')}:${adjustedStartMinute}`
+        }
+      }
+      
+      const endHour = parseInt(startTime.split(':')[0]) + Math.floor(lessonDuration / 60)
       const endMinute = lessonDuration % 60
       const endTime = `${endHour.toString().padStart(2, '0')}:${endMinute.toString().padStart(2, '0')}`
       
@@ -320,6 +352,46 @@ function parseStudentAvailability(notes: string): string[] {
   if (notes.includes('zondag') || notes.includes('sunday')) availableDays.push('sunday')
   
   return availableDays
+}
+
+// Helper function to parse student availability with times from notes
+function parseStudentAvailabilityWithTimes(notes: string): { day: string, startTime: string, endTime: string }[] {
+  const availability: { day: string, startTime: string, endTime: string }[] = []
+  const lines = notes.split('\n').map(line => line.trim().toLowerCase())
+  
+  for (const line of lines) {
+    // Match patterns like "maandag 8:00 - 12:00" or "monday 8:00-12:00"
+    const dayTimeMatch = line.match(/(maandag|monday|dinsdag|tuesday|woensdag|wednesday|donderdag|thursday|vrijdag|friday|zaterdag|saturday|zondag|sunday)\s+(\d{1,2}):?(\d{2})?\s*-\s*(\d{1,2}):?(\d{2})?/)
+    
+    if (dayTimeMatch) {
+      const dayName = dayTimeMatch[1]
+      const startHour = dayTimeMatch[2]
+      const startMinute = dayTimeMatch[3] || '00'
+      const endHour = dayTimeMatch[4]
+      const endMinute = dayTimeMatch[5] || '00'
+      
+      // Convert Dutch day names to English
+      const dayMap: { [key: string]: string } = {
+        'maandag': 'monday',
+        'dinsdag': 'tuesday', 
+        'woensdag': 'wednesday',
+        'donderdag': 'thursday',
+        'vrijdag': 'friday',
+        'zaterdag': 'saturday',
+        'zondag': 'sunday'
+      }
+      
+      const englishDay = dayMap[dayName] || dayName
+      
+      availability.push({
+        day: englishDay,
+        startTime: `${startHour.padStart(2, '0')}:${startMinute}`,
+        endTime: `${endHour.padStart(2, '0')}:${endMinute}`
+      })
+    }
+  }
+  
+  return availability
 }
 
 // Helper function to get day offset from day name

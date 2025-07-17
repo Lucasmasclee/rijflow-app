@@ -1048,10 +1048,11 @@ KRITIEKE PLANNING REGELS:
 2. Plan ALLEEN op dagen én tijden dat de leerling beschikbaar is (uit hun beschikbaarheid notities)
 3. Als een leerling specifieke beschikbare dagen heeft, plan dan NOOIT op andere dagen
 4. Zoek naar Nederlandse en Engelse dagnamen in de notities (maandag/monday, dinsdag/tuesday, etc.)
-5. Verdeel de lessen gelijkmatig over de beschikbare dagen
-6. Respecteer de lesduur van elke leerling
-7. Plan pauzes tussen lessen volgens de instellingen
-8. Als er geen overlappende beschikbare dagen zijn, geef dan een waarschuwing
+5. Als een leerling specifieke tijden heeft (bijv. "maandag 8:00 - 12:00"), plan dan ALLEEN binnen die tijden
+6. Verdeel de lessen gelijkmatig over de beschikbare dagen
+7. Respecteer de lesduur van elke leerling
+8. Plan pauzes tussen lessen volgens de instellingen
+9. Als er geen overlappende beschikbare dagen zijn, geef dan een waarschuwing
 
 BESCHIKBARE TIJDEN PER DAG:
 ${availabilityWithDates}
@@ -1352,7 +1353,7 @@ OPDRACHT: Maak een optimaal lesrooster voor de komende week op basis van bovenst
                   value={consolidatedAvailabilityText}
                   onChange={(e) => handleConsolidatedAvailabilityChange(e.target.value)}
                   className="w-full px-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
-                  rows={4}
+                  rows={7}
                   placeholder="Maandag: 09:00 - 17:00, Dinsdag: 09:00 - 17:00, Woensdag: 09:00 - 17:00, Donderdag: 09:00 - 17:00, Vrijdag: 09:00 - 17:00, Zaterdag: Niet beschikbaar, Zondag: Niet beschikbaar"
                 />
                 <p className="text-xs text-gray-500 mt-1">
@@ -1398,7 +1399,7 @@ OPDRACHT: Maak een optimaal lesrooster voor de komende week op basis van bovenst
                       value={consolidatedStudentAvailabilityText}
                       onChange={(e) => handleConsolidatedStudentAvailabilityChange(e.target.value)}
                       className="w-full px-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
-                      rows={6}
+                      rows={7}
                       placeholder="Jan Jansen: Maandag, woensdag, vrijdag&#10;Piet Pietersen: Flexibel beschikbaar&#10;Anna de Vries: Alleen 's avonds"
                     />
                     <p className="text-xs text-gray-500 mt-1">
@@ -1882,7 +1883,7 @@ OPDRACHT: Maak een optimaal lesrooster voor de komende week op basis van bovenst
                     value={student.availabilityText}
                     onChange={(e) => handleStudentChange(student.id, 'availabilityText', e.target.value)}
                     className="w-full px-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
-                    rows={4}
+                    rows={7}
                     placeholder="Bijvoorbeeld: Maandag, woensdag, vrijdag of Flexibel beschikbaar"
                   />
                   <p className="text-xs text-gray-500 mt-1">
