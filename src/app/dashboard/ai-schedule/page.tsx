@@ -38,7 +38,7 @@ export default function AISchedulePage() {
   const [currentStudentIndex, setCurrentStudentIndex] = useState(0)
   const [loadingStudents, setLoadingStudents] = useState(true)
 
-  // Instructeur beschikbaarheid
+  // Instructeur beschikbaarheid - geconsolideerd in één veld
   const [availability, setAvailability] = useState([
     { day: 'monday', available: true, startTime: '09:00', endTime: '17:00', availabilityText: '09:00 - 17:00' },
     { day: 'tuesday', available: true, startTime: '09:00', endTime: '17:00', availabilityText: '09:00 - 17:00' },
@@ -48,6 +48,12 @@ export default function AISchedulePage() {
     { day: 'saturday', available: false, startTime: '09:00', endTime: '17:00', availabilityText: 'Niet beschikbaar' },
     { day: 'sunday', available: false, startTime: '09:00', endTime: '17:00', availabilityText: 'Niet beschikbaar' },
   ])
+  
+  // Geconsolideerde beschikbaarheid tekst
+  const [consolidatedAvailabilityText, setConsolidatedAvailabilityText] = useState('')
+  
+  // Geconsolideerde student beschikbaarheid tekst
+  const [consolidatedStudentAvailabilityText, setConsolidatedStudentAvailabilityText] = useState('')
 
   // Leerlingen data
   const [students, setStudents] = useState<StudentWithScheduleData[]>([])
@@ -101,6 +107,36 @@ export default function AISchedulePage() {
     }
   }
 
+  // Parse consolidated availability text to update individual days
+  const parseConsolidatedAvailability = (text: string) => {
+    const newAvailability = [...availability]
+    
+    // Parse each day from the consolidated text
+    DAY_ORDER.forEach(({ day, name }) => {
+      // Look for patterns like "Maandag: 09:00 - 17:00" or "Maandag: Niet beschikbaar"
+      const dayPattern = new RegExp(`${name}:\\s*([^,]+)`, 'i')
+      const match = text.match(dayPattern)
+      
+      if (match) {
+        const dayText = match[1].trim()
+        const parsed = parseAvailabilityText(dayText)
+        
+        const dayIndex = newAvailability.findIndex(item => item.day === day)
+        if (dayIndex !== -1) {
+          newAvailability[dayIndex] = {
+            ...newAvailability[dayIndex],
+            available: parsed.available,
+            startTime: parsed.startTime,
+            endTime: parsed.endTime,
+            availabilityText: dayText
+          }
+        }
+      }
+    })
+    
+    return newAvailability
+  }
+
   // Parse availability text to extract times
   const parseAvailabilityText = (text: string) => {
     const trimmed = text.trim().toLowerCase()
@@ -142,19 +178,48 @@ export default function AISchedulePage() {
     return { available: true, startTime: '09:00', endTime: '17:00' }
   }
 
-  // Handle availability text change
-  const handleAvailabilityTextChange = (day: string, value: string) => {
-    const parsed = parseAvailabilityText(value)
-    setAvailability(prev => prev.map(item => 
-      item.day === day ? { 
-        ...item, 
-        availabilityText: value,
-        available: parsed.available,
-        startTime: parsed.startTime,
-        endTime: parsed.endTime
-      } : item
-    ))
+  // Handle consolidated availability text change
+  const handleConsolidatedAvailabilityChange = (value: string) => {
+    setConsolidatedAvailabilityText(value)
+    const newAvailability = parseConsolidatedAvailability(value)
+    setAvailability(newAvailability)
+    
     // Reset AI prompt als beschikbaarheid wordt gewijzigd
+    if (hasGeneratedPrompt) {
+      setHasGeneratedPrompt(false)
+      setAiPrompt('')
+    }
+  }
+
+  // Parse consolidated student availability text to update individual students
+  const parseConsolidatedStudentAvailability = (text: string) => {
+    const newStudents = [...students]
+    
+    // Parse each student from the consolidated text
+    students.forEach((student, index) => {
+      const studentName = student.last_name ? `${student.first_name} ${student.last_name}` : student.first_name
+      const namePattern = new RegExp(`${studentName}:\\s*([^\\n]+)`, 'i')
+      const match = text.match(namePattern)
+      
+      if (match) {
+        const availabilityText = match[1].trim()
+        newStudents[index] = {
+          ...newStudents[index],
+          availabilityText
+        }
+      }
+    })
+    
+    return newStudents
+  }
+
+  // Handle consolidated student availability text change
+  const handleConsolidatedStudentAvailabilityChange = (value: string) => {
+    setConsolidatedStudentAvailabilityText(value)
+    const newStudents = parseConsolidatedStudentAvailability(value)
+    setStudents(newStudents)
+    
+    // Reset AI prompt als student beschikbaarheid wordt gewijzigd
     if (hasGeneratedPrompt) {
       setHasGeneratedPrompt(false)
       setAiPrompt('')
@@ -183,16 +248,24 @@ export default function AISchedulePage() {
             .eq('instructor_id', user.id)
             
           if (newError) {
-            console.error('Error fetching instructor availability after initialization:', newError)
-            // Fallback to default availability
-            setAvailability(DAY_ORDER.map(({ day }) => ({
-              day,
-              available: day !== 'saturday' && day !== 'sunday',
-              startTime: '09:00',
-              endTime: '17:00',
-              availabilityText: day !== 'saturday' && day !== 'sunday' ? '09:00 - 17:00' : 'Niet beschikbaar'
-            })))
-            return
+                    console.error('Error fetching instructor availability after initialization:', newError)
+        // Fallback to default availability
+        const fallbackAvailability = DAY_ORDER.map(({ day }) => ({
+          day,
+          available: day !== 'saturday' && day !== 'sunday',
+          startTime: '09:00',
+          endTime: '17:00',
+          availabilityText: day !== 'saturday' && day !== 'sunday' ? '09:00 - 17:00' : 'Niet beschikbaar'
+        }))
+        setAvailability(fallbackAvailability)
+        
+        // Update consolidated text
+        const consolidatedText = fallbackAvailability.map(item => {
+          const dayName = DAY_ORDER.find(d => d.day === item.day)?.name
+          return `${dayName}: ${item.availabilityText}`
+        }).join(', ')
+        setConsolidatedAvailabilityText(consolidatedText)
+        return
           }
           
           if (newData && newData.length > 0) {
@@ -217,7 +290,7 @@ export default function AISchedulePage() {
               return acc
             }, {} as Record<string, { available: boolean; startTime: string; endTime: string }>)
 
-            setAvailability(DAY_ORDER.map(({ day }) => {
+            const newAvailability = DAY_ORDER.map(({ day }) => {
               const dbData = dbAvailability[day]
               const available = dbData?.available ?? (day !== 'saturday' && day !== 'sunday')
               const startTime = dbData?.startTime ?? '09:00'
@@ -231,7 +304,16 @@ export default function AISchedulePage() {
                 endTime,
                 availabilityText
               }
-            }))
+            })
+            
+            setAvailability(newAvailability)
+            
+            // Update consolidated text
+            const consolidatedText = newAvailability.map(item => {
+              const dayName = DAY_ORDER.find(d => d.day === item.day)?.name
+              return `${dayName}: ${item.availabilityText}`
+            }).join(', ')
+            setConsolidatedAvailabilityText(consolidatedText)
             return
           }
         }
@@ -261,7 +343,7 @@ export default function AISchedulePage() {
           return acc
         }, {} as Record<string, { available: boolean; startTime: string; endTime: string }>)
 
-        setAvailability(DAY_ORDER.map(({ day }) => {
+        const newAvailability = DAY_ORDER.map(({ day }) => {
           const dbData = dbAvailability[day]
           const available = dbData?.available ?? (day !== 'saturday' && day !== 'sunday')
           const startTime = dbData?.startTime ?? '09:00'
@@ -275,7 +357,15 @@ export default function AISchedulePage() {
             endTime,
             availabilityText
           }
-        }))
+        })
+        setAvailability(newAvailability)
+        
+        // Update consolidated text
+        const consolidatedText = newAvailability.map(item => {
+          const dayName = DAY_ORDER.find(d => d.day === item.day)?.name
+          return `${dayName}: ${item.availabilityText}`
+        }).join(', ')
+        setConsolidatedAvailabilityText(consolidatedText)
       } else {
         // No data in database, initialize default availability and fetch again
         await initializeDefaultAvailability()
@@ -327,13 +417,21 @@ export default function AISchedulePage() {
     } catch (error) {
       console.error('Error fetching instructor availability:', error)
       // Fallback to default availability on any error
-      setAvailability(DAY_ORDER.map(({ day }) => ({
+      const fallbackAvailability = DAY_ORDER.map(({ day }) => ({
         day,
         available: day !== 'saturday' && day !== 'sunday',
         startTime: '09:00',
         endTime: '17:00',
         availabilityText: day !== 'saturday' && day !== 'sunday' ? '09:00 - 17:00' : 'Niet beschikbaar'
-      })))
+      }))
+      setAvailability(fallbackAvailability)
+      
+      // Update consolidated text
+      const consolidatedText = fallbackAvailability.map(item => {
+        const dayName = DAY_ORDER.find(d => d.day === item.day)?.name
+        return `${dayName}: ${item.availabilityText}`
+      }).join(', ')
+      setConsolidatedAvailabilityText(consolidatedText)
     }
   }
 
@@ -391,6 +489,15 @@ export default function AISchedulePage() {
       })))
 
       setStudents(studentsWithScheduleData)
+      
+      // Initialize consolidated student availability text
+      if (studentsWithScheduleData.length > 0) {
+        const consolidatedText = studentsWithScheduleData.map(student => {
+          const studentName = student.last_name ? `${student.first_name} ${student.last_name}` : student.first_name
+          return `${studentName}: ${student.availabilityText}`
+        }).join('\n')
+        setConsolidatedStudentAvailabilityText(consolidatedText)
+      }
     } catch (error) {
       console.error('Error fetching students:', error)
     } finally {
@@ -445,11 +552,47 @@ export default function AISchedulePage() {
     }
   }, [user, mounted])
 
+  // Initialize consolidated text when availability changes
+  useEffect(() => {
+    if (availability.length > 0 && !consolidatedAvailabilityText) {
+      const consolidatedText = availability.map(item => {
+        const dayName = DAY_ORDER.find(d => d.day === item.day)?.name
+        return `${dayName}: ${item.availabilityText}`
+      }).join(', ')
+      setConsolidatedAvailabilityText(consolidatedText)
+    }
+  }, [availability, consolidatedAvailabilityText])
+
+  // Initialize consolidated student availability text when students change
+  useEffect(() => {
+    if (students.length > 0 && !consolidatedStudentAvailabilityText) {
+      const consolidatedText = students.map(student => {
+        const studentName = student.last_name ? `${student.first_name} ${student.last_name}` : student.first_name
+        return `${studentName}: ${student.availabilityText}`
+      }).join('\n')
+      setConsolidatedStudentAvailabilityText(consolidatedText)
+    }
+  }, [students, consolidatedStudentAvailabilityText])
+
   // Handle student data changes
   const handleStudentChange = (id: string, field: string, value: any) => {
-    setStudents(prev => prev.map(student => 
-      student.id === id ? { ...student, [field]: value } : student
-    ))
+    setStudents(prev => {
+      const newStudents = prev.map(student => 
+        student.id === id ? { ...student, [field]: value } : student
+      )
+      
+      // Update consolidated student availability text if availability changed
+      if (field === 'availabilityText') {
+        const consolidatedText = newStudents.map(student => {
+          const studentName = student.last_name ? `${student.first_name} ${student.last_name}` : student.first_name
+          return `${studentName}: ${student.availabilityText}`
+        }).join('\n')
+        setConsolidatedStudentAvailabilityText(consolidatedText)
+      }
+      
+      return newStudents
+    })
+    
     // Reset AI prompt als leerling data wordt gewijzigd
     if (hasGeneratedPrompt) {
       setHasGeneratedPrompt(false)
@@ -842,36 +985,26 @@ ${studentsText}
             <div>
               <h3 className="text-lg font-semibold mb-4">Instructeur beschikbaarheid</h3>
               <p className="text-gray-600 mb-6">
-                Configureer je beschikbare tijden voor de komende weken. Voer per dag je beschikbaarheid in.
+                Configureer je beschikbare tijden voor de komende weken. Voer je beschikbaarheid in voor alle dagen.
               </p>
             </div>
             
-            <div className="space-y-4">
-              {availability.map((day) => (
-                <div key={day.day} className="card">
-                  <div className="flex items-center justify-between mb-4">
-                    <span className="font-medium text-gray-900">
-                      {DAY_ORDER.find(d => d.day === day.day)?.name}
-                    </span>
-                  </div>
-                  
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Beschikbaarheid
-                    </label>
-                    <input
-                      type="text"
-                      value={day.availabilityText}
-                      onChange={(e) => handleAvailabilityTextChange(day.day, e.target.value)}
-                      className="w-full px-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                      placeholder="bijv. 09:00 - 17:00 of Niet beschikbaar"
-                    />
-                    <p className="text-xs text-gray-500 mt-1">
-                      Voorbeelden: "09:00 - 17:00", "9:00-17:00", "Niet beschikbaar", "10:00" (8 uur vanaf starttijd)
-                    </p>
-                  </div>
-                </div>
-              ))}
+            <div className="card">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Beschikbaarheid per dag
+                </label>
+                <textarea
+                  value={consolidatedAvailabilityText}
+                  onChange={(e) => handleConsolidatedAvailabilityChange(e.target.value)}
+                  className="w-full px-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
+                  rows={4}
+                  placeholder="Maandag: 09:00 - 17:00, Dinsdag: 09:00 - 17:00, Woensdag: 09:00 - 17:00, Donderdag: 09:00 - 17:00, Vrijdag: 09:00 - 17:00, Zaterdag: Niet beschikbaar, Zondag: Niet beschikbaar"
+                />
+                <p className="text-xs text-gray-500 mt-1">
+                  Voorbeelden: "Maandag: 09:00 - 17:00", "Dinsdag: Niet beschikbaar", "Woensdag: 10:00" (8 uur vanaf starttijd)
+                </p>
+              </div>
             </div>
           </div>
         )
@@ -900,91 +1033,97 @@ ${studentsText}
                 </Link>
               </div>
             ) : (
-              <div className="space-y-4">
-                {students.map((student, index) => (
-                  <div key={student.id} className="card">
-                    <div className="flex items-center justify-between mb-4">
-                      <h4 className="font-medium text-gray-900">
-                        {student.first_name} {student.last_name || ''}
-                      </h4>
-                      {(isValueDifferentFromDefault(student, 'lessons') || isValueDifferentFromDefault(student, 'minutes')) && (
-                        <button
-                          onClick={() => resetToDefault(student.id)}
-                          className="text-sm text-blue-600 hover:text-blue-700"
-                        >
-                          Reset naar standaard
-                        </button>
-                      )}
-                    </div>
-                    
-                    <div className="mobile-grid md:grid-cols-2 gap-4">
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">
-                          Lessen per week
-                        </label>
-                        <input
-                          type="number"
-                          min="1"
-                          max="7"
-                          value={student.lessons}
-                          onChange={(e) => handleStudentChange(student.id, 'lessons', parseInt(e.target.value))}
-                          className={`w-full px-3 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
-                            isValueDifferentFromDefault(student, 'lessons') 
-                              ? 'border-orange-300 bg-orange-50' 
-                              : 'border-gray-300'
-                          }`}
-                        />
-                      </div>
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">
-                          Lesduur (minuten)
-                        </label>
-                        <input
-                          type="number"
-                          min="30"
-                          max="180"
-                          step="15"
-                          value={student.minutes}
-                          onChange={(e) => handleStudentChange(student.id, 'minutes', parseInt(e.target.value))}
-                          className={`w-full px-3 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
-                            isValueDifferentFromDefault(student, 'minutes') 
-                              ? 'border-orange-300 bg-orange-50' 
-                              : 'border-gray-300'
-                          }`}
-                        />
-                      </div>
-                    </div>
-                    
-                    <div className="mt-4">
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Beschikbaarheid
-                      </label>
-                      <input
-                        type="text"
-                        value={student.availabilityText}
-                        onChange={(e) => handleStudentChange(student.id, 'availabilityText', e.target.value)}
-                        className="w-full px-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                        placeholder="bijv. Maandag, woensdag, vrijdag of Flexibel beschikbaar"
-                      />
-                      <p className="text-xs text-gray-500 mt-1">
-                        Voorbeelden: "Maandag, woensdag, vrijdag", "Alleen 's avonds", "Flexibel beschikbaar", "Niet beschikbaar op dinsdag"
-                      </p>
-                    </div>
-                    
-                    <div className="mt-4">
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Notities voor AI
-                      </label>
-                      <textarea
-                        value={student.aiNotes}
-                        onChange={(e) => handleStudentChange(student.id, 'aiNotes', e.target.value)}
-                        rows={3}
-                        className="w-full px-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
-                        placeholder="Speciale instructies voor de AI planner..."
-                      />
-                    </div>
+              <div className="space-y-6">
+                {/* Geconsolideerde beschikbaarheid */}
+                <div className="card">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Beschikbaarheid per leerling
+                    </label>
+                    <textarea
+                      value={consolidatedStudentAvailabilityText}
+                      onChange={(e) => handleConsolidatedStudentAvailabilityChange(e.target.value)}
+                      className="w-full px-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
+                      rows={6}
+                      placeholder="Jan Jansen: Maandag, woensdag, vrijdag&#10;Piet Pietersen: Flexibel beschikbaar&#10;Anna de Vries: Alleen 's avonds"
+                    />
+                    <p className="text-xs text-gray-500 mt-1">
+                      Voorbeelden: "Jan Jansen: Maandag, woensdag, vrijdag", "Piet Pietersen: Flexibel beschikbaar", "Anna de Vries: Alleen 's avonds"
+                    </p>
                   </div>
-                ))}
+                </div>
+
+                {/* Individuele leerling instellingen */}
+                <div className="space-y-4">
+                  {students.map((student, index) => (
+                    <div key={student.id} className="card">
+                      <div className="flex items-center justify-between mb-4">
+                        <h4 className="font-medium text-gray-900">
+                          {student.first_name} {student.last_name || ''}
+                        </h4>
+                        {(isValueDifferentFromDefault(student, 'lessons') || isValueDifferentFromDefault(student, 'minutes')) && (
+                          <button
+                            onClick={() => resetToDefault(student.id)}
+                            className="text-sm text-blue-600 hover:text-blue-700"
+                          >
+                            Reset naar standaard
+                          </button>
+                        )}
+                      </div>
+                      
+                      <div className="mobile-grid md:grid-cols-2 gap-4">
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-2">
+                            Lessen per week
+                          </label>
+                          <input
+                            type="number"
+                            min="1"
+                            max="7"
+                            value={student.lessons}
+                            onChange={(e) => handleStudentChange(student.id, 'lessons', parseInt(e.target.value))}
+                            className={`w-full px-3 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
+                              isValueDifferentFromDefault(student, 'lessons') 
+                                ? 'border-orange-300 bg-orange-50' 
+                                : 'border-gray-300'
+                            }`}
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-2">
+                            Lesduur (minuten)
+                          </label>
+                          <input
+                            type="number"
+                            min="30"
+                            max="180"
+                            step="15"
+                            value={student.minutes}
+                            onChange={(e) => handleStudentChange(student.id, 'minutes', parseInt(e.target.value))}
+                            className={`w-full px-3 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
+                              isValueDifferentFromDefault(student, 'minutes') 
+                                ? 'border-orange-300 bg-orange-50' 
+                                : 'border-gray-300'
+                            }`}
+                          />
+                        </div>
+                      </div>
+                      
+                      <div className="mt-4">
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          Notities voor AI
+                        </label>
+                        <textarea
+                          value={student.aiNotes}
+                          onChange={(e) => handleStudentChange(student.id, 'aiNotes', e.target.value)}
+                          rows={3}
+                          className="w-full px-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
+                          placeholder="Speciale instructies voor de AI planner..."
+                        />
+                      </div>
+                    </div>
+                  ))}
+                </div>
               </div>
             )}
           </div>
