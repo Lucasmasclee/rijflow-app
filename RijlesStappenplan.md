@@ -56,22 +56,26 @@ AI Rooster
 ✅✅✅✅✅- Scherm voor andere notities:
 ✅✅✅✅✅- pauzes
 ✅✅✅✅✅- locatieplanning
-● Al deze gegevens voor de instructeur en leerling verwerken naar een goede prompt voor chatgpt
-● Chatgpt een prompt sturen en vragen voor een json bestand of csv bestand
-● Een overzicht van wat chatgpt gaat toevoegen
-● Per les in dit overzicht kunnen selecteren of het wordt toegevoegd (Voor het bewerken van de lessen staat er een tekst: Bewerken kan na het toevoegen van lessen)
-● Alle geselecteerde lessen in dit overzicht toevoegen
+✅✅✅✅✅● Al deze gegevens voor de instructeur en leerling verwerken naar een goede prompt voor chatgpt
+✅✅✅✅✅● Chatgpt een prompt sturen en vragen voor een json bestand of csv bestand
+✅✅✅✅✅● Een overzicht van wat chatgpt gaat toevoegen
+✅✅✅✅✅● Per les in dit overzicht kunnen selecteren of het wordt toegevoegd (Voor het bewerken van de lessen staat er een tekst: Bewerken kan na het toevoegen van lessen)
+✅✅✅✅✅● Alle geselecteerde lessen in dit overzicht toevoegen
+- Selecteren voor welke week je een AI rooster wilt laten maken
 
+Nu mee bezig: 
+- AI weekplanning moet een kloppende weekplanning geven
 
 Glitches:
 Op Macbook: bij inloggen is de tekst soms wit
 Op Macbook: beschikbaarheid invullen in student dashboard tekst is wit
 Als leerling uitnodigingslink klikt en email en wachtwoord aanmaakt, moet hij een scherm te zien krijgen met "Bevestig je account in email"
-Snelkoppeling naar leerling in lessen van dagoverzicht
+
 Tijden na 12 uur worden automatisch vervangen ('18' --> '06')
 
 
 Voor later / Verbeteringen / Ideeën:
+- Week selecteren waarvoor je een AI weekplanning wilt maken
 - Vragen kunnen stellen aan chatgpt: 'Kan Piet al achteruit inparkeren?' of 'Wanneer is het examen van Peter?'. Chatgpt prompt sturen met alle data van de rijschool. Misschien deze functie combineren met zoekopdrachten dus 'Alle lessen van Pieter'
 - Nieuwe navigatie waarbij de volgende onderdelen altijd direct bereikbaar zijn: Dagplanning, Weekplanning, Leerling overzicht
 - Badges per leerling voor: Theorie gehaald, examen ingepland (met optie voor datum erbij) (Dit zou aan algemene notities moeten worden toegevoegd)

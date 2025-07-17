@@ -313,8 +313,8 @@ function InstructorDashboard() {
         .select('*')
         .eq('student_id', studentId)
         .eq('instructor_id', user.id)
-        .order('date', { ascending: false }) // Changed from 'created_at' to 'date'
-        .order('created_at', { ascending: false }) // Keep original order for consistency
+        .order('date', { ascending: true }) // Oldest first
+        .order('created_at', { ascending: true }) // Oldest first for consistency
         .limit(5)
 
       if (error) {
@@ -563,13 +563,13 @@ function InstructorDashboard() {
             {todayLessons.map((lesson) => {
               const student = lesson.students
               return (
-                <div key={lesson.id} className={`border border-gray-200 rounded-lg p-4 hover:bg-gray-50 cursor-pointer transition-colors ${expandedLessons.has(lesson.id) ? '' : 'h-16'}`}>
+                <div key={lesson.id} className={`border border-gray-200 rounded-lg p-4 hover:bg-gray-50 cursor-pointer transition-colors ${expandedLessons.has(lesson.id) ? '' : 'h-6'}`}>
                   <div 
                     className="flex justify-between items-start"
                     onClick={() => toggleLessonExpansion(lesson.id)}
                   >
                     <div className="flex-1">
-                      <h4 className="font-semibold">{student.first_name} {student.last_name.charAt(0) + '.' || ''}   {lesson.start_time} - {lesson.end_time}</h4>
+                      <h4 className="font-semibold">{student.first_name}   {lesson.start_time} - {lesson.end_time}</h4>
                     </div>
                     <div className="p-2">
                       {expandedLessons.has(lesson.id) ? (

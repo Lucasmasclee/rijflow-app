@@ -144,8 +144,8 @@ export default function StudentDetailPage({ params }: { params: Promise<{ id: st
           .select('*')
           .eq('student_id', studentId)
           .eq('instructor_id', user.id)
-          .order('date', { ascending: false })
-          .order('created_at', { ascending: false })
+          .order('date', { ascending: true })
+          .order('created_at', { ascending: true })
 
         if (error) {
           console.error('Error fetching progress notes:', error)
@@ -276,7 +276,7 @@ export default function StudentDetailPage({ params }: { params: Promise<{ id: st
         return
       }
 
-      setProgressNotes(prev => [data[0], ...prev])
+      setProgressNotes(prev => [...prev, data[0]])
       toast.success('Notitie toegevoegd!')
     } catch (error) {
       console.error('Error adding progress note:', error)
