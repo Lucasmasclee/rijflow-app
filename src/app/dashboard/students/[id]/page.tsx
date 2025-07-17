@@ -152,6 +152,17 @@ export default function StudentDetailPage({ params }: { params: Promise<{ id: st
           return
         }
 
+        // Convert progress notes to single text field format
+        const notesText = data?.map(note => {
+          const date = new Date(note.date)
+          const formattedDate = date.toLocaleDateString('nl-NL', { 
+            day: 'numeric', 
+            month: 'long' 
+          })
+          return `${formattedDate}: ${note.notes}`
+        }).join('\n') || ''
+
+        setNewProgressNote(notesText)
         setProgressNotes(data || [])
       } catch (error) {
         console.error('Error fetching progress notes:', error)
@@ -209,13 +220,51 @@ export default function StudentDetailPage({ params }: { params: Promise<{ id: st
 
     setSavingProgressNote(true)
     try {
+      // Parse the text to extract the latest note (last line)
+      const lines = newProgressNote.trim().split('\n')
+      const latestLine = lines[lines.length - 1]
+      
+      // Extract date and note content from the latest line
+      const dateMatch = latestLine.match(/^(\d{1,2}\s+\w+):\s*(.+)$/)
+      
+      if (!dateMatch) {
+        toast.error('Ongeldig formaat. Gebruik: "18 juli: notitie tekst"')
+        return
+      }
+
+      const [, dateStr, noteContent] = dateMatch
+      
+      // Parse the date
+      const today = new Date()
+      const currentYear = today.getFullYear()
+      const dateParts = dateStr.split(' ')
+      const day = parseInt(dateParts[0])
+      const monthName = dateParts[1]
+      
+      // Convert Dutch month name to month number
+      const monthNames = [
+        'januari', 'februari', 'maart', 'april', 'mei', 'juni',
+        'juli', 'augustus', 'september', 'oktober', 'november', 'december'
+      ]
+      const monthIndex = monthNames.findIndex(name => 
+        name.toLowerCase() === monthName.toLowerCase()
+      )
+      
+      if (monthIndex === -1) {
+        toast.error('Ongeldige maand naam')
+        return
+      }
+      
+      const noteDate = new Date(currentYear, monthIndex, day)
+      const dateString = noteDate.toISOString().split('T')[0]
+
       const { data, error } = await supabase
         .from('progress_notes')
         .insert({
           student_id: studentId,
           instructor_id: user.id,
-          date: new Date().toISOString().split('T')[0],
-          notes: newProgressNote.trim(),
+          date: dateString,
+          notes: noteContent.trim(),
           created_at: new Date().toISOString(),
           updated_at: new Date().toISOString()
         })
@@ -228,7 +277,6 @@ export default function StudentDetailPage({ params }: { params: Promise<{ id: st
       }
 
       setProgressNotes(prev => [data[0], ...prev])
-      setNewProgressNote('')
       toast.success('Notitie toegevoegd!')
     } catch (error) {
       console.error('Error adding progress note:', error)
@@ -252,6 +300,19 @@ export default function StudentDetailPage({ params }: { params: Promise<{ id: st
       }
 
       setProgressNotes(prev => prev.filter(note => note.id !== noteId))
+      
+      // Update the text field to reflect the deletion
+      const updatedNotes = progressNotes.filter(note => note.id !== noteId)
+      const notesText = updatedNotes.map(note => {
+        const date = new Date(note.date)
+        const formattedDate = date.toLocaleDateString('nl-NL', { 
+          day: 'numeric', 
+          month: 'long' 
+        })
+        return `${formattedDate}: ${note.notes}`
+      }).join('\n')
+      
+      setNewProgressNote(notesText)
       toast.success('Notitie verwijderd!')
     } catch (error) {
       console.error('Error deleting progress note:', error)
@@ -680,10 +741,14 @@ export default function StudentDetailPage({ params }: { params: Promise<{ id: st
               <textarea
                 value={newProgressNote}
                 onChange={(e) => setNewProgressNote(e.target.value)}
-                placeholder="Voeg een nieuwe voortgangsnotitie toe..."
+                placeholder="Voeg notities toe in het formaat:&#10;18 juli: Eerste notitie&#10;19 juli: Tweede notitie"
                 className="w-full px-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
-                rows={3}
+                rows={8}
               />
+              <div className="mt-2 text-sm text-gray-600">
+                <p>Gebruik het formaat: "18 juli: notitie tekst"</p>
+                <p>Elke notitie krijgt automatisch een nieuwe regel</p>
+              </div>
               <button
                 onClick={handleAddProgressNote}
                 disabled={savingProgressNote || !newProgressNote.trim()}
@@ -692,12 +757,12 @@ export default function StudentDetailPage({ params }: { params: Promise<{ id: st
                 {savingProgressNote ? (
                   <>
                     <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                    Toevoegen...
+                    Opslaan...
                   </>
                 ) : (
                   <>
-                    <Plus className="h-4 w-4" />
-                    Notitie toevoegen
+                    <Check className="h-4 w-4" />
+                    Notities opslaan
                   </>
                 )}
               </button>

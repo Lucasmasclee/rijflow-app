@@ -313,7 +313,8 @@ function InstructorDashboard() {
         .select('*')
         .eq('student_id', studentId)
         .eq('instructor_id', user.id)
-        .order('created_at', { ascending: false })
+        .order('date', { ascending: false }) // Changed from 'created_at' to 'date'
+        .order('created_at', { ascending: false }) // Keep original order for consistency
         .limit(5)
 
       if (error) {
@@ -373,10 +374,9 @@ function InstructorDashboard() {
     setSelectedDate(new Date())
   }
 
-  const ExpandedLessonView = ({ lesson, student, onClose }: { 
+  const ExpandedLessonProgressNotes = ({ lesson, student }: { 
     lesson: any, 
-    student: any, 
-    onClose: () => void 
+    student: any 
   }) => {
     const [progressNotes, setProgressNotes] = useState<any[]>([])
     const [newNote, setNewNote] = useState('')
@@ -386,6 +386,18 @@ function InstructorDashboard() {
       setLoadingNotes(true)
       const notes = await fetchProgressNotes(student.id)
       setProgressNotes(notes)
+      
+      // Convert progress notes to single text field format
+      const notesText = notes.map(note => {
+        const date = new Date(note.date)
+        const formattedDate = date.toLocaleDateString('nl-NL', { 
+          day: 'numeric', 
+          month: 'long' 
+        })
+        return `${formattedDate}: ${note.notes}`
+      }).join('\n')
+      
+      setNewNote(notesText)
       setLoadingNotes(false)
     }
 
@@ -393,13 +405,52 @@ function InstructorDashboard() {
       if (!newNote.trim() || !user) return
 
       try {
+        // Parse the text to extract the latest note (last line)
+        const lines = newNote.trim().split('\n')
+        const latestLine = lines[lines.length - 1]
+        
+        // Extract date and note content from the latest line
+        const dateMatch = latestLine.match(/^(\d{1,2}\s+\w+):\s*(.+)$/)
+        
+        if (!dateMatch) {
+          alert('Ongeldig formaat. Gebruik: "18 juli: notitie tekst"')
+          return
+        }
+
+        const [, dateStr, noteContent] = dateMatch
+        
+        // Parse the date
+        const today = new Date()
+        const currentYear = today.getFullYear()
+        const dateParts = dateStr.split(' ')
+        const day = parseInt(dateParts[0])
+        const monthName = dateParts[1]
+        
+        // Convert Dutch month name to month number
+        const monthNames = [
+          'januari', 'februari', 'maart', 'april', 'mei', 'juni',
+          'juli', 'augustus', 'september', 'oktober', 'november', 'december'
+        ]
+        const monthIndex = monthNames.findIndex(name => 
+          name.toLowerCase() === monthName.toLowerCase()
+        )
+        
+        if (monthIndex === -1) {
+          alert('Ongeldige maand naam')
+          return
+        }
+        
+        const noteDate = new Date(currentYear, monthIndex, day)
+        const dateString = noteDate.toISOString().split('T')[0]
+
         const { error } = await supabase
           .from('progress_notes')
           .insert({
             student_id: student.id,
             instructor_id: user.id,
             lesson_id: lesson.id,
-            note: newNote.trim(),
+            date: dateString,
+            notes: noteContent.trim(),
             created_at: new Date().toISOString()
           })
 
@@ -408,7 +459,6 @@ function InstructorDashboard() {
           return
         }
 
-        setNewNote('')
         await loadProgressNotes()
       } catch (error) {
         console.error('Error adding progress note:', error)
@@ -420,78 +470,32 @@ function InstructorDashboard() {
     }, [])
 
     return (
-      <div className="modal-overlay" onClick={onClose}>
-        <div className="modal-content" onClick={(e) => e.stopPropagation()}>
-          <div className="flex justify-between items-center mb-4">
-            <h3 className="text-lg font-semibold">Les Details</h3>
-            <button onClick={onClose} className="p-2 hover:bg-gray-100 rounded">
-              <X className="h-5 w-5" />
-            </button>
-          </div>
-
-          <div className="space-y-4">
-            {/* Student Info */}
-            <div className="card">
-              <h4 className="font-semibold mb-2">{student.first_name} {student.last_name || ''}</h4>
-              <div className="space-y-1 text-sm text-gray-600">
-                <p>{student.email}</p>
-                <p>{student.phone}</p>
-                <button
-                  onClick={() => openGoogleMaps(student.address)}
-                  className="flex items-center gap-1 text-blue-600 hover:text-blue-700"
-                >
-                  <ExternalLink className="h-3 w-3" />
-                  {student.address}
-                </button>
+      <div className="space-y-3">
+        {loadingNotes ? (
+          <p className="text-gray-500 text-sm">Laden...</p>
+        ) : (
+          <>
+            <div>
+              <textarea
+                value={newNote}
+                onChange={(e) => setNewNote(e.target.value)}
+                placeholder="Voeg notities toe in het formaat:&#10;18 juli: Eerste notitie&#10;19 juli: Tweede notitie"
+                className="w-full p-2 border border-gray-300 rounded-lg resize-none text-sm"
+                rows={4}
+              />
+              <div className="mt-1 text-xs text-gray-600">
+                <p>Gebruik het formaat: "18 juli: notitie tekst"</p>
               </div>
+              <button
+                onClick={handleAddProgressNote}
+                disabled={!newNote.trim()}
+                className="btn btn-primary w-full mt-2 text-sm py-1"
+              >
+                Notities opslaan
+              </button>
             </div>
-
-            {/* Lesson Info */}
-            <div className="card">
-              <h4 className="font-semibold mb-2">Les Informatie</h4>
-              <div className="space-y-1 text-sm">
-                <p><strong>Datum:</strong> {new Date(lesson.date).toLocaleDateString('nl-NL')}</p>
-                <p><strong>Tijd:</strong> {lesson.start_time} - {lesson.end_time}</p>
-              </div>
-            </div>
-
-            {/* Progress Notes */}
-            <div className="card">
-              <h4 className="font-semibold mb-2">Voortgang</h4>
-              {loadingNotes ? (
-                <p className="text-gray-500">Laden...</p>
-              ) : (
-                <div className="space-y-3">
-                  {progressNotes.map((note, index) => (
-                    <div key={index} className="p-3 bg-gray-50 rounded-lg">
-                      <p className="text-sm">{note.note}</p>
-                      <p className="text-xs text-gray-500 mt-1">
-                        {new Date(note.created_at).toLocaleString('nl-NL')}
-                      </p>
-                    </div>
-                  ))}
-                  
-                  <div className="space-y-2">
-                    <textarea
-                      value={newNote}
-                      onChange={(e) => setNewNote(e.target.value)}
-                      placeholder="Voeg een notitie toe..."
-                      className="w-full p-2 border border-gray-300 rounded-lg resize-none"
-                      rows={3}
-                    />
-                    <button
-                      onClick={handleAddProgressNote}
-                      disabled={!newNote.trim()}
-                      className="btn btn-primary w-full"
-                    >
-                      Notitie toevoegen
-                    </button>
-                  </div>
-                </div>
-              )}
-            </div>
-          </div>
-        </div>
+          </>
+        )}
       </div>
     )
   }
@@ -578,19 +582,27 @@ function InstructorDashboard() {
                   
                   {expandedLessons.has(lesson.id) && (
                     <div className="mt-4 pt-4 border-t border-gray-200">
-                      <div className="space-y-2">
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation()
-                            openGoogleMaps(student.address)
-                          }}
-                          className="flex items-center gap-2 text-blue-600 hover:text-blue-700 text-sm"
-                        >
-                          <ExternalLink className="h-3 w-3" />
-                          {student.address}
-                        </button>
-                        <p className="text-sm text-gray-600">{student.phone}</p>
-                        <p className="text-sm text-gray-600">{student.email}</p>
+                      <div className="space-y-4">
+                        <div className="space-y-2">
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation()
+                              openGoogleMaps(student.address)
+                            }}
+                            className="flex items-center gap-2 text-blue-600 hover:text-blue-700 text-sm"
+                          >
+                            <ExternalLink className="h-3 w-3" />
+                            {student.address}
+                          </button>
+                          <p className="text-sm text-gray-600">{student.phone}</p>
+                          <p className="text-sm text-gray-600">{student.email}</p>
+                        </div>
+                        
+                        {/* Progress Notes Section */}
+                        <div className="border-t border-gray-200 pt-4">
+                          <h5 className="font-semibold text-sm mb-2">Voortgang</h5>
+                          <ExpandedLessonProgressNotes lesson={lesson} student={student} />
+                        </div>
                       </div>
                     </div>
                   )}
