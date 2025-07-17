@@ -9,6 +9,9 @@ import toast from 'react-hot-toast'
 import ClientOnly from '@/components/ClientOnly'
 import PasswordInput from '@/components/PasswordInput'
 
+// Force dynamic rendering to prevent static generation issues
+export const dynamic = 'force-dynamic'
+
 export default function SignUpPage() {
   const { signUp, mounted } = useAuth()
   const router = useRouter()

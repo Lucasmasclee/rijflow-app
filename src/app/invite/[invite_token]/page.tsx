@@ -5,6 +5,9 @@ import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/contexts/AuthContext'
 import { User, Mail, Lock, Check, AlertCircle } from 'lucide-react'
 
+// Force dynamic rendering to prevent static generation issues
+export const dynamic = 'force-dynamic'
+
 export default function InvitePage({ params }: { params: Promise<{ invite_token: string }> }) {
   const router = useRouter()
   const { signUp } = useAuth()

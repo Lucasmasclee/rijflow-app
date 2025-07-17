@@ -24,6 +24,9 @@ interface DayAvailability {
   endTime: string
 }
 
+// Force dynamic rendering to prevent static generation issues
+export const dynamic = 'force-dynamic'
+
 export default function ScheduleSettingsPage() {
   const { user, loading } = useAuth()
   const router = useRouter()

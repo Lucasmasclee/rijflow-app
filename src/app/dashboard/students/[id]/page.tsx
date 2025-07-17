@@ -37,6 +37,9 @@ interface ProgressNote {
   updated_at: string
 }
 
+// Force dynamic rendering to prevent static generation issues
+export const dynamic = 'force-dynamic'
+
 export default function StudentDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { user, loading } = useAuth()
   const router = useRouter()

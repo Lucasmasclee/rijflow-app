@@ -1,4 +1,6 @@
-Alle functies in de app:
+18 juli:
+- Publiceren in appstore
+- 
 
 Dashboard met:
 ✅✅✅✅✅- Dag overzicht
@@ -63,14 +65,11 @@ AI Rooster
 ✅✅✅✅✅● Alle geselecteerde lessen in dit overzicht toevoegen
 - Selecteren voor welke week je een AI rooster wilt laten maken
 
-Nu mee bezig: 
-- AI weekplanning moet een kloppende weekplanning geven
-
 Glitches:
+AI Weekplanning is slecht, misschien handmatig laten doen ? 
 Op Macbook: bij inloggen is de tekst soms wit
 Op Macbook: beschikbaarheid invullen in student dashboard tekst is wit
 Als leerling uitnodigingslink klikt en email en wachtwoord aanmaakt, moet hij een scherm te zien krijgen met "Bevestig je account in email"
-
 Tijden na 12 uur worden automatisch vervangen ('18' --> '06')
 
 

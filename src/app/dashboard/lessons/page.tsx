@@ -45,6 +45,9 @@ interface LessonFormData {
   notes: string
 }
 
+// Force dynamic rendering to prevent static generation issues
+export const dynamic = 'force-dynamic'
+
 export default function LessonsPage() {
   const { user, loading } = useAuth()
   const router = useRouter()

@@ -30,6 +30,9 @@ interface StudentWithStats extends Student {
   last_lesson?: string
 }
 
+// Force dynamic rendering to prevent static generation issues
+export const dynamic = 'force-dynamic'
+
 export default function StudentsPage() {
   const { user, loading } = useAuth()
   const router = useRouter()

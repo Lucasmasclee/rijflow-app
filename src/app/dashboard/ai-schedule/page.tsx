@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import { ArrowLeft, ArrowRight, Users, Calendar, Settings, Brain, Check, X, Clock, MapPin } from 'lucide-react'
-import { useEffect, useState } from 'react'
+import { useEffect, useState, Suspense } from 'react'
 import { useAuth } from '@/contexts/AuthContext'
 import { supabase } from '@/lib/supabase'
 import { Student, StudentAvailability } from '@/types/database'
@@ -31,7 +31,10 @@ interface StudentWithScheduleData extends Student {
   availabilityText: string // Beschikbaarheid als tekst
 }
 
-export default function AISchedulePage() {
+// Force dynamic rendering to prevent static generation issues
+export const dynamic = 'force-dynamic'
+
+function AISchedulePageContent() {
   const { user, loading, mounted } = useAuth()
   const router = useRouter()
   const searchParams = useSearchParams()
@@ -2235,4 +2238,19 @@ OPDRACHT: Maak een optimaal lesrooster voor de geselecteerde week op basis van b
       </div>
     </div>
   )
-} 
+}
+
+export default function AISchedulePage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center safe-area-top">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
+          <p className="mt-4 text-gray-600">Laden...</p>
+        </div>
+      </div>
+    }>
+      <AISchedulePageContent />
+    </Suspense>
+  )
+}

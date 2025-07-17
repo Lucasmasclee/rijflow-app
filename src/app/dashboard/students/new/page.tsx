@@ -9,6 +9,9 @@ import toast from 'react-hot-toast'
 import { supabase } from '@/lib/supabase'
 import { v4 as uuidv4 } from 'uuid';
 
+// Force dynamic rendering to prevent static generation issues
+export const dynamic = 'force-dynamic'
+
 export default function NewStudentPage() {
   const { user, loading } = useAuth()
   const router = useRouter()

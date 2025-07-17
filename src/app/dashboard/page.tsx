@@ -29,6 +29,9 @@ import Link from 'next/link'
 import { supabase } from '@/lib/supabase'
 import { Student } from '@/types/database'
 
+// Force dynamic rendering to prevent static generation issues
+export const dynamic = 'force-dynamic'
+
 export default function DashboardPage() {
   const { user, signOut, loading } = useAuth()
   const router = useRouter()
