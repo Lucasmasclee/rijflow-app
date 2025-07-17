@@ -235,14 +235,19 @@ export default function AISchedulePage() {
     // Parse each student from the consolidated text
     students.forEach((student, index) => {
       const studentName = student.last_name ? `${student.first_name} ${student.last_name}` : student.first_name
-      const namePattern = new RegExp(`${studentName}:\\s*([^\\n]+)`, 'i')
+      
+      // Create a pattern that matches the student name followed by availability text
+      // The availability text should capture everything until the next student name or end of text
+      const escapedName = studentName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+      const namePattern = new RegExp(`${escapedName}:\\s*([\\s\\S]*?)(?=\\n\\s*[A-Z][a-z]+\\s+[A-Z][a-z]+:|$)`, 'i')
       const match = text.match(namePattern)
       
       if (match) {
         const availabilityText = match[1].trim()
         newStudents[index] = {
           ...newStudents[index],
-          availabilityText
+          availabilityText,
+          notes: availabilityText // Also update notes field which is used by AI prompt generation
         }
       }
     })
@@ -794,7 +799,7 @@ export default function AISchedulePage() {
     })
     
     // Reset AI prompt als leerling data wordt gewijzigd (including availability)
-    if (hasGeneratedPrompt && (field === 'availabilityText' || field === 'lessons' || field === 'minutes' || field === 'aiNotes')) {
+    if (hasGeneratedPrompt && (field === 'availabilityText' || field === 'notes' || field === 'lessons' || field === 'minutes' || field === 'aiNotes')) {
       setHasGeneratedPrompt(false)
       setAiPrompt('')
     }
@@ -824,6 +829,12 @@ export default function AISchedulePage() {
       }
       return student
     }))
+    
+    // Reset AI prompt when default values are reset
+    if (hasGeneratedPrompt) {
+      setHasGeneratedPrompt(false)
+      setAiPrompt('')
+    }
   }
 
   // Navigation functions
