@@ -563,7 +563,7 @@ function InstructorDashboard() {
             {todayLessons.map((lesson) => {
               const student = lesson.students
               return (
-                <div key={lesson.id} className="border border-gray-200 rounded-lg p-4 hover:bg-gray-50 cursor-pointer transition-colors h-16">
+                <div key={lesson.id} className={`border border-gray-200 rounded-lg p-4 hover:bg-gray-50 cursor-pointer transition-colors ${expandedLessons.has(lesson.id) ? '' : 'h-16'}`}>
                   <div 
                     className="flex justify-between items-start"
                     onClick={() => toggleLessonExpansion(lesson.id)}
@@ -594,8 +594,6 @@ function InstructorDashboard() {
                             <ExternalLink className="h-3 w-3" />
                             {student.address}
                           </button>
-                          <p className="text-sm text-gray-600">{student.phone}</p>
-                          <p className="text-sm text-gray-600">{student.email}</p>
                         </div>
                         
                         {/* Progress Notes Section */}
