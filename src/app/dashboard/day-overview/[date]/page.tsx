@@ -497,7 +497,7 @@ export default function DayOverviewPage({ params }: { params: Promise<{ date: st
                         <div className="flex items-center space-x-2">
                           <User className="h-4 w-4 text-gray-500" />
                           <span className="text-gray-900 font-medium">
-                            {student ? `${student.first_name} ${student.last_name}` : 'Onbekende leerling'}
+                            {student ? `${student.first_name} ${student.last_name || ''}` : 'Onbekende leerling'}
                           </span>
                         </div>
                         
@@ -589,7 +589,7 @@ export default function DayOverviewPage({ params }: { params: Promise<{ date: st
                   <option value="">Selecteer een leerling</option>
                   {students.map(student => (
                     <option key={student.id} value={student.id}>
-                      {student.first_name} {student.last_name}
+                      {student.first_name} {student.last_name || ''}
                     </option>
                   ))}
                 </select>

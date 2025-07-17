@@ -486,14 +486,13 @@ export default function StudentDetailPage({ params }: { params: Promise<{ id: st
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Achternaam *
+                    Achternaam
                   </label>
                   <input
                     type="text"
                     value={formData.last_name}
                     onChange={(e) => handleInputChange('last_name', e.target.value)}
                     className="w-full px-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    required
                   />
                 </div>
               </div>
@@ -527,7 +526,7 @@ export default function StudentDetailPage({ params }: { params: Promise<{ id: st
           ) : (
             <div>
               <h1 className="text-2xl md:text-3xl font-bold text-gray-900">
-                {student.first_name} {student.last_name}
+                {student.first_name} {student.last_name || ''}
               </h1>
               <p className="text-gray-600 mt-2">
                 Leerling sinds {new Date(student.created_at).toLocaleDateString('nl-NL')}
@@ -768,7 +767,7 @@ export default function StudentDetailPage({ params }: { params: Promise<{ id: st
                 Leerling verwijderen
               </h3>
               <p className="text-sm text-gray-600 mb-6">
-                Weet je zeker dat je <strong>{student.first_name} {student.last_name}</strong> wilt verwijderen? 
+                Weet je zeker dat je <strong>{student.first_name} {student.last_name || ''}</strong> wilt verwijderen? 
                 Deze actie kan niet ongedaan worden gemaakt.
               </p>
               <div className="flex gap-3">

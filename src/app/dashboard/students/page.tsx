@@ -264,8 +264,8 @@ export default function StudentsPage() {
                 <div className="flex items-start justify-between">
                   <div className="flex-1">
                     <div className="flex items-center gap-3 mb-2">
-                      <h3 className="text-lg font-semibold text-gray-900">
-                        {student.first_name} {student.last_name}
+                      <h3 className="font-medium text-gray-900">
+                        {student.first_name} {student.last_name || ''}
                       </h3>
                       {student.lessons_count === 0 && (
                         <span className="px-2 py-1 bg-yellow-100 text-yellow-800 text-xs rounded-full">
@@ -315,7 +315,7 @@ export default function StudentsPage() {
                       <Edit className="h-4 w-4" />
                     </Link>
                     <button
-                      onClick={() => handleDeleteStudent(student.id, `${student.first_name} ${student.last_name}`)}
+                      onClick={() => handleDeleteStudent(student.id, `${student.first_name} ${student.last_name || ''}`)}
                       className="p-2 text-red-600 hover:text-red-700 hover:bg-red-50 rounded"
                     >
                       <Trash2 className="h-4 w-4" />

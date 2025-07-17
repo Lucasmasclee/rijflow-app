@@ -432,7 +432,7 @@ function InstructorDashboard() {
           <div className="space-y-4">
             {/* Student Info */}
             <div className="card">
-              <h4 className="font-semibold mb-2">{student.first_name} {student.last_name}</h4>
+              <h4 className="font-semibold mb-2">{student.first_name} {student.last_name || ''}</h4>
               <div className="space-y-1 text-sm text-gray-600">
                 <p>{student.email}</p>
                 <p>{student.phone}</p>
@@ -564,7 +564,7 @@ function InstructorDashboard() {
                 <div key={lesson.id} className="border border-gray-200 rounded-lg p-4">
                   <div className="flex justify-between items-start">
                     <div className="flex-1">
-                      <h4 className="font-semibold">{student.first_name} {student.last_name}</h4>
+                      <h4 className="font-semibold">{student.first_name} {student.last_name || ''}</h4>
                       <p className="text-sm text-gray-600">
                         {lesson.start_time} - {lesson.end_time}
                       </p>
@@ -679,7 +679,7 @@ function InstructorDashboard() {
                 className="flex items-center justify-between p-3 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
               >
                 <div>
-                  <h4 className="font-medium">{student.first_name} {student.last_name}</h4>
+                  <h4 className="font-medium">{student.first_name} {student.last_name || ''}</h4>
                   <p className="text-sm text-gray-600">{student.email}</p>
                 </div>
                 <ChevronRight className="h-4 w-4 text-gray-400" />

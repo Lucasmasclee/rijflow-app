@@ -158,7 +158,7 @@ export default function InvitePage({ params }: { params: Promise<{ invite_token:
               Account aanmaken
             </h1>
             <p className="text-gray-600">
-              Voor {student.first_name} {student.last_name}
+              Voor {student.first_name} {student.last_name || ''}
             </p>
           </div>
 

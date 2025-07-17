@@ -301,12 +301,11 @@ export default function NewStudentPage() {
                   
                   <div>
                     <label htmlFor="last_name" className="block text-sm font-medium text-gray-700 mb-2">
-                      Achternaam *
+                      Achternaam
                     </label>
                     <input
                       type="text"
                       id="last_name"
-                      required
                       value={formData.last_name}
                       onChange={(e) => handleInputChange('last_name', e.target.value)}
                       className="w-full px-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
@@ -327,12 +326,11 @@ export default function NewStudentPage() {
               <div className="space-y-4">
                 <div>
                   <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
-                    E-mailadres *
+                    E-mailadres
                   </label>
                   <input
                     type="email"
                     id="email"
-                    required
                     value={formData.email}
                     onChange={(e) => handleInputChange('email', e.target.value)}
                     className="w-full px-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
