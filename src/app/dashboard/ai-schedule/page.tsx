@@ -708,7 +708,7 @@ export default function AISchedulePage() {
       const consolidatedText = availability.map(item => {
         const dayName = DAY_ORDER.find(d => d.day === item.day)?.name
         return `${dayName}: ${item.availabilityText}`
-      }).join(', ')
+      }).join('\n')
       setConsolidatedAvailabilityText(consolidatedText)
     }
   }, [availability, consolidatedAvailabilityText])
@@ -828,7 +828,7 @@ export default function AISchedulePage() {
         lessons: student.lessons,
         minutes: student.minutes,
         aiNotes: student.aiNotes,
-        notes: student.notes || ''
+        notes: student.availabilityText || '' // Use availabilityText instead of notes
       })),
       settings
     }
@@ -869,13 +869,16 @@ export default function AISchedulePage() {
           day: 'numeric', 
           month: 'long' 
         })
-        return `${dateStr} (${day.day}): ${day.startTime} - ${day.endTime}`
+        // Ensure time format is HH:MM
+        const startTime = day.startTime.split(':').slice(0, 2).join(':')
+        const endTime = day.endTime.split(':').slice(0, 2).join(':')
+        return `${dateStr} (${day.day}): ${startTime} - ${endTime}`
       })
       .join('\n')
 
     // Leerlingen informatie
     const studentsText = studentsData.map((student: any) => {
-      const availabilityText = student.availabilityText ? `\nBeschikbaarheid: ${student.availabilityText}` : ''
+      const availabilityText = student.notes ? `\nBeschikbaarheid: ${student.notes}` : ''
       const aiNotes = student.aiNotes ? `\nAI Notities: ${student.aiNotes}` : ''
       const fullName = student.lastName ? `${student.firstName} ${student.lastName}` : student.firstName
       
@@ -895,7 +898,9 @@ export default function AISchedulePage() {
       
       const dayData = instructorAvail.find((d: any) => d.day === dayKey)
       const isAvailable = dayData?.available || false
-      const timeRange = isAvailable && dayData ? `${dayData.startTime} - ${dayData.endTime}` : 'Niet beschikbaar'
+      const timeRange = isAvailable && dayData ? 
+        `${dayData.startTime.split(':').slice(0, 2).join(':')} - ${dayData.endTime.split(':').slice(0, 2).join(':')}` : 
+        'Niet beschikbaar'
       
       return `${date.toLocaleDateString('nl-NL', { 
         weekday: 'long', 
