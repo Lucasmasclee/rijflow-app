@@ -244,6 +244,9 @@ export default function AISchedulePage() {
           ...newStudents[index],
           availabilityText
         }
+        
+        // Save the availability to the database immediately
+        saveStudentAvailability(student.id, availabilityText)
       }
     })
     
@@ -255,13 +258,6 @@ export default function AISchedulePage() {
     setConsolidatedStudentAvailabilityText(value)
     const newStudents = parseConsolidatedStudentAvailability(value)
     setStudents(newStudents)
-    
-    // Save availability changes to database
-    newStudents.forEach(student => {
-      if (student.availabilityText) {
-        saveStudentAvailability(student.id, student.availabilityText)
-      }
-    })
     
     // Reset AI prompt als student beschikbaarheid wordt gewijzigd
     if (hasGeneratedPrompt) {
@@ -290,6 +286,8 @@ export default function AISchedulePage() {
       // Save availability for the current week (first week)
       const currentWeekStart = weekStarts[0]
       
+      console.log(`Saving availability for student ${studentId} for week ${currentWeekStart}: ${availabilityText}`)
+      
       const { error } = await supabase
         .from('student_availability')
         .upsert({
@@ -303,9 +301,13 @@ export default function AISchedulePage() {
 
       if (error) {
         console.error('Error saving student availability:', error)
+        toast.error(`Fout bij opslaan beschikbaarheid: ${error.message}`)
+      } else {
+        console.log(`Successfully saved availability for student ${studentId}`)
       }
     } catch (error) {
       console.error('Error saving student availability:', error)
+      toast.error('Fout bij opslaan beschikbaarheid')
     }
   }
 
@@ -346,7 +348,7 @@ export default function AISchedulePage() {
             const consolidatedText = fallbackAvailability.map(item => {
               const dayName = DAY_ORDER.find(d => d.day === item.day)?.name
               return `${dayName}: ${item.availabilityText}`
-            }).join(', ')
+            }).join('\n ')
             setConsolidatedAvailabilityText(consolidatedText)
             return
           }
@@ -395,7 +397,7 @@ export default function AISchedulePage() {
             const consolidatedText = newAvailability.map(item => {
               const dayName = DAY_ORDER.find(d => d.day === item.day)?.name
               return `${dayName}: ${item.availabilityText}`
-            }).join(', ')
+            }).join('\n ')
             setConsolidatedAvailabilityText(consolidatedText)
             return
           }
@@ -447,7 +449,7 @@ export default function AISchedulePage() {
         const consolidatedText = newAvailability.map(item => {
           const dayName = DAY_ORDER.find(d => d.day === item.day)?.name
           return `${dayName}: ${item.availabilityText}`
-        }).join(', ')
+        }).join('\n ')
         setConsolidatedAvailabilityText(consolidatedText)
       } else {
         // No data in database, initialize default availability and fetch again
@@ -512,7 +514,7 @@ export default function AISchedulePage() {
       const consolidatedText = fallbackAvailability.map(item => {
         const dayName = DAY_ORDER.find(d => d.day === item.day)?.name
         return `${dayName}: ${item.availabilityText}`
-      }).join(', ')
+      }).join('\n ')
       setConsolidatedAvailabilityText(consolidatedText)
     }
   }
@@ -558,7 +560,7 @@ export default function AISchedulePage() {
         notes: student.notes || '',
         aiNotes: '',
         availabilityNotes: [],
-        availabilityText: student.notes || 'Flexibel beschikbaar'
+        availabilityText: 'Flexibel beschikbaar' // Will be updated by fetchStudentAvailability
       }))
 
       console.log('Transformed students with schedule data:', studentsWithScheduleData.map(s => ({
@@ -623,12 +625,19 @@ export default function AISchedulePage() {
           return weekData?.notes || ''
         })
 
-        // Create consolidated availability text from the most recent week or default
-        let availabilityText = student.notes || 'Flexibel beschikbaar'
+        // Get the most recent availability text from the database
+        // Prioritize the current week (first week), then fall back to most recent non-empty note
+        let availabilityText = 'Flexibel beschikbaar' // Default fallback
         if (availabilityNotes.length > 0) {
-          const recentNotes = availabilityNotes.filter(note => note.trim() !== '')
-          if (recentNotes.length > 0) {
-            availabilityText = recentNotes[recentNotes.length - 1] // Use most recent
+          // First try the current week (first week)
+          if (availabilityNotes[0] && availabilityNotes[0].trim() !== '') {
+            availabilityText = availabilityNotes[0]
+          } else {
+            // Find the most recent non-empty note
+            const recentNotes = availabilityNotes.filter(note => note.trim() !== '')
+            if (recentNotes.length > 0) {
+              availabilityText = recentNotes[recentNotes.length - 1]
+            }
           }
         }
 
@@ -739,7 +748,7 @@ export default function AISchedulePage() {
         }).join('\n')
         setConsolidatedStudentAvailabilityText(consolidatedText)
         
-        // Save availability to database
+        // Save availability to database immediately
         saveStudentAvailability(id, value)
       }
       
@@ -878,7 +887,8 @@ export default function AISchedulePage() {
 
     // Leerlingen informatie
     const studentsText = studentsData.map((student: any) => {
-      const availabilityText = student.availabilityText ? `\nBeschikbaarheid: ${student.availabilityText}` : ''
+      // Use the actual availability text from the database (student.notes contains the availability)
+      const availabilityText = student.notes ? `\nBeschikbaarheid: ${student.notes}` : ''
       const aiNotes = student.aiNotes ? `\nAI Notities: ${student.aiNotes}` : ''
       const fullName = student.lastName ? `${student.firstName} ${student.lastName}` : student.firstName
       
@@ -1049,7 +1059,7 @@ OPDRACHT: Maak een optimaal lesrooster voor de komende week op basis van bovenst
             lessons: Math.max(1, lessons), // Zorg ervoor dat het minimaal 1 is
             minutes: Math.max(30, minutes), // Zorg ervoor dat het minimaal 30 is
             aiNotes: student.aiNotes || '',
-            notes: student.availabilityText || '' // Gebruik availabilityText in plaats van notes
+            notes: student.availabilityText || '' // Use availabilityText which contains the database availability
           }
         }),
         settings
