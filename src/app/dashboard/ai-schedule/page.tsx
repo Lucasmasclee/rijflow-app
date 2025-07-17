@@ -20,7 +20,7 @@ const DAY_ORDER = [
   { day: 'sunday', name: 'Zondag' },
 ]
 
-type Step = 'instructor' | 'student-details' | 'settings' | 'prompt' | 'result' | 'selection'
+type Step = 'instructor' | 'student-details' | 'settings' | 'prompt' | 'result' | 'selection' | `student-${string}`
 
 interface StudentWithScheduleData extends Student {
   lessons: number
@@ -839,26 +839,72 @@ export default function AISchedulePage() {
 
   // Navigation functions
   const handleNext = () => {
-    const steps: Step[] = ['instructor', 'student-details', 'settings', 'prompt', 'selection', 'result']
-    const currentIndex = steps.indexOf(currentStep)
-    
-    if (currentIndex < steps.length - 1) {
-      setCurrentStep(steps[currentIndex + 1])
+    // Check if current step is a student step
+    if (currentStep.startsWith('student-')) {
+      const currentStudentId = currentStep.replace('student-', '')
+      const currentIndex = students.findIndex(s => s.id === currentStudentId)
+      
+      if (currentIndex < students.length - 1) {
+        // Go to next student
+        const nextStudent = students[currentIndex + 1]
+        setCurrentStep(`student-${nextStudent.id}`)
+      } else {
+        // Go to settings after last student
+        setCurrentStep('settings')
+      }
+    } else {
+      // Handle regular steps
+      const steps: Step[] = ['instructor', 'student-details', 'settings', 'prompt', 'selection', 'result']
+      const currentIndex = steps.indexOf(currentStep as Step)
+      
+      if (currentIndex < steps.length - 1) {
+        const nextStep = steps[currentIndex + 1]
+        
+        // If next step is student-details, go to first student instead
+        if (nextStep === 'student-details' && students.length > 0) {
+          setCurrentStep(`student-${students[0].id}`)
+        } else {
+          setCurrentStep(nextStep)
+        }
+      }
     }
   }
 
   const handlePrevious = () => {
-    const steps: Step[] = ['instructor', 'student-details', 'settings', 'prompt', 'selection', 'result']
-    const currentIndex = steps.indexOf(currentStep)
-    
-    if (currentIndex > 0) {
-      const previousStep = steps[currentIndex - 1]
-      setCurrentStep(previousStep)
+    // Check if current step is a student step
+    if (currentStep.startsWith('student-')) {
+      const currentStudentId = currentStep.replace('student-', '')
+      const currentIndex = students.findIndex(s => s.id === currentStudentId)
       
-      // Reset AI prompt als je teruggaat naar eerdere stappen
-      if (previousStep !== 'prompt') {
-        setHasGeneratedPrompt(false)
-        setAiPrompt('')
+      if (currentIndex > 0) {
+        // Go to previous student
+        const previousStudent = students[currentIndex - 1]
+        setCurrentStep(`student-${previousStudent.id}`)
+      } else {
+        // Go to instructor after first student
+        setCurrentStep('instructor')
+      }
+    } else {
+      // Handle regular steps
+      const steps: Step[] = ['instructor', 'student-details', 'settings', 'prompt', 'selection', 'result']
+      const currentIndex = steps.indexOf(currentStep as Step)
+      
+      if (currentIndex > 0) {
+        const previousStep = steps[currentIndex - 1]
+        
+        // If previous step is student-details, go to last student instead
+        if (previousStep === 'student-details' && students.length > 0) {
+          const lastStudent = students[students.length - 1]
+          setCurrentStep(`student-${lastStudent.id}`)
+        } else {
+          setCurrentStep(previousStep)
+        }
+        
+        // Reset AI prompt als je teruggaat naar eerdere stappen
+        if (previousStep !== 'prompt') {
+          setHasGeneratedPrompt(false)
+          setAiPrompt('')
+        }
       }
     }
   }
@@ -998,8 +1044,8 @@ PLANNING INSTELLINGEN:
 ${settingsData.additionalSpecifications ? `- Extra specificaties: ${settingsData.additionalSpecifications}` : ''}
 
 KRITIEKE PLANNING REGELS:
-1. Plan ALLEEN op dagen dat de instructeur beschikbaar is (zie week overzicht hierboven)
-2. Plan ALLEEN op dagen dat de leerling beschikbaar is (uit hun beschikbaarheid notities)
+1. Plan ALLEEN op dagen én tijden dat de instructeur beschikbaar is (zie week overzicht hierboven)
+2. Plan ALLEEN op dagen én tijden dat de leerling beschikbaar is (uit hun beschikbaarheid notities)
 3. Als een leerling specifieke beschikbare dagen heeft, plan dan NOOIT op andere dagen
 4. Zoek naar Nederlandse en Engelse dagnamen in de notities (maandag/monday, dinsdag/tuesday, etc.)
 5. Verdeel de lessen gelijkmatig over de beschikbare dagen
@@ -1802,12 +1848,136 @@ OPDRACHT: Maak een optimaal lesrooster voor de komende week op basis van bovenst
         )
 
       default:
+        // Check if this is a student step
+        if (currentStep.startsWith('student-')) {
+          const studentId = currentStep.replace('student-', '')
+          const student = students.find(s => s.id === studentId)
+          
+          if (!student) {
+            return (
+              <div className="text-center py-8">
+                <p className="text-gray-500">Leerling niet gevonden</p>
+              </div>
+            )
+          }
+          
+          return (
+            <div className="space-y-6">
+              <div>
+                <h3 className="text-lg font-semibold mb-4">
+                  {student.first_name} {student.last_name || ''}
+                </h3>
+                <p className="text-gray-600 mb-6">
+                  Configureer de beschikbaarheid en instellingen voor deze leerling
+                </p>
+              </div>
+              
+              {/* Beschikbaarheid van [Leerling naam] */}
+              <div className="card">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Beschikbaarheid van {student.first_name} {student.last_name || ''}
+                  </label>
+                  <textarea
+                    value={student.availabilityText}
+                    onChange={(e) => handleStudentChange(student.id, 'availabilityText', e.target.value)}
+                    className="w-full px-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
+                    rows={4}
+                    placeholder="Bijvoorbeeld: Maandag, woensdag, vrijdag of Flexibel beschikbaar"
+                  />
+                  <p className="text-xs text-gray-500 mt-1">
+                    Beschrijf wanneer deze leerling beschikbaar is voor lessen. Voorbeelden: "Maandag, woensdag, vrijdag", "Flexibel beschikbaar", "Alleen 's avonds". Wijzigingen worden automatisch opgeslagen.
+                  </p>
+                </div>
+              </div>
+              
+              {/* Instellingen voor [Leerling naam] */}
+              <div className="card">
+                <div>
+                  <h4 className="text-md font-semibold mb-4">
+                    Instellingen voor {student.first_name} {student.last_name || ''}
+                  </h4>
+                  
+                  <div className="space-y-4">
+                    <div className="mobile-grid md:grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          Lessen per week
+                        </label>
+                        <input
+                          type="number"
+                          min="1"
+                          max="7"
+                          value={student.lessons}
+                          onChange={(e) => handleStudentChange(student.id, 'lessons', parseInt(e.target.value))}
+                          className={`w-full px-3 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
+                            isValueDifferentFromDefault(student, 'lessons') 
+                              ? 'border-orange-300 bg-orange-50' 
+                              : 'border-gray-300'
+                          }`}
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          Lesduur (minuten)
+                        </label>
+                        <input
+                          type="number"
+                          min="30"
+                          max="180"
+                          step="15"
+                          value={student.minutes}
+                          onChange={(e) => handleStudentChange(student.id, 'minutes', parseInt(e.target.value))}
+                          className={`w-full px-3 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
+                            isValueDifferentFromDefault(student, 'minutes') 
+                              ? 'border-orange-300 bg-orange-50' 
+                              : 'border-gray-300'
+                          }`}
+                        />
+                      </div>
+                    </div>
+                    
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Notities voor AI
+                      </label>
+                      <textarea
+                        value={student.aiNotes}
+                        onChange={(e) => handleStudentChange(student.id, 'aiNotes', e.target.value)}
+                        rows={3}
+                        className="w-full px-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
+                        placeholder="Speciale instructies voor de AI planner..."
+                      />
+                    </div>
+                    
+                    {(isValueDifferentFromDefault(student, 'lessons') || isValueDifferentFromDefault(student, 'minutes')) && (
+                      <div className="flex justify-end">
+                        <button
+                          onClick={() => resetToDefault(student.id)}
+                          className="text-sm text-blue-600 hover:text-blue-700"
+                        >
+                          Reset naar standaard
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </div>
+          )
+        }
+        
         return null
     }
   }
 
   // Check if can go to next step
   const canGoNext = () => {
+    // Check if current step is a student step
+    if (currentStep.startsWith('student-')) {
+      return true // Always allow going to next step from student step
+    }
+    
     switch (currentStep) {
       case 'instructor':
         return availability.some(day => day.available)
@@ -1841,14 +2011,33 @@ OPDRACHT: Maak een optimaal lesrooster voor de komende week op basis van bovenst
     return null
   }
 
-  const steps = [
-    { key: 'instructor', name: 'Beschikbaarheid', icon: Calendar },
-    { key: 'student-details', name: 'Leerlingen', icon: Users },
-    { key: 'settings', name: 'Instellingen', icon: Settings },
-    { key: 'prompt', name: 'AI Planning', icon: Brain },
-    { key: 'selection', name: 'Selectie', icon: Check },
-    { key: 'result', name: 'Resultaat', icon: Check }
-  ]
+  // Generate steps dynamically to include individual student steps
+  const generateSteps = () => {
+    const baseSteps = [
+      { key: 'instructor', name: 'Beschikbaarheid', icon: Calendar }
+    ]
+    
+    // Add student steps
+    students.forEach((student, index) => {
+      baseSteps.push({
+        key: `student-${student.id}`,
+        name: student.first_name,
+        icon: Users
+      })
+    })
+    
+    // Add remaining steps
+    baseSteps.push(
+      { key: 'settings', name: 'Instellingen', icon: Settings },
+      { key: 'prompt', name: 'AI Planning', icon: Brain },
+      { key: 'selection', name: 'Selectie', icon: Check },
+      { key: 'result', name: 'Resultaat', icon: Check }
+    )
+    
+    return baseSteps
+  }
+  
+  const steps = generateSteps()
 
   return (
     <div className="min-h-screen bg-gray-50 pb-20">
@@ -1883,14 +2072,14 @@ OPDRACHT: Maak een optimaal lesrooster voor de komende week op basis van bovenst
 
         {/* Progress Steps */}
         <div className="card mb-6">
-          <div className="flex items-center justify-between">
+          <div className="flex items-center justify-between overflow-x-auto">
             {steps.map((step, index) => {
               const StepIcon = step.icon
               const isActive = currentStep === step.key
               const isCompleted = steps.findIndex(s => s.key === currentStep) > index
               
               return (
-                <div key={step.key} className="flex items-center">
+                <div key={step.key} className="flex items-center flex-shrink-0">
                   <div className={`flex items-center justify-center w-8 h-8 rounded-full text-sm font-medium ${
                     isActive 
                       ? 'bg-blue-600 text-white' 
@@ -1904,13 +2093,13 @@ OPDRACHT: Maak een optimaal lesrooster voor de komende week op basis van bovenst
                       <StepIcon className="h-4 w-4" />
                     )}
                   </div>
-                  <span className={`ml-2 text-sm font-medium ${
+                  <span className={`ml-2 text-sm font-medium whitespace-nowrap ${
                     isActive ? 'text-blue-600' : 'text-gray-500'
                   }`}>
                     {step.name}
                   </span>
                   {index < steps.length - 1 && (
-                    <div className="mx-4 w-8 h-0.5 bg-gray-200"></div>
+                    <div className="mx-4 w-8 h-0.5 bg-gray-200 flex-shrink-0"></div>
                   )}
                 </div>
               )
@@ -1931,7 +2120,19 @@ OPDRACHT: Maak een optimaal lesrooster voor de komende week op basis van bovenst
               className="btn btn-secondary flex items-center gap-2"
             >
               <ArrowLeft className="h-4 w-4" />
-              Vorige
+              {currentStep.startsWith('student-') && students.length > 0 ? (
+                (() => {
+                  const currentStudentId = currentStep.replace('student-', '')
+                  const currentIndex = students.findIndex(s => s.id === currentStudentId)
+                  if (currentIndex > 0) {
+                    return `Vorige leerling`
+                  } else {
+                    return `Beschikbaarheid`
+                  }
+                })()
+              ) : (
+                `Vorige`
+              )}
             </button>
           )}
           
@@ -1947,8 +2148,25 @@ OPDRACHT: Maak een optimaal lesrooster voor de komende week op basis van bovenst
                 disabled={!canGoNext()}
                 className="btn btn-primary flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                Volgende
-                <ArrowRight className="h-4 w-4" />
+                {currentStep.startsWith('student-') && students.length > 0 ? (
+                  <>
+                    {(() => {
+                      const currentStudentId = currentStep.replace('student-', '')
+                      const currentIndex = students.findIndex(s => s.id === currentStudentId)
+                      if (currentIndex < students.length - 1) {
+                        return `Volgende leerling`
+                      } else {
+                        return `Instellingen`
+                      }
+                    })()}
+                    <ArrowRight className="h-4 w-4" />
+                  </>
+                ) : (
+                  <>
+                    Volgende
+                    <ArrowRight className="h-4 w-4" />
+                  </>
+                )}
               </button>
             </div>
           )}
