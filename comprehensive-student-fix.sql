@@ -98,6 +98,7 @@ DROP POLICY IF EXISTS "Students can view their own availability" ON student_avai
 DROP POLICY IF EXISTS "Students can insert their own availability" ON student_availability;
 DROP POLICY IF EXISTS "Students can update their own availability" ON student_availability;
 DROP POLICY IF EXISTS "Students can delete their own availability" ON student_availability;
+DROP POLICY IF EXISTS "Instructor can manage student availability" ON student_availability;
 
 -- Create simple and reliable policies for students
 CREATE POLICY "Students can view their own availability" ON student_availability
@@ -137,8 +138,19 @@ CREATE POLICY "Students can delete their own availability" ON student_availabili
     );
 
 -- Create policy for instructors to view their students' availability
-CREATE POLICY "Instructors can view student availability" ON student_availability
+CREATE POLICY "Instructor can view student availability" ON student_availability
     FOR SELECT USING (
+        auth.uid() IN (
+            SELECT instructor_id 
+            FROM students 
+            WHERE id = student_availability.student_id
+        )
+    );
+
+-- NEW: Create policy for instructors to manage their students' availability
+-- This allows instructors to insert, update, and delete availability for their own students
+CREATE POLICY "Instructor can manage student availability" ON student_availability
+    FOR ALL USING (
         auth.uid() IN (
             SELECT instructor_id 
             FROM students 

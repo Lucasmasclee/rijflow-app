@@ -878,7 +878,7 @@ export default function AISchedulePage() {
 
     // Leerlingen informatie
     const studentsText = studentsData.map((student: any) => {
-      const availabilityText = student.notes ? `\nBeschikbaarheid: ${student.notes}` : ''
+      const availabilityText = student.availabilityText ? `\nBeschikbaarheid: ${student.availabilityText}` : ''
       const aiNotes = student.aiNotes ? `\nAI Notities: ${student.aiNotes}` : ''
       const fullName = student.lastName ? `${student.firstName} ${student.lastName}` : student.firstName
       
