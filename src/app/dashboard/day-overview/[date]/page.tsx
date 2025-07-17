@@ -42,7 +42,7 @@ interface LessonFormData {
   notes: string
 }
 
-export default function DayOverviewPage({ params }: { params: { date: string } }) {
+export default function DayOverviewPage({ params }: { params: Promise<{ date: string }> }) {
   const { user, loading } = useAuth()
   const router = useRouter()
   const [lessons, setLessons] = useState<LessonWithStudent[]>([])
@@ -57,9 +57,19 @@ export default function DayOverviewPage({ params }: { params: { date: string } }
     studentId: '',
     notes: ''
   })
+  const [resolvedParams, setResolvedParams] = useState<{ date: string } | null>(null)
+
+  // Resolve params when component mounts
+  useEffect(() => {
+    const resolveParams = async () => {
+      const resolved = await params
+      setResolvedParams(resolved)
+    }
+    resolveParams()
+  }, [params])
 
   // Parse the date from URL params
-  const selectedDate = new Date(params.date)
+  const selectedDate = resolvedParams ? new Date(resolvedParams.date) : new Date()
   const formattedDate = selectedDate.toLocaleDateString('nl-NL', { 
     weekday: 'long', 
     year: 'numeric', 
@@ -104,7 +114,7 @@ export default function DayOverviewPage({ params }: { params: { date: string } }
     try {
       setLoadingLessons(true)
       
-      const dateString = params.date
+      const dateString = resolvedParams?.date || ''
       
       const { data, error } = await supabase
         .from('lessons')
@@ -143,11 +153,11 @@ export default function DayOverviewPage({ params }: { params: { date: string } }
   }
 
   useEffect(() => {
-    if (user && !loading) {
+    if (user && !loading && resolvedParams) {
       fetchStudents()
       fetchLessons()
     }
-  }, [user, loading, params.date])
+  }, [user, loading, resolvedParams])
 
   const formatTime = (time: string) => {
     if (!time) return ''
@@ -180,7 +190,7 @@ export default function DayOverviewPage({ params }: { params: { date: string } }
 
   const openAddLesson = () => {
     setLessonForm({
-      date: params.date,
+      date: resolvedParams?.date || '',
       startTime: '09:00',
       endTime: '10:00',
       studentId: '',
