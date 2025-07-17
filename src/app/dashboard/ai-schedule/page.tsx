@@ -244,9 +244,6 @@ export default function AISchedulePage() {
           ...newStudents[index],
           availabilityText
         }
-        
-        // Save the availability to the database immediately
-        saveStudentAvailability(student.id, availabilityText)
       }
     })
     
@@ -258,6 +255,13 @@ export default function AISchedulePage() {
     setConsolidatedStudentAvailabilityText(value)
     const newStudents = parseConsolidatedStudentAvailability(value)
     setStudents(newStudents)
+    
+    // Save student availability to database for changed students
+    newStudents.forEach(student => {
+      if (student.availabilityText) {
+        saveStudentAvailability(student.id, student.availabilityText)
+      }
+    })
     
     // Reset AI prompt als student beschikbaarheid wordt gewijzigd
     if (hasGeneratedPrompt) {
@@ -557,7 +561,7 @@ export default function AISchedulePage() {
         last_name: student.last_name || '', // Achternaam kan leeg zijn
         lessons: Math.max(1, student.default_lessons_per_week || 2),
         minutes: Math.max(30, student.default_lesson_duration_minutes || 60),
-        notes: student.notes || '',
+        notes: '', // This will be set to student_availability.notes, not students.notes
         aiNotes: '',
         availabilityNotes: [],
         availabilityText: 'Flexibel beschikbaar' // Will be updated by fetchStudentAvailability
@@ -678,7 +682,7 @@ export default function AISchedulePage() {
           ...student,
           availabilityNotes,
           availabilityText,
-          notes: availabilityText // Also update the notes field to contain the availability for AI prompt generation
+          notes: availabilityText // This now contains the student_availability.notes for AI prompt generation
         }
       })
 
@@ -789,8 +793,8 @@ export default function AISchedulePage() {
       return newStudents
     })
     
-    // Reset AI prompt als leerling data wordt gewijzigd
-    if (hasGeneratedPrompt) {
+    // Reset AI prompt als leerling data wordt gewijzigd (including availability)
+    if (hasGeneratedPrompt && (field === 'availabilityText' || field === 'lessons' || field === 'minutes' || field === 'aiNotes')) {
       setHasGeneratedPrompt(false)
       setAiPrompt('')
     }
@@ -862,6 +866,9 @@ export default function AISchedulePage() {
 
   // Generate AI prompt
   const generateAIPrompt = async () => {
+    // Refresh student availability data from database first
+    await fetchStudentAvailability(students)
+    
     // Fetch the latest availability data from the database
     const availabilityData = await fetchLatestStudentAvailability()
     
@@ -870,7 +877,8 @@ export default function AISchedulePage() {
       students: students.map((student: StudentWithScheduleData) => {
         // Get the availability for this student from the database
         const studentAvailability = availabilityData.find((a: any) => a.student_id === student.id)
-        const availabilityText = studentAvailability?.notes || 'Flexibel beschikbaar'
+        // Use the availability from student_availability table, fallback to current student.notes (which should contain the availability)
+        const availabilityText = studentAvailability?.notes || student.notes || 'Flexibel beschikbaar'
         
         return {
           id: student.id,
@@ -1031,6 +1039,9 @@ OPDRACHT: Maak een optimaal lesrooster voor de komende week op basis van bovenst
     setIsGenerating(true)
     
     try {
+      // Refresh student availability data from database first
+      await fetchStudentAvailability(students)
+      
       // Debug: Log alle student data voor troubleshooting
       console.log('All students before validation:', students.map(s => ({
         id: s.id,
@@ -1101,7 +1112,8 @@ OPDRACHT: Maak een optimaal lesrooster voor de komende week op basis van bovenst
           
           // Get the availability for this student from the database
           const studentAvailability = availabilityData.find((a: any) => a.student_id === student.id)
-          const availabilityText = studentAvailability?.notes || 'Flexibel beschikbaar'
+          // Use the availability from student_availability table, fallback to current student.notes (which should contain the availability)
+          const availabilityText = studentAvailability?.notes || student.notes || 'Flexibel beschikbaar'
           
           return {
             id: student.id,

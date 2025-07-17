@@ -674,6 +674,11 @@ export default function LessonsPage() {
           {/* Month View */}
           {viewMode === 'month' && !loadingLessons && (
             <div className="space-y-4">
+              {/* Help text */}
+              <div className="text-center text-sm text-gray-600 bg-blue-50 p-3 rounded-lg border border-blue-200">
+                💡 <strong>Tip:</strong> Klik op een dag om het dagoverzicht te bekijken
+              </div>
+              
               {/* Calendar Header */}
               <div className="grid grid-cols-7 gap-1 text-center text-sm font-medium text-gray-500">
                 <div>Ma</div>
@@ -700,11 +705,13 @@ export default function LessonsPage() {
                   return (
                     <div
                       key={day.toISOString()}
-                      className={`h-12 p-1 rounded-lg border ${
+                      className={`h-12 p-1 rounded-lg border cursor-pointer transition-colors relative group ${
                         isCurrentDay 
-                          ? 'bg-blue-50 border-blue-200' 
-                          : 'bg-white border-gray-200 hover:bg-gray-50'
+                          ? 'bg-blue-50 border-blue-200 hover:bg-blue-100' 
+                          : 'bg-white border-gray-200 hover:bg-gray-100'
                       }`}
+                      onClick={() => router.push(`/dashboard/day-overview/${day.toISOString().split('T')[0]}`)}
+                      title="Klik voor dagoverzicht"
                     >
                       <div className="flex flex-col items-center justify-center h-full">
                         <span className={`text-xs ${
@@ -722,6 +729,8 @@ export default function LessonsPage() {
                           </span>
                         )}
                       </div>
+                      {/* Hover indicator */}
+                      <div className="absolute inset-0 bg-blue-500 opacity-0 group-hover:opacity-5 rounded-lg transition-opacity pointer-events-none"></div>
                     </div>
                   )
                 })}
