@@ -35,6 +35,7 @@ export interface AIScheduleRequest {
     breakAfterEachStudent: boolean
     additionalSpecifications: string
   }
+  customPrompt?: string
 }
 
 export interface AIScheduleLesson {
@@ -52,7 +53,7 @@ export interface AIScheduleResponse {
   warnings?: string[]
 }
 
-export async function generateAISchedule(request: AIScheduleRequest): Promise<AIScheduleResponse> {
+export async function generateAISchedule(request: AIScheduleRequest, customPrompt?: string): Promise<AIScheduleResponse> {
   try {
     // Debug logging voor API key check
     console.log('Checking OpenAI API key in generateAISchedule:', {
@@ -68,7 +69,8 @@ export async function generateAISchedule(request: AIScheduleRequest): Promise<AI
       return generateDummyResponse(request)
     }
 
-    const prompt = generateSchedulePrompt(request)
+    // Gebruik custom prompt als die is meegegeven, anders genereer een nieuwe
+    const prompt = customPrompt || generateSchedulePrompt(request)
     
     const completion = await openai.chat.completions.create({
       model: "gpt-4",

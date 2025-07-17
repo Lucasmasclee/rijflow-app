@@ -1136,13 +1136,16 @@ OPDRACHT: Maak een optimaal lesrooster voor de komende week op basis van bovenst
         minutes: s.minutes
       })))
 
-      // Roep de AI API aan
+      // Roep de AI API aan - gebruik de bewerkte prompt als die bestaat, anders genereer een nieuwe
       const response = await fetch('/api/ai-schedule', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(requestData)
+        body: JSON.stringify({
+          ...requestData,
+          customPrompt: aiPrompt // Stuur de bewerkte prompt mee als die bestaat
+        })
       })
 
       if (!response.ok) {

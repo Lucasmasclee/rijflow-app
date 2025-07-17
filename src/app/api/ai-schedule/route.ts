@@ -66,8 +66,8 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Genereer het rooster met AI
-    const aiResponse = await generateAISchedule(body)
+    // Genereer het rooster met AI - gebruik custom prompt als die is meegegeven
+    const aiResponse = await generateAISchedule(body, body.customPrompt)
 
     return NextResponse.json(aiResponse)
 
