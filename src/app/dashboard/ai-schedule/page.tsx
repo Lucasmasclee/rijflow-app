@@ -8,6 +8,7 @@ import { supabase } from '@/lib/supabase'
 import { Student } from '@/types/database'
 import { AIScheduleLesson, AIScheduleResponse } from '@/lib/openai'
 import toast from 'react-hot-toast'
+import { useRouter } from 'next/navigation'
 
 const DAY_ORDER = [
   { day: 'monday', name: 'Maandag' },
@@ -27,23 +28,25 @@ interface StudentWithScheduleData extends Student {
   notes: string
   aiNotes: string
   availabilityNotes: string[] // Per week, komende 5 weken
+  availabilityText: string // Beschikbaarheid als tekst
 }
 
 export default function AISchedulePage() {
   const { user, loading, mounted } = useAuth()
+  const router = useRouter()
   const [currentStep, setCurrentStep] = useState<Step>('instructor')
   const [currentStudentIndex, setCurrentStudentIndex] = useState(0)
   const [loadingStudents, setLoadingStudents] = useState(true)
 
   // Instructeur beschikbaarheid
   const [availability, setAvailability] = useState([
-    { day: 'monday', available: true, startTime: '09:00', endTime: '17:00' },
-    { day: 'tuesday', available: true, startTime: '09:00', endTime: '17:00' },
-    { day: 'wednesday', available: true, startTime: '09:00', endTime: '17:00' },
-    { day: 'thursday', available: true, startTime: '09:00', endTime: '17:00' },
-    { day: 'friday', available: true, startTime: '09:00', endTime: '17:00' },
-    { day: 'saturday', available: false, startTime: '09:00', endTime: '17:00' },
-    { day: 'sunday', available: false, startTime: '09:00', endTime: '17:00' },
+    { day: 'monday', available: true, startTime: '09:00', endTime: '17:00', availabilityText: '09:00 - 17:00' },
+    { day: 'tuesday', available: true, startTime: '09:00', endTime: '17:00', availabilityText: '09:00 - 17:00' },
+    { day: 'wednesday', available: true, startTime: '09:00', endTime: '17:00', availabilityText: '09:00 - 17:00' },
+    { day: 'thursday', available: true, startTime: '09:00', endTime: '17:00', availabilityText: '09:00 - 17:00' },
+    { day: 'friday', available: true, startTime: '09:00', endTime: '17:00', availabilityText: '09:00 - 17:00' },
+    { day: 'saturday', available: false, startTime: '09:00', endTime: '17:00', availabilityText: 'Niet beschikbaar' },
+    { day: 'sunday', available: false, startTime: '09:00', endTime: '17:00', availabilityText: 'Niet beschikbaar' },
   ])
 
   // Leerlingen data
@@ -98,6 +101,66 @@ export default function AISchedulePage() {
     }
   }
 
+  // Parse availability text to extract times
+  const parseAvailabilityText = (text: string) => {
+    const trimmed = text.trim().toLowerCase()
+    
+    if (trimmed === 'niet beschikbaar' || trimmed === 'niet' || trimmed === 'nee' || trimmed === '') {
+      return { available: false, startTime: '09:00', endTime: '17:00' }
+    }
+    
+    // Try to parse time ranges like "09:00 - 17:00" or "9:00-17:00"
+    const timeRangeMatch = trimmed.match(/(\d{1,2}):?(\d{2})?\s*-\s*(\d{1,2}):?(\d{2})?/)
+    if (timeRangeMatch) {
+      const startHour = timeRangeMatch[1]
+      const startMinute = timeRangeMatch[2] || '00'
+      const endHour = timeRangeMatch[3]
+      const endMinute = timeRangeMatch[4] || '00'
+      
+      return {
+        available: true,
+        startTime: `${startHour.padStart(2, '0')}:${startMinute}`,
+        endTime: `${endHour.padStart(2, '0')}:${endMinute}`
+      }
+    }
+    
+    // Try to parse single time like "09:00" (assume 8 hour workday)
+    const singleTimeMatch = trimmed.match(/(\d{1,2}):?(\d{2})?/)
+    if (singleTimeMatch) {
+      const hour = parseInt(singleTimeMatch[1])
+      const minute = singleTimeMatch[2] || '00'
+      const endHour = hour + 8
+      
+      return {
+        available: true,
+        startTime: `${hour.toString().padStart(2, '0')}:${minute}`,
+        endTime: `${endHour.toString().padStart(2, '0')}:${minute}`
+      }
+    }
+    
+    // Default to available if text is provided but can't be parsed
+    return { available: true, startTime: '09:00', endTime: '17:00' }
+  }
+
+  // Handle availability text change
+  const handleAvailabilityTextChange = (day: string, value: string) => {
+    const parsed = parseAvailabilityText(value)
+    setAvailability(prev => prev.map(item => 
+      item.day === day ? { 
+        ...item, 
+        availabilityText: value,
+        available: parsed.available,
+        startTime: parsed.startTime,
+        endTime: parsed.endTime
+      } : item
+    ))
+    // Reset AI prompt als beschikbaarheid wordt gewijzigd
+    if (hasGeneratedPrompt) {
+      setHasGeneratedPrompt(false)
+      setAiPrompt('')
+    }
+  }
+
   // Fetch instructor availability from database
   const fetchInstructorAvailability = async () => {
     if (!user) return
@@ -126,7 +189,8 @@ export default function AISchedulePage() {
               day,
               available: day !== 'saturday' && day !== 'sunday',
               startTime: '09:00',
-              endTime: '17:00'
+              endTime: '17:00',
+              availabilityText: day !== 'saturday' && day !== 'sunday' ? '09:00 - 17:00' : 'Niet beschikbaar'
             })))
             return
           }
@@ -153,12 +217,21 @@ export default function AISchedulePage() {
               return acc
             }, {} as Record<string, { available: boolean; startTime: string; endTime: string }>)
 
-            setAvailability(DAY_ORDER.map(({ day }) => ({
-              day,
-              available: dbAvailability[day]?.available ?? (day !== 'saturday' && day !== 'sunday'),
-              startTime: dbAvailability[day]?.startTime ?? '09:00',
-              endTime: dbAvailability[day]?.endTime ?? '17:00'
-            })))
+            setAvailability(DAY_ORDER.map(({ day }) => {
+              const dbData = dbAvailability[day]
+              const available = dbData?.available ?? (day !== 'saturday' && day !== 'sunday')
+              const startTime = dbData?.startTime ?? '09:00'
+              const endTime = dbData?.endTime ?? '17:00'
+              const availabilityText = available ? `${startTime} - ${endTime}` : 'Niet beschikbaar'
+              
+              return {
+                day,
+                available,
+                startTime,
+                endTime,
+                availabilityText
+              }
+            }))
             return
           }
         }
@@ -188,12 +261,21 @@ export default function AISchedulePage() {
           return acc
         }, {} as Record<string, { available: boolean; startTime: string; endTime: string }>)
 
-        setAvailability(DAY_ORDER.map(({ day }) => ({
-          day,
-          available: dbAvailability[day]?.available ?? (day !== 'saturday' && day !== 'sunday'),
-          startTime: dbAvailability[day]?.startTime ?? '09:00',
-          endTime: dbAvailability[day]?.endTime ?? '17:00'
-        })))
+        setAvailability(DAY_ORDER.map(({ day }) => {
+          const dbData = dbAvailability[day]
+          const available = dbData?.available ?? (day !== 'saturday' && day !== 'sunday')
+          const startTime = dbData?.startTime ?? '09:00'
+          const endTime = dbData?.endTime ?? '17:00'
+          const availabilityText = available ? `${startTime} - ${endTime}` : 'Niet beschikbaar'
+          
+          return {
+            day,
+            available,
+            startTime,
+            endTime,
+            availabilityText
+          }
+        }))
       } else {
         // No data in database, initialize default availability and fetch again
         await initializeDefaultAvailability()
@@ -225,12 +307,21 @@ export default function AISchedulePage() {
             return acc
           }, {} as Record<string, { available: boolean; startTime: string; endTime: string }>)
 
-          setAvailability(DAY_ORDER.map(({ day }) => ({
-            day,
-            available: dbAvailability[day]?.available ?? (day !== 'saturday' && day !== 'sunday'),
-            startTime: dbAvailability[day]?.startTime ?? '09:00',
-            endTime: dbAvailability[day]?.endTime ?? '17:00'
-          })))
+          setAvailability(DAY_ORDER.map(({ day }) => {
+            const dbData = dbAvailability[day]
+            const available = dbData?.available ?? (day !== 'saturday' && day !== 'sunday')
+            const startTime = dbData?.startTime ?? '09:00'
+            const endTime = dbData?.endTime ?? '17:00'
+            const availabilityText = available ? `${startTime} - ${endTime}` : 'Niet beschikbaar'
+            
+            return {
+              day,
+              available,
+              startTime,
+              endTime,
+              availabilityText
+            }
+          }))
         }
       }
     } catch (error) {
@@ -240,7 +331,8 @@ export default function AISchedulePage() {
         day,
         available: day !== 'saturday' && day !== 'sunday',
         startTime: '09:00',
-        endTime: '17:00'
+        endTime: '17:00',
+        availabilityText: day !== 'saturday' && day !== 'sunday' ? '09:00 - 17:00' : 'Niet beschikbaar'
       })))
     }
   }
@@ -285,7 +377,8 @@ export default function AISchedulePage() {
         minutes: Math.max(30, student.default_lesson_duration_minutes || 60),
         notes: student.notes || '',
         aiNotes: '',
-        availabilityNotes: []
+        availabilityNotes: [],
+        availabilityText: student.notes || 'Flexibel beschikbaar'
       }))
 
       console.log('Transformed students with schedule data:', studentsWithScheduleData.map(s => ({
@@ -305,6 +398,38 @@ export default function AISchedulePage() {
     }
   }
 
+  // Add session check
+  useEffect(() => {
+    const checkSession = async () => {
+      if (!loading && !user) {
+        console.log('No user found, redirecting to login')
+        router.push('/auth/signin')
+        return
+      }
+
+      if (user) {
+        console.log('User found:', { id: user.id, email: user.email })
+        
+        // Check session
+        const { data: { session } } = await supabase.auth.getSession()
+        console.log('Session check:', {
+          hasSession: !!session,
+          hasAccessToken: !!session?.access_token,
+          expiresAt: session?.expires_at,
+          isExpired: session?.expires_at ? new Date(session.expires_at * 1000) < new Date() : 'Unknown'
+        })
+        
+        if (!session?.access_token) {
+          console.log('No valid session found, redirecting to login')
+          router.push('/auth/signin')
+          return
+        }
+      }
+    }
+
+    checkSession()
+  }, [user, loading, router])
+
   // Load data on component mount
   useEffect(() => {
     if (!loading && !user) {
@@ -312,15 +437,6 @@ export default function AISchedulePage() {
       window.location.href = '/auth/signin'
     }
   }, [user, loading])
-
-  // Expose state for debugging
-  useEffect(() => {
-    if (typeof window !== 'undefined') {
-      (window as any).students = students
-      ;(window as any).availability = availability
-      ;(window as any).settings = settings
-    }
-  }, [students, availability, settings])
 
   useEffect(() => {
     if (user && mounted) {
@@ -393,29 +509,7 @@ export default function AISchedulePage() {
     }
   }
 
-  // Handle availability toggle
-  const handleAvailabilityToggle = (day: string) => {
-    setAvailability(prev => prev.map(item => 
-      item.day === day ? { ...item, available: !item.available } : item
-    ))
-    // Reset AI prompt als beschikbaarheid wordt gewijzigd
-    if (hasGeneratedPrompt) {
-      setHasGeneratedPrompt(false)
-      setAiPrompt('')
-    }
-  }
 
-  // Handle time change
-  const handleTimeChange = (day: string, field: 'startTime' | 'endTime', value: string) => {
-    setAvailability(prev => prev.map(item => 
-      item.day === day ? { ...item, [field]: value } : item
-    ))
-    // Reset AI prompt als tijden worden gewijzigd
-    if (hasGeneratedPrompt) {
-      setHasGeneratedPrompt(false)
-      setAiPrompt('')
-    }
-  }
 
   // Handle settings change
   const handleSettingsChange = (field: string, value: any) => {
@@ -454,12 +548,12 @@ export default function AISchedulePage() {
 
     // Leerlingen informatie
     const studentsText = studentsData.map((student: any) => {
-      const availabilityNotes = student.notes ? `\nBeschikbaarheid: ${student.notes}` : ''
+      const availabilityText = student.availabilityText ? `\nBeschikbaarheid: ${student.availabilityText}` : ''
       const aiNotes = student.aiNotes ? `\nAI Notities: ${student.aiNotes}` : ''
       const fullName = student.lastName ? `${student.firstName} ${student.lastName}` : student.firstName
       
       return `- ${fullName}:
-  ${student.lessons} lessen van ${student.minutes} minuten per week${availabilityNotes}${aiNotes}`
+  ${student.lessons} lessen van ${student.minutes} minuten per week${availabilityText}${aiNotes}`
     }).join('\n')
 
     // Instellingen
@@ -591,7 +685,7 @@ ${studentsText}
             lessons: Math.max(1, lessons), // Zorg ervoor dat het minimaal 1 is
             minutes: Math.max(30, minutes), // Zorg ervoor dat het minimaal 30 is
             aiNotes: student.aiNotes || '',
-            notes: student.notes || ''
+            notes: student.availabilityText || '' // Gebruik availabilityText in plaats van notes
           }
         }),
         settings
@@ -681,12 +775,26 @@ ${studentsText}
     setIsAddingLessons(true)
     
     try {
+      // Debug: Log current user state
+      console.log('=== FRONTEND DEBUG ===')
+      console.log('Current user:', user ? { id: user.id, email: user.email } : 'No user')
+      
       // Get the current session to get the JWT token
       const { data: { session } } = await supabase.auth.getSession()
       
+      console.log('Session:', session ? {
+        hasAccessToken: !!session.access_token,
+        tokenLength: session.access_token?.length,
+        expiresAt: session.expires_at,
+        isExpired: session.expires_at ? new Date(session.expires_at * 1000) < new Date() : 'Unknown'
+      } : 'No session')
+      
       if (!session?.access_token) {
+        console.log('No access token found in session')
         throw new Error('Geen geldige sessie gevonden')
       }
+      
+      console.log('Token preview:', session.access_token.substring(0, 20) + '...')
       
       const response = await fetch('/api/lessons/bulk', {
         method: 'POST',
@@ -700,8 +808,12 @@ ${studentsText}
         })
       })
 
+      console.log('Response status:', response.status)
+      console.log('Response headers:', Object.fromEntries(response.headers.entries()))
+
       if (!response.ok) {
         const errorData = await response.json()
+        console.log('Error response:', errorData)
         const errorMessage = errorData.details 
           ? `${errorData.error}: ${errorData.details}`
           : errorData.error || 'Fout bij het toevoegen van lessen'
@@ -709,6 +821,7 @@ ${studentsText}
       }
 
       const result = await response.json()
+      console.log('Success response:', result)
       toast.success(result.message)
       setCurrentStep('result')
       
@@ -729,7 +842,7 @@ ${studentsText}
             <div>
               <h3 className="text-lg font-semibold mb-4">Instructeur beschikbaarheid</h3>
               <p className="text-gray-600 mb-6">
-                Configureer je beschikbare tijden voor de komende weken
+                Configureer je beschikbare tijden voor de komende weken. Voer per dag je beschikbaarheid in.
               </p>
             </div>
             
@@ -737,45 +850,26 @@ ${studentsText}
               {availability.map((day) => (
                 <div key={day.day} className="card">
                   <div className="flex items-center justify-between mb-4">
-                    <div className="flex items-center gap-3">
-                      <input
-                        type="checkbox"
-                        checked={day.available}
-                        onChange={() => handleAvailabilityToggle(day.day)}
-                        className="w-4 h-4 text-blue-600 rounded focus:ring-blue-500"
-                      />
-                      <span className="font-medium text-gray-900">
-                        {DAY_ORDER.find(d => d.day === day.day)?.name}
-                      </span>
-                    </div>
+                    <span className="font-medium text-gray-900">
+                      {DAY_ORDER.find(d => d.day === day.day)?.name}
+                    </span>
                   </div>
                   
-                  {day.available && (
-                    <div className="mobile-grid md:grid-cols-2 gap-4">
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">
-                          Starttijd
-                        </label>
-                        <input
-                          type="time"
-                          value={day.startTime}
-                          onChange={(e) => handleTimeChange(day.day, 'startTime', e.target.value)}
-                          className="w-full px-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                        />
-                      </div>
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">
-                          Eindtijd
-                        </label>
-                        <input
-                          type="time"
-                          value={day.endTime}
-                          onChange={(e) => handleTimeChange(day.day, 'endTime', e.target.value)}
-                          className="w-full px-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                        />
-                      </div>
-                    </div>
-                  )}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Beschikbaarheid
+                    </label>
+                    <input
+                      type="text"
+                      value={day.availabilityText}
+                      onChange={(e) => handleAvailabilityTextChange(day.day, e.target.value)}
+                      className="w-full px-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      placeholder="bijv. 09:00 - 17:00 of Niet beschikbaar"
+                    />
+                    <p className="text-xs text-gray-500 mt-1">
+                      Voorbeelden: "09:00 - 17:00", "9:00-17:00", "Niet beschikbaar", "10:00" (8 uur vanaf starttijd)
+                    </p>
+                  </div>
                 </div>
               ))}
             </div>
@@ -788,7 +882,7 @@ ${studentsText}
             <div>
               <h3 className="text-lg font-semibold mb-4">Leerling instellingen</h3>
               <p className="text-gray-600 mb-6">
-                Pas de lesinstellingen aan voor elke leerling
+                Pas de lesinstellingen en beschikbaarheid aan voor elke leerling
               </p>
             </div>
             
@@ -859,6 +953,22 @@ ${studentsText}
                           }`}
                         />
                       </div>
+                    </div>
+                    
+                    <div className="mt-4">
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Beschikbaarheid
+                      </label>
+                      <input
+                        type="text"
+                        value={student.availabilityText}
+                        onChange={(e) => handleStudentChange(student.id, 'availabilityText', e.target.value)}
+                        className="w-full px-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        placeholder="bijv. Maandag, woensdag, vrijdag of Flexibel beschikbaar"
+                      />
+                      <p className="text-xs text-gray-500 mt-1">
+                        Voorbeelden: "Maandag, woensdag, vrijdag", "Alleen 's avonds", "Flexibel beschikbaar", "Niet beschikbaar op dinsdag"
+                      </p>
                     </div>
                     
                     <div className="mt-4">

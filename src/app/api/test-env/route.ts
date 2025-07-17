@@ -1,61 +1,56 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { supabase } from '@/lib/supabase'
+import { createClient } from '@supabase/supabase-js'
 
 export async function GET(request: NextRequest) {
   try {
-    // Get user from request headers (you might need to implement proper auth)
+    // Check environment variables
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
+    const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+    
+    // Get the authorization header
     const authHeader = request.headers.get('authorization')
     
-    // For now, let's just check the students table structure
-    const { data: students, error } = await supabase
-      .from('students')
-      .select('*')
-      .limit(10)
-
-    if (error) {
-      return NextResponse.json(
-        { error: 'Database error', details: error },
-        { status: 500 }
-      )
+    const response: any = {
+      environment: {
+        supabaseUrl: supabaseUrl ? 'Set' : 'Missing',
+        supabaseAnonKey: supabaseAnonKey ? 'Set' : 'Missing',
+      },
+      auth: {
+        hasAuthHeader: !!authHeader,
+        startsWithBearer: authHeader?.startsWith('Bearer ') || false,
+        tokenLength: authHeader ? authHeader.replace('Bearer ', '').length : 0
+      }
     }
-
-    // Check the structure of the first student
-    const sampleStudent = students?.[0]
-    const studentStructure = sampleStudent ? {
-      id: sampleStudent.id,
-      first_name: sampleStudent.first_name,
-      last_name: sampleStudent.last_name,
-      email: sampleStudent.email,
-      hasFirstName: !!sampleStudent.first_name,
-      hasLastName: !!sampleStudent.last_name,
-      firstNameLength: sampleStudent.first_name?.length || 0,
-      lastNameLength: sampleStudent.last_name?.length || 0,
-      displayName: sampleStudent.last_name ? `${sampleStudent.first_name} ${sampleStudent.last_name}` : sampleStudent.first_name,
-      allFields: Object.keys(sampleStudent)
-    } : null
-
-    return NextResponse.json({
-      success: true,
-      totalStudents: students?.length || 0,
-      sampleStudent: studentStructure,
-      allStudents: students?.map(s => ({
-        id: s.id,
-        first_name: s.first_name,
-        last_name: s.last_name,
-        email: s.email,
-        instructor_id: s.instructor_id,
-        hasFirstName: !!s.first_name,
-        hasLastName: !!s.last_name,
-        firstNameLength: s.first_name?.length || 0,
-        lastNameLength: s.last_name?.length || 0,
-        displayName: s.last_name ? `${s.first_name} ${s.last_name}` : s.first_name
-      }))
-    })
-
+    
+    // If we have a token, try to validate it
+    if (authHeader && authHeader.startsWith('Bearer ')) {
+      const token = authHeader.replace('Bearer ', '')
+      
+      if (supabaseUrl && supabaseAnonKey) {
+        const supabase = createClient(supabaseUrl, supabaseAnonKey, {
+          global: {
+            headers: {
+              Authorization: `Bearer ${token}`
+            }
+          }
+        })
+        
+        const { data: { user }, error } = await supabase.auth.getUser()
+        
+        response.auth = {
+          ...response.auth,
+          user: user ? { id: user.id, email: user.email } : null,
+          error: error?.message || null
+        }
+      }
+    }
+    
+    return NextResponse.json(response)
+    
   } catch (error) {
     console.error('Error in test-env API:', error)
     return NextResponse.json(
-      { error: 'Internal server error' },
+      { error: 'Internal server error', details: error },
       { status: 500 }
     )
   }
