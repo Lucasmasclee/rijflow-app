@@ -91,4 +91,13 @@ export interface InstructorAvailability {
   end_time?: string
   created_at: string
   updated_at: string
+}
+
+export interface StudentAvailability {
+  id: string
+  student_id: string
+  week_start: string // YYYY-MM-DD format
+  notes?: string
+  created_at: string
+  updated_at: string
 } 

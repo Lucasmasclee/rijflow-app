@@ -5,7 +5,7 @@ import { ArrowLeft, ArrowRight, Users, Calendar, Settings, Brain, Check, X, Cloc
 import { useEffect, useState } from 'react'
 import { useAuth } from '@/contexts/AuthContext'
 import { supabase } from '@/lib/supabase'
-import { Student } from '@/types/database'
+import { Student, StudentAvailability } from '@/types/database'
 import { AIScheduleLesson, AIScheduleResponse } from '@/lib/openai'
 import toast from 'react-hot-toast'
 import { useRouter } from 'next/navigation'
@@ -184,10 +184,47 @@ export default function AISchedulePage() {
     const newAvailability = parseConsolidatedAvailability(value)
     setAvailability(newAvailability)
     
+    // Save instructor availability to database
+    saveInstructorAvailability(newAvailability)
+    
     // Reset AI prompt als beschikbaarheid wordt gewijzigd
     if (hasGeneratedPrompt) {
       setHasGeneratedPrompt(false)
       setAiPrompt('')
+    }
+  }
+
+  // Save instructor availability to database
+  const saveInstructorAvailability = async (availabilityData: typeof availability) => {
+    if (!user) return
+    
+    try {
+      // Convert UI format to database format
+      const availabilityToSave = availabilityData.map(day => ({
+        instructor_id: user.id,
+        day_of_week: day.day === 'sunday' ? 0 : 
+                     day.day === 'monday' ? 1 :
+                     day.day === 'tuesday' ? 2 :
+                     day.day === 'wednesday' ? 3 :
+                     day.day === 'thursday' ? 4 :
+                     day.day === 'friday' ? 5 : 6,
+        available: day.available,
+        start_time: day.startTime,
+        end_time: day.endTime
+      }))
+
+      const { error } = await supabase
+        .from('instructor_availability')
+        .upsert(availabilityToSave, { 
+          onConflict: 'instructor_id,day_of_week',
+          ignoreDuplicates: false 
+        })
+
+      if (error) {
+        console.error('Error saving instructor availability:', error)
+      }
+    } catch (error) {
+      console.error('Error saving instructor availability:', error)
     }
   }
 
@@ -219,10 +256,56 @@ export default function AISchedulePage() {
     const newStudents = parseConsolidatedStudentAvailability(value)
     setStudents(newStudents)
     
+    // Save availability changes to database
+    newStudents.forEach(student => {
+      if (student.availabilityText) {
+        saveStudentAvailability(student.id, student.availabilityText)
+      }
+    })
+    
     // Reset AI prompt als student beschikbaarheid wordt gewijzigd
     if (hasGeneratedPrompt) {
       setHasGeneratedPrompt(false)
       setAiPrompt('')
+    }
+  }
+
+  // Save student availability to database
+  const saveStudentAvailability = async (studentId: string, availabilityText: string) => {
+    if (!user) return
+    
+    try {
+      // Calculate the next 5 weeks starting from next Monday
+      const today = new Date()
+      const nextMonday = new Date(today)
+      nextMonday.setDate(today.getDate() + (8 - today.getDay()) % 7) // Volgende maandag
+      
+      const weekStarts: string[] = []
+      for (let i = 0; i < 5; i++) {
+        const weekStart = new Date(nextMonday)
+        weekStart.setDate(nextMonday.getDate() + (i * 7))
+        weekStarts.push(weekStart.toISOString().slice(0, 10))
+      }
+
+      // Save availability for the current week (first week)
+      const currentWeekStart = weekStarts[0]
+      
+      const { error } = await supabase
+        .from('student_availability')
+        .upsert({
+          student_id: studentId,
+          week_start: currentWeekStart,
+          notes: availabilityText
+        }, {
+          onConflict: 'student_id,week_start',
+          ignoreDuplicates: false
+        })
+
+      if (error) {
+        console.error('Error saving student availability:', error)
+      }
+    } catch (error) {
+      console.error('Error saving student availability:', error)
     }
   }
 
@@ -237,7 +320,7 @@ export default function AISchedulePage() {
         .eq('instructor_id', user.id)
 
       if (error) {
-        // If table doesn't exist, use default availability and try to create it
+        // If table doesn't exist, initialize default availability and try to create it
         if (error.code === '42P01') {
           console.log('Instructor availability table not found, initializing default availability')
           await initializeDefaultAvailability()
@@ -248,24 +331,24 @@ export default function AISchedulePage() {
             .eq('instructor_id', user.id)
             
           if (newError) {
-                    console.error('Error fetching instructor availability after initialization:', newError)
-        // Fallback to default availability
-        const fallbackAvailability = DAY_ORDER.map(({ day }) => ({
-          day,
-          available: day !== 'saturday' && day !== 'sunday',
-          startTime: '09:00',
-          endTime: '17:00',
-          availabilityText: day !== 'saturday' && day !== 'sunday' ? '09:00 - 17:00' : 'Niet beschikbaar'
-        }))
-        setAvailability(fallbackAvailability)
-        
-        // Update consolidated text
-        const consolidatedText = fallbackAvailability.map(item => {
-          const dayName = DAY_ORDER.find(d => d.day === item.day)?.name
-          return `${dayName}: ${item.availabilityText}`
-        }).join(', ')
-        setConsolidatedAvailabilityText(consolidatedText)
-        return
+            console.error('Error fetching instructor availability after initialization:', newError)
+            // Fallback to default availability
+            const fallbackAvailability = DAY_ORDER.map(({ day }) => ({
+              day,
+              available: day !== 'saturday' && day !== 'sunday',
+              startTime: '09:00',
+              endTime: '17:00',
+              availabilityText: day !== 'saturday' && day !== 'sunday' ? '09:00 - 17:00' : 'Niet beschikbaar'
+            }))
+            setAvailability(fallbackAvailability)
+            
+            // Update consolidated text
+            const consolidatedText = fallbackAvailability.map(item => {
+              const dayName = DAY_ORDER.find(d => d.day === item.day)?.name
+              return `${dayName}: ${item.availabilityText}`
+            }).join(', ')
+            setConsolidatedAvailabilityText(consolidatedText)
+            return
           }
           
           if (newData && newData.length > 0) {
@@ -381,7 +464,6 @@ export default function AISchedulePage() {
             const dayName = DAY_ORDER.find(day => {
               const dayNumber = day.day === 'sunday' ? 0 : 
                                day.day === 'monday' ? 1 :
-                               day.day === 'tuesday' ? 2 :
                                day.day === 'wednesday' ? 3 :
                                day.day === 'thursday' ? 4 :
                                day.day === 'friday' ? 5 : 6
@@ -435,7 +517,7 @@ export default function AISchedulePage() {
     }
   }
 
-  // Fetch students from database
+  // Fetch students from database with their availability
   const fetchStudents = async () => {
     if (!user) return
     
@@ -490,18 +572,86 @@ export default function AISchedulePage() {
 
       setStudents(studentsWithScheduleData)
       
+      // Fetch student availability from database for the next 5 weeks
+      await fetchStudentAvailability(studentsWithScheduleData)
+      
+    } catch (error) {
+      console.error('Error fetching students:', error)
+    } finally {
+      setLoadingStudents(false)
+    }
+  }
+
+  // Fetch student availability from database
+  const fetchStudentAvailability = async (studentsList: StudentWithScheduleData[]) => {
+    if (!user || studentsList.length === 0) return
+    
+    try {
+      // Calculate the next 5 weeks starting from next Monday
+      const today = new Date()
+      const nextMonday = new Date(today)
+      nextMonday.setDate(today.getDate() + (8 - today.getDay()) % 7) // Volgende maandag
+      
+      const weekStarts: string[] = []
+      for (let i = 0; i < 5; i++) {
+        const weekStart = new Date(nextMonday)
+        weekStart.setDate(nextMonday.getDate() + (i * 7))
+        weekStarts.push(weekStart.toISOString().slice(0, 10))
+      }
+
+      // Fetch availability for all students for the next 5 weeks
+      const studentIds = studentsList.map(s => s.id)
+      
+      const { data: availabilityData, error } = await supabase
+        .from('student_availability')
+        .select('student_id, week_start, notes')
+        .in('student_id', studentIds)
+        .in('week_start', weekStarts)
+
+      if (error) {
+        console.error('Error fetching student availability:', error)
+        return
+      }
+
+      // Update students with their availability data
+      const updatedStudents = studentsList.map(student => {
+        const studentAvailability = availabilityData?.filter(a => a.student_id === student.id) || []
+        
+        // Create availability notes array for the next 5 weeks
+        const availabilityNotes = weekStarts.map(weekStart => {
+          const weekData = studentAvailability.find(a => a.week_start === weekStart)
+          return weekData?.notes || ''
+        })
+
+        // Create consolidated availability text from the most recent week or default
+        let availabilityText = student.notes || 'Flexibel beschikbaar'
+        if (availabilityNotes.length > 0) {
+          const recentNotes = availabilityNotes.filter(note => note.trim() !== '')
+          if (recentNotes.length > 0) {
+            availabilityText = recentNotes[recentNotes.length - 1] // Use most recent
+          }
+        }
+
+        return {
+          ...student,
+          availabilityNotes,
+          availabilityText
+        }
+      })
+
+      setStudents(updatedStudents)
+      
       // Initialize consolidated student availability text
-      if (studentsWithScheduleData.length > 0) {
-        const consolidatedText = studentsWithScheduleData.map(student => {
+      if (updatedStudents.length > 0) {
+        const consolidatedText = updatedStudents.map(student => {
           const studentName = student.last_name ? `${student.first_name} ${student.last_name}` : student.first_name
           return `${studentName}: ${student.availabilityText}`
         }).join('\n')
         setConsolidatedStudentAvailabilityText(consolidatedText)
       }
+      
     } catch (error) {
-      console.error('Error fetching students:', error)
-    } finally {
-      setLoadingStudents(false)
+      console.error('Error fetching student availability:', error)
     }
   }
 
@@ -588,6 +738,9 @@ export default function AISchedulePage() {
           return `${studentName}: ${student.availabilityText}`
         }).join('\n')
         setConsolidatedStudentAvailabilityText(consolidatedText)
+        
+        // Save availability to database
+        saveStudentAvailability(id, value)
       }
       
       return newStudents
@@ -1065,7 +1218,7 @@ OPDRACHT: Maak een optimaal lesrooster voor de komende week op basis van bovenst
                   placeholder="Maandag: 09:00 - 17:00, Dinsdag: 09:00 - 17:00, Woensdag: 09:00 - 17:00, Donderdag: 09:00 - 17:00, Vrijdag: 09:00 - 17:00, Zaterdag: Niet beschikbaar, Zondag: Niet beschikbaar"
                 />
                 <p className="text-xs text-gray-500 mt-1">
-                  Voorbeelden: "Maandag: 09:00 - 17:00", "Dinsdag: Niet beschikbaar", "Woensdag: 10:00" (8 uur vanaf starttijd)
+                  Voorbeelden: "Maandag: 09:00 - 17:00", "Dinsdag: Niet beschikbaar", "Woensdag: 10:00" (8 uur vanaf starttijd). Wijzigingen worden automatisch opgeslagen.
                 </p>
               </div>
             </div>
@@ -1111,7 +1264,7 @@ OPDRACHT: Maak een optimaal lesrooster voor de komende week op basis van bovenst
                       placeholder="Jan Jansen: Maandag, woensdag, vrijdag&#10;Piet Pietersen: Flexibel beschikbaar&#10;Anna de Vries: Alleen 's avonds"
                     />
                     <p className="text-xs text-gray-500 mt-1">
-                      Voorbeelden: "Jan Jansen: Maandag, woensdag, vrijdag", "Piet Pietersen: Flexibel beschikbaar", "Anna de Vries: Alleen 's avonds"
+                      Voorbeelden: "Jan Jansen: Maandag, woensdag, vrijdag", "Piet Pietersen: Flexibel beschikbaar", "Anna de Vries: Alleen 's avonds". Wijzigingen worden automatisch opgeslagen.
                     </p>
                   </div>
                 </div>
