@@ -372,6 +372,20 @@ export default function DayOverviewPage({ params }: { params: Promise<{ date: st
           </p>
         </div>
 
+        {/* Quick Actions */}
+        <div className="card mb-6">
+          <h3 className="text-lg font-semibold mb-4">Snelle acties</h3>
+          <div className="space-y-3">
+            <button
+              onClick={openAddLesson}
+              className="btn btn-primary w-full flex items-center justify-center gap-2"
+            >
+              <Plus className="h-4 w-4" />
+              Nieuwe les plannen
+            </button>
+          </div>
+        </div>
+
         {/* Day Navigation */}
         <div className="card mb-6">
           <div className="flex items-center justify-between mb-4">
