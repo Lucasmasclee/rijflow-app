@@ -8,7 +8,7 @@ import { supabase } from '@/lib/supabase'
 import { Student, StudentAvailability } from '@/types/database'
 import { AIScheduleLesson, AIScheduleResponse } from '@/lib/openai'
 import toast from 'react-hot-toast'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 
 const DAY_ORDER = [
   { day: 'monday', name: 'Maandag' },
@@ -34,9 +34,13 @@ interface StudentWithScheduleData extends Student {
 export default function AISchedulePage() {
   const { user, loading, mounted } = useAuth()
   const router = useRouter()
+  const searchParams = useSearchParams()
   const [currentStep, setCurrentStep] = useState<Step>('instructor')
   const [currentStudentIndex, setCurrentStudentIndex] = useState(0)
   const [loadingStudents, setLoadingStudents] = useState(true)
+
+  // Selected week for AI scheduling
+  const [selectedWeek, setSelectedWeek] = useState<Date | null>(null)
 
   // Instructeur beschikbaarheid - geconsolideerd in één veld
   const [availability, setAvailability] = useState([
@@ -754,6 +758,21 @@ export default function AISchedulePage() {
     }
   }, [user, mounted])
 
+  // Initialize selected week from URL parameter
+  useEffect(() => {
+    const weekParam = searchParams.get('week')
+    if (weekParam) {
+      try {
+        const weekDate = new Date(weekParam)
+        if (!isNaN(weekDate.getTime())) {
+          setSelectedWeek(weekDate)
+        }
+      } catch (error) {
+        console.error('Error parsing week parameter:', error)
+      }
+    }
+  }, [searchParams])
+
   // Initialize consolidated text when availability changes
   useEffect(() => {
     if (availability.length > 0 && !consolidatedAvailabilityText) {
@@ -953,15 +972,22 @@ export default function AISchedulePage() {
     // Genereer de prompt (gebruik dezelfde logica als in openai.ts)
     const { instructorAvailability: instructorAvail, students: studentsData, settings: settingsData } = requestData
     
-    // Bereken de datums voor de komende week
-    const today = new Date()
-    const nextMonday = new Date(today)
-    nextMonday.setDate(today.getDate() + (8 - today.getDay()) % 7) // Volgende maandag
+    // Bereken de datums voor de geselecteerde week of de komende week als fallback
+    let targetWeekStart: Date
+    if (selectedWeek) {
+      // Use the selected week
+      targetWeekStart = new Date(selectedWeek)
+    } else {
+      // Fallback to next week if no week is selected
+      const today = new Date()
+      targetWeekStart = new Date(today)
+      targetWeekStart.setDate(today.getDate() + (8 - today.getDay()) % 7) // Volgende maandag
+    }
     
     const weekDates = []
     for (let i = 0; i < 7; i++) {
-      const date = new Date(nextMonday)
-      date.setDate(nextMonday.getDate() + i)
+      const date = new Date(targetWeekStart)
+      date.setDate(targetWeekStart.getDate() + i)
       weekDates.push(date)
     }
     
@@ -1028,9 +1054,14 @@ export default function AISchedulePage() {
       })}: ${timeRange}`
     }).join('\n')
 
+    // Bepaal de week titel op basis van of er een specifieke week is geselecteerd
+    const weekTitle = selectedWeek 
+      ? `PLANNING VOOR DE WEEK VAN ${targetWeekStart.toLocaleDateString('nl-NL', { day: 'numeric', month: 'long', year: 'numeric' })} - ${weekDates[6].toLocaleDateString('nl-NL', { day: 'numeric', month: 'long', year: 'numeric' })}`
+      : `PLANNING VOOR DE KOMENDE WEEK (${targetWeekStart.toLocaleDateString('nl-NL', { day: 'numeric', month: 'long', year: 'numeric' })} - ${weekDates[6].toLocaleDateString('nl-NL', { day: 'numeric', month: 'long', year: 'numeric' })})`
+
     // Instellingen
     const prompt = `
-PLANNING VOOR DE KOMENDE WEEK (${nextMonday.toLocaleDateString('nl-NL', { day: 'numeric', month: 'long', year: 'numeric' })} - ${weekDates[6].toLocaleDateString('nl-NL', { day: 'numeric', month: 'long', year: 'numeric' })})
+${weekTitle}
 
 WEEK OVERZICHT:
 ${weekOverview}
@@ -1077,7 +1108,7 @@ BELANGRIJK: Geef ALTIJD een geldig JSON object terug in exact dit formaat, zonde
   "warnings": ["Eventuele waarschuwingen"]
 }
 
-OPDRACHT: Maak een optimaal lesrooster voor de komende week op basis van bovenstaande informatie. Zorg ervoor dat alle lessen worden ingepland binnen de beschikbare tijden en dat alle regels worden gevolgd.
+OPDRACHT: Maak een optimaal lesrooster voor de geselecteerde week op basis van bovenstaande informatie. Zorg ervoor dat alle lessen worden ingepland binnen de beschikbare tijden en dat alle regels worden gevolgd.
 `
 
     setAiPrompt(prompt)
@@ -2040,6 +2071,28 @@ OPDRACHT: Maak een optimaal lesrooster voor de komende week op basis van bovenst
   
   const steps = generateSteps()
 
+  // Helper function to format selected week information
+  const getSelectedWeekInfo = () => {
+    if (!selectedWeek) return null
+    
+    const weekStart = new Date(selectedWeek)
+    const weekEnd = new Date(weekStart)
+    weekEnd.setDate(weekStart.getDate() + 6)
+    
+    return {
+      start: weekStart.toLocaleDateString('nl-NL', { 
+        day: 'numeric', 
+        month: 'long', 
+        year: 'numeric' 
+      }),
+      end: weekEnd.toLocaleDateString('nl-NL', { 
+        day: 'numeric', 
+        month: 'long', 
+        year: 'numeric' 
+      })
+    }
+  }
+
   return (
     <div className="min-h-screen bg-gray-50 pb-20">
       {/* Mobile Navigation */}
@@ -2069,6 +2122,13 @@ OPDRACHT: Maak een optimaal lesrooster voor de komende week op basis van bovenst
           <p className="text-gray-600">
             Laat AI je optimale lesrooster maken
           </p>
+          {getSelectedWeekInfo() && (
+            <div className="mt-3 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+              <p className="text-sm text-blue-800">
+                <strong>Geselecteerde week:</strong> {getSelectedWeekInfo()?.start} - {getSelectedWeekInfo()?.end}
+              </p>
+            </div>
+          )}
         </div>
 
         {/* Progress Steps */}

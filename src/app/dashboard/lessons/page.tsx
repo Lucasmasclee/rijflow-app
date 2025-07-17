@@ -71,6 +71,10 @@ export default function LessonsPage() {
   const [selectedTargetWeek, setSelectedTargetWeek] = useState<Date | null>(null)
   const [copyingLessons, setCopyingLessons] = useState(false)
 
+  // AI Schedule week selection functionality
+  const [showAIScheduleModal, setShowAIScheduleModal] = useState(false)
+  const [selectedAIScheduleWeek, setSelectedAIScheduleWeek] = useState<Date | null>(null)
+
   useEffect(() => {
     if (!loading && !user) {
       router.push('/auth/signin')
@@ -201,6 +205,22 @@ export default function LessonsPage() {
       return
     }
     setShowCopyModal(true)
+  }
+
+  // Handle AI schedule week selection
+  const handleAIScheduleClick = () => {
+    setShowAIScheduleModal(true)
+  }
+
+  // Handle AI schedule week selection
+  const handleAIScheduleWeekSelection = (targetWeek: Date) => {
+    setSelectedAIScheduleWeek(targetWeek)
+    setShowAIScheduleModal(false)
+    
+    // Navigate to AI schedule page with the selected week
+    const weekStart = getMonday(targetWeek)
+    const weekStartString = formatDateToISO(weekStart)
+    router.push(`/dashboard/ai-schedule?week=${weekStartString}`)
   }
 
   // Handle week selection for copying
@@ -574,13 +594,13 @@ export default function LessonsPage() {
               <Plus className="h-4 w-4" />
               Nieuwe les plannen
             </button>
-            <Link
-              href="/dashboard/ai-schedule"
+            <button
+              onClick={handleAIScheduleClick}
               className="btn btn-secondary w-full flex items-center justify-center gap-2"
             >
               <Calendar className="h-4 w-4" />
-              AI-geassisteerde planning
-            </Link>
+              AI-Weekplanning
+            </button>
             <Link
               href="/dashboard/schedule-settings"
               className="btn btn-secondary w-full flex items-center justify-center gap-2"
@@ -1122,6 +1142,59 @@ export default function LessonsPage() {
                   </>
                 )}
               </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* AI Schedule Week Selection Modal */}
+      {showAIScheduleModal && (
+        <div className="fixed inset-0 bg-gray-500 bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 w-full max-w-md mx-4">
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="text-lg font-semibold text-gray-900">
+                AI-Weekplanning voor...
+              </h3>
+              <button
+                onClick={() => setShowAIScheduleModal(false)}
+                className="text-gray-400 hover:text-gray-600"
+              >
+                <X className="h-5 w-5" />
+              </button>
+            </div>
+            
+            <div className="space-y-3">
+              <p className="text-sm text-gray-600 mb-4">
+                Selecteer een week waarvoor je een AI-Weekplanning wilt genereren:
+              </p>
+              
+              {getNext5Weeks().map((week, index) => {
+                const weekStart = getMonday(week)
+                const weekEnd = new Date(weekStart)
+                weekEnd.setDate(weekStart.getDate() + 6)
+                
+                return (
+                  <button
+                    key={index}
+                    onClick={() => handleAIScheduleWeekSelection(week)}
+                    className="w-full p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors text-left"
+                  >
+                    <div className="font-medium text-gray-900">
+                      Week {index === 0 ? 'Volgende week' : index + 1}
+                    </div>
+                    <div className="text-sm text-gray-600">
+                      {weekStart.toLocaleDateString('nl-NL', {
+                        day: '2-digit',
+                        month: 'long'
+                      })} - {weekEnd.toLocaleDateString('nl-NL', {
+                        day: '2-digit',
+                        month: 'long',
+                        year: 'numeric'
+                      })}
+                    </div>
+                  </button>
+                )
+              })}
             </div>
           </div>
         </div>

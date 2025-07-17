@@ -87,7 +87,6 @@ Voor later / Verbeteringen / Ideeën:
 - Voortgangsnotities in ander formaat neerzetten
 ● Voor later: Een 2e (misschien wel 3e) mogelijke rooster van chatgpt, waarbij de instructeur kan kiezen welke weekplanning het beste lijkt
 ● Voor later: Rekening houden met afstand tussen plaatsen en extra notities voor praktische zaken (Spits enzo)
-- (Voor later) Weekplanning kopiëren 
 - Automatisch een email / sms sturen naar leerlingen met hun ingeplande lessen zodra weekplanning gemaakt is
 - Na AI rooster laten maken, laten zien wat er NIET is gelukt (Leerlingen zonder lessen, locaties die niet aansluiten etc..)
 
