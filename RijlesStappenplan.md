@@ -1,50 +1,50 @@
 18 juli:
 ✅✅✅✅✅- Publiceren in appstore
-- TESTSCENARIO op telefoon
-Volledig Testscenario voor Rijinstructeurs (MVP)
-🧪 Stap 1: Instructeur maakt account aan en logt in
- Maak een nieuw instructeursaccount aan
- Controleer of je na registratie direct naar dashboard gaat
- Controleer of je rijschoolnaam zichtbaar is én of je deze kunt wijzigen
-👤 Stap 2: Leerling toevoegen en beheren
- Voeg 2 leerlingen toe: “Lisa Jansen” en “Timo de Groot”
- Vul voor elk in: adres, e-mail, telefoonnummer, standaard lesduur
- Voeg algemene notities toe: "Lisa rijdt meestal op maandag" / "Timo heeft moeite met parkeren"
- Bekijk de leerlinggegevens terug via het leerlingoverzicht
-📅 Stap 3: Weekplanning maken
-Ga naar het weekoverzicht
-Voeg 3 lessen toe, verdeeld over verschillende dagen:
-Maandag 09:00–10:00 – Lisa
-Woensdag 14:00–15:30 – Timo
-Vrijdag 11:00–12:00 – Lisa
-Vul lesnotities in (bv. "Ophalen bij station")
-Controleer of de lessen correct verschijnen in de dag- en weekweergave
-Gebruik duplicatie-functie op een les → verschijnt de kopie correct?
-Wijzig een les: andere tijd, andere leerling → controleer of alles wordt aangepast
-Verwijder een les → check of hij verdwijnt in beide overzichten
-📄 Stap 4: Dagoverzicht controleren
-Navigeer naar het dagoverzicht voor elke dag met geplande les
-Bekijk of je ziet:
-Begin- en eindtijd
-Naam leerling
-Snelkoppeling naar leerlingprofiel
-Google Maps extensie (adres werkt?)
-Klik op een les:
-Zie je algemene notities van de leerling?
-Zie je lesnotities van vorige keren?
-Kun je een nieuwe lesnotitie toevoegen?
-Ga naar volgende / vorige dag met knoppen bovenin
-🔁 Stap 5: Weekplanning kopiëren
-Gebruik “Kopieer weekplanning naar volgende week” knop
-Controleer of lessen correct worden overgenomen naar nieuwe week
-Wijzig daarna handmatig 1 les in nieuwe week → check of dat geen invloed heeft op originele week
-📈 Stap 6: Leerlingstatistieken controleren
-Navigeer naar “Lisa” in het leerlingoverzicht
-Controleer of het systeem toont:
-Aantal lessen gehad
-Aantal lessen ingepland
-Lesnotities in chronologische volgorde
-Standaard minuten per les
+✅✅✅✅✅- TESTSCENARIO op telefoon
+✅✅✅✅✅Volledig Testscenario voor Rijinstructeurs (MVP)
+✅✅✅✅✅🧪 Stap 1: Instructeur maakt account aan en logt in
+✅✅✅✅✅Maak een nieuw instructeursaccount aan
+✅✅✅✅✅Controleer of je na registratie direct naar dashboard gaat
+✅✅✅✅✅Controleer of je rijschoolnaam zichtbaar is én of je deze kunt wijzigen
+✅✅✅✅✅👤 Stap 2: Leerling toevoegen en beheren
+✅✅✅✅✅Voeg 2 leerlingen toe: “Lisa Jansen” en “Timo de Groot”
+✅✅✅✅✅Vul voor elk in: adres, e-mail, telefoonnummer, standaard lesduur
+✅✅✅✅✅Voeg algemene notities toe: "Lisa rijdt meestal op maandag" / "Timo heeft moeite met parkeren"
+✅✅✅✅✅Bekijk de leerlinggegevens terug via het leerlingoverzicht
+✅✅✅✅✅📅 Stap 3: Weekplanning maken
+✅✅✅✅✅Ga naar het weekoverzicht
+✅✅✅✅✅Voeg 3 lessen toe, verdeeld over verschillende dagen:
+✅✅✅✅✅Maandag 09:00–10:00 – Lisa
+✅✅✅✅✅Woensdag 14:00–15:30 – Timo
+✅✅✅✅✅Vrijdag 11:00–12:00 – Lisa
+✅✅✅✅✅Vul lesnotities in (bv. "Ophalen bij station")
+✅✅✅✅✅Controleer of de lessen correct verschijnen in de dag- en weekweergave
+✅✅✅✅✅Gebruik duplicatie-functie op een les → verschijnt de kopie correct?
+✅✅✅✅✅Wijzig een les: andere tijd, andere leerling → controleer of alles wordt aangepast
+✅✅✅✅✅Verwijder een les → check of hij verdwijnt in beide overzichten
+✅✅✅✅✅📄 Stap 4: Dagoverzicht controleren
+✅✅✅✅✅Navigeer naar het dagoverzicht voor elke dag met geplande les
+✅✅✅✅✅Bekijk of je ziet:
+✅✅✅✅✅Begin- en eindtijd
+✅✅✅✅✅Naam leerling
+✅✅✅✅✅Snelkoppeling naar leerlingprofiel
+✅✅✅✅✅Google Maps extensie (adres werkt?)
+✅✅✅✅✅Klik op een les:
+✅✅✅✅✅Zie je algemene notities van de leerling?
+✅✅✅✅✅Zie je lesnotities van vorige keren?
+✅✅✅✅✅Kun je een nieuwe lesnotitie toevoegen?
+✅✅✅✅✅Ga naar volgende / vorige dag met knoppen bovenin
+✅✅✅✅✅🔁 Stap 5: Weekplanning kopiëren
+✅✅✅✅✅Gebruik “Kopieer weekplanning naar volgende week” knop
+✅✅✅✅✅Controleer of lessen correct worden overgenomen naar nieuwe week
+✅✅✅✅✅Wijzig daarna handmatig 1 les in nieuwe week → check of dat geen invloed heeft op originele week
+✅✅✅✅✅📈 Stap 6: Leerlingstatistieken controleren
+✅✅✅✅✅Navigeer naar “Lisa” in het leerlingoverzicht
+✅✅✅✅✅Controleer of het systeem toont:
+✅✅✅✅✅Aantal lessen gehad
+✅✅✅✅✅Aantal lessen ingepland
+✅✅✅✅✅Lesnotities in chronologische volgorde
+✅✅✅✅✅Standaard minuten per les
 ⚙️ Stap 7: Roosterinstellingen aanpassen
 Ga naar roosterinstellingen
 Pas standaard beschikbare dagen en tijden aan

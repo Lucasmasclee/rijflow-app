@@ -270,7 +270,7 @@ export default function ScheduleSettingsPage() {
         <div className="container-mobile">
           <div className="flex justify-between items-center h-16">
             <div className="flex items-center">
-              <Link href="/lessons" className="text-gray-600 hover:text-gray-900 flex items-center gap-2">
+              <Link href="/dashboard/lessons" className="text-gray-600 hover:text-gray-900 flex items-center gap-2">
                 <ArrowLeft className="h-4 w-4" />
                 <span className="hidden sm:inline">Terug naar dashboard</span>
               </Link>
