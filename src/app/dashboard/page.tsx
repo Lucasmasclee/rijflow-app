@@ -636,7 +636,7 @@ function InstructorDashboard() {
                     <div className="flex-1">
                       <h4 className="text-sm flex items-center">
                         <span className="flex items-center">
-                          <Link href={`/dashboard/students/${student.id}`} className="underline hover:text-blue-600">
+                          <Link href={`/dashboard/students/${student.id}`} className="underline hover:text-blue-600 flex items-center">
                             {student.first_name}
                           </Link>
                           <span className="mx-2">|</span>
