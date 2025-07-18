@@ -68,6 +68,14 @@ export default function LessonsPage() {
     notes: ''
   })
 
+  // Time input state for better UX
+  const [timeInputs, setTimeInputs] = useState({
+    startHours: '09',
+    startMinutes: '00',
+    endHours: '10',
+    endMinutes: '00'
+  })
+
   // Copy week functionality
   const [showCopyModal, setShowCopyModal] = useState(false)
   const [showConfirmationModal, setShowConfirmationModal] = useState(false)
@@ -436,6 +444,29 @@ export default function LessonsPage() {
     return `${hours.padStart(2, '0')}:${minutes.padStart(2, '0')}`
   }
 
+  // Helper functions for time input handling
+  const updateTimeInputs = (field: string, value: string) => {
+    setTimeInputs(prev => ({ ...prev, [field]: value }))
+  }
+
+  const formatTimeOnBlur = (field: string, value: string, maxValue: number) => {
+    let numValue = parseInt(value, 10)
+    if (isNaN(numValue) || numValue < 0) {
+      numValue = 0
+    } else if (numValue > maxValue) {
+      numValue = maxValue
+    }
+    const formattedValue = numValue.toString().padStart(2, '0')
+    setTimeInputs(prev => ({ ...prev, [field]: formattedValue }))
+    return formattedValue
+  }
+
+  const updateLessonFormTime = () => {
+    const startTime = `${timeInputs.startHours}:${timeInputs.startMinutes}`
+    const endTime = `${timeInputs.endHours}:${timeInputs.endMinutes}`
+    setLessonForm(prev => ({ ...prev, startTime, endTime }))
+  }
+
   // Month view helper functions
   const getMonthDays = () => {
     const year = currentDate.getFullYear()
@@ -482,6 +513,12 @@ export default function LessonsPage() {
       studentId: '',
       notes: ''
     })
+    setTimeInputs({
+      startHours: '09',
+      startMinutes: '00',
+      endHours: '10',
+      endMinutes: '00'
+    })
     setEditingLesson(null)
     setShowAddLesson(true)
   }
@@ -493,6 +530,12 @@ export default function LessonsPage() {
       endTime: '10:00',
       studentId: '',
       notes: ''
+    })
+    setTimeInputs({
+      startHours: '09',
+      startMinutes: '00',
+      endHours: '10',
+      endMinutes: '00'
     })
     setEditingLesson(null)
     setShowAddLesson(true)
@@ -507,6 +550,12 @@ export default function LessonsPage() {
       studentId: lesson.student_id,
       notes: lesson.notes || ''
     })
+    setTimeInputs({
+      startHours: lesson.start_time.split(':')[0] || '09',
+      startMinutes: lesson.start_time.split(':')[1] || '00',
+      endHours: lesson.end_time.split(':')[0] || '10',
+      endMinutes: lesson.end_time.split(':')[1] || '00'
+    })
     setEditingLesson(lesson)
     setShowAddLesson(true)
   }
@@ -518,6 +567,12 @@ export default function LessonsPage() {
       endTime: lesson.end_time,
       studentId: lesson.student_id,
       notes: lesson.notes || ''
+    })
+    setTimeInputs({
+      startHours: lesson.start_time.split(':')[0] || '09',
+      startMinutes: lesson.start_time.split(':')[1] || '00',
+      endHours: lesson.end_time.split(':')[0] || '10',
+      endMinutes: lesson.end_time.split(':')[1] || '00'
     })
     setEditingLesson(null)
     setShowAddLesson(true)
@@ -553,10 +608,13 @@ export default function LessonsPage() {
     }
 
     try {
+      // Update lesson form with current time inputs before saving
+      updateLessonFormTime()
+      
       const lessonData = {
         date: lessonForm.date,
-        start_time: lessonForm.startTime,
-        end_time: lessonForm.endTime,
+        start_time: `${timeInputs.startHours}:${timeInputs.startMinutes}`,
+        end_time: `${timeInputs.endHours}:${timeInputs.endMinutes}`,
         student_id: lessonForm.studentId,
         instructor_id: user.id,
         notes: lessonForm.notes || null
@@ -983,40 +1041,38 @@ export default function LessonsPage() {
                   </label>
                   <div className="flex items-center space-x-2">
                     <input
-                      type="number"
-                      min="0"
-                      max="23"
-                      value={lessonForm.startTime.split(':')[0] ? parseInt(lessonForm.startTime.split(':')[0], 10) : ''}
+                      type="text"
+                      inputMode="numeric"
+                      pattern="[0-9]*"
+                      value={timeInputs.startHours}
                       onChange={(e) => {
-                        let hours = parseInt(e.target.value, 10)
-                        if (isNaN(hours)) hours = 0
-                        if (hours < 0) hours = 0
-                        if (hours > 23) hours = 23
-                        
-                        const hoursStr = hours.toString().padStart(2, '0')
-                        const minutes = lessonForm.startTime.split(':')[1] || '00'
-                        const newTime = `${hoursStr}:${minutes}`
-                        setLessonForm(prev => ({ ...prev, startTime: newTime }))
+                        const value = e.target.value
+                        if (value === '' || /^\d{0,2}$/.test(value)) {
+                          updateTimeInputs('startHours', value)
+                        }
+                      }}
+                      onBlur={(e) => {
+                        const formattedValue = formatTimeOnBlur('startHours', e.target.value, 23)
+                        updateLessonFormTime()
                       }}
                       className="w-16 p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-center"
                       placeholder="HH"
                     />
                     <span className="text-gray-500 font-medium">:</span>
                     <input
-                      type="number"
-                      min="0"
-                      max="59"
-                      value={lessonForm.startTime.split(':')[1] ? parseInt(lessonForm.startTime.split(':')[1], 10) : ''}
+                      type="text"
+                      inputMode="numeric"
+                      pattern="[0-9]*"
+                      value={timeInputs.startMinutes}
                       onChange={(e) => {
-                        let minutes = parseInt(e.target.value, 10)
-                        if (isNaN(minutes)) minutes = 0
-                        if (minutes < 0) minutes = 0
-                        if (minutes > 59) minutes = 59
-                        
-                        const hours = lessonForm.startTime.split(':')[0] || '00'
-                        const minutesStr = minutes.toString().padStart(2, '0')
-                        const newTime = `${hours}:${minutesStr}`
-                        setLessonForm(prev => ({ ...prev, startTime: newTime }))
+                        const value = e.target.value
+                        if (value === '' || /^\d{0,2}$/.test(value)) {
+                          updateTimeInputs('startMinutes', value)
+                        }
+                      }}
+                      onBlur={(e) => {
+                        const formattedValue = formatTimeOnBlur('startMinutes', e.target.value, 59)
+                        updateLessonFormTime()
                       }}
                       className="w-16 p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-center"
                       placeholder="MM"
@@ -1029,40 +1085,38 @@ export default function LessonsPage() {
                   </label>
                   <div className="flex items-center space-x-2">
                     <input
-                      type="number"
-                      min="0"
-                      max="23"
-                      value={lessonForm.endTime.split(':')[0] ? parseInt(lessonForm.endTime.split(':')[0], 10) : ''}
+                      type="text"
+                      inputMode="numeric"
+                      pattern="[0-9]*"
+                      value={timeInputs.endHours}
                       onChange={(e) => {
-                        let hours = parseInt(e.target.value, 10)
-                        if (isNaN(hours)) hours = 0
-                        if (hours < 0) hours = 0
-                        if (hours > 23) hours = 23
-                        
-                        const hoursStr = hours.toString().padStart(2, '0')
-                        const minutes = lessonForm.endTime.split(':')[1] || '00'
-                        const newTime = `${hoursStr}:${minutes}`
-                        setLessonForm(prev => ({ ...prev, endTime: newTime }))
+                        const value = e.target.value
+                        if (value === '' || /^\d{0,2}$/.test(value)) {
+                          updateTimeInputs('endHours', value)
+                        }
+                      }}
+                      onBlur={(e) => {
+                        const formattedValue = formatTimeOnBlur('endHours', e.target.value, 23)
+                        updateLessonFormTime()
                       }}
                       className="w-16 p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-center"
                       placeholder="HH"
                     />
                     <span className="text-gray-500 font-medium">:</span>
                     <input
-                      type="number"
-                      min="0"
-                      max="59"
-                      value={lessonForm.endTime.split(':')[1] ? parseInt(lessonForm.endTime.split(':')[1], 10) : ''}
+                      type="text"
+                      inputMode="numeric"
+                      pattern="[0-9]*"
+                      value={timeInputs.endMinutes}
                       onChange={(e) => {
-                        let minutes = parseInt(e.target.value, 10)
-                        if (isNaN(minutes)) minutes = 0
-                        if (minutes < 0) minutes = 0
-                        if (minutes > 59) minutes = 59
-                        
-                        const hours = lessonForm.endTime.split(':')[0] || '00'
-                        const minutesStr = minutes.toString().padStart(2, '0')
-                        const newTime = `${hours}:${minutesStr}`
-                        setLessonForm(prev => ({ ...prev, endTime: newTime }))
+                        const value = e.target.value
+                        if (value === '' || /^\d{0,2}$/.test(value)) {
+                          updateTimeInputs('endMinutes', value)
+                        }
+                      }}
+                      onBlur={(e) => {
+                        const formattedValue = formatTimeOnBlur('endMinutes', e.target.value, 59)
+                        updateLessonFormTime()
                       }}
                       className="w-16 p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-center"
                       placeholder="MM"
