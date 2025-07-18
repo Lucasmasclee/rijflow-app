@@ -633,21 +633,9 @@ function InstructorDashboard() {
                     onClick={() => toggleLessonExpansion(lesson.id)}
                   >
                     <div className="flex-1">
-                      <h4 className="font-semibold">{student.first_name}   {lesson.start_time} - {lesson.end_time}</h4>
+                      <h4 className="font-semibold">{student.first_name}   {lesson.start_time.slice(0,5)} - {lesson.end_time.slice(0,5)}</h4>
                     </div>
                     <div className="p-2">
-                      {expandedLessons.has(lesson.id) ? (
-                        <ChevronUp className="h-4 w-4" />
-                      ) : (
-                        <ChevronDown className="h-4 w-4" />
-                      )}
-                    </div>
-                  </div>
-                  
-                  {expandedLessons.has(lesson.id) && (
-                    <div className="mt-4 pt-4 border-t border-gray-200">
-                      <div className="space-y-4">
-                        <div className="space-y-2">
                           <button
                             onClick={(e) => {
                               e.stopPropagation()
@@ -659,6 +647,19 @@ function InstructorDashboard() {
                             {student.address}
                           </button>
                         </div>
+                    {/* <div className="p-2">
+                      {expandedLessons.has(lesson.id) ? (
+                        <ChevronUp className="h-4 w-4" />
+                      ) : (
+                        <ChevronDown className="h-4 w-4" />
+                      )}
+                    </div> */}
+                  </div>
+                  
+                  {expandedLessons.has(lesson.id) && (
+                    <div className="mt-4 pt-4 border-t border-gray-200">
+                      <div className="space-y-4">
+                        
                         
                         {/* Progress Notes Section */}
                         <div className="border-t border-gray-200 pt-4">

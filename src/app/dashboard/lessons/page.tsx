@@ -595,7 +595,7 @@ export default function LessonsPage() {
               className="btn btn-primary w-full flex items-center justify-center gap-2"
             >
               <Plus className="h-4 w-4" />
-              Nieuwe les plannen
+              Nieuwe les
             </button>
             <button
               onClick={handleAIScheduleClick}

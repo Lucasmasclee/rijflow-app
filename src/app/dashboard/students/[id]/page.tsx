@@ -572,7 +572,8 @@ export default function StudentDetailPage({ params }: { params: Promise<{ id: st
                 <textarea
                   value={newProgressNote}
                   onChange={(e) => setNewProgressNote(e.target.value)}
-                  placeholder="Voeg notities toe in het formaat:&#10;18 juli: Eerste notitie&#10;\n19 juli: Tweede notitie"
+                  placeholder="Voeg notities toe in het formaat:&#10;18 juli: Eerste notitie&#10;
+                  19 juli: Tweede notitie"
                   className="w-full px-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
                   rows={8}
                 />
