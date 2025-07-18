@@ -633,7 +633,12 @@ function InstructorDashboard() {
                     onClick={() => toggleLessonExpansion(lesson.id)}
                   >
                     <div className="flex-1">
-                      <h4 className="font-semibold">{student.first_name} | {lesson.start_time.slice(0,5)} - {lesson.end_time.slice(0,5)} |</h4>
+                      <h4 className="font-semibold">
+                        <Link href={`/dashboard/students/${student.id}`} className="underline hover:text-blue-600">
+                          {student.first_name}
+                        </Link>
+                        {' '}| {lesson.start_time.slice(0,5)} - {lesson.end_time.slice(0,5)} |
+                      </h4>
                     </div>
                     <button
                       onClick={(e) => {
@@ -657,10 +662,8 @@ function InstructorDashboard() {
                   {expandedLessons.has(lesson.id) && (
                     <div className="mt-4 pt-4 border-t border-gray-200">
                       <div className="space-y-4">
-                        
-                        
                         {/* Progress Notes Section */}
-                        <div className="border-t border-gray-200 pt-4">
+                        <div>
                           <h5 className="font-semibold text-sm mb-2">Voortgang</h5>
                           <ExpandedLessonProgressNotes lesson={lesson} student={student} />
                         </div>
