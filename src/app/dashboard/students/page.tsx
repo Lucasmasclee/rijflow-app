@@ -327,7 +327,7 @@ export default function StudentsPage() {
                     <div className="flex items-center gap-4 mt-3 text-sm text-gray-500">
                       <div className="flex items-center gap-1">
                         <Calendar className="h-4 w-4" />
-                        <span>{student.lessonStats.lessonsCompleted} lessen gehad, {student.lessonStats.lessonsScheduled} lessen ingepland</span>
+                        <span>{student.lessonStats.lessonsCompleted} lessen gehad, {student.lessonStats.lessonsScheduled} ingepland</span>
                       </div>
                       {student.last_lesson && (
                         <div className="flex items-center gap-1">

@@ -270,14 +270,36 @@ export default function ScheduleSettingsPage() {
         <div className="container-mobile">
           <div className="flex justify-between items-center h-16">
             <div className="flex items-center">
-              <Link href="/dashboard" className="text-gray-600 hover:text-gray-900 flex items-center gap-2">
+              <Link href="/lessons" className="text-gray-600 hover:text-gray-900 flex items-center gap-2">
                 <ArrowLeft className="h-4 w-4" />
                 <span className="hidden sm:inline">Terug naar dashboard</span>
               </Link>
             </div>
-            <div className="flex items-center">
+            <div className="flex items-center gap-3">
+              <button
+                onClick={saveAvailability}
+                disabled={saving}
+                className="btn btn-primary flex items-center gap-2 text-sm px-3 py-2"
+              >
+                {saving ? (
+                  <>
+                    <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-white"></div>
+                    Opslaan...
+                  </>
+                ) : saved ? (
+                  <>
+                    <Check className="h-3 w-3" />
+                    Opgeslagen!
+                  </>
+                ) : (
+                  <>
+                    <Save className="h-3 w-3" />
+                    Opslaan
+                  </>
+                )}
+              </button>
               <Settings className="h-8 w-8 text-blue-600" />
-              <span className="ml-2 text-xl font-bold text-gray-900">Instellingen</span>
+              {/* <span className="ml-2 text-xl font-bold text-gray-900">Instellingen</span> */}
             </div>
           </div>
         </div>
@@ -372,31 +394,7 @@ export default function ScheduleSettingsPage() {
           )}
         </div>
 
-        {/* Save Button */}
-        <div className="flex justify-end">
-          <button
-            onClick={saveAvailability}
-            disabled={saving}
-            className="btn btn-primary flex items-center gap-2"
-          >
-            {saving ? (
-              <>
-                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                Opslaan...
-              </>
-            ) : saved ? (
-              <>
-                <Check className="h-4 w-4" />
-                Opgeslagen!
-              </>
-            ) : (
-              <>
-                <Save className="h-4 w-4" />
-                Opslaan
-              </>
-            )}
-          </button>
-        </div>
+
       </div>
     </div>
   )
