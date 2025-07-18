@@ -346,7 +346,8 @@ function InstructorDashboard() {
             last_name,
             email,
             phone,
-            address
+            address,
+            notes
           )
         `)
         .eq('instructor_id', user.id)
@@ -664,6 +665,16 @@ function InstructorDashboard() {
                   {expandedLessons.has(lesson.id) && (
                     <div className="mt-4 pt-4 border-t border-gray-200">
                       <div className="space-y-4">
+                        {/* General Notes Section */}
+                        {student.notes && (
+                          <div>
+                            <h5 className="font-semibold text-sm mb-2">Algemene notities</h5>
+                            <div className="bg-gray-50 p-3 rounded-lg">
+                              <p className="text-sm text-gray-700 whitespace-pre-wrap">{student.notes}</p>
+                            </div>
+                          </div>
+                        )}
+                        
                         {/* Progress Notes Section */}
                         <div>
                           <h5 className="font-semibold text-sm mb-2">Voortgang</h5>
