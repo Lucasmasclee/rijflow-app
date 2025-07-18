@@ -224,8 +224,8 @@ export default function ScheduleSettingsPage() {
       toast.success('Beschikbaarheid succesvol opgeslagen!')
       setSaved(true)
       
-      // Reset saved state after 3 seconds
-      setTimeout(() => setSaved(false), 3000)
+      // Reset saved state after 1 second
+      setTimeout(() => setSaved(false), 1000)
     } catch (error) {
       console.error('Error saving availability:', error)
       toast.error('Fout bij het opslaan van de beschikbaarheid')

@@ -325,16 +325,16 @@ export default function StudentsPage() {
                     </div>
 
                     <div className="flex items-center gap-4 mt-3 text-sm text-gray-500">
-                      <div className="flex items-center gap-1">
+                      <div className="flex items-center gap-1 whitespace-nowrap">
                         <Calendar className="h-4 w-4" />
-                        <span>{student.lessonStats.lessonsCompleted} lessen gehad, {student.lessonStats.lessonsScheduled} ingepland</span>
+                        <span className="whitespace-nowrap">{student.lessonStats.lessonsCompleted} gehad, {student.lessonStats.lessonsScheduled} ingepland</span>
                       </div>
-                      {student.last_lesson && (
+                      {/* {student.last_lesson && (
                         <div className="flex items-center gap-1">
                           <MessageSquare className="h-4 w-4" />
                           <span>Laatste les: {student.last_lesson}</span>
                         </div>
-                      )}
+                      )} */}
                     </div>
                   </div>
 
