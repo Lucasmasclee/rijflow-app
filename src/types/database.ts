@@ -52,16 +52,13 @@ export interface ProgressNote {
   id: string
   student_id: string
   instructor_id: string
-  lesson_id?: string
-  date: string
   notes: string
-  topics_covered?: string[]
   created_at: string
   updated_at: string
 }
 
 export interface StudentWithProgressNotes extends Student {
-  progress_notes?: ProgressNote[]
+  progress_notes?: ProgressNote
 }
 
 export interface ChatMessage {

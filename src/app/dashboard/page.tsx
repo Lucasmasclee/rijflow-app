@@ -370,7 +370,7 @@ function InstructorDashboard() {
 
   // Fetch progress notes for a student
   const fetchProgressNotes = async (studentId: string) => {
-    if (!user) return []
+    if (!user) return null
     
     try {
       const { data, error } = await supabase
@@ -378,19 +378,17 @@ function InstructorDashboard() {
         .select('*')
         .eq('student_id', studentId)
         .eq('instructor_id', user.id)
-        .order('date', { ascending: true }) // Oldest first
-        .order('created_at', { ascending: true }) // Oldest first for consistency
-        .limit(5)
+        .single()
 
-      if (error) {
+      if (error && error.code !== 'PGRST116') { // PGRST116 = no rows returned
         console.error('Error fetching progress notes:', error)
-        return []
+        return null
       }
 
-      return data || []
+      return data
     } catch (error) {
       console.error('Error fetching progress notes:', error)
-      return []
+      return null
     }
   }
 
@@ -443,68 +441,79 @@ function InstructorDashboard() {
     lesson: any, 
     student: any 
   }) => {
-    const [progressNotes, setProgressNotes] = useState<any[]>([])
-    const [newNote, setNewNote] = useState('')
+    const [progressNote, setProgressNote] = useState<any>(null)
+    const [notesText, setNotesText] = useState('')
     const [loadingNotes, setLoadingNotes] = useState(true)
+    const [saving, setSaving] = useState(false)
 
     const loadProgressNotes = async () => {
       setLoadingNotes(true)
-      const notes = await fetchProgressNotes(student.id)
-      setProgressNotes(notes)
+      const note = await fetchProgressNotes(student.id)
+      setProgressNote(note)
       
-      // Convert progress notes to single text field format
-      const notesText = notes.map(note => {
-        const date = new Date(note.date)
-        const formattedDate = date.toLocaleDateString('nl-NL', { 
-          day: 'numeric', 
-          month: 'long' 
-        })
-        return `${formattedDate}: ${note.notes}`
-      }).join('\n')
-      
-      setNewNote(notesText)
-      setLoadingNotes(false)
-    }
-
-    const handleAddProgressNote = async () => {
-      if (!newNote.trim() || !user) return
-
-      try {
-        // Get the latest note content (last line)
-        const lines = newNote.trim().split('\n')
-        const latestLine = lines[lines.length - 1]
-        
-        // Use the entire line as content, no date parsing needed
-        const noteContent = latestLine.trim()
-        
-        if (!noteContent) {
-          alert('Voeg een notitie toe')
+      if (note) {
+        setNotesText(note.notes || '')
+      } else {
+        // Create a new progress note record if none exists
+        if (!user) {
+          setLoadingNotes(false)
           return
         }
-
-        // Always use today's date for the database
-        const noteDate = new Date()
-        const dateString = noteDate.toISOString().split('T')[0]
-
-        const { error } = await supabase
+        
+        const { data: newNote, error: createError } = await supabase
           .from('progress_notes')
           .insert({
             student_id: student.id,
             instructor_id: user.id,
-            lesson_id: lesson.id,
-            date: dateString,
-            notes: noteContent,
-            created_at: new Date().toISOString()
+            notes: ''
           })
+          .select()
+          .single()
 
-        if (error) {
-          console.error('Error adding progress note:', error)
+        if (createError) {
+          console.error('Error creating progress note:', createError)
+          setLoadingNotes(false)
           return
         }
 
-        await loadProgressNotes()
+        setProgressNote(newNote)
+        setNotesText('')
+      }
+      
+      setLoadingNotes(false)
+    }
+
+    const handleSaveProgressNotes = async () => {
+      if (!progressNote || !user) return
+
+      setSaving(true)
+      try {
+        const { error } = await supabase
+          .from('progress_notes')
+          .update({
+            notes: notesText,
+            updated_at: new Date().toISOString()
+          })
+          .eq('id', progressNote.id)
+
+        if (error) {
+          console.error('Error updating progress notes:', error)
+          return
+        }
+
+        // Update local state
+        setProgressNote((prev: any) => prev ? {
+          ...prev,
+          notes: notesText,
+          updated_at: new Date().toISOString()
+        } : null)
+
+        toast.success('Notities opgeslagen!')
       } catch (error) {
-        console.error('Error adding progress note:', error)
+        console.error('Error updating progress notes:', error)
+        toast.error('Er is iets misgegaan bij het opslaan van de notities.')
+      } finally {
+        setSaving(false)
       }
     }
 
@@ -520,9 +529,9 @@ function InstructorDashboard() {
           <>
             <div>
               <textarea
-                value={newNote}
-                onChange={(e) => setNewNote(e.target.value)}
-                placeholder="Voeg notities toe...&#10;Schrijf gewoon vrije tekst&#10;Elke regel wordt een aparte notitie"
+                value={notesText}
+                onChange={(e) => setNotesText(e.target.value)}
+                placeholder="Voeg notities toe...&#10;Schrijf gewoon vrije tekst&#10;De hele geschiedenis wordt hier bewaard"
                 className="w-full p-2 border border-gray-300 rounded-lg resize-none text-sm"
                 rows={4}
               />
@@ -530,11 +539,11 @@ function InstructorDashboard() {
                 <p>Schrijf gewoon vrije tekst voor je notities</p>
               </div>
               <button
-                onClick={handleAddProgressNote}
-                disabled={!newNote.trim()}
+                onClick={handleSaveProgressNotes}
+                disabled={saving}
                 className="btn btn-primary w-full mt-2 text-sm py-1"
               >
-                Notities opslaan
+                {saving ? 'Opslaan...' : 'Notities opslaan'}
               </button>
             </div>
           </>

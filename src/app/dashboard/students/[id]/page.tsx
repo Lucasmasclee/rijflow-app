@@ -29,10 +29,7 @@ interface ProgressNote {
   id: string
   student_id: string
   instructor_id: string
-  lesson_id?: string
-  date: string
   notes: string
-  topics_covered?: string[]
   created_at: string
   updated_at: string
 }
@@ -58,8 +55,8 @@ export default function StudentDetailPage({ params }: { params: Promise<{ id: st
   })
   const [showDeleteModal, setShowDeleteModal] = useState(false)
   const [inviteUrl, setInviteUrl] = useState<string>('')
-  const [progressNotes, setProgressNotes] = useState<ProgressNote[]>([])
-  const [newProgressNote, setNewProgressNote] = useState('')
+  const [progressNote, setProgressNote] = useState<ProgressNote | null>(null)
+  const [progressNotesText, setProgressNotesText] = useState('')
   const [savingProgressNote, setSavingProgressNote] = useState(false)
   const [lessonStats, setLessonStats] = useState({
     lessonsCompleted: 0,
@@ -140,26 +137,36 @@ export default function StudentDetailPage({ params }: { params: Promise<{ id: st
           .select('*')
           .eq('student_id', studentId)
           .eq('instructor_id', user.id)
-          .order('date', { ascending: true })
-          .order('created_at', { ascending: true })
+          .single()
 
-        if (error) {
+        if (error && error.code !== 'PGRST116') { // PGRST116 = no rows returned
           console.error('Error fetching progress notes:', error)
           return
         }
 
-        // Convert progress notes to single text field format
-        const notesText = data?.map(note => {
-          const date = new Date(note.date)
-          const formattedDate = date.toLocaleDateString('nl-NL', { 
-            day: 'numeric', 
-            month: 'long' 
-          })
-          return `${formattedDate}: ${note.notes}`
-        }).join('\n') || ''
+        if (data) {
+          setProgressNote(data)
+          setProgressNotesText(data.notes || '')
+        } else {
+          // Create a new progress note record if none exists
+          const { data: newNote, error: createError } = await supabase
+            .from('progress_notes')
+            .insert({
+              student_id: studentId,
+              instructor_id: user.id,
+              notes: ''
+            })
+            .select()
+            .single()
 
-        setNewProgressNote(notesText)
-        setProgressNotes(data || [])
+          if (createError) {
+            console.error('Error creating progress note:', createError)
+            return
+          }
+
+          setProgressNote(newNote)
+          setProgressNotesText('')
+        }
       } catch (error) {
         console.error('Error fetching progress notes:', error)
       }
@@ -211,86 +218,38 @@ export default function StudentDetailPage({ params }: { params: Promise<{ id: st
     fetchLessonStats()
   }, [studentId])
 
-  const handleAddProgressNote = async () => {
-    if (!newProgressNote.trim() || !user || !studentId) return
+  const handleSaveProgressNotes = async () => {
+    if (!progressNote || !user || !studentId) return
 
     setSavingProgressNote(true)
     try {
-      // Get the latest note content (last line)
-      const lines = newProgressNote.trim().split('\n')
-      const latestLine = lines[lines.length - 1]
-      
-      // Use the entire line as content, no date parsing needed
-      const noteContent = latestLine.trim()
-      
-      if (!noteContent) {
-        toast.error('Voeg een notitie toe')
-        return
-      }
-
-      // Always use today's date for the database
-      const noteDate = new Date()
-      const dateString = noteDate.toISOString().split('T')[0]
-
-      const { data, error } = await supabase
-        .from('progress_notes')
-        .insert({
-          student_id: studentId,
-          instructor_id: user.id,
-          date: dateString,
-          notes: noteContent,
-          created_at: new Date().toISOString(),
-          updated_at: new Date().toISOString()
-        })
-        .select()
-
-      if (error) {
-        console.error('Error adding progress note:', error)
-        toast.error('Fout bij het toevoegen van de notitie')
-        return
-      }
-
-      setProgressNotes(prev => [...prev, data[0]])
-      toast.success('Notitie toegevoegd!')
-    } catch (error) {
-      console.error('Error adding progress note:', error)
-      toast.error('Er is iets misgegaan bij het toevoegen van de notitie.')
-    } finally {
-      setSavingProgressNote(false)
-    }
-  }
-
-  const handleDeleteProgressNote = async (noteId: string) => {
-    try {
       const { error } = await supabase
         .from('progress_notes')
-        .delete()
-        .eq('id', noteId)
+        .update({
+          notes: progressNotesText,
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', progressNote.id)
 
       if (error) {
-        console.error('Error deleting progress note:', error)
-        toast.error('Fout bij het verwijderen van de notitie')
+        console.error('Error updating progress notes:', error)
+        toast.error('Fout bij het opslaan van de notities')
         return
       }
 
-      setProgressNotes(prev => prev.filter(note => note.id !== noteId))
-      
-      // Update the text field to reflect the deletion
-      const updatedNotes = progressNotes.filter(note => note.id !== noteId)
-      const notesText = updatedNotes.map(note => {
-        const date = new Date(note.date)
-        const formattedDate = date.toLocaleDateString('nl-NL', { 
-          day: 'numeric', 
-          month: 'long' 
-        })
-        return `${formattedDate}: ${note.notes}`
-      }).join('\n')
-      
-      setNewProgressNote(notesText)
-      toast.success('Notitie verwijderd!')
+      // Update local state
+      setProgressNote(prev => prev ? {
+        ...prev,
+        notes: progressNotesText,
+        updated_at: new Date().toISOString()
+      } : null)
+
+      toast.success('Notities opgeslagen!')
     } catch (error) {
-      console.error('Error deleting progress note:', error)
-      toast.error('Er is iets misgegaan bij het verwijderen van de notitie.')
+      console.error('Error updating progress notes:', error)
+      toast.error('Er is iets misgegaan bij het opslaan van de notities.')
+    } finally {
+      setSavingProgressNote(false)
     }
   }
 
@@ -548,19 +507,19 @@ export default function StudentDetailPage({ params }: { params: Promise<{ id: st
             <div className="space-y-4">
               <div>
                 <textarea
-                  value={newProgressNote}
-                  onChange={(e) => setNewProgressNote(e.target.value)}
-                  placeholder="Voeg notities toe...&#10;Schrijf gewoon vrije tekst&#10;Elke regel wordt een aparte notitie"
+                  value={progressNotesText}
+                  onChange={(e) => setProgressNotesText(e.target.value)}
+                  placeholder="Voeg notities toe...&#10;Schrijf gewoon vrije tekst&#10;De hele geschiedenis wordt hier bewaard"
                   className="w-full px-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
                   rows={8}
                 />
                 <div className="mt-2 text-sm text-gray-600">
                   <p>Schrijf gewoon vrije tekst voor je notities</p>
-                  <p>Elke regel wordt een aparte notitie met de huidige datum</p>
+                  <p>De hele geschiedenis wordt hier bewaard en bewerkt</p>
                 </div>
                 <button
-                  onClick={handleAddProgressNote}
-                  disabled={savingProgressNote || !newProgressNote.trim()}
+                  onClick={handleSaveProgressNotes}
+                  disabled={savingProgressNote}
                   className="btn btn-primary mt-2 flex items-center gap-2"
                 >
                   {savingProgressNote ? (
@@ -577,26 +536,9 @@ export default function StudentDetailPage({ params }: { params: Promise<{ id: st
                 </button>
               </div>
 
-              {progressNotes.length === 0 ? (
-                <p className="text-gray-500 text-center py-4">Nog geen voortgangsnotities</p>
-              ) : (
-                <div className="space-y-3">
-                  {progressNotes.map((note) => (
-                    <div key={note.id} className="p-4 bg-gray-50 rounded-lg">
-                      <div className="flex justify-between items-start mb-2">
-                        <span className="text-sm text-gray-500">
-                          {new Date(note.date).toLocaleDateString('nl-NL')}
-                        </span>
-                        <button
-                          onClick={() => handleDeleteProgressNote(note.id)}
-                          className="p-1 text-red-600 hover:text-red-700 hover:bg-red-50 rounded"
-                        >
-                          <Trash2 className="h-3 w-3" />
-                        </button>
-                      </div>
-                      <p className="text-gray-900 whitespace-pre-wrap">{note.notes}</p>
-                    </div>
-                  ))}
+              {progressNote && progressNote.updated_at && (
+                <div className="text-xs text-gray-500">
+                  Laatst bijgewerkt: {new Date(progressNote.updated_at).toLocaleString('nl-NL')}
                 </div>
               )}
             </div>
