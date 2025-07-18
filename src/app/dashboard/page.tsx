@@ -635,22 +635,26 @@ function InstructorDashboard() {
                   >
                     <div className="flex-1">
                       <h4 className="text-sm flex items-center">
-                        <Link href={`/dashboard/students/${student.id}`} className="underline hover:text-blue-600">
-                          {student.first_name}
-                        </Link>
-                        {' '}| {lesson.start_time.slice(0,5)} - {lesson.end_time.slice(0,5)} |{' '}
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation()
-                            openGoogleMaps(student.address)
-                          }}
-                          className="flex items-center ml-1"
-                        >
-                          <ExternalLink className="h-3 w-3" />
-                          <span className="text-xs ml-1">
-                            {student.address.length > 12 ? student.address.slice(0, 9) + "..." : student.address}
-                          </span>
-                        </button>
+                        <span className="flex items-center">
+                          <Link href={`/dashboard/students/${student.id}`} className="underline hover:text-blue-600">
+                            {student.first_name}
+                          </Link>
+                          <span className="mx-2">|</span>
+                          <span>{lesson.start_time.slice(0,5)} - {lesson.end_time.slice(0,5)}</span>
+                          <span className="mx-2">|</span>
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation()
+                              openGoogleMaps(student.address)
+                            }}
+                            className="flex items-center"
+                          >
+                            <ExternalLink className="h-3 w-3" />
+                            <span className="text-xs ml-1">
+                              {student.address.length > 12 ? student.address.slice(0, 9) + "..." : student.address}
+                            </span>
+                          </button>
+                        </span>
                       </h4>
                     </div>
                     {/* <div className="p-2">
