@@ -640,10 +640,10 @@ function InstructorDashboard() {
                         e.stopPropagation()
                         openGoogleMaps(student.address)
                       }}
-                      className="flex items-center gap-2 text-blue-600 hover:text-blue-700 text-sm"
+                      // className="flex items-center gap-2 text-blue-600 hover:text-blue-700 text-sm"
                     >
-                      <ExternalLink className="h-3 w-3" />
-                      {student.address}
+                      <ExternalLink className="h-4 w-4" />
+                      {student.address.length > 12 ? student.address.slice(0, 9) + "..." : student.address}
                     </button>
                     {/* <div className="p-2">
                       {expandedLessons.has(lesson.id) ? (
