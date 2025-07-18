@@ -474,51 +474,16 @@ function InstructorDashboard() {
         const lines = newNote.trim().split('\n')
         const latestLine = lines[lines.length - 1]
         
-        // Check if the latest line has a date format
-        const dateMatch = latestLine.match(/^(\d{1,2}\s+\w+):\s*(.+)$/)
-        
-        let noteContent: string
-        let noteDate: Date
-        
-        if (dateMatch) {
-          // If it has a date format, extract the content
-          const [, dateStr, content] = dateMatch
-          noteContent = content.trim()
-          
-          // Parse the date
-          const today = new Date()
-          const currentYear = today.getFullYear()
-          const dateParts = dateStr.split(' ')
-          const day = parseInt(dateParts[0])
-          const monthName = dateParts[1]
-          
-          // Convert Dutch month name to month number
-          const monthNames = [
-            'januari', 'februari', 'maart', 'april', 'mei', 'juni',
-            'juli', 'augustus', 'september', 'oktober', 'november', 'december'
-          ]
-          const monthIndex = monthNames.findIndex(name => 
-            name.toLowerCase() === monthName.toLowerCase()
-          )
-          
-          if (monthIndex === -1) {
-            // If month parsing fails, use today's date
-            noteDate = new Date()
-          } else {
-            // Create date in local timezone to avoid timezone issues
-            noteDate = new Date(currentYear, monthIndex, day, 12, 0, 0, 0)
-          }
-        } else {
-          // If no date format, use the entire line as content and today's date
-          noteContent = latestLine.trim()
-          noteDate = new Date()
-        }
+        // Use the entire line as content, no date parsing needed
+        const noteContent = latestLine.trim()
         
         if (!noteContent) {
           alert('Voeg een notitie toe')
           return
         }
 
+        // Always use today's date for the database
+        const noteDate = new Date()
         const dateString = noteDate.toISOString().split('T')[0]
 
         const { error } = await supabase
@@ -557,12 +522,12 @@ function InstructorDashboard() {
               <textarea
                 value={newNote}
                 onChange={(e) => setNewNote(e.target.value)}
-                placeholder="Voeg notities toe...&#10;Je kunt een datum toevoegen zoals '18 juli: notitie'&#10;Of gewoon vrije tekst schrijven"
+                placeholder="Voeg notities toe...&#10;Schrijf gewoon vrije tekst&#10;Elke regel wordt een aparte notitie"
                 className="w-full p-2 border border-gray-300 rounded-lg resize-none text-sm"
                 rows={4}
               />
               <div className="mt-1 text-xs text-gray-600">
-                <p>Schrijf vrije tekst of gebruik een datum zoals "18 juli: notitie"</p>
+                <p>Schrijf gewoon vrije tekst voor je notities</p>
               </div>
               <button
                 onClick={handleAddProgressNote}
