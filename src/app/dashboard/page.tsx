@@ -635,18 +635,16 @@ function InstructorDashboard() {
                     <div className="flex-1">
                       <h4 className="font-semibold">{student.first_name}   {lesson.start_time.slice(0,5)} - {lesson.end_time.slice(0,5)}</h4>
                     </div>
-                    <div className="p-2">
-                          <button
-                            onClick={(e) => {
-                              e.stopPropagation()
-                              openGoogleMaps(student.address)
-                            }}
-                            className="flex items-center gap-2 text-blue-600 hover:text-blue-700 text-sm"
-                          >
-                            <ExternalLink className="h-3 w-3" />
-                            {student.address}
-                          </button>
-                        </div>
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation()
+                        openGoogleMaps(student.address)
+                      }}
+                      className="flex items-center gap-2 text-blue-600 hover:text-blue-700 text-sm"
+                    >
+                      <ExternalLink className="h-3 w-3" />
+                      {student.address}
+                    </button>
                     {/* <div className="p-2">
                       {expandedLessons.has(lesson.id) ? (
                         <ChevronUp className="h-4 w-4" />
