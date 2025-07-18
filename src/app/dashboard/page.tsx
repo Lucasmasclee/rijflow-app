@@ -470,42 +470,55 @@ function InstructorDashboard() {
       if (!newNote.trim() || !user) return
 
       try {
-        // Parse the text to extract the latest note (last line)
+        // Get the latest note content (last line)
         const lines = newNote.trim().split('\n')
         const latestLine = lines[lines.length - 1]
         
-        // Extract date and note content from the latest line
+        // Check if the latest line has a date format
         const dateMatch = latestLine.match(/^(\d{1,2}\s+\w+):\s*(.+)$/)
         
-        if (!dateMatch) {
-          alert('Ongeldig formaat. Gebruik: "18 juli: notitie tekst"')
+        let noteContent: string
+        let noteDate: Date
+        
+        if (dateMatch) {
+          // If it has a date format, extract the content
+          const [, dateStr, content] = dateMatch
+          noteContent = content.trim()
+          
+          // Parse the date
+          const today = new Date()
+          const currentYear = today.getFullYear()
+          const dateParts = dateStr.split(' ')
+          const day = parseInt(dateParts[0])
+          const monthName = dateParts[1]
+          
+          // Convert Dutch month name to month number
+          const monthNames = [
+            'januari', 'februari', 'maart', 'april', 'mei', 'juni',
+            'juli', 'augustus', 'september', 'oktober', 'november', 'december'
+          ]
+          const monthIndex = monthNames.findIndex(name => 
+            name.toLowerCase() === monthName.toLowerCase()
+          )
+          
+          if (monthIndex === -1) {
+            // If month parsing fails, use today's date
+            noteDate = new Date()
+          } else {
+            // Create date in local timezone to avoid timezone issues
+            noteDate = new Date(currentYear, monthIndex, day, 12, 0, 0, 0)
+          }
+        } else {
+          // If no date format, use the entire line as content and today's date
+          noteContent = latestLine.trim()
+          noteDate = new Date()
+        }
+        
+        if (!noteContent) {
+          alert('Voeg een notitie toe')
           return
         }
 
-        const [, dateStr, noteContent] = dateMatch
-        
-        // Parse the date
-        const today = new Date()
-        const currentYear = today.getFullYear()
-        const dateParts = dateStr.split(' ')
-        const day = parseInt(dateParts[0])
-        const monthName = dateParts[1]
-        
-        // Convert Dutch month name to month number
-        const monthNames = [
-          'januari', 'februari', 'maart', 'april', 'mei', 'juni',
-          'juli', 'augustus', 'september', 'oktober', 'november', 'december'
-        ]
-        const monthIndex = monthNames.findIndex(name => 
-          name.toLowerCase() === monthName.toLowerCase()
-        )
-        
-        if (monthIndex === -1) {
-          alert('Ongeldige maand naam')
-          return
-        }
-        
-        const noteDate = new Date(currentYear, monthIndex, day)
         const dateString = noteDate.toISOString().split('T')[0]
 
         const { error } = await supabase
@@ -515,7 +528,7 @@ function InstructorDashboard() {
             instructor_id: user.id,
             lesson_id: lesson.id,
             date: dateString,
-            notes: noteContent.trim(),
+            notes: noteContent,
             created_at: new Date().toISOString()
           })
 
@@ -544,12 +557,12 @@ function InstructorDashboard() {
               <textarea
                 value={newNote}
                 onChange={(e) => setNewNote(e.target.value)}
-                placeholder="Voeg notities toe in het formaat:&#10;18 juli: Eerste notitie&#10;19 juli: Tweede notitie"
+                placeholder="Voeg notities toe...&#10;Je kunt een datum toevoegen zoals '18 juli: notitie'&#10;Of gewoon vrije tekst schrijven"
                 className="w-full p-2 border border-gray-300 rounded-lg resize-none text-sm"
                 rows={4}
               />
               <div className="mt-1 text-xs text-gray-600">
-                <p>Gebruik het formaat: "18 juli: notitie tekst"</p>
+                <p>Schrijf vrije tekst of gebruik een datum zoals "18 juli: notitie"</p>
               </div>
               <button
                 onClick={handleAddProgressNote}
@@ -634,14 +647,14 @@ function InstructorDashboard() {
                     onClick={() => toggleLessonExpansion(lesson.id)}
                   >
                     <div className="flex-1">
-                      <h4 className="text-sm flex items-center">
+                      <h4 className="text-xs flex items-center">
                         <span className="flex items-center">
                           <Link href={`/dashboard/students/${student.id}`} className="underline hover:text-blue-600 flex items-center">
                             {student.first_name}
                           </Link>
-                          <span className="mx-2">|</span>
+                          <span className="mx-1">|</span>
                           <span>{lesson.start_time.slice(0,5)} - {lesson.end_time.slice(0,5)}</span>
-                          <span className="mx-2">|</span>
+                          <span className="mx-1">|</span>
                           <button
                             onClick={(e) => {
                               e.stopPropagation()
@@ -649,8 +662,8 @@ function InstructorDashboard() {
                             }}
                             className="flex items-center"
                           >
-                            <ExternalLink className="h-3 w-3" />
-                            <span className="text-xs ml-1">
+                            <ExternalLink className="h-2.5 w-2.5" />
+                            <span className="text-xs ml-0.5">
                               {student.address.length > 12 ? student.address.slice(0, 9) + "..." : student.address}
                             </span>
                           </button>
