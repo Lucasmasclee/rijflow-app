@@ -8,9 +8,10 @@ export interface User {
 
 export interface Instructeur {
   id: string
-  name: string
-  location: string
-  kvk_number: string
+  email: string
+  rijschoolnaam: string
+  location?: string
+  kvk_number?: string
   logo_url?: string
   created_at: string
   updated_at: string

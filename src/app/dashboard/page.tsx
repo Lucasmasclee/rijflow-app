@@ -27,7 +27,8 @@ import {
 } from 'lucide-react'
 import Link from 'next/link'
 import { supabase } from '@/lib/supabase'
-import { Student } from '@/types/database'
+import { Student, Instructeur } from '@/types/database'
+import { toast } from 'react-hot-toast'
 
 // Force dynamic rendering to prevent static generation issues
 export const dynamic = 'force-dynamic'
@@ -41,6 +42,58 @@ export default function DashboardPage() {
   const [editingSchoolName, setEditingSchoolName] = useState('')
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
 
+  // Fetch instructor data including rijschoolnaam
+  const fetchInstructorData = async () => {
+    if (!user || user.user_metadata?.role !== 'instructor') return
+    
+    try {
+      const { data, error } = await supabase
+        .from('instructors')
+        .select('rijschoolnaam')
+        .eq('id', user.id)
+        .single()
+
+      if (error) {
+        console.error('Error fetching instructor data:', error)
+        return
+      }
+
+      if (data?.rijschoolnaam) {
+        setSchoolName(data.rijschoolnaam)
+      }
+    } catch (error) {
+      console.error('Error fetching instructor data:', error)
+    }
+  }
+
+  // Save rijschoolnaam to database
+  const saveSchoolName = async (newName: string) => {
+    if (!user || user.user_metadata?.role !== 'instructor') return
+    
+    try {
+      const { error } = await supabase
+        .from('instructors')
+        .upsert({
+          id: user.id,
+          email: user.email,
+          rijschoolnaam: newName
+        })
+
+      if (error) {
+        console.error('Error saving school name:', error)
+        toast.error('Fout bij het opslaan van de rijschoolnaam')
+        return false
+      }
+
+      toast.success('Rijschoolnaam succesvol opgeslagen')
+      return true
+    } catch (error) {
+      console.error('Error saving school name:', error)
+      toast.error('Fout bij het opslaan van de rijschoolnaam')
+      return false
+    }
+  }
+
   useEffect(() => {
     if (!loading && !user) {
       router.push('/auth/signin')
@@ -49,6 +102,11 @@ export default function DashboardPage() {
       // Get user role from user metadata
       const role = user.user_metadata?.role || 'instructor'
       setUserRole(role)
+      
+      // Fetch instructor data if user is instructor
+      if (role === 'instructor') {
+        fetchInstructorData()
+      }
     }
   }, [user, loading, router])
 
@@ -66,9 +124,12 @@ export default function DashboardPage() {
     setEditingSchoolName(schoolName)
   }
 
-  const handleSaveSchoolName = () => {
+  const handleSaveSchoolName = async () => {
     if (editingSchoolName.trim()) {
-      setSchoolName(editingSchoolName.trim())
+      const success = await saveSchoolName(editingSchoolName.trim())
+      if (success) {
+        setSchoolName(editingSchoolName.trim())
+      }
     }
     setIsEditingSchoolName(false)
   }

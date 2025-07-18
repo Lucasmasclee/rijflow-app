@@ -72,7 +72,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           {
             id: user.id,
             email: user.email,
-            // Voeg hier eventueel default values toe voor name, location, etc.
+            rijschoolnaam: 'Mijn Rijschool'
           }
         ])
         if (insertError) {
@@ -138,7 +138,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         {
           id: data.user.id,
           email: data.user.email,
-          // Voeg hier eventueel default values toe voor name, location, etc.
+          rijschoolnaam: 'Mijn Rijschool'
         }
       ])
       if (insertError) {
