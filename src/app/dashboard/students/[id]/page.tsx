@@ -530,7 +530,7 @@ export default function StudentDetailPage({ params }: { params: Promise<{ id: st
         </div>
       </nav>
 
-      <div className="container-mobile py-6">
+      <div className="container-mobile py-10">
         {/* Header */}
         <div className="mb-6">
           {isEditing ? (
@@ -597,7 +597,7 @@ export default function StudentDetailPage({ params }: { params: Promise<{ id: st
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Notities
+                  Algemene Notities
                 </label>
                 <textarea
                   value={formData.notes}
@@ -666,7 +666,15 @@ export default function StudentDetailPage({ params }: { params: Promise<{ id: st
 
         {/* Contact Information */}
         <div className="card mb-6">
-          <h3 className="text-lg font-semibold mb-4">Contactgegevens</h3>
+          <div className="flex justify-between items-center mb-4">
+            <h3 className="text-lg font-semibold">Contactgegevens</h3>
+            <button
+              onClick={handleEdit}
+              className="p-2 text-blue-600 hover:text-blue-700 hover:bg-blue-50 rounded"
+            >
+              <Edit2 className="h-4 w-4" />
+            </button>
+          </div>
           <div className="space-y-3">
             <div className="flex items-center gap-3">
               <Mail className="h-4 w-4 text-gray-400" />

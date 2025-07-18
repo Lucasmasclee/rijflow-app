@@ -266,7 +266,7 @@ export default function NewStudentPage() {
         </div>
       </nav>
 
-      <div className="container-mobile py-6">
+      <div className="container-mobile py-10">
         {/* Header */}
         <div className="mb-6">
           <h1 className="text-2xl md:text-3xl font-bold text-gray-900">Nieuwe leerling toevoegen</h1>
