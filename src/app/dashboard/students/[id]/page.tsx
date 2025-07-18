@@ -3,7 +3,7 @@
 import { useAuth } from '@/contexts/AuthContext'
 import { useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
-import { ArrowLeft, Save, User, Mail, Phone, MapPin, Edit2, X, Check, Copy, Link as LinkIcon, FileText, Calendar, Trash2, Plus, ExternalLink } from 'lucide-react'
+import { ArrowLeft, Save, User, Mail, Phone, MapPin, X, Check, Copy, Link as LinkIcon, FileText, Calendar, Trash2, Plus, ExternalLink } from 'lucide-react'
 import Link from 'next/link'
 import toast from 'react-hot-toast'
 import React from 'react'
@@ -44,7 +44,6 @@ export default function StudentDetailPage({ params }: { params: Promise<{ id: st
   const { user, loading } = useAuth()
   const router = useRouter()
   const [student, setStudent] = useState<Student | null>(null)
-  const [isEditing, setIsEditing] = useState(false)
   const [saving, setSaving] = useState(false)
   const [studentId, setStudentId] = useState<string>('')
   const [formData, setFormData] = useState({
@@ -66,12 +65,6 @@ export default function StudentDetailPage({ params }: { params: Promise<{ id: st
     lessonsCompleted: 0,
     lessonsScheduled: 0
   })
-  const [lessonSettings, setLessonSettings] = useState({
-    default_lessons_per_week: 2,
-    default_lesson_duration_minutes: 60
-  })
-  const [isEditingLessonSettings, setIsEditingLessonSettings] = useState(false)
-  const [savingLessonSettings, setSavingLessonSettings] = useState(false)
 
   useEffect(() => {
     if (!loading && !user) {
@@ -323,27 +316,6 @@ export default function StudentDetailPage({ params }: { params: Promise<{ id: st
     }
   }
 
-  const handleEdit = () => {
-    setIsEditing(true)
-  }
-
-  const handleCancel = () => {
-    setIsEditing(false)
-    // Reset form data to original values
-    if (student) {
-      setFormData({
-        first_name: student.first_name,
-        last_name: student.last_name || '',
-        email: student.email || '',
-        phone: student.phone || '',
-        address: student.address || '',
-        notes: student.notes || '',
-        default_lessons_per_week: student.default_lessons_per_week || 2,
-        default_lesson_duration_minutes: student.default_lesson_duration_minutes || 60
-      })
-    }
-  }
-
   const handleSave = async () => {
     if (!studentId) return
 
@@ -375,7 +347,6 @@ export default function StudentDetailPage({ params }: { params: Promise<{ id: st
         ...formData
       } : null)
 
-      setIsEditing(false)
       toast.success('Wijzigingen opgeslagen!')
     } catch (error) {
       console.error('Error updating student:', error)
@@ -385,76 +356,11 @@ export default function StudentDetailPage({ params }: { params: Promise<{ id: st
     }
   }
 
-  const handleInputChange = (field: string, value: string) => {
+  const handleInputChange = (field: string, value: string | number) => {
     setFormData(prev => ({
       ...prev,
       [field]: value
     }))
-  }
-
-  const handleLessonSettingsChange = (field: string, value: number) => {
-    setLessonSettings(prev => ({
-      ...prev,
-      [field]: value
-    }))
-  }
-
-  const handleEditLessonSettings = () => {
-    setIsEditingLessonSettings(true)
-    setLessonSettings({
-      default_lessons_per_week: formData.default_lessons_per_week,
-      default_lesson_duration_minutes: formData.default_lesson_duration_minutes
-    })
-  }
-
-  const handleCancelLessonSettings = () => {
-    setIsEditingLessonSettings(false)
-    setLessonSettings({
-      default_lessons_per_week: formData.default_lessons_per_week,
-      default_lesson_duration_minutes: formData.default_lesson_duration_minutes
-    })
-  }
-
-  const handleSaveLessonSettings = async () => {
-    if (!studentId) return
-
-    setSavingLessonSettings(true)
-    try {
-      const { error } = await supabase
-        .from('students')
-        .update({
-          default_lessons_per_week: lessonSettings.default_lessons_per_week,
-          default_lesson_duration_minutes: lessonSettings.default_lesson_duration_minutes
-        })
-        .eq('id', studentId)
-
-      if (error) {
-        console.error('Error updating lesson settings:', error)
-        toast.error('Fout bij het opslaan van de lesinstellingen')
-        return
-      }
-
-      // Update local state
-      setFormData(prev => ({
-        ...prev,
-        default_lessons_per_week: lessonSettings.default_lessons_per_week,
-        default_lesson_duration_minutes: lessonSettings.default_lesson_duration_minutes
-      }))
-
-      setStudent(prev => prev ? {
-        ...prev,
-        default_lessons_per_week: lessonSettings.default_lessons_per_week,
-        default_lesson_duration_minutes: lessonSettings.default_lesson_duration_minutes
-      } : null)
-
-      setIsEditingLessonSettings(false)
-      toast.success('Lesinstellingen opgeslagen!')
-    } catch (error) {
-      console.error('Error updating lesson settings:', error)
-      toast.error('Er is iets misgegaan bij het opslaan van de lesinstellingen.')
-    } finally {
-      setSavingLessonSettings(false)
-    }
   }
 
   const handleDeleteStudent = async () => {
@@ -514,10 +420,21 @@ export default function StudentDetailPage({ params }: { params: Promise<{ id: st
             </div>
             <div className="flex items-center gap-2">
               <button
-                onClick={handleEdit}
-                className="p-2 text-blue-600 hover:text-blue-700 hover:bg-blue-50 rounded"
+                onClick={handleSave}
+                disabled={saving}
+                className="btn btn-primary flex items-center gap-2"
               >
-                <Edit2 className="h-4 w-4" />
+                {saving ? (
+                  <>
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                    Opslaan...
+                  </>
+                ) : (
+                  <>
+                    <Save className="h-4 w-4" />
+                    Opslaan
+                  </>
+                )}
               </button>
               <button
                 onClick={() => setShowDeleteModal(true)}
@@ -531,88 +448,144 @@ export default function StudentDetailPage({ params }: { params: Promise<{ id: st
       </nav>
 
       <div className="container-mobile py-10">
-        {/* Header */}
+        {/* Header - Non-editable first name */}
         <div className="mb-6">
-          {isEditing ? (
-            <div className="space-y-4">
-              <div className="mobile-grid md:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Voornaam *
-                  </label>
-                  <input
-                    type="text"
-                    value={formData.first_name}
-                    onChange={(e) => handleInputChange('first_name', e.target.value)}
-                    className="w-full px-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    required
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Achternaam
-                  </label>
-                  <input
-                    type="text"
-                    value={formData.last_name}
-                    onChange={(e) => handleInputChange('last_name', e.target.value)}
-                    className="w-full px-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  />
-                </div>
-              </div>
-              <div className="mobile-grid md:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    E-mail
-                  </label>
-                  <input
-                    type="email"
-                    value={formData.email}
-                    onChange={(e) => handleInputChange('email', e.target.value)}
-                    className="w-full px-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Telefoonnummer
-                  </label>
-                  <input
-                    type="tel"
-                    value={formData.phone}
-                    onChange={(e) => handleInputChange('phone', e.target.value)}
-                    className="w-full px-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  />
-                </div>
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Adres
-                </label>
-                <input
-                  type="text"
-                  value={formData.address}
-                  onChange={(e) => handleInputChange('address', e.target.value)}
-                  className="w-full px-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Algemene Notities
-                </label>
-                <textarea
-                  value={formData.notes}
-                  onChange={(e) => handleInputChange('notes', e.target.value)}
-                  className="w-full px-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
-                  rows={4}
-                />
-              </div>
-              <div className="flex gap-3">
+          <h1 className="text-2xl md:text-3xl font-bold text-gray-900">
+            {student.first_name}
+          </h1>
+          <p className="text-gray-600 mt-2">
+            Leerling sinds {new Date(student.created_at).toLocaleDateString('nl-NL')}
+          </p>
+        </div>
+
+        {/* Stats Cards - Compact */}
+        <div className="grid grid-cols-2 gap-4 mb-6">
+          <div className="card text-center py-4">
+            <Calendar className="h-6 w-6 text-blue-600 mx-auto mb-1" />
+            <div className="text-xl font-bold text-gray-900">{lessonStats.lessonsCompleted}</div>
+            <div className="text-xs text-gray-600">Voltooide lessen</div>
+          </div>
+          <div className="card text-center py-4">
+            <Calendar className="h-6 w-6 text-green-600 mx-auto mb-1" />
+            <div className="text-xl font-bold text-gray-900">{lessonStats.lessonsScheduled}</div>
+            <div className="text-xs text-gray-600">Geplande lessen</div>
+          </div>
+        </div>
+
+        {/* Editable Fields */}
+        <div className="space-y-6">
+          {/* First Name - Editable */}
+          <div className="card">
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Voornaam *
+            </label>
+            <input
+              type="text"
+              value={formData.first_name}
+              onChange={(e) => handleInputChange('first_name', e.target.value)}
+              className="w-full px-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              required
+            />
+          </div>
+
+          {/* Last Name */}
+          <div className="card">
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Achternaam
+            </label>
+            <input
+              type="text"
+              value={formData.last_name}
+              onChange={(e) => handleInputChange('last_name', e.target.value)}
+              className="w-full px-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            />
+          </div>
+
+          {/* Phone */}
+          <div className="card">
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Telefoonnummer
+            </label>
+            <input
+              type="tel"
+              value={formData.phone}
+              onChange={(e) => handleInputChange('phone', e.target.value)}
+              className="w-full px-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            />
+          </div>
+
+          {/* Email */}
+          <div className="card">
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              E-mailadres
+            </label>
+            <input
+              type="email"
+              value={formData.email}
+              onChange={(e) => handleInputChange('email', e.target.value)}
+              className="w-full px-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            />
+          </div>
+
+          {/* Address */}
+          <div className="card">
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Adres
+            </label>
+            <div className="relative">
+              <input
+                type="text"
+                value={formData.address}
+                onChange={(e) => handleInputChange('address', e.target.value)}
+                className="w-full px-3 py-3 pr-10 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              />
+              {formData.address && (
                 <button
-                  onClick={handleSave}
-                  disabled={saving}
-                  className="btn btn-primary flex items-center gap-2"
+                  onClick={() => openGoogleMaps(formData.address)}
+                  className="absolute right-3 top-1/2 transform -translate-y-1/2 text-blue-600 hover:text-blue-700"
                 >
-                  {saving ? (
+                  <ExternalLink className="h-4 w-4" />
+                </button>
+              )}
+            </div>
+          </div>
+
+          {/* General Notes */}
+          <div className="card">
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Algemene Notities
+            </label>
+            <textarea
+              value={formData.notes}
+              onChange={(e) => handleInputChange('notes', e.target.value)}
+              className="w-full px-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
+              rows={4}
+            />
+          </div>
+
+          {/* Progress Notes */}
+          <div className="card">
+            <h3 className="text-lg font-semibold mb-4">Voortgangsnotities</h3>
+            
+            <div className="space-y-4">
+              <div>
+                <textarea
+                  value={newProgressNote}
+                  onChange={(e) => setNewProgressNote(e.target.value)}
+                  placeholder="Voeg notities toe in het formaat:&#10;18 juli: Eerste notitie&#10;\n19 juli: Tweede notitie"
+                  className="w-full px-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
+                  rows={8}
+                />
+                <div className="mt-2 text-sm text-gray-600">
+                  <p>Gebruik het formaat: "18 juli: notitie tekst"</p>
+                  <p>Elke notitie krijgt automatisch een nieuwe regel</p>
+                </div>
+                <button
+                  onClick={handleAddProgressNote}
+                  disabled={savingProgressNote || !newProgressNote.trim()}
+                  className="btn btn-primary mt-2 flex items-center gap-2"
+                >
+                  {savingProgressNote ? (
                     <>
                       <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
                       Opslaan...
@@ -620,102 +593,41 @@ export default function StudentDetailPage({ params }: { params: Promise<{ id: st
                   ) : (
                     <>
                       <Check className="h-4 w-4" />
-                      Opslaan
+                      Notities opslaan
                     </>
                   )}
                 </button>
-                <button
-                  onClick={handleCancel}
-                  className="btn btn-secondary flex items-center gap-2"
-                >
-                  <X className="h-4 w-4" />
-                  Annuleren
-                </button>
               </div>
-            </div>
-          ) : (
-            <div>
-              <h1 className="text-2xl md:text-3xl font-bold text-gray-900">
-                {student.first_name} {student.last_name || ''}
-              </h1>
-              <p className="text-gray-600 mt-2">
-                Leerling sinds {new Date(student.created_at).toLocaleDateString('nl-NL')}
-              </p>
-            </div>
-          )}
-        </div>
 
-        {/* Stats Cards */}
-        <div className="mobile-grid md:grid-cols-3 gap-4 mb-6">
-          <div className="card text-center">
-            <Calendar className="h-8 w-8 text-blue-600 mx-auto mb-2" />
-            <div className="text-2xl font-bold text-gray-900">{lessonStats.lessonsCompleted}</div>
-            <div className="text-sm text-gray-600">Voltooide lessen</div>
-          </div>
-          <div className="card text-center">
-            <Calendar className="h-8 w-8 text-green-600 mx-auto mb-2" />
-            <div className="text-2xl font-bold text-gray-900">{lessonStats.lessonsScheduled - lessonStats.lessonsCompleted}</div>
-            <div className="text-sm text-gray-600">Geplande lessen</div>
-          </div>
-          {/* <div className="card text-center">
-            <FileText className="h-8 w-8 text-purple-600 mx-auto mb-2" />
-            <div className="text-2xl font-bold text-gray-900">{progressNotes.length}</div>
-            <div className="text-sm text-gray-600">Voortgangsnotities</div>
-          </div> */}
-        </div>
-
-        {/* Contact Information */}
-        <div className="card mb-6">
-          <div className="flex justify-between items-center mb-4">
-            <h3 className="text-lg font-semibold">Contactgegevens</h3>
-            <button
-              onClick={handleEdit}
-              className="p-2 text-blue-600 hover:text-blue-700 hover:bg-blue-50 rounded"
-            >
-              <Edit2 className="h-4 w-4" />
-            </button>
-          </div>
-          <div className="space-y-3">
-            <div className="flex items-center gap-3">
-              <Mail className="h-4 w-4 text-gray-400" />
-              <span className="text-gray-900">{student.email}</span>
+              {progressNotes.length === 0 ? (
+                <p className="text-gray-500 text-center py-4">Nog geen voortgangsnotities</p>
+              ) : (
+                <div className="space-y-3">
+                  {progressNotes.map((note) => (
+                    <div key={note.id} className="p-4 bg-gray-50 rounded-lg">
+                      <div className="flex justify-between items-start mb-2">
+                        <span className="text-sm text-gray-500">
+                          {new Date(note.date).toLocaleDateString('nl-NL')}
+                        </span>
+                        <button
+                          onClick={() => handleDeleteProgressNote(note.id)}
+                          className="p-1 text-red-600 hover:text-red-700 hover:bg-red-50 rounded"
+                        >
+                          <Trash2 className="h-3 w-3" />
+                        </button>
+                      </div>
+                      <p className="text-gray-900 whitespace-pre-wrap">{note.notes}</p>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
-            {student.phone && (
-              <div className="flex items-center gap-3">
-                <Phone className="h-4 w-4 text-gray-400" />
-                <span className="text-gray-900">{student.phone}</span>
-              </div>
-            )}
-            {student.address && (
-              <div className="flex items-center gap-3">
-                <MapPin className="h-4 w-4 text-gray-400" />
-                <button
-                  onClick={() => openGoogleMaps(student.address)}
-                  className="text-blue-600 hover:text-blue-700 flex items-center gap-1"
-                >
-                  <span>{student.address}</span>
-                  <ExternalLink className="h-3 w-3" />
-                </button>
-              </div>
-            )}
           </div>
-        </div>
 
-        {/* Lesson Settings */}
-        <div className="card mb-6">
-          <div className="flex justify-between items-center mb-4">
-            <h3 className="text-lg font-semibold">Lesinstellingen</h3>
-            {!isEditingLessonSettings && (
-              <button
-                onClick={handleEditLessonSettings}
-                className="p-2 text-blue-600 hover:text-blue-700 hover:bg-blue-50 rounded"
-              >
-                <Edit2 className="h-4 w-4" />
-              </button>
-            )}
-          </div>
-          
-          {isEditingLessonSettings ? (
+          {/* Lesson Settings */}
+          <div className="card">
+            <h3 className="text-lg font-semibold mb-4">Lesinstellingen</h3>
+            
             <div className="space-y-4">
               <div className="mobile-grid md:grid-cols-2 gap-4">
                 <div>
@@ -726,8 +638,8 @@ export default function StudentDetailPage({ params }: { params: Promise<{ id: st
                     type="number"
                     min="1"
                     max="7"
-                    value={lessonSettings.default_lessons_per_week}
-                    onChange={(e) => handleLessonSettingsChange('default_lessons_per_week', parseInt(e.target.value))}
+                    value={formData.default_lessons_per_week}
+                    onChange={(e) => handleInputChange('default_lessons_per_week', parseInt(e.target.value))}
                     className="w-full px-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   />
                 </div>
@@ -740,141 +652,15 @@ export default function StudentDetailPage({ params }: { params: Promise<{ id: st
                     min="30"
                     max="180"
                     step="15"
-                    value={lessonSettings.default_lesson_duration_minutes}
-                    onChange={(e) => handleLessonSettingsChange('default_lesson_duration_minutes', parseInt(e.target.value))}
+                    value={formData.default_lesson_duration_minutes}
+                    onChange={(e) => handleInputChange('default_lesson_duration_minutes', parseInt(e.target.value))}
                     className="w-full px-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   />
                 </div>
               </div>
-              <div className="flex gap-3">
-                <button
-                  onClick={handleSaveLessonSettings}
-                  disabled={savingLessonSettings}
-                  className="btn btn-primary flex items-center gap-2"
-                >
-                  {savingLessonSettings ? (
-                    <>
-                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                      Opslaan...
-                    </>
-                  ) : (
-                    <>
-                      <Check className="h-4 w-4" />
-                      Opslaan
-                    </>
-                  )}
-                </button>
-                <button
-                  onClick={handleCancelLessonSettings}
-                  className="btn btn-secondary flex items-center gap-2"
-                >
-                  <X className="h-4 w-4" />
-                  Annuleren
-                </button>
-              </div>
             </div>
-          ) : (
-            <div className="space-y-2 text-sm">
-              <p><strong>Standaard lessen per week:</strong> {formData.default_lessons_per_week}</p>
-              <p><strong>Lesduur:</strong> {formData.default_lesson_duration_minutes} minuten</p>
-            </div>
-          )}
-        </div>
-
-        {/* Notes */}
-        {student.notes && (
-          <div className="card mb-6">
-            <h3 className="text-lg font-semibold mb-4">Notities</h3>
-            <p className="text-gray-700 whitespace-pre-wrap">{student.notes}</p>
-          </div>
-        )}
-
-        {/* Progress Notes */}
-        <div className="card mb-6">
-          <h3 className="text-lg font-semibold mb-4">Voortgangsnotities</h3>
-          
-          <div className="space-y-4">
-            <div>
-              <textarea
-                value={newProgressNote}
-                onChange={(e) => setNewProgressNote(e.target.value)}
-                placeholder="Voeg notities toe in het formaat:&#10;18 juli: Eerste notitie&#10;\n19 juli: Tweede notitie"
-                className="w-full px-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
-                rows={8}
-              />
-              <div className="mt-2 text-sm text-gray-600">
-                <p>Gebruik het formaat: "18 juli: notitie tekst"</p>
-                <p>Elke notitie krijgt automatisch een nieuwe regel</p>
-              </div>
-              <button
-                onClick={handleAddProgressNote}
-                disabled={savingProgressNote || !newProgressNote.trim()}
-                className="btn btn-primary mt-2 flex items-center gap-2"
-              >
-                {savingProgressNote ? (
-                  <>
-                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                    Opslaan...
-                  </>
-                ) : (
-                  <>
-                    <Check className="h-4 w-4" />
-                    Notities opslaan
-                  </>
-                )}
-              </button>
-            </div>
-
-            {progressNotes.length === 0 ? (
-              <p className="text-gray-500 text-center py-4">Nog geen voortgangsnotities</p>
-            ) : (
-              <div className="space-y-3">
-                {progressNotes.map((note) => (
-                  <div key={note.id} className="p-4 bg-gray-50 rounded-lg">
-                    <div className="flex justify-between items-start mb-2">
-                      <span className="text-sm text-gray-500">
-                        {new Date(note.date).toLocaleDateString('nl-NL')}
-                      </span>
-                      <button
-                        onClick={() => handleDeleteProgressNote(note.id)}
-                        className="p-1 text-red-600 hover:text-red-700 hover:bg-red-50 rounded"
-                      >
-                        <Trash2 className="h-3 w-3" />
-                      </button>
-                    </div>
-                    <p className="text-gray-900 whitespace-pre-wrap">{note.notes}</p>
-                  </div>
-                ))}
-              </div>
-            )}
           </div>
         </div>
-
-        {/* Invitation Link */}
-        {/* {inviteUrl && (
-          <div className="card mb-6">
-            <h3 className="text-lg font-semibold mb-4">Uitnodigingslink</h3>
-            <div className="space-y-3">
-              <input
-                type="text"
-                value={inviteUrl}
-                readOnly
-                className="w-full px-3 py-3 border border-gray-300 rounded-lg bg-gray-50 text-sm font-mono"
-                onFocus={e => e.target.select()}
-              />
-              <button
-                onClick={() => {
-                  navigator.clipboard.writeText(inviteUrl)
-                  toast.success('Link gekopieerd!')
-                }}
-                className="btn btn-secondary flex items-center gap-2"
-              >
-                <Copy className="h-4 w-4" />
-                Kopieer link
-              </button>
-            </div>
-          </div>
-        )} */}
       </div>
 
       {/* Delete Confirmation Modal */}
