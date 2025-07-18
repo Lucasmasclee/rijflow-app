@@ -633,7 +633,7 @@ function InstructorDashboard() {
                     onClick={() => toggleLessonExpansion(lesson.id)}
                   >
                     <div className="flex-1">
-                      <h4 className="font-semibold">
+                      <h4 className="text-sm">
                         <Link href={`/dashboard/students/${student.id}`} className="underline hover:text-blue-600">
                           {student.first_name}
                         </Link>
@@ -645,10 +645,11 @@ function InstructorDashboard() {
                         e.stopPropagation()
                         openGoogleMaps(student.address)
                       }}
-                      // className="flex items-center gap-2 text-blue-600 hover:text-blue-700 text-sm"
                     >
-                      <ExternalLink className="h-4 w-4" />
-                      {student.address.length > 12 ? student.address.slice(0, 9) + "..." : student.address}
+                      <ExternalLink className="h-3 w-3" />
+                      <span className="text-xs">
+                        {student.address.length > 12 ? student.address.slice(0, 9) + "..." : student.address}
+                      </span>
                     </button>
                     {/* <div className="p-2">
                       {expandedLessons.has(lesson.id) ? (
