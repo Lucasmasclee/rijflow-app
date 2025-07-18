@@ -3,35 +3,33 @@
 import { useAuth } from '@/contexts/AuthContext'
 import { useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
-import { 
-  Users, 
-  Plus, 
-  Search, 
-  Filter,
-  MoreVertical,
-  Phone,
-  Mail,
-  MapPin,
-  Calendar,
-  MessageSquare,
-  X,
-  ArrowLeft,
-  Trash2,
-  Edit,
-  Clock
-} from 'lucide-react'
+import { Users, Plus, Mail, Phone, MapPin, Calendar, MessageSquare, Edit, Trash2, Clock } from 'lucide-react'
 import Link from 'next/link'
 import toast from 'react-hot-toast'
 import { supabase } from '@/lib/supabase'
-import { Student } from '@/types/database'
 
-interface StudentWithStats extends Student {
+interface Student {
+  id: string
+  first_name: string
+  last_name: string
+  email: string
+  phone: string
+  address: string
+  notes: string
+  created_at: string
   lessons_count: number
   last_lesson?: string
+  invite_token?: string
+  default_lessons_per_week?: number
+  default_lesson_duration_minutes?: number
 }
 
-// Force dynamic rendering to prevent static generation issues
-export const dynamic = 'force-dynamic'
+interface StudentWithStats extends Student {
+  lessonStats: {
+    lessonsCompleted: number
+    lessonsScheduled: number
+  }
+}
 
 export default function StudentsPage() {
   const { user, loading } = useAuth()
@@ -39,11 +37,16 @@ export default function StudentsPage() {
   const [students, setStudents] = useState<StudentWithStats[]>([])
   const [loadingStudents, setLoadingStudents] = useState(true)
   const [searchTerm, setSearchTerm] = useState('')
-  const [filterStatus, setFilterStatus] = useState('all')
-  const [deleteModalStudentId, setDeleteModalStudentId] = useState<string|null>(null)
+  const [filterStatus, setFilterStatus] = useState<'all' | 'active' | 'new'>('all')
+  const [deleteModalStudentId, setDeleteModalStudentId] = useState<string | null>(null)
   const [deleteModalStudentName, setDeleteModalStudentName] = useState<string>('')
 
-  // Fetch students from database
+  useEffect(() => {
+    if (!loading && !user) {
+      router.push('/auth/signin')
+    }
+  }, [user, loading, router])
+
   const fetchStudents = async () => {
     if (!user) return
     
@@ -57,50 +60,70 @@ export default function StudentsPage() {
 
       if (error) {
         console.error('Error fetching students:', error)
-        toast.error('Fout bij het laden van leerlingen')
+        toast.error('Fout bij het ophalen van leerlingen')
         return
       }
 
-      // Transform students to include stats (for now, we'll add these later)
-      const studentsWithStats: StudentWithStats[] = (data || []).map(student => ({
-        ...student,
-        lessons_count: 0, // TODO: Calculate from lessons table
-        last_lesson: undefined // TODO: Get from lessons table
-      }))
+      // Fetch lesson statistics for each student
+      const studentsWithStats = await Promise.all(
+        (data || []).map(async (student) => {
+          const lessonStats = await fetchLessonStats(student.id)
+          return {
+            ...student,
+            lessonStats
+          }
+        })
+      )
 
       setStudents(studentsWithStats)
     } catch (error) {
       console.error('Error fetching students:', error)
-      toast.error('Fout bij het laden van leerlingen')
+      toast.error('Er is iets misgegaan bij het ophalen van leerlingen.')
     } finally {
       setLoadingStudents(false)
     }
   }
 
-  useEffect(() => {
-    if (!loading && !user) {
-      router.push('/auth/signin')
-    }
-  }, [user, loading, router])
+  const fetchLessonStats = async (studentId: string) => {
+    try {
+      const today = new Date().toISOString().split('T')[0]
+      
+      // Get completed lessons (date <= today)
+      const { data: completedLessons, error: completedError } = await supabase
+        .from('lessons')
+        .select('id')
+        .eq('student_id', studentId)
+        .lte('date', today)
+        .not('status', 'eq', 'cancelled')
 
-  // Fetch students when user is available
-  useEffect(() => {
-    if (user && !loading) {
-      fetchStudents()
-    }
-  }, [user, loading])
+      if (completedError) {
+        console.error('Error fetching completed lessons:', completedError)
+      }
 
-  const filteredStudents = students.filter(student => {
-    const matchesSearch = student.first_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         student.last_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         student.email.toLowerCase().includes(searchTerm.toLowerCase())
-    
-    if (filterStatus === 'all') return matchesSearch
-    if (filterStatus === 'active') return matchesSearch && student.lessons_count > 0
-    if (filterStatus === 'new') return matchesSearch && student.lessons_count === 0
-    
-    return matchesSearch
-  })
+      // Get scheduled lessons (date > today)
+      const { data: scheduledLessons, error: scheduledError } = await supabase
+        .from('lessons')
+        .select('id')
+        .eq('student_id', studentId)
+        .gt('date', today)
+        .not('status', 'eq', 'cancelled')
+
+      if (scheduledError) {
+        console.error('Error fetching scheduled lessons:', scheduledError)
+      }
+
+      return {
+        lessonsCompleted: completedLessons?.length || 0,
+        lessonsScheduled: scheduledLessons?.length || 0
+      }
+    } catch (error) {
+      console.error('Error fetching lesson statistics:', error)
+      return {
+        lessonsCompleted: 0,
+        lessonsScheduled: 0
+      }
+    }
+  }
 
   const handleDeleteStudent = (studentId: string, studentName: string) => {
     setDeleteModalStudentId(studentId)
@@ -109,6 +132,7 @@ export default function StudentsPage() {
 
   const confirmDeleteStudent = async () => {
     if (!deleteModalStudentId) return
+
     try {
       const { error } = await supabase
         .from('students')
@@ -121,15 +145,14 @@ export default function StudentsPage() {
         return
       }
 
-      // Update local state
-      setStudents(prev => prev.filter(student => student.id !== deleteModalStudentId))
       toast.success('Leerling succesvol verwijderd!')
+      setStudents(prev => prev.filter(student => student.id !== deleteModalStudentId))
+      setDeleteModalStudentId(null)
+      setDeleteModalStudentName('')
     } catch (error) {
       console.error('Error deleting student:', error)
       toast.error('Er is iets misgegaan bij het verwijderen van de leerling.')
     }
-    setDeleteModalStudentId(null)
-    setDeleteModalStudentName('')
   }
 
   const cancelDeleteStudent = () => {
@@ -137,7 +160,28 @@ export default function StudentsPage() {
     setDeleteModalStudentName('')
   }
 
-  if (loading || loadingStudents) {
+  useEffect(() => {
+    if (user) {
+      fetchStudents()
+    }
+  }, [user])
+
+  // Filter students based on search term and status
+  const filteredStudents = students.filter(student => {
+    const matchesSearch = searchTerm === '' || 
+      student.first_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      student.last_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      student.email.toLowerCase().includes(searchTerm.toLowerCase())
+
+    const matchesFilter = 
+      filterStatus === 'all' ||
+      (filterStatus === 'active' && student.lessonStats.lessonsCompleted > 0) ||
+      (filterStatus === 'new' && student.lessonStats.lessonsCompleted === 0 && student.lessonStats.lessonsScheduled === 0)
+
+    return matchesSearch && matchesFilter
+  })
+
+  if (loading) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center safe-area-top">
         <div className="text-center">
@@ -155,42 +199,21 @@ export default function StudentsPage() {
   return (
     <div className="min-h-screen bg-gray-50 pb-20">
       {/* Mobile Navigation */}
-      {/* <nav className="bg-white shadow-sm border-b safe-area-top">
+      <nav className="bg-white shadow-sm border-b safe-area-top">
         <div className="container-mobile">
           <div className="flex justify-between items-center h-16">
             <div className="flex items-center">
-              <Link href="/dashboard" className="text-gray-600 hover:text-gray-900 flex items-center gap-2">
-                <ArrowLeft className="h-4 w-4" />
-                <span className="hidden sm:inline">Terug naar dashboard</span>
-              </Link>
+              <h1 className="text-xl font-semibold text-gray-900">Leerlingen</h1>
             </div>
-            <div className="flex items-center space-x-4">
-              <span className="text-sm text-gray-600 hidden md:inline">
-                {user.email}
-              </span>
-            </div>
+            <Link href="/dashboard/students/new" className="btn btn-primary">
+              <Plus className="h-4 w-4 mr-2" />
+              Nieuwe leerling
+            </Link>
           </div>
         </div>
-      </nav> */}
+      </nav>
 
-      <div className="container-mobile py-6">
-        {/* Header */}
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
-          <div>
-            <h1 className="text-2xl md:text-3xl font-bold text-gray-900">Leerlingen</h1>
-            <p className="text-gray-600 mt-2">
-              Beheer al je leerlingen en hun voortgang
-            </p>
-          </div>
-          <Link
-            href="/dashboard/students/new"
-            className="btn btn-primary flex items-center gap-2 w-full sm:w-auto"
-          >
-            <Plus className="h-4 w-4" />
-            Nieuwe leerling
-          </Link>
-        </div>
-
+      <div className="container-mobile py-10">
         {/* Search and Filter */}
         <div className="card mb-6">
           <div className="space-y-4">
@@ -242,7 +265,12 @@ export default function StudentsPage() {
 
         {/* Students List */}
         <div className="space-y-4">
-          {filteredStudents.length === 0 ? (
+          {loadingStudents ? (
+            <div className="card text-center py-12">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
+              <p className="text-gray-600">Leerlingen laden...</p>
+            </div>
+          ) : filteredStudents.length === 0 ? (
             <div className="card text-center py-12">
               <Users className="h-12 w-12 text-gray-300 mx-auto mb-4" />
               <h3 className="text-lg font-medium text-gray-900 mb-2">
@@ -270,7 +298,7 @@ export default function StudentsPage() {
                       <h3 className="font-medium text-gray-900">
                         {student.first_name} {student.last_name || ''}
                       </h3>
-                      {student.lessons_count === 0 && (
+                      {student.lessonStats.lessonsCompleted === 0 && student.lessonStats.lessonsScheduled === 0 && (
                         <span className="px-2 py-1 bg-yellow-100 text-yellow-800 text-xs rounded-full">
                           Nieuw
                         </span>
@@ -299,7 +327,7 @@ export default function StudentsPage() {
                     <div className="flex items-center gap-4 mt-3 text-sm text-gray-500">
                       <div className="flex items-center gap-1">
                         <Calendar className="h-4 w-4" />
-                        <span>{student.lessons_count} lessen</span>
+                        <span>{student.lessonStats.lessonsCompleted} lessen gehad, {student.lessonStats.lessonsScheduled} lessen ingepland</span>
                       </div>
                       {student.last_lesson && (
                         <div className="flex items-center gap-1">
