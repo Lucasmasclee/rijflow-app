@@ -499,3 +499,55 @@ input[type="time"] {
     padding-right: max(16px, env(safe-area-inset-right));
   }
 }
+
+/* Additional fixes for time input 24-hour format on all operating systems */
+input[type="time"] {
+  /* Force 24-hour format on all browsers and OS */
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+  /* Prevent any automatic format conversion */
+  -webkit-text-security: none;
+  /* Ensure proper text rendering */
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  /* Force 24-hour format */
+  color: rgb(17 24 39) !important;
+  background-color: #ffffff !important;
+}
+
+/* Webkit browsers (Chrome, Safari, Edge) - force 24-hour format */
+input[type="time"]::-webkit-datetime-edit {
+  color: rgb(17 24 39) !important;
+  /* Force 24-hour format */
+  -webkit-text-security: none;
+}
+
+/* Hide AM/PM field on all browsers */
+input[type="time"]::-webkit-datetime-edit-ampm-field,
+input[type="time"]::-moz-datetime-edit-ampm-field {
+  display: none !important;
+  width: 0 !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  visibility: hidden !important;
+  opacity: 0 !important;
+}
+
+/* Ensure time inputs work correctly on Windows and macOS */
+input[type="time"]::-webkit-calendar-picker-indicator {
+  background: transparent;
+  cursor: pointer;
+}
+
+/* Firefox specific fixes */
+input[type="time"]::-moz-datetime-edit {
+  color: rgb(17 24 39) !important;
+}
+
+/* Prevent any browser from converting to 12-hour format */
+input[type="time"]:focus {
+  color: rgb(17 24 39) !important;
+  background-color: #ffffff !important;
+  /* Force 24-hour format on focus */
+  -webkit-text-security: none;
+}

@@ -183,6 +183,72 @@ export default function LessonsPage() {
     }
   }, [user, loading, currentDate, viewMode])
 
+  // Fix for time input 24-hour format issues
+  useEffect(() => {
+    const fixTimeInputs = () => {
+      const timeInputs = document.querySelectorAll('input[type="time"]')
+      timeInputs.forEach((input) => {
+        const timeInput = input as HTMLInputElement
+        
+        // Force 24-hour format
+        timeInput.setAttribute('data-format', '24h')
+        
+        // Add event listeners to prevent AM/PM conversion
+        timeInput.addEventListener('input', (e) => {
+          const target = e.target as HTMLInputElement
+          let value = target.value
+          
+          if (value) {
+            // Ensure the time is in HH:MM format
+            const [hours, minutes] = value.split(':')
+            if (hours && minutes) {
+              const hourNum = parseInt(hours, 10)
+              const minuteNum = parseInt(minutes, 10)
+              
+              // Validate and ensure 24-hour format
+              if (hourNum >= 0 && hourNum <= 23 && minuteNum >= 0 && minuteNum <= 59) {
+                const formattedValue = `${hours.padStart(2, '0')}:${minutes.padStart(2, '0')}`
+                if (formattedValue !== value) {
+                  target.value = formattedValue
+                }
+              }
+            }
+          }
+        })
+        
+        // Prevent blur events from converting format
+        timeInput.addEventListener('blur', (e) => {
+          const target = e.target as HTMLInputElement
+          let value = target.value
+          
+          if (value) {
+            const [hours, minutes] = value.split(':')
+            if (hours && minutes) {
+              const hourNum = parseInt(hours, 10)
+              const minuteNum = parseInt(minutes, 10)
+              
+              if (hourNum >= 0 && hourNum <= 23 && minuteNum >= 0 && minuteNum <= 59) {
+                const formattedValue = `${hours.padStart(2, '0')}:${minutes.padStart(2, '0')}`
+                if (formattedValue !== value) {
+                  target.value = formattedValue
+                }
+              }
+            }
+          }
+        })
+      })
+    }
+    
+    // Run immediately and after DOM changes
+    fixTimeInputs()
+    
+    // Use MutationObserver to catch dynamically added time inputs
+    const observer = new MutationObserver(fixTimeInputs)
+    observer.observe(document.body, { childList: true, subtree: true })
+    
+    return () => observer.disconnect()
+  }, [])
+
   const getMonday = (date: Date) => {
     const day = date.getDay()
     const diff = date.getDate() - day + (day === 0 ? -6 : 1) // Adjust when day is Sunday
@@ -355,32 +421,83 @@ export default function LessonsPage() {
 
   const formatTime = (time: string) => {
     // Ensure time is always displayed in 24-hour format (HH:MM)
-    // Remove any AM/PM and ensure proper formatting
     if (!time) return ''
     
-    // If time is already in HH:MM format, return as is
-    if (/^\d{1,2}:\d{2}$/.test(time)) {
-      const [hours, minutes] = time.split(':')
-      return `${hours.padStart(2, '0')}:${minutes}`
+    // Remove any AM/PM indicators and normalize the time
+    let normalizedTime = time.toUpperCase().replace(/[AP]M/g, '').trim()
+    
+    // If time is already in HH:MM format, ensure proper padding
+    if (/^\d{1,2}:\d{2}$/.test(normalizedTime)) {
+      const [hours, minutes] = normalizedTime.split(':')
+      const hourNum = parseInt(hours, 10)
+      const minuteNum = parseInt(minutes, 10)
+      
+      // Validate hours and minutes
+      if (hourNum >= 0 && hourNum <= 23 && minuteNum >= 0 && minuteNum <= 59) {
+        return `${hours.padStart(2, '0')}:${minutes.padStart(2, '0')}`
+      }
     }
     
     // If time is in HH:MM:SS format, remove seconds
-    if (/^\d{1,2}:\d{2}:\d{2}$/.test(time)) {
-      return time.substring(0, 5)
+    if (/^\d{1,2}:\d{2}:\d{2}$/.test(normalizedTime)) {
+      return normalizedTime.substring(0, 5)
     }
     
     // If time is in HH:MM:SS.mmm format, remove seconds and milliseconds
-    if (/^\d{1,2}:\d{2}:\d{2}\.\d+$/.test(time)) {
-      return time.substring(0, 5)
+    if (/^\d{1,2}:\d{2}:\d{2}\.\d+$/.test(normalizedTime)) {
+      return normalizedTime.substring(0, 5)
+    }
+    
+    // Try to parse as a Date object if it's in a different format
+    try {
+      // Create a date object with the time to handle various formats
+      const testDate = new Date(`2000-01-01T${normalizedTime}`)
+      if (!isNaN(testDate.getTime())) {
+        const hours = testDate.getHours().toString().padStart(2, '0')
+        const minutes = testDate.getMinutes().toString().padStart(2, '0')
+        return `${hours}:${minutes}`
+      }
+    } catch {
+      // Fallback to original parsing
     }
     
     // Default fallback - try to parse and format
     try {
-      const [hours, minutes] = time.split(':')
-      return `${hours.padStart(2, '0')}:${minutes.padStart(2, '0')}`
+      const [hours, minutes] = normalizedTime.split(':')
+      const hourNum = parseInt(hours, 10)
+      const minuteNum = parseInt(minutes, 10)
+      
+      if (hourNum >= 0 && hourNum <= 23 && minuteNum >= 0 && minuteNum <= 59) {
+        return `${hours.padStart(2, '0')}:${minutes.padStart(2, '0')}`
+      }
     } catch {
-      return time
+      // If all else fails, return the original time
     }
+    
+    return time
+  }
+
+  // Helper function to validate and format time input
+  const validateAndFormatTime = (timeValue: string): string => {
+    if (!timeValue) return ''
+    
+    // Remove any AM/PM indicators
+    let cleanTime = timeValue.toUpperCase().replace(/[AP]M/g, '').trim()
+    
+    // Parse hours and minutes
+    const [hours, minutes] = cleanTime.split(':')
+    if (!hours || !minutes) return timeValue
+    
+    const hourNum = parseInt(hours, 10)
+    const minuteNum = parseInt(minutes, 10)
+    
+    // Validate ranges
+    if (hourNum < 0 || hourNum > 23 || minuteNum < 0 || minuteNum > 59) {
+      return timeValue
+    }
+    
+    // Return formatted time
+    return `${hours.padStart(2, '0')}:${minutes.padStart(2, '0')}`
   }
 
   // Month view helper functions
@@ -932,7 +1049,8 @@ export default function LessonsPage() {
                     type="time"
                     value={lessonForm.startTime}
                     onChange={(e) => {
-                      setLessonForm(prev => ({ ...prev, startTime: e.target.value }))
+                      const formattedTime = validateAndFormatTime(e.target.value)
+                      setLessonForm(prev => ({ ...prev, startTime: formattedTime }))
                     }}
                     step="900"
                     className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
@@ -955,7 +1073,8 @@ export default function LessonsPage() {
                     type="time"
                     value={lessonForm.endTime}
                     onChange={(e) => {
-                      setLessonForm(prev => ({ ...prev, endTime: e.target.value }))
+                      const formattedTime = validateAndFormatTime(e.target.value)
+                      setLessonForm(prev => ({ ...prev, endTime: formattedTime }))
                     }}
                     step="900"
                     className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
@@ -1055,7 +1174,7 @@ export default function LessonsPage() {
                     className="w-full p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors text-left"
                   >
                     <div className="font-medium text-gray-900">
-                      Week {index === 0 ? 'Volgende week' : index + 1}
+                      {index === 0 ? 'Volgende week' : 'Week ' + (index + 1)}
                     </div>
                     <div className="text-sm text-gray-600">
                       {weekStart.toLocaleDateString('nl-NL', {
@@ -1183,7 +1302,7 @@ export default function LessonsPage() {
                     className="w-full p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors text-left"
                   >
                     <div className="font-medium text-gray-900">
-                      Week {index === 0 ? 'Volgende week' : index + 1}
+                      {index === 0 ? 'Volgende week' : 'Week ' + (index + 1)}
                     </div>
                     <div className="text-sm text-gray-600">
                       {weekStart.toLocaleDateString('nl-NL', {
