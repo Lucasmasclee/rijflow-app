@@ -633,7 +633,7 @@ function InstructorDashboard() {
                     onClick={() => toggleLessonExpansion(lesson.id)}
                   >
                     <div className="flex-1">
-                      <h4 className="font-semibold">{student.first_name}   {lesson.start_time.slice(0,5)} - {lesson.end_time.slice(0,5)}</h4>
+                      <h4 className="font-semibold">{student.first_name} | {lesson.start_time.slice(0,5)} - {lesson.end_time.slice(0,5)} |</h4>
                     </div>
                     <button
                       onClick={(e) => {
