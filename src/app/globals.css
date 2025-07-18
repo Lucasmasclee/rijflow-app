@@ -64,6 +64,27 @@ select {
   border: 1px solid #d1d5db;
   width: 100%;
   transition: all 0.2s ease;
+  color: #171717 !important; /* Explicit text color to prevent white text on white background */
+  background-color: #ffffff !important; /* Explicit background color */
+}
+
+/* Ensure all input types have proper styling */
+input[type="text"],
+input[type="email"],
+input[type="password"],
+input[type="number"],
+input[type="tel"],
+input[type="url"],
+input[type="search"],
+input[type="date"],
+input[type="time"],
+input[type="datetime-local"],
+input[type="month"],
+input[type="week"],
+textarea,
+select {
+  color: #171717 !important;
+  background-color: #ffffff !important;
 }
 
 input:focus, 
@@ -72,6 +93,54 @@ select:focus {
   outline: none;
   border-color: #3b82f6;
   box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+  color: #171717 !important; /* Maintain text color on focus */
+  background-color: #ffffff !important; /* Maintain background color on focus */
+}
+
+/* Ensure focus states for all input types */
+input[type="text"]:focus,
+input[type="email"]:focus,
+input[type="password"]:focus,
+input[type="number"]:focus,
+input[type="tel"]:focus,
+input[type="url"]:focus,
+input[type="search"]:focus,
+input[type="date"]:focus,
+input[type="time"]:focus,
+input[type="datetime-local"]:focus,
+input[type="month"]:focus,
+input[type="week"]:focus,
+textarea:focus,
+select:focus {
+  color: #171717 !important;
+  background-color: #ffffff !important;
+}
+
+/* Ensure placeholder text is visible */
+input::placeholder,
+textarea::placeholder,
+select::placeholder {
+  color: #9ca3af !important; /* Light gray for placeholder text */
+  opacity: 1 !important; /* Ensure opacity is not overridden */
+}
+
+/* Ensure placeholder text is visible for all input types */
+input[type="text"]::placeholder,
+input[type="email"]::placeholder,
+input[type="password"]::placeholder,
+input[type="number"]::placeholder,
+input[type="tel"]::placeholder,
+input[type="url"]::placeholder,
+input[type="search"]::placeholder,
+input[type="date"]::placeholder,
+input[type="time"]::placeholder,
+input[type="datetime-local"]::placeholder,
+input[type="month"]::placeholder,
+input[type="week"]::placeholder,
+textarea::placeholder,
+select::placeholder {
+  color: #9ca3af !important;
+  opacity: 1 !important;
 }
 
 /* Mobile-optimized buttons */

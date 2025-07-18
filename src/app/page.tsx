@@ -388,7 +388,7 @@ export default function HomePage() {
             Klaar om te beginnen?
           </h2>
           <p className="text-mobile-lg md:text-xl text-blue-100 mb-8">
-            Start vandaag nog met je gratis proefperiode van 60 dagen
+            Deze app is nog in ontwikkeling, en om die reden volledig gratis.
           </p>
           <button
             onClick={() => router.push('/auth/signup')}
