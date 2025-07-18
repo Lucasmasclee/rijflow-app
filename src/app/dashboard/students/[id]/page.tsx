@@ -115,10 +115,10 @@ export default function StudentDetailPage({ params }: { params: Promise<{ id: st
         setStudent(student)
         setFormData({
           first_name: student.first_name,
-          last_name: student.last_name,
-          email: student.email,
-          phone: student.phone,
-          address: student.address,
+          last_name: student.last_name || '',
+          email: student.email || '',
+          phone: student.phone || '',
+          address: student.address || '',
           notes: student.notes || '',
           default_lessons_per_week: student.default_lessons_per_week || 2,
           default_lesson_duration_minutes: student.default_lesson_duration_minutes || 60
@@ -333,10 +333,10 @@ export default function StudentDetailPage({ params }: { params: Promise<{ id: st
     if (student) {
       setFormData({
         first_name: student.first_name,
-        last_name: student.last_name,
-        email: student.email,
-        phone: student.phone,
-        address: student.address,
+        last_name: student.last_name || '',
+        email: student.email || '',
+        phone: student.phone || '',
+        address: student.address || '',
         notes: student.notes || '',
         default_lessons_per_week: student.default_lessons_per_week || 2,
         default_lesson_duration_minutes: student.default_lesson_duration_minutes || 60
@@ -560,6 +560,52 @@ export default function StudentDetailPage({ params }: { params: Promise<{ id: st
                   />
                 </div>
               </div>
+              <div className="mobile-grid md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    E-mail
+                  </label>
+                  <input
+                    type="email"
+                    value={formData.email}
+                    onChange={(e) => handleInputChange('email', e.target.value)}
+                    className="w-full px-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Telefoonnummer
+                  </label>
+                  <input
+                    type="tel"
+                    value={formData.phone}
+                    onChange={(e) => handleInputChange('phone', e.target.value)}
+                    className="w-full px-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  />
+                </div>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Adres
+                </label>
+                <input
+                  type="text"
+                  value={formData.address}
+                  onChange={(e) => handleInputChange('address', e.target.value)}
+                  className="w-full px-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Notities
+                </label>
+                <textarea
+                  value={formData.notes}
+                  onChange={(e) => handleInputChange('notes', e.target.value)}
+                  className="w-full px-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
+                  rows={4}
+                />
+              </div>
               <div className="flex gap-3">
                 <button
                   onClick={handleSave}
@@ -744,7 +790,7 @@ export default function StudentDetailPage({ params }: { params: Promise<{ id: st
               <textarea
                 value={newProgressNote}
                 onChange={(e) => setNewProgressNote(e.target.value)}
-                placeholder="Voeg notities toe in het formaat:&#10;18 juli: Eerste notitie&#10;19 juli: Tweede notitie"
+                placeholder="Voeg notities toe in het formaat:&#10;18 juli: Eerste notitie&#10;\n19 juli: Tweede notitie"
                 className="w-full px-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
                 rows={8}
               />
@@ -797,7 +843,7 @@ export default function StudentDetailPage({ params }: { params: Promise<{ id: st
         </div>
 
         {/* Invitation Link */}
-        {inviteUrl && (
+        {/* {inviteUrl && (
           <div className="card mb-6">
             <h3 className="text-lg font-semibold mb-4">Uitnodigingslink</h3>
             <div className="space-y-3">
@@ -820,7 +866,7 @@ export default function StudentDetailPage({ params }: { params: Promise<{ id: st
               </button>
             </div>
           </div>
-        )}
+        )} */}
       </div>
 
       {/* Delete Confirmation Modal */}

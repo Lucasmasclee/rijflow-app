@@ -134,8 +134,8 @@ export default function NewStudentPage() {
         toast.success('Leerling succesvol toegevoegd!')
       }
       
-      setInviteToken(invite_token)
-      // router.push('/dashboard/students') // Niet direct redirecten
+      // Redirect directly to students page
+      router.push('/dashboard/students')
     } catch (error) {
       console.error('Error creating student:', error)
       toast.error('Er is iets misgegaan bij het toevoegen van de leerling.')
