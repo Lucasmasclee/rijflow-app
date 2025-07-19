@@ -68,9 +68,12 @@ Zijn invoervelden bruikbaar?
 Is alles goed leesbaar, scrollbaar?
 ✅✅✅✅✅- Rijflow.nl kopen
 ✅✅✅✅✅- Rijflow.nl moet doortsturen naar de vercel app
-- Datascraper maken die met cbr.nl emailadressen van rijscholen vindt
+✅✅✅✅✅- Datascraper maken die met cbr.nl emailadressen van rijscholen vindt
 - Instantly AI opzetten voor rijflow app
 - Naar het engels vertalen
+- Appstore link in landing page vervangen zodra app gepubliceerd is
+- Snel screenshots maken
+- App logo & naam goedzetten in playstore & appstore
 
 
 Dashboard met:
