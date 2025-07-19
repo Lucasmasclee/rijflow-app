@@ -219,49 +219,49 @@ export default function HomePage() {
           <div className="mobile-grid md:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
             <div className="card">
               <Calendar className="h-12 w-12 text-blue-600 mb-4" />
-              <h3 className="text-lg md:text-xl font-semibold text-gray-900 mb-2">Lesplanning</h3>
+              <h3 className="text-lg md:text-xl font-semibold text-gray-900 mb-2">AI Weekplanning</h3>
               <p className="text-gray-600">
-                Drag & drop planner met dag- en weekoverzicht. Plan lessen eenvoudig en overzichtelijk.
+                Laat AI je optimale weekplanning maken op basis van beschikbaarheid en voorkeuren.
               </p>
             </div>
 
             <div className="card">
               <Users className="h-12 w-12 text-blue-600 mb-4" />
-              <h3 className="text-lg md:text-xl font-semibold text-gray-900 mb-2">Leerlingbeheer</h3>
+              <h3 className="text-lg md:text-xl font-semibold text-gray-900 mb-2">Dagplanning</h3>
               <p className="text-gray-600">
-                Profielen, lespakket, voortgang en historie van al je leerlingen op één plek.
+                Overzichtelijke dagplanning met alle lessen, locaties en leerlingen.
               </p>
             </div>
 
             <div className="card">
               <FileText className="h-12 w-12 text-blue-600 mb-4" />
-              <h3 className="text-lg md:text-xl font-semibold text-gray-900 mb-2">Facturatie</h3>
+              <h3 className="text-lg md:text-xl font-semibold text-gray-900 mb-2">Weekplanning</h3>
               <p className="text-gray-600">
-                Automatische facturen per les of pakket, PDF-export en betalingsstatus.
+                Plan je hele week vooruit met een duidelijk weekoverzicht van alle lessen.
               </p>
             </div>
 
             <div className="card">
               <MessageSquare className="h-12 w-12 text-blue-600 mb-4" />
-              <h3 className="text-lg md:text-xl font-semibold text-gray-900 mb-2">Digitale leskaart</h3>
+              <h3 className="text-lg md:text-xl font-semibold text-gray-900 mb-2">Leerlingbeheer</h3>
               <p className="text-gray-600">
-                Wat is behandeld, wie reed, opmerkingen en voortgang per les.
+                Beheer al je leerlingen, hun gegevens en lespakketten op één centrale plek.
               </p>
             </div>
 
             <div className="card">
               <Clock className="h-12 w-12 text-blue-600 mb-4" />
-              <h3 className="text-lg md:text-xl font-semibold text-gray-900 mb-2">Urenregistratie</h3>
+              <h3 className="text-lg md:text-xl font-semibold text-gray-900 mb-2">Voortgang bijhouden</h3>
               <p className="text-gray-600">
-                Automatisch lesuren per maand/week bijhouden voor je administratie.
+                Houd de voortgang van je leerlingen bij en zie hun ontwikkeling over tijd.
               </p>
             </div>
 
             <div className="card">
               <CheckCircle className="h-12 w-12 text-blue-600 mb-4" />
-              <h3 className="text-lg md:text-xl font-semibold text-gray-900 mb-2">Rapportage</h3>
+              <h3 className="text-lg md:text-xl font-semibold text-gray-900 mb-2">Urenregistratie</h3>
               <p className="text-gray-600">
-                Overzicht van geplande lessen, open taken en weekplanning.
+                Automatische urenregistratie voor een complete administratie van je werkuren.
               </p>
             </div>
           </div>
@@ -269,7 +269,7 @@ export default function HomePage() {
       </div>
 
       {/* Pricing Section */}
-      <div className="bg-white py-12 md:py-20">
+      {/* <div className="bg-white py-12 md:py-20">
         <div className="container-mobile">
           <div className="text-center mb-12 md:mb-16">
             <h2 className="text-mobile-xl md:text-3xl font-bold text-gray-900 mb-4">
@@ -379,16 +379,16 @@ export default function HomePage() {
             </div>
           </div>
         </div>
-      </div>
+      </div> */}
 
       {/* CTA Section */}
-      <div className="bg-blue-600 py-12 md:py-20">
+      <div className="bg-blue-600 py-6 md:py-10">
         <div className="container-mobile text-center">
           <h2 className="text-mobile-xl md:text-3xl font-bold text-white mb-4">
             Klaar om te beginnen?
           </h2>
           <p className="text-mobile-lg md:text-xl text-blue-100 mb-8">
-            Deze app is nog in ontwikkeling, en om die reden volledig gratis.
+            Deze tool is nog in ontwikkeling, en om die reden volledig gratis.
           </p>
           <button
             onClick={() => router.push('/auth/signup')}
