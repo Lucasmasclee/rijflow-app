@@ -105,7 +105,7 @@ export default function HomePage() {
       </nav>
 
       {/* Hero Section */}
-      <div className="container-mobile py-12 md:py-20">
+      {/* <div className="container-mobile py-12 md:py-20">
         <div className="text-center">
           <h1 className="text-mobile-2xl md:text-4xl lg:text-6xl font-bold text-gray-900 mb-6">
             Rijflow{' '}
@@ -148,10 +148,10 @@ export default function HomePage() {
             </div>
           </div>
         </div>
-      </div>
+      </div> */}
 
       {/* Problem & Solution Section */}
-      <div className="bg-white py-12 md:py-20">
+      {/* <div className="bg-white py-12 md:py-20">
         <div className="container-mobile">
           <div className="mobile-grid md:grid-cols-2 gap-8 md:gap-12 items-start">
             <div>
@@ -202,7 +202,7 @@ export default function HomePage() {
             </div>
           </div>
         </div>
-      </div>
+      </div> */}
 
       {/* Features Section */}
       <div className="bg-gray-50 py-12 md:py-20">

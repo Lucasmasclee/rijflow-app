@@ -45,10 +45,10 @@
 ✅✅✅✅✅Aantal lessen ingepland
 ✅✅✅✅✅Lesnotities in chronologische volgorde
 ✅✅✅✅✅Standaard minuten per les
-⚙️ Stap 7: Roosterinstellingen aanpassen
-Ga naar roosterinstellingen
-Pas standaard beschikbare dagen en tijden aan
-Controleer of deze nieuwe instellingen automatisch worden meegenomen bij AI-rooster (zie stap 8)
+✅✅✅✅✅⚙️ Stap 7: Roosterinstellingen aanpassen
+✅✅✅✅✅Ga naar roosterinstellingen
+✅✅✅✅✅Pas standaard beschikbare dagen en tijden aan
+<!-- Controleer of deze nieuwe instellingen automatisch worden meegenomen bij AI-rooster (zie stap 8)
 🤖 Stap 8: AI-rooster testen
 Let op: als deze functie nog niet werkt, kun je deze stap overslaan of simuleren.
 Ga naar de AI-roosterpagina
@@ -58,21 +58,19 @@ Stel aantal lessen en minuten per leerling in
 Vul extra notities in (pauzes, locatievoorkeur)
 Genereer rooster via ChatGPT (of dummy output)
 Bekijk voorstel, selecteer lessen die je wilt toevoegen
-Klik op “Toevoegen” en controleer of lessen in weekplanning verschijnen
-🔧 Stap 9: Bugs & Glitches checken (handmatig)
-Inloggen op Macbook → tekst nog steeds wit?
-Leerling-dashboard beschikbaarheid invullen → tekst leesbaar?
-Klik op uitnodigingslink als leerling → zie je bevestig-account melding?
+Klik op “Toevoegen” en controleer of lessen in weekplanning verschijnen -->
+✅✅✅✅✅🔧 Stap 9: Bugs & Glitches checken (handmatig)
 Tijdinvoer: typ “18” → blijft het “18” of springt het naar “06”?
 📱 Stap 10: Mobiele bruikbaarheid testen
 Open app op telefoon (klein scherm)
 Kun je navigeren naar dag- en weekplanning?
 Zijn invoervelden bruikbaar?
 Is alles goed leesbaar, scrollbaar?
-- Rijflow.nl kopen
-- Rijflow.nl moet doortsturen naar de vercel app
+✅✅✅✅✅- Rijflow.nl kopen
+✅✅✅✅✅- Rijflow.nl moet doortsturen naar de vercel app
 - Datascraper maken die met cbr.nl emailadressen van rijscholen vindt
 - Instantly AI opzetten voor rijflow app
+- Naar het engels vertalen
 
 
 Dashboard met:
