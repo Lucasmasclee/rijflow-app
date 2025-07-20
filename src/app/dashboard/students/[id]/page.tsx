@@ -379,7 +379,7 @@ export default function StudentDetailPage({ params }: { params: Promise<{ id: st
       </nav>
 
       {/* Content with top padding to account for fixed navigation */}
-      <div className="container-mobile py-10 pt-48 pb-20">
+      <div className="container-mobile py-10 pt-24 pb-20">
         {/* Header - Non-editable first name */}
         <div className="mb-6">
           <h1 className="text-2xl md:text-3xl font-bold text-gray-900">
@@ -504,7 +504,11 @@ export default function StudentDetailPage({ params }: { params: Promise<{ id: st
                 <textarea
                   value={progressNotesText}
                   onChange={(e) => setProgressNotesText(e.target.value)}
-                  placeholder="Bijvoorbeeld:&#10;18 juli: Achteruit inparkeren&#10;25 juli: Hellingproef"
+                  placeholder={`Bijvoorbeeld:
+18 juli: Achteruit inparkeren
+25 juli: Hellingproef
+
+`}
                   className="w-full px-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
                   rows={8}
                 />
