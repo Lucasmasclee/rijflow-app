@@ -510,14 +510,10 @@ export default function StudentDetailPage({ params }: { params: Promise<{ id: st
                 <textarea
                   value={progressNotesText}
                   onChange={(e) => setProgressNotesText(e.target.value)}
-                  placeholder="Voeg notities toe...&#10;Schrijf gewoon vrije tekst&#10;De hele geschiedenis wordt hier bewaard"
+                  placeholder="Bijvoorbeeld:&#10;18 juli: Achteruit inparkeren&#10;25 juli: Hellingproef"
                   className="w-full px-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
                   rows={8}
                 />
-                <div className="mt-2 text-sm text-gray-600">
-                  <p>Schrijf gewoon vrije tekst voor je notities</p>
-                  <p>De hele geschiedenis wordt hier bewaard en bewerkt</p>
-                </div>
                 <button
                   onClick={handleSaveProgressNotes}
                   disabled={savingProgressNote}
@@ -537,11 +533,11 @@ export default function StudentDetailPage({ params }: { params: Promise<{ id: st
                 </button>
               </div>
 
-              {progressNote && progressNote.updated_at && (
+              {/* {progressNote && progressNote.updated_at && (
                 <div className="text-xs text-gray-500">
                   Laatst bijgewerkt: {new Date(progressNote.updated_at).toLocaleString('nl-NL')}
                 </div>
-              )}
+              )} */}
             </div>
           </div>
 

@@ -531,13 +531,10 @@ function InstructorDashboard() {
               <textarea
                 value={notesText}
                 onChange={(e) => setNotesText(e.target.value)}
-                placeholder="Voeg notities toe...&#10;Schrijf gewoon vrije tekst&#10;De hele geschiedenis wordt hier bewaard"
+                placeholder="Bijvoorbeeld:&#10;18 juli: Achteruit inparkeren&#10;25 juli: Hellingproef"
                 className="w-full p-2 border border-gray-300 rounded-lg resize-none text-sm"
                 rows={4}
               />
-              <div className="mt-1 text-xs text-gray-600">
-                <p>Schrijf gewoon vrije tekst voor je notities</p>
-              </div>
               <button
                 onClick={handleSaveProgressNotes}
                 disabled={saving}
