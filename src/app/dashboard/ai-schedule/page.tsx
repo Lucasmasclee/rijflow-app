@@ -1228,8 +1228,8 @@ OPDRACHT: Maak een optimaal lesrooster voor de geselecteerde week op basis van b
         minutes: s.minutes
       })))
 
-      // Roep de AI API aan - gebruik de bewerkte prompt als die bestaat, anders genereer een nieuwe
-      const response = await fetch('/api/ai-schedule', {
+      // Roep de test AI API aan - gebruik de Python script in plaats van OpenAI
+      const response = await fetch('/api/ai-schedule/test', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -1711,12 +1711,12 @@ OPDRACHT: Maak een optimaal lesrooster voor de geselecteerde week op basis van b
                       {isGenerating ? (
                         <>
                           <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                          AI Planning...
+                          Test Planning...
                         </>
                       ) : (
                         <>
                           <Brain className="h-4 w-4" />
-                          Start AI Planning
+                          Start Test Planning
                         </>
                       )}
                     </button>

@@ -89,7 +89,19 @@ Todolist:
 - Systeem voor personal trainers maken voor fitness app ?
 - 
 
-
+AI WEEKPLANNING ALGORITME
+Input:
+Gegeven	Verplicht?	Toelichting
+Beschikbare tijden  ✅ Eis	Hier mag je nooit buiten plannen.
+Maximale lessen per dag	🔁 Wens	Bijv. “max 5 lessen per dag”, om geen burn-out te krijgen.
+Tijd tussen lessen (pauze)	✅ Eis	Bijv. 5 min reistijd/herstel tussen lessen.
+Aantal grote pauzes per dag (bijv. 2x 30 minuten) 🔁 Wens Bijv. lunch en middagpauze.
+Lengte per grote pauze (bijv. 20–30 min) ✅ Eis	Planning moet dit inbouwen.
+Locaties moeten aansluiten (toggle)	🔁 Wens	Indien aan: probeer leerlingen bij elkaar in de buurt te plannen.
+👤 Voor elke leerling
+Beschikbare dagen/tijden	✅ Eis	Plan alleen als instructeur én leerling beschikbaar zijn
+Aantal lessen per week	✅ Eis	Bijv. 2 of 3 lessen
+Duur per les (in minuten)	✅ Eis	Bijv. 60 minuten
 
 
 
