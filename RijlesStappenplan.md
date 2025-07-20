@@ -60,7 +60,7 @@ Genereer rooster via ChatGPT (of dummy output)
 Bekijk voorstel, selecteer lessen die je wilt toevoegen
 Klik op “Toevoegen” en controleer of lessen in weekplanning verschijnen -->
 ✅✅✅✅✅🔧 Stap 9: Bugs & Glitches checken (handmatig)
-Tijdinvoer: typ “18” → blijft het “18” of springt het naar “06”?
+✅✅✅✅✅Tijdinvoer: typ “18” → blijft het “18” of springt het naar “06”?
 📱 Stap 10: Mobiele bruikbaarheid testen
 Open app op telefoon (klein scherm)
 Kun je navigeren naar dag- en weekplanning?

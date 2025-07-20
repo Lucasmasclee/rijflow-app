@@ -262,9 +262,10 @@ export default function StudentsPage() {
             {/* </div> */}
           {/* </div>
         </div> */}
+        
 
         {/* Students List */}
-        <div className="space-y-4">
+        <div className="space-y-4 pt-10">
           {loadingStudents ? (
             <div className="card text-center py-12">
               <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
