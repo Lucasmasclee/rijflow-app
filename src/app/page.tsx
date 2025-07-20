@@ -103,107 +103,6 @@ export default function HomePage() {
           </div>
         )}
       </nav>
-
-      {/* Hero Section */}
-      {/* <div className="container-mobile py-12 md:py-20">
-        <div className="text-center">
-          <h1 className="text-mobile-2xl md:text-4xl lg:text-6xl font-bold text-gray-900 mb-6">
-            Rijflow{' '}
-            <span className="text-blue-600">Rijles Planner</span>
-          </h1>
-          <p className="text-mobile-lg md:text-xl text-gray-600 mb-8 max-w-3xl mx-auto">
-            Beheer je planning, leerlingen en administratie op één plek. 
-            Werk 30% minder aan administratie en focus op wat echt belangrijk is: je leerlingen.
-          </p>
-          
-          <div className="mobile-stack md:flex-row gap-4 justify-center items-center mb-12">
-            <input
-              type="email"
-              placeholder="Je e-mailadres"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              className="px-6 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent w-full max-w-md"
-            />
-            <button
-              onClick={handleGetStarted}
-              className="btn btn-primary flex items-center justify-center gap-2 btn-mobile-full md:w-auto"
-            >
-              Registreren
-              <ArrowRight className="h-4 w-4" />
-            </button>
-          </div>
-
-          <div className="mobile-stack md:flex-row items-center justify-center gap-4 md:gap-8 text-sm text-gray-500">
-            <div className="flex items-center gap-2">
-              <CheckCircle className="h-4 w-4 text-green-500" />
-              <span>60 dagen proefperiode</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <CheckCircle className="h-4 w-4 text-green-500" />
-              <span>Geen creditcard vereist</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <CheckCircle className="h-4 w-4 text-green-500" />
-              <span>Direct aan de slag</span>
-            </div>
-          </div>
-        </div>
-      </div> */}
-
-      {/* Problem & Solution Section */}
-      {/* <div className="bg-white py-12 md:py-20">
-        <div className="container-mobile">
-          <div className="mobile-grid md:grid-cols-2 gap-8 md:gap-12 items-start">
-            <div>
-              <h2 className="text-mobile-xl md:text-3xl font-bold text-gray-900 mb-6">
-                Het probleem: administratie kost te veel tijd
-              </h2>
-              <div className="space-y-4">
-                <div className="flex items-start gap-3">
-                  <div className="w-2 h-2 bg-red-500 rounded-full mt-2 flex-shrink-0"></div>
-                  <p className="text-gray-600">Leskaartjes, rittenplanning en facturatie handmatig bijhouden</p>
-                </div>
-                <div className="flex items-start gap-3">
-                  <div className="w-2 h-2 bg-red-500 rounded-full mt-2 flex-shrink-0"></div>
-                  <p className="text-gray-600">Leerlingen bijhouden met Excel en WhatsApp</p>
-                </div>
-                <div className="flex items-start gap-3">
-                  <div className="w-2 h-2 bg-red-500 rounded-full mt-2 flex-shrink-0"></div>
-                  <p className="text-gray-600">Geen centrale plek voor alles</p>
-                </div>
-                <div className="flex items-start gap-3">
-                  <div className="w-2 h-2 bg-red-500 rounded-full mt-2 flex-shrink-0"></div>
-                  <p className="text-gray-600">Onhandige tools die niet samenwerken</p>
-                </div>
-              </div>
-            </div>
-            <div>
-              <h2 className="text-mobile-xl md:text-3xl font-bold text-gray-900 mb-6">
-                De oplossing: alles-in-één webapp
-              </h2>
-              <div className="space-y-4">
-                <div className="flex items-start gap-3">
-                  <div className="w-2 h-2 bg-green-500 rounded-full mt-2 flex-shrink-0"></div>
-                  <p className="text-gray-600">Lesplanning met kalender en drag & drop</p>
-                </div>
-                <div className="flex items-start gap-3">
-                  <div className="w-2 h-2 bg-green-500 rounded-full mt-2 flex-shrink-0"></div>
-                  <p className="text-gray-600">Leerlingbeheer en voortgang bijhouden</p>
-                </div>
-                <div className="flex items-start gap-3">
-                  <div className="w-2 h-2 bg-green-500 rounded-full mt-2 flex-shrink-0"></div>
-                  <p className="text-gray-600">Automatische facturatie en rapportage</p>
-                </div>
-                <div className="flex items-start gap-3">
-                  <div className="w-2 h-2 bg-green-500 rounded-full mt-2 flex-shrink-0"></div>
-                  <p className="text-gray-600">Digitale leskaart en communicatie</p>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div> */}
-
       {/* Features Section */}
       <div className="bg-gray-50 py-12 md:py-20">
         <div className="container-mobile">
@@ -268,119 +167,6 @@ export default function HomePage() {
         </div>
       </div>
 
-      {/* Pricing Section */}
-      {/* <div className="bg-white py-12 md:py-20">
-        <div className="container-mobile">
-          <div className="text-center mb-12 md:mb-16">
-            <h2 className="text-mobile-xl md:text-3xl font-bold text-gray-900 mb-4">
-              Eenvoudige prijzen
-            </h2>
-            <p className="text-mobile-lg md:text-xl text-gray-600">
-              Start gratis en upgrade wanneer je groeit
-            </p>
-          </div>
-
-          <div className="mobile-grid md:grid-cols-3 gap-6 md:gap-8">
-            <div className="card">
-              <h3 className="text-xl md:text-2xl font-bold text-gray-900 mb-2">Freemium</h3>
-              <p className="text-gray-600 mb-6">Perfect om te starten</p>
-              <div className="text-3xl md:text-4xl font-bold text-gray-900 mb-6">
-                €0<span className="text-base md:text-lg font-normal text-gray-600">/maand</span>
-              </div>
-              <ul className="space-y-3 mb-8">
-                <li className="flex items-center gap-2">
-                  <CheckCircle className="h-4 w-4 text-green-500 flex-shrink-0" />
-                  <span>1 instructeur</span>
-                </li>
-                <li className="flex items-center gap-2">
-                  <CheckCircle className="h-4 w-4 text-green-500 flex-shrink-0" />
-                  <span>Beperkt aantal leerlingen</span>
-                </li>
-                <li className="flex items-center gap-2">
-                  <CheckCircle className="h-4 w-4 text-green-500 flex-shrink-0" />
-                  <span>Basis planning</span>
-                </li>
-              </ul>
-              <button
-                onClick={() => router.push('/auth/signup')}
-                className="btn btn-secondary w-full"
-              >
-                Gratis starten
-              </button>
-            </div>
-
-            <div className="card bg-blue-600 text-white relative">
-              <div className="absolute -top-4 left-1/2 transform -translate-x-1/2">
-                <span className="bg-yellow-400 text-gray-900 px-3 py-1 rounded-full text-sm font-medium">
-                  Meest populair
-                </span>
-              </div>
-              <h3 className="text-xl md:text-2xl font-bold mb-2">Basic</h3>
-              <p className="text-blue-100 mb-6">Voor groeiende instructeurs</p>
-              <div className="text-3xl md:text-4xl font-bold mb-6">
-                €19<span className="text-base md:text-lg font-normal text-blue-100">/maand</span>
-              </div>
-              <ul className="space-y-3 mb-8">
-                <li className="flex items-center gap-2">
-                  <CheckCircle className="h-4 w-4 text-green-400 flex-shrink-0" />
-                  <span>Volledige planning</span>
-                </li>
-                <li className="flex items-center gap-2">
-                  <CheckCircle className="h-4 w-4 text-green-400 flex-shrink-0" />
-                  <span>Leerlingbeheer</span>
-                </li>
-                <li className="flex items-center gap-2">
-                  <CheckCircle className="h-4 w-4 text-green-400 flex-shrink-0" />
-                  <span>Rapportage</span>
-                </li>
-                <li className="flex items-center gap-2">
-                  <CheckCircle className="h-4 w-4 text-green-400 flex-shrink-0" />
-                  <span>Digitale leskaart</span>
-                </li>
-              </ul>
-              <button
-                onClick={() => router.push('/auth/signup')}
-                className="btn bg-white hover:bg-gray-100 text-blue-600 w-full font-medium"
-              >
-                Start gratis proef
-              </button>
-            </div>
-
-            <div className="card">
-              <h3 className="text-xl md:text-2xl font-bold text-gray-900 mb-2">Pro</h3>
-              <p className="text-gray-600 mb-6">Voor professionals</p>
-              <div className="text-3xl md:text-4xl font-bold text-gray-900 mb-6">
-                €39<span className="text-base md:text-lg font-normal text-gray-600">/maand</span>
-              </div>
-              <ul className="space-y-3 mb-8">
-                <li className="flex items-center gap-2">
-                  <CheckCircle className="h-4 w-4 text-green-500 flex-shrink-0" />
-                  <span>Alles uit Basic</span>
-                </li>
-                <li className="flex items-center gap-2">
-                  <CheckCircle className="h-4 w-4 text-green-500 flex-shrink-0" />
-                  <span>Facturatie</span>
-                </li>
-                <li className="flex items-center gap-2">
-                  <CheckCircle className="h-4 w-4 text-green-500 flex-shrink-0" />
-                  <span>Leerlingportal</span>
-                </li>
-                <li className="flex items-center gap-2">
-                  <CheckCircle className="h-4 w-4 text-green-500 flex-shrink-0" />
-                  <span>2+ instructeurs</span>
-                </li>
-              </ul>
-              <button
-                onClick={() => router.push('/auth/signup')}
-                className="btn btn-primary w-full"
-              >
-                Start gratis proef
-              </button>
-            </div>
-          </div>
-        </div>
-      </div> */}
-
       {/* App Store Section */}
       <div className="bg-white py-12 md:py-16">
         <div className="container-mobile text-center">
@@ -436,6 +222,7 @@ export default function HomePage() {
                 </div>
               </a>
             </div>
+          </div>
         </div>
       </div>
 
@@ -503,5 +290,7 @@ export default function HomePage() {
         </div>
       </footer>
     </div>
+    
+    
   )
 }
