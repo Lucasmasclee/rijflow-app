@@ -13,6 +13,8 @@ export async function POST(request: NextRequest): Promise<Response> {
 
     console.log('Starting Python script:', scriptPath)
     console.log('JSON file will be created at:', jsonFilePath)
+    console.log('Current working directory:', process.cwd())
+    console.log('Script exists:', require('fs').existsSync(scriptPath))
 
     // Probeer verschillende Python commando's (py eerst voor Windows)
     const pythonCommands = ['py', 'python3', 'python']
@@ -21,7 +23,11 @@ export async function POST(request: NextRequest): Promise<Response> {
 
     for (const command of pythonCommands) {
       try {
-        pythonProcess = spawn(command, [scriptPath])
+        // Use shell: true to ensure the command is found in PATH
+        pythonProcess = spawn(command, [scriptPath], { 
+          shell: true,
+          stdio: ['pipe', 'pipe', 'pipe']
+        })
         commandUsed = command
         console.log(`Successfully started Python script with command: ${command}`)
         break
@@ -117,11 +123,19 @@ export async function POST(request: NextRequest): Promise<Response> {
 
     pythonProcess.on('error', (err: Error) => {
       console.error('Failed to start Python script:', err)
+      console.error('Error details:', {
+        message: err.message,
+        code: (err as any).code,
+        command: commandUsed,
+        scriptPath: scriptPath
+      })
       resolve(
         NextResponse.json(
           {
             error: 'Failed to start Python script',
             details: err.message,
+            command: commandUsed,
+            code: (err as any).code
           },
           { status: 500 }
         )
