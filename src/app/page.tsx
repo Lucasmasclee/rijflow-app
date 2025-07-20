@@ -46,22 +46,22 @@ export default function HomePage() {
       {/* Mobile Navigation */}
       <nav className="bg-white shadow-sm safe-area-top">
         <div className="container-mobile">
-          <div className="flex justify-between items-center h-16">
+          <div className="flex justify-between items-center h-8">
             <div className="flex items-center">
-              <Car className="h-8 w-8 text-blue-600" />
-              <span className="ml-2 text-xl font-bold text-gray-900">RijFlow</span>
+              <Car className="h-4 w-4 text-blue-600" />
+              <span className="ml-1 text-sm font-bold text-gray-900">RijFlow</span>
             </div>
             
-            <div className="flex items-center space-x-4">
+            <div className="flex items-center space-x-2">
               <button
                 onClick={() => router.push('/auth/signin')}
-                className="btn btn-secondary px-1.5 py-1"
+                className="btn btn-secondary px-1 py-0.5 text-xs"
               >
                 Inloggen
               </button>
               <button
                 onClick={() => router.push('/auth/signup')}
-                className="btn btn-primary px-1.5 py-1"
+                className="btn btn-primary px-1 py-0.5 text-xs"
               >
                 Registreren
               </button>
