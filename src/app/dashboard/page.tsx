@@ -631,7 +631,7 @@ function InstructorDashboard() {
                               e.stopPropagation()
                               openGoogleMaps(student.address)
                             }}
-                            className="flex items-center"
+                            className="underline hover:text-blue-600 flex items-center"
                           >
                             <ExternalLink className="h-2.5 w-2.5" />
                             <span className="text-xs ml-0.5">
