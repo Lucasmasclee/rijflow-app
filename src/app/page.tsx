@@ -55,13 +55,13 @@ export default function HomePage() {
             <div className="flex items-center space-x-4">
               <button
                 onClick={() => router.push('/auth/signin')}
-                className="text-gray-600 hover:text-gray-900 px-3 py-2 rounded-md text-sm font-medium"
+                className="btn btn-secondary px-1.5 py-1"
               >
                 Inloggen
               </button>
               <button
                 onClick={() => router.push('/auth/signup')}
-                className="btn btn-primary"
+                className="btn btn-primary px-1.5 py-1"
               >
                 Registreren
               </button>
