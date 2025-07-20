@@ -708,13 +708,13 @@ export default function LessonsPage() {
               <Plus className="h-4 w-4" />
               Nieuwe les
             </button>
-            <button
+            {/* <button
               onClick={handleAIScheduleClick}
               className="btn btn-secondary w-full flex items-center justify-center gap-2"
             >
               <Calendar className="h-4 w-4" />
               AI-Weekplanning
-            </button>
+            </button> */}
             <Link
               href="/dashboard/schedule-settings"
               className="btn btn-secondary w-full flex items-center justify-center gap-2"
