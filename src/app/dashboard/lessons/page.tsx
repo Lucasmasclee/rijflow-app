@@ -708,13 +708,13 @@ export default function LessonsPage() {
               <Plus className="h-4 w-4" />
               Nieuwe les
             </button>
-            {/* <button
+            <button
               onClick={handleAIScheduleClick}
               className="btn btn-secondary w-full flex items-center justify-center gap-2"
             >
               <Calendar className="h-4 w-4" />
               AI-Weekplanning
-            </button> */}
+            </button>
             <Link
               href="/dashboard/schedule-settings"
               className="btn btn-secondary w-full flex items-center justify-center gap-2"
@@ -913,9 +913,9 @@ export default function LessonsPage() {
           {viewMode === 'month' && !loadingLessons && (
             <div className="space-y-4">
               {/* Help text */}
-              <div className="text-center text-sm text-gray-600 bg-blue-50 p-3 rounded-lg border border-blue-200">
+              {/* <div className="text-center text-sm text-gray-600 bg-blue-50 p-3 rounded-lg border border-blue-200">
                 💡 <strong>Tip:</strong> Klik op een dag om het dagoverzicht te bekijken
-              </div>
+              </div> */}
               
               {/* Calendar Header */}
               <div className="grid grid-cols-7 gap-1 text-center text-sm font-medium text-gray-500">

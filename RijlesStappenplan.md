@@ -61,11 +61,11 @@ Bekijk voorstel, selecteer lessen die je wilt toevoegen
 Klik op “Toevoegen” en controleer of lessen in weekplanning verschijnen -->
 ✅✅✅✅✅🔧 Stap 9: Bugs & Glitches checken (handmatig)
 ✅✅✅✅✅Tijdinvoer: typ “18” → blijft het “18” of springt het naar “06”?
-📱 Stap 10: Mobiele bruikbaarheid testen
-Open app op telefoon (klein scherm)
-Kun je navigeren naar dag- en weekplanning?
-Zijn invoervelden bruikbaar?
-Is alles goed leesbaar, scrollbaar?
+✅✅✅✅✅📱 Stap 10: Mobiele bruikbaarheid testen
+✅✅✅✅✅Open app op telefoon (klein scherm)
+✅✅✅✅✅Kun je navigeren naar dag- en weekplanning?
+✅✅✅✅✅Zijn invoervelden bruikbaar?
+✅✅✅✅✅Is alles goed leesbaar, scrollbaar?
 ✅✅✅✅✅- Rijflow.nl kopen
 ✅✅✅✅✅- Rijflow.nl moet doortsturen naar de vercel app
 ✅✅✅✅✅- Datascraper maken die met cbr.nl emailadressen van rijscholen vindt
