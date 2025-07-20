@@ -68,17 +68,17 @@ export default function HomePage() {
             </div>
 
             {/* Mobile Menu Button */}
-            <button
+            {/* <button
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
               className="md:hidden p-2 rounded-md text-gray-600 hover:text-gray-900"
             >
               {mobileMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
-            </button>
+            </button> */}
           </div>
         </div>
 
         {/* Mobile Menu */}
-        {mobileMenuOpen && (
+        {/* {mobileMenuOpen && (
           <div className="md:hidden bg-white border-t border-gray-200">
             <div className="container-mobile py-4 space-y-4">
               <button
@@ -101,7 +101,7 @@ export default function HomePage() {
               </button>
             </div>
           </div>
-        )}
+        )} */}
       </nav>
       {/* Features Section */}
       <div className="bg-gray-50 py-12 md:py-20">

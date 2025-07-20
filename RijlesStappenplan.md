@@ -75,6 +75,29 @@ Is alles goed leesbaar, scrollbaar?
 - Snel screenshots maken
 - App logo & naam goedzetten in playstore & appstore
 
+Todolist:
+- Testscenario helemaal opnieuw (Minder dan 2 uur)
+- AI Weekplanning functie tijdelijk uitzetten
+- Uploaden naar appstore als dit niet gelukt is
+- Naam & logo verandern in playstore
+- Snel screenshots maken
+- 100 Leads toevoegen aan instantly.ai
+- Emails in instantly.ai maken. 
+- NIET aan datascraper werken
+- 
+- Systeem voor personal trainers maken voor fitness app ?
+- 
+
+
+
+
+
+
+
+
+
+
+
 
 Dashboard met:
 ✅✅✅✅✅- Dag overzicht
