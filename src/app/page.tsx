@@ -55,13 +55,13 @@ export default function HomePage() {
             <div className="flex items-center space-x-2">
               <button
                 onClick={() => router.push('/auth/signin')}
-                className="btn btn-secondary px-0.5 py-0.25 text-[0.65rem]"
+                className="btn btn-secondary px-0.25 py-0.125 text-[0.325rem]"
               >
                 Inloggen
               </button>
               <button
                 onClick={() => router.push('/auth/signup')}
-                className="btn btn-primary px-0.5 py-0.25 text-[0.65rem]"
+                className="btn btn-primary px-0.25 py-0.125 text-[0.325rem]"
               >
                 Registreren
               </button>
@@ -77,7 +77,7 @@ export default function HomePage() {
               Alles wat je nodig hebt in één app
             </h2>
             <p className="text-mobile-lg md:text-xl text-gray-600">
-              Van lesplanning tot facturatie, alles op één plek
+              Gemaakt door een leerling, die voor zijn instructeur deze tool heeft gemaakt.
             </p>
           </div>
 
