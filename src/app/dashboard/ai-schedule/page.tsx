@@ -1605,19 +1605,7 @@ OPDRACHT: Maak een optimaal lesrooster voor de geselecteerde week op basis van b
                     </div>
                   </div>
                   
-                  {aiResponse.leerlingen_zonder_les && Object.keys(aiResponse.leerlingen_zonder_les).length > 0 && (
-                    <div className="mt-4 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
-                      <h5 className="font-medium text-yellow-800 mb-2">Leerlingen met onvoldoende lessen:</h5>
-                      <div className="text-sm text-yellow-700">
-                        {Object.entries(aiResponse.leerlingen_zonder_les).map(([name, count]) => (
-                          <div key={name} className="flex justify-between">
-                            <span>{name}</span>
-                            <span>{count} les(sen) tekort</span>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  )}
+                  
                 </div>
 
                 {/* Bulk selectie */}
@@ -1626,7 +1614,7 @@ OPDRACHT: Maak een optimaal lesrooster voor de geselecteerde week op basis van b
                     <h4 className="font-medium text-gray-900">
                       Geselecteerd: {selectedLessons.size} van {aiResponse.lessons?.length || 0} lessen
                     </h4>
-                    <div className="flex gap-2">
+                    {/* <div className="flex gap-2">
                       <button
                         onClick={handleSelectAll}
                         className="text-sm text-blue-600 hover:text-blue-700"
@@ -1639,54 +1627,66 @@ OPDRACHT: Maak een optimaal lesrooster voor de geselecteerde week op basis van b
                       >
                         Alles deselecteren
                       </button>
-                    </div>
+                    </div> */}
                   </div>
                 </div>
 
                 {/* Lessen lijst */}
                 <div className="space-y-3">
-                  {aiResponse.lessons?.map((lesson, index) => (
-                    <div key={index} className="card hover:shadow-md transition-shadow">
-                      <div className="flex items-center gap-3">
-                        <input
-                          type="checkbox"
-                          checked={selectedLessons.has(index.toString())}
-                          onChange={() => handleLessonSelection(index.toString())}
-                          className="w-4 h-4 text-blue-600 rounded focus:ring-blue-500"
-                        />
-                        
-                        <div className="flex-1">
-                          <div className="flex items-center justify-between mb-2">
-                            <h5 className="font-medium text-gray-900 text-lg">
-                              {lesson.studentName}
-                            </h5>
-                            <div className="flex items-center gap-2 text-sm text-gray-600 bg-gray-100 px-3 py-1 rounded-full">
-                              <Clock className="h-4 w-4" />
-                              {lesson.startTime} - {lesson.endTime}
-                            </div>
-                          </div>
+                  {aiResponse.lessons?.map((lesson, index) => {
+                    // Parse student name to get first name and first letter of last name
+                    const studentNameParts = lesson.studentName.split(' ')
+                    const firstName = studentNameParts[0]
+                    const lastNameInitial = studentNameParts.length > 1 ? studentNameParts[1][0] : ''
+                    const displayName = lastNameInitial ? `${firstName} ${lastNameInitial}.` : firstName
+                    
+                    // Format date as "Ma 21 juli" (short weekday, day, month)
+                    const lessonDate = new Date(lesson.date)
+                    const shortDate = lessonDate.toLocaleDateString('nl-NL', {
+                      weekday: 'short',
+                      day: 'numeric',
+                      month: 'long'
+                    })
+                    
+                    return (
+                      <div key={index} className="card hover:shadow-md transition-shadow">
+                        <div className="flex items-center gap-4">
+                          <input
+                            type="checkbox"
+                            checked={selectedLessons.has(index.toString())}
+                            onChange={() => handleLessonSelection(index.toString())}
+                            className="w-4 h-4 text-blue-600 rounded focus:ring-blue-500"
+                          />
                           
-                          <div className="flex items-center gap-4 text-sm text-gray-600">
-                            <div className="flex items-center gap-1">
-                              <Calendar className="h-4 w-4" />
-                              {new Date(lesson.date).toLocaleDateString('nl-NL', {
-                                weekday: 'long',
-                                year: 'numeric',
-                                month: 'long',
-                                day: 'numeric'
-                              })}
+                          <div className="flex-1 flex items-center justify-between">
+                            <span className="font-medium text-gray-900">
+                              {displayName}
+                            </span>
+                            
+                            <div className="flex items-center gap-4 text-sm text-gray-600">
+                              <span>{shortDate}</span>
+                              <span>{lesson.startTime} - {lesson.endTime}</span>
                             </div>
-                            {lesson.notes && (
-                              <div className="flex items-center gap-1">
-                                <MapPin className="h-4 w-4" />
-                                {lesson.notes}
-                              </div>
-                            )}
                           </div>
                         </div>
                       </div>
+                    )
+                  })}
+                </div>
+                <div className="card">
+                {aiResponse.leerlingen_zonder_les && Object.keys(aiResponse.leerlingen_zonder_les).length > 0 && (
+                    <div className="mt-4 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
+                      <h5 className="font-medium text-yellow-800 mb-2">Leerlingen met onvoldoende lessen:</h5>
+                      <div className="text-sm text-yellow-700">
+                        {Object.entries(aiResponse.leerlingen_zonder_les).map(([name, count]) => (
+                          <div key={name} className="flex justify-between">
+                            <span>{name}</span>
+                            <span>{count} les(sen) tekort</span>
+                          </div>
+                        ))}
+                      </div>
                     </div>
-                  ))}
+                  )}
                 </div>
 
                 {/* Toevoegen knop */}
