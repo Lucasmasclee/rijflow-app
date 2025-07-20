@@ -1131,113 +1131,13 @@ OPDRACHT: Maak een optimaal lesrooster voor de geselecteerde week op basis van b
     setIsGenerating(true)
     
     try {
-      // Refresh student availability data from database first
-      await fetchStudentAvailability(students)
-      
-      // Debug: Log alle student data voor troubleshooting
-      console.log('All students before validation:', students.map(s => ({
-        id: s.id,
-        firstName: s.first_name,
-        lastName: s.last_name,
-        hasFirstName: !!s.first_name,
-        hasLastName: !!s.last_name,
-        firstNameLength: s.first_name?.length || 0,
-        lastNameLength: s.last_name?.length || 0,
-        displayName: s.last_name ? `${s.first_name} ${s.last_name}` : s.first_name
-      })))
-
-      // Filter en bereid de data voor voor de AI met extra validatie
-      // Alleen voornaam is verplicht, achternaam is optioneel
-      const validStudents = students.filter(student => {
-        const hasId = !!student.id
-        const hasFirstName = !!student.first_name && student.first_name.trim().length > 0
-        
-        if (!hasId) {
-          console.warn(`Student missing ID:`, student)
-        }
-        if (!hasFirstName) {
-          console.warn(`Student missing first name:`, student)
-        }
-        
-        return hasId && hasFirstName
-      })
-
-      if (validStudents.length === 0) {
-        // Provide more detailed error information
-        const invalidStudents = students.filter(student => {
-          const hasId = !!student.id
-          const hasFirstName = !!student.first_name && student.first_name.trim().length > 0
-          return !hasId || !hasFirstName
-        })
-        
-        const errorDetails = invalidStudents.map(student => {
-          const issues = []
-          if (!student.id) issues.push('ID ontbreekt')
-          if (!student.first_name || student.first_name.trim().length === 0) issues.push('Voornaam ontbreekt')
-          return `${student.first_name || 'Onbekend'} ${student.last_name || ''}: ${issues.join(', ')}`
-        }).join('; ')
-        
-        // Show a more user-friendly error message
-        const errorMessage = students.length === 0 
-          ? 'Geen leerlingen gevonden. Voeg eerst leerlingen toe aan je rijschool.'
-          : `Geen geldige leerlingen gevonden. Controleer of alle leerlingen een voornaam hebben. Details: ${errorDetails}`
-        
-        throw new Error(errorMessage)
-      }
-
-      // Waarschuwing als er leerlingen zijn gefilterd
-      if (validStudents.length < students.length) {
-        const filteredCount = students.length - validStudents.length
-        console.warn(`${filteredCount} leerlingen zijn gefilterd vanwege ontbrekende gegevens`)
-        toast.error(`${filteredCount} leerlingen zijn overgeslagen vanwege ontbrekende gegevens`)
-      }
-
-      // Fetch the latest availability data from the database
-      const availabilityData = await fetchLatestStudentAvailability()
-      
-      const requestData = {
-        instructorAvailability: availability,
-        students: validStudents.map(student => {
-          // Zorg ervoor dat alle verplichte velden aanwezig zijn
-          const lessons = student.lessons || student.default_lessons_per_week || 2
-          const minutes = student.minutes || student.default_lesson_duration_minutes || 60
-          
-          // Get the availability for this student from the database
-          const studentAvailability = availabilityData.find((a: any) => a.student_id === student.id)
-          // Use the availability from student_availability table, fallback to current student.notes (which should contain the availability)
-          const availabilityText = studentAvailability?.notes || student.notes || 'Flexibel beschikbaar'
-          
-          return {
-            id: student.id,
-            firstName: student.first_name || '',
-            lastName: student.last_name || '', // Achternaam is optioneel, kan leeg zijn
-            lessons: Math.max(1, lessons), // Zorg ervoor dat het minimaal 1 is
-            minutes: Math.max(30, minutes), // Zorg ervoor dat het minimaal 30 is
-            aiNotes: student.aiNotes || '',
-            notes: availabilityText // Use actual database availability from student_availability table
-          }
-        }),
-        settings
-      }
-
-      // Debug: Log de student data voor validatie
-      console.log('Sending student data to AI:', requestData.students.map(s => ({
-        id: s.id,
-        name: s.lastName ? `${s.firstName} ${s.lastName}` : s.firstName,
-        lessons: s.lessons,
-        minutes: s.minutes
-      })))
-
-      // Roep de test AI API aan - gebruik de Python script in plaats van OpenAI
+      // Roep de test AI API aan - gebruik de Python script
       const response = await fetch('/api/ai-schedule/test', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({
-          ...requestData,
-          customPrompt: aiPrompt // Stuur de bewerkte prompt mee als die bestaat
-        })
+        body: JSON.stringify({})
       })
 
       if (!response.ok) {
@@ -1252,7 +1152,7 @@ OPDRACHT: Maak een optimaal lesrooster voor de geselecteerde week op basis van b
       setAiResponse(aiResult)
       
       // Selecteer alle lessen standaard
-      const lessonIds = aiResult.lessons.map((lesson: AIScheduleLesson, index: number) => index.toString())
+      const lessonIds = aiResult.lessons.map((lesson: any, index: number) => index.toString())
       setSelectedLessons(new Set(lessonIds))
       
       setCurrentStep('selection')
@@ -1281,7 +1181,7 @@ OPDRACHT: Maak een optimaal lesrooster voor de geselecteerde week op basis van b
 
   // Handle bulk lesson selection
   const handleSelectAll = () => {
-    if (aiResponse) {
+    if (aiResponse && aiResponse.lessons) {
       const allLessonIds = aiResponse.lessons.map((_, index) => index.toString())
       setSelectedLessons(new Set(allLessonIds))
     }
@@ -1293,7 +1193,7 @@ OPDRACHT: Maak een optimaal lesrooster voor de geselecteerde week op basis van b
 
   // Add selected lessons to database
   const handleAddSelectedLessons = async () => {
-    if (!user || !aiResponse) return
+    if (!user || !aiResponse || !aiResponse.lessons) return
     
     const selectedLessonData = aiResponse.lessons.filter((_, index) => 
       selectedLessons.has(index.toString())
@@ -1645,85 +1545,38 @@ OPDRACHT: Maak een optimaal lesrooster voor de geselecteerde week op basis van b
             <div>
               <h3 className="text-lg font-semibold mb-4">AI Planning</h3>
               <p className="text-gray-600 mb-6">
-                Bekijk de AI prompt en start de planning
+                Start de AI planning om een optimaal rooster te genereren
               </p>
             </div>
             
-            {!hasGeneratedPrompt ? (
-              <div className="card">
-                <div className="text-center py-8">
-                  <Brain className="h-12 w-12 text-blue-600 mx-auto mb-4" />
-                  <h4 className="text-lg font-medium text-gray-900 mb-2">
-                    Genereer AI Prompt
-                  </h4>
-                  <p className="text-gray-600 mb-6">
-                    Klik hieronder om de AI prompt te genereren op basis van je instellingen.
-                  </p>
-                  <button
-                    onClick={() => generateAIPrompt()}
-                    className="btn btn-primary flex items-center gap-2 mx-auto"
-                  >
-                    <Brain className="h-4 w-4" />
-                    Genereer Prompt
-                  </button>
-                </div>
+            <div className="card">
+              <div className="text-center py-8">
+                <Brain className="h-12 w-12 text-blue-600 mx-auto mb-4" />
+                <h4 className="text-lg font-medium text-gray-900 mb-2">
+                  Start Test Planning
+                </h4>
+                <p className="text-gray-600 mb-6">
+                  De AI zal een optimaal rooster maken op basis van je instellingen en beschikbaarheid.
+                </p>
+                <button
+                  onClick={handleSendToAI}
+                  disabled={isGenerating}
+                  className="btn btn-primary flex items-center gap-2 mx-auto disabled:opacity-50"
+                >
+                  {isGenerating ? (
+                    <>
+                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                      Planning genereren...
+                    </>
+                  ) : (
+                    <>
+                      <Brain className="h-4 w-4" />
+                      Start Test Planning
+                    </>
+                  )}
+                </button>
               </div>
-            ) : (
-              <>
-                <div className="card">
-                  <div className="flex items-center justify-between mb-4">
-                    <div className="flex items-center gap-2">
-                      <h4 className="text-lg font-medium text-gray-900">AI Prompt</h4>
-                      <span className="px-2 py-1 bg-green-100 text-green-800 text-xs rounded-full">
-                        Gereed
-                      </span>
-                    </div>
-                    <button
-                      onClick={() => setHasGeneratedPrompt(false)}
-                      className="text-sm text-blue-600 hover:text-blue-700"
-                    >
-                      Opnieuw genereren
-                    </button>
-                  </div>
-                  <div className="bg-gray-50 rounded-lg p-4 max-h-96 overflow-y-auto">
-                    <textarea
-                      value={aiPrompt}
-                      onChange={(e) => setAiPrompt(e.target.value)}
-                      className="w-full h-full min-h-[200px] text-sm text-gray-800 font-mono leading-relaxed bg-transparent border-none focus:ring-0 focus:outline-none resize-y"
-                      spellCheck={false}
-                    />
-                  </div>
-                </div>
-                
-                <div className="card">
-                  <div className="text-center py-8">
-                    <h4 className="text-lg font-medium text-gray-900 mb-2">
-                      Start AI Planning
-                    </h4>
-                    <p className="text-gray-600 mb-6">
-                      De AI zal nu een optimaal rooster maken op basis van bovenstaande prompt.
-                    </p>
-                    <button
-                      onClick={handleSendToAI}
-                      disabled={isGenerating}
-                      className="btn btn-primary flex items-center gap-2 mx-auto disabled:opacity-50"
-                    >
-                      {isGenerating ? (
-                        <>
-                          <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                          Test Planning...
-                        </>
-                      ) : (
-                        <>
-                          <Brain className="h-4 w-4" />
-                          Start Test Planning
-                        </>
-                      )}
-                    </button>
-                  </div>
-                </div>
-              </>
-            )}
+            </div>
           </div>
         )
 
@@ -1731,9 +1584,9 @@ OPDRACHT: Maak een optimaal lesrooster voor de geselecteerde week op basis van b
         return (
           <div className="space-y-6">
             <div>
-              <h3 className="text-lg font-semibold mb-4">Selecteer Lessen</h3>
+              <h3 className="text-lg font-semibold mb-4">Gegenereerd Rooster</h3>
               <p className="text-gray-600 mb-6">
-                Selecteer welke lessen je wilt toevoegen aan je rooster
+                Bekijk het gegenereerde rooster en selecteer welke lessen je wilt toevoegen
               </p>
             </div>
             
@@ -1741,17 +1594,28 @@ OPDRACHT: Maak een optimaal lesrooster voor de geselecteerde week op basis van b
               <>
                 {/* Samenvatting */}
                 <div className="card">
-                  <h4 className="font-medium text-gray-900 mb-2">Samenvatting</h4>
-                  <p className="text-gray-600">{aiResponse.summary}</p>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                    <div className="bg-blue-50 p-4 rounded-lg">
+                      <h4 className="font-medium text-blue-900 mb-1">Lessen ingepland</h4>
+                      <p className="text-2xl font-bold text-blue-600">{aiResponse.schedule_details?.lessen || aiResponse.lessons?.length || 0}</p>
+                    </div>
+                    <div className="bg-green-50 p-4 rounded-lg">
+                      <h4 className="font-medium text-green-900 mb-1">Totale tijd tussen lessen</h4>
+                      <p className="text-2xl font-bold text-green-600">{aiResponse.schedule_details?.totale_minuten_tussen_lessen || 0} min</p>
+                    </div>
+                  </div>
                   
-                  {aiResponse.warnings && aiResponse.warnings.length > 0 && (
+                  {aiResponse.leerlingen_zonder_les && Object.keys(aiResponse.leerlingen_zonder_les).length > 0 && (
                     <div className="mt-4 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
-                      <h5 className="font-medium text-yellow-800 mb-2">Waarschuwingen:</h5>
-                      <ul className="text-sm text-yellow-700 space-y-1">
-                        {aiResponse.warnings.map((warning, index) => (
-                          <li key={index}>• {warning}</li>
+                      <h5 className="font-medium text-yellow-800 mb-2">Leerlingen met onvoldoende lessen:</h5>
+                      <div className="text-sm text-yellow-700">
+                        {Object.entries(aiResponse.leerlingen_zonder_les).map(([name, count]) => (
+                          <div key={name} className="flex justify-between">
+                            <span>{name}</span>
+                            <span>{count} les(sen) tekort</span>
+                          </div>
                         ))}
-                      </ul>
+                      </div>
                     </div>
                   )}
                 </div>
@@ -1760,7 +1624,7 @@ OPDRACHT: Maak een optimaal lesrooster voor de geselecteerde week op basis van b
                 <div className="card">
                   <div className="flex items-center justify-between mb-4">
                     <h4 className="font-medium text-gray-900">
-                      Geselecteerd: {selectedLessons.size} van {aiResponse.lessons.length} lessen
+                      Geselecteerd: {selectedLessons.size} van {aiResponse.lessons?.length || 0} lessen
                     </h4>
                     <div className="flex gap-2">
                       <button
@@ -1781,8 +1645,8 @@ OPDRACHT: Maak een optimaal lesrooster voor de geselecteerde week op basis van b
 
                 {/* Lessen lijst */}
                 <div className="space-y-3">
-                  {aiResponse.lessons.map((lesson, index) => (
-                    <div key={index} className="card">
+                  {aiResponse.lessons?.map((lesson, index) => (
+                    <div key={index} className="card hover:shadow-md transition-shadow">
                       <div className="flex items-center gap-3">
                         <input
                           type="checkbox"
@@ -1793,10 +1657,10 @@ OPDRACHT: Maak een optimaal lesrooster voor de geselecteerde week op basis van b
                         
                         <div className="flex-1">
                           <div className="flex items-center justify-between mb-2">
-                            <h5 className="font-medium text-gray-900">
+                            <h5 className="font-medium text-gray-900 text-lg">
                               {lesson.studentName}
                             </h5>
-                            <div className="flex items-center gap-2 text-sm text-gray-600">
+                            <div className="flex items-center gap-2 text-sm text-gray-600 bg-gray-100 px-3 py-1 rounded-full">
                               <Clock className="h-4 w-4" />
                               {lesson.startTime} - {lesson.endTime}
                             </div>
@@ -2023,7 +1887,7 @@ OPDRACHT: Maak een optimaal lesrooster voor de geselecteerde week op basis van b
       case 'prompt':
         return hasGeneratedPrompt
       case 'selection':
-        return selectedLessons.size > 0
+        return aiResponse?.lessons && selectedLessons.size > 0
       case 'result':
         return false
       default:

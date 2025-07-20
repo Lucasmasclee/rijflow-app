@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { spawn } from 'child_process'
 import path from 'path'
+import fs from 'fs'
 
 export async function POST(request: NextRequest) {
   try {
@@ -39,17 +40,17 @@ export async function POST(request: NextRequest) {
       })
     })
     
-    // Parse the JSON output
-    try {
-      const aiResponse = JSON.parse(result as string)
-      return NextResponse.json(aiResponse)
-    } catch (parseError) {
-      console.error('Error parsing Python script output:', parseError)
-      return NextResponse.json(
-        { error: 'Fout bij het parsen van de Python script output' },
-        { status: 500 }
-      )
+    // Read the generated JSON file
+    const jsonFilePath = path.join(process.cwd(), 'src', 'app', 'dashboard', 'ai-schedule', 'best_week_planning.json')
+    
+    if (!fs.existsSync(jsonFilePath)) {
+      throw new Error('Generated JSON file not found')
     }
+    
+    const jsonData = fs.readFileSync(jsonFilePath, 'utf-8')
+    const aiResponse = JSON.parse(jsonData)
+    
+    return NextResponse.json(aiResponse)
     
   } catch (error) {
     console.error('Error in test AI schedule API:', error)

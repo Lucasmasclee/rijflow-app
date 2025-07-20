@@ -49,8 +49,13 @@ export interface AIScheduleLesson {
 
 export interface AIScheduleResponse {
   lessons: AIScheduleLesson[]
-  summary: string
+  summary?: string
   warnings?: string[]
+  leerlingen_zonder_les?: Record<string, number>
+  schedule_details?: {
+    lessen: number
+    totale_minuten_tussen_lessen: number
+  }
 }
 
 export async function generateAISchedule(request: AIScheduleRequest, customPrompt?: string): Promise<AIScheduleResponse> {

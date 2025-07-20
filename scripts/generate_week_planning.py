@@ -28,22 +28,30 @@ def format_time(minutes):
     minutes_remainder = minutes % 60
     return f"{hours:02d}:{minutes_remainder:02d}"
 
-def get_next_week_dates(random_week_index):
-    """Get the dates for next week (Monday to Friday)"""
-    today = datetime.now()
-    days_ahead = 7 - today.weekday()  # Days until Monday
-    if days_ahead <= 0:  # Target day already happened this week
-        days_ahead += 7
-    next_monday = today + timedelta(days=days_ahead)
-    
+def get_next_week_dates(random_week_index, instructor):
+    """Get the dates for the week based on the dates provided in the input file"""
     week_dates = {}
     
-    # Use the global day_variations that's defined at module level
-    global day_variations
+    # Get the dates from the instructor data
+    datums = instructor.get('datums', [])
     
-    for i, day in enumerate(day_variations[random_week_index]):
-        date = next_monday + timedelta(days=i)
-        week_dates[day] = date.strftime('%Y-%m-%d')
+    # Define the standard week order that corresponds to the dates in the input file
+    # The dates array follows the standard week order: Monday to Sunday
+    standard_week_order = ['maandag', 'dinsdag', 'woensdag', 'donderdag', 'vrijdag', 'zaterdag', 'zondag']
+    
+    # Map the standard week order to the provided dates
+    for i, day in enumerate(standard_week_order):
+        if i < len(datums):
+            week_dates[day] = datums[i]
+        else:
+            # Fallback: calculate date if not enough dates provided
+            today = datetime.now()
+            days_ahead = 7 - today.weekday()  # Days until Monday
+            if days_ahead <= 0:  # Target day already happened this week
+                days_ahead += 7
+            next_monday = today + timedelta(days=days_ahead)
+            date = next_monday + timedelta(days=i)
+            week_dates[day] = date.strftime('%Y-%m-%d')
     
     return week_dates
 
@@ -160,14 +168,14 @@ def generate_week_planning(random_week_index, start_vanaf_begin, print_details=T
     """Generate optimized week planning maximizing number of lessons"""
     
     # Load input data
-    with open('ai-weekplanning-testinput-20leerlingen.json', 'r', encoding='utf-8') as f:
+    with open('sample_input.json', 'r', encoding='utf-8') as f:
         data = json.load(f)
     
     instructor = data['instructeur']
     students = data['leerlingen']
     
     # Get next week dates
-    week_dates = get_next_week_dates(random_week_index)
+    week_dates = get_next_week_dates(random_week_index, instructor)
     
     lessons = []
     warnings = []
@@ -369,7 +377,7 @@ def generate_week_planning(random_week_index, start_vanaf_begin, print_details=T
                         "endTime": format_time(current_end),
                         "studentId": selected_student['id'],
                         "studentName": selected_student['naam'],
-                        "notes": f"Les {student_lessons[selected_student['id']] + i + 1} van {selected_student['lessenPerWeek']}"
+                        "notes": ""
                     }
                     
                     lessons.append(lesson)
@@ -386,7 +394,7 @@ def generate_week_planning(random_week_index, start_vanaf_begin, print_details=T
                         block_end_time = lesson_end_time + (lessons_to_schedule - 1) * selected_student['lesDuur']
                     
                     pause_start = block_end_time
-                    pause_end = pause_start + 15  # 15-minute pause
+                    pause_end = pause_start + instructor['langePauzeDuur']  # 15-minute pause
                     
                     # Check if pause fits within instructor's available hours
                     instructor_end = parse_time(instructor['beschikbareUren'][day][1])
@@ -397,11 +405,11 @@ def generate_week_planning(random_week_index, start_vanaf_begin, print_details=T
                             "endTime": format_time(pause_end),
                             "studentId": "PAUSE",
                             "studentName": "Pauze na blokuur",
-                            "notes": "15 minuten pauze na blokuur"
+                            "notes": ""
                         }
                         
-                        # lessons.append(pause_lesson)
-                        # used_time_slots[day].append(pause_lesson)
+                        lessons.append(pause_lesson)
+                        used_time_slots[day].append(pause_lesson)
                         # if print_details:
                         #     print(f"  [15 minuten pauze toegevoegd na blokuur]")
                 
@@ -467,7 +475,7 @@ def generate_week_planning(random_week_index, start_vanaf_begin, print_details=T
                             "endTime": format_time(lesson_end_time),
                             "studentId": student['id'],
                             "studentName": student['naam'],
-                            "notes": f"Les {student_lessons[student['id']] + 1} van {student['lessenPerWeek']} (extra)"
+                            "notes": ""
                         }
                         
                         lessons.append(lesson)
@@ -479,7 +487,7 @@ def generate_week_planning(random_week_index, start_vanaf_begin, print_details=T
                         if student['lesDuur'] >= 120:
                             # This was a block hour, add 15-minute pause
                             pause_start = lesson_end_time
-                            pause_end = pause_start + 15  # 15-minute pause
+                            pause_end = pause_start + instructor['langePauzeDuur']  # 15-minute pause
                             
                             # Check if pause fits within instructor's available hours
                             instructor_end = parse_time(instructor['beschikbareUren'][day][1])
@@ -490,7 +498,7 @@ def generate_week_planning(random_week_index, start_vanaf_begin, print_details=T
                                     "endTime": format_time(pause_end),
                                     "studentId": "PAUSE",
                                     "studentName": "Pauze na blokuur",
-                                    "notes": "15 minuten pauze na blokuur"
+                                    "notes": ""
                                 }
                                 
                                 lessons.append(pause_lesson)
@@ -542,7 +550,7 @@ def generate_week_planning(random_week_index, start_vanaf_begin, print_details=T
                                 "endTime": format_time(lesson_end_time),
                                 "studentId": student['id'],
                                 "studentName": student['naam'],
-                                "notes": f"Les {student_lessons[student['id']] + 1} van {student['lessenPerWeek']} (extra)"
+                                "notes": ""
                             }
                             
                             lessons.append(lesson)
@@ -554,7 +562,7 @@ def generate_week_planning(random_week_index, start_vanaf_begin, print_details=T
                             if student['lesDuur'] >= 120:
                                 # This was a block hour, add 15-minute pause
                                 pause_start = lesson_end_time
-                                pause_end = pause_start + 15  # 15-minute pause
+                                pause_end = pause_start + instructor['langePauzeDuur']  # 15-minute pause
                                 
                                 # Check if pause fits within instructor's available hours
                                 instructor_end = parse_time(instructor['beschikbareUren'][day][1])
@@ -565,7 +573,7 @@ def generate_week_planning(random_week_index, start_vanaf_begin, print_details=T
                                         "endTime": format_time(pause_end),
                                         "studentId": "PAUSE",
                                         "studentName": "Pauze na blokuur",
-                                        "notes": "15 minuten pauze na blokuur"
+                                        "notes": ""
                                     }
                                     
                                     lessons.append(pause_lesson)
@@ -687,6 +695,102 @@ def generate_week_planning(random_week_index, start_vanaf_begin, print_details=T
     
     return response, total_planned_lessons, total_time_between_lessons, start_vanaf_begin
 
+def create_output_json(best_result, best_week_index, best_start_vanaf_begin, filename="../src/app/dashboard/ai-schedule/ai-weekplanning-testoutput.json"):
+    """
+    Create a JSON file in the exact format of sample_output.json from the best week planning results.
+    
+    Args:
+        best_result: The result dictionary from generate_week_planning
+        best_week_index: The index of the best week variation
+        best_start_vanaf_begin: Whether the best option started from beginning
+        filename: The output filename (default: best_week_planning.json)
+    """
+    # Load input data to get student information
+    with open('sample_input.json', 'r', encoding='utf-8') as f:
+        input_data = json.load(f)
+    
+    students = input_data['leerlingen']
+    
+    # Create student lookup dictionary
+    student_lookup = {student['id']: student['naam'] for student in students}
+    
+    # Filter out pause lessons and format lessons according to sample_output.json format
+    formatted_lessons = []
+    for lesson in best_result['lessons']:
+        if lesson['studentId'] != "PAUSE":  # Skip pause lessons
+            formatted_lesson = {
+                "date": lesson['date'],
+                "startTime": lesson['startTime'],
+                "endTime": lesson['endTime'],
+                "studentId": lesson['studentId'],
+                "studentName": lesson['studentName'],
+                "notes": ""
+            }
+            formatted_lessons.append(formatted_lesson)
+    
+    # Sort lessons in chronological order from Monday morning to Sunday evening
+    # Define the standard week order for sorting
+    standard_week_order = ['maandag', 'dinsdag', 'woensdag', 'donderdag', 'vrijdag', 'zaterdag', 'zondag']
+    
+    # Create a mapping from dates to day names for sorting
+    date_to_day = {}
+    for i, day in enumerate(standard_week_order):
+        if i < len(input_data['instructeur']['datums']):
+            date_to_day[input_data['instructeur']['datums'][i]] = day
+    
+    # Sort lessons by date (day of week) and then by start time
+    formatted_lessons.sort(key=lambda x: (
+        standard_week_order.index(date_to_day.get(x['date'], 'zondag')),  # Sort by day of week
+        x['startTime']  # Then by start time
+    ))
+    
+    # Calculate students without lessons
+    students_without_lessons = {}
+    for student in students:
+        student_lessons_count = len([l for l in formatted_lessons if l['studentId'] == student['id']])
+        missing_lessons = student['lessenPerWeek'] - student_lessons_count
+        if missing_lessons > 0:
+            students_without_lessons[student['naam']] = missing_lessons
+    
+    # Calculate total time between lessons (excluding pause lessons)
+    total_time_between_lessons = 0
+    lessons_by_day = {}
+    
+    for lesson in best_result['lessons']:
+        if lesson['studentId'] == "PAUSE":
+            continue
+        day = lesson['date']
+        if day not in lessons_by_day:
+            lessons_by_day[day] = []
+        lessons_by_day[day].append(lesson)
+    
+    for day, day_lessons in lessons_by_day.items():
+        day_lessons.sort(key=lambda x: x['startTime'])
+        for i in range(len(day_lessons) - 1):
+            current_lesson_end = parse_time(day_lessons[i]['endTime'])
+            next_lesson_start = parse_time(day_lessons[i + 1]['startTime'])
+            gap_minutes = next_lesson_start - current_lesson_end
+            total_time_between_lessons += gap_minutes
+    
+    # Create the output structure matching sample_output.json format
+    output_data = {
+        "lessons": formatted_lessons,
+        "leerlingen_zonder_les": students_without_lessons,
+        "schedule_details": {
+            "lessen": len(formatted_lessons),
+            "totale_minuten_tussen_lessen": total_time_between_lessons
+        }
+    }
+    
+    # Write to JSON file
+    with open(filename, 'w', encoding='utf-8') as f:
+        json.dump(output_data, f, indent=2, ensure_ascii=False)
+    
+    print(f"JSON bestand '{filename}' succesvol aangemaakt!")
+    print(f"Aantal lessen: {len(formatted_lessons)}")
+    print(f"Totale minuten tussen lessen: {total_time_between_lessons}")
+    print(f"Leerlingen zonder voldoende lessen: {len(students_without_lessons)}")
+
 if __name__ == "__main__":
     print("=== VERGELIJKING VAN 20 VERSCHILLENDE DAG VOLGORDES ===")
     print()
@@ -706,7 +810,7 @@ if __name__ == "__main__":
     # Read on which days the instructor is available
     for i in range(7):
         # read json file 
-        with open('ai-weekplanning-testinput-20leerlingen.json', 'r', encoding='utf-8') as f:
+        with open('sample_input.json', 'r', encoding='utf-8') as f:
             data = json.load(f)
         if(days[i] in data['instructeur']['beschikbareUren']):
             if(len(data['instructeur']['beschikbareUren'][days[i]]) > 0):
@@ -774,4 +878,8 @@ if __name__ == "__main__":
     print()
     
     # Re-run the best option with details
-    generate_week_planning(best_week_index, best_start_vanaf_begin, print_details=True)
+    best_result, best_score, best_rest_time, best_start_vanaf_begin = generate_week_planning(best_week_index, best_start_vanaf_begin, print_details=True)
+    
+    # Create JSON output file
+    print("\n=== JSON BESTAND AANMAKEN ===")
+    create_output_json(best_result, best_week_index, best_start_vanaf_begin)
