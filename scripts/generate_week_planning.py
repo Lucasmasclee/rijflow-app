@@ -1,5 +1,6 @@
 import json
 import random
+import os
 from datetime import datetime, timedelta
 import locale
 from collections import defaultdict
@@ -173,6 +174,15 @@ def can_schedule_normal_hour(student_id, day, used_time_slots, instructor):
     # (either they already have a normal hour or a block hour)
     return False
 
+def get_settings_from_env():
+    """Get AI settings from environment variables"""
+    return {
+        'pauzeTussenLessen': int(os.getenv('PAUZE_TUSSEN_LESSEN', '5')),
+        'langePauzeDuur': int(os.getenv('LANGE_PAUZE_DUUR', '0')),
+        'locatiesKoppelen': os.getenv('LOCATIES_KOPPELEN', 'true').lower() == 'true',
+        'blokuren': os.getenv('BLOKUREN', 'true').lower() == 'true'
+    }
+
 def generate_week_planning(random_week_index, start_vanaf_begin, print_details=True):
     """Generate optimized week planning maximizing number of lessons"""
     
@@ -182,6 +192,10 @@ def generate_week_planning(random_week_index, start_vanaf_begin, print_details=T
     
     instructor = data['instructeur']
     students = data['leerlingen']
+    
+    # Override instructor settings with environment variables
+    env_settings = get_settings_from_env()
+    instructor.update(env_settings)
     
     # Get next week dates
     week_dates = get_next_week_dates(random_week_index, instructor)

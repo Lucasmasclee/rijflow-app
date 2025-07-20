@@ -755,10 +755,50 @@ function AISchedulePageContent() {
     }
   }, [user, loading])
 
+  // Fetch AI settings from database
+  const fetchAISettings = async () => {
+    if (!user) return
+    
+    try {
+      const { data: { session } } = await supabase.auth.getSession()
+      
+      if (!session?.access_token) {
+        console.error('No access token found for fetching AI settings')
+        return
+      }
+
+      const response = await fetch('/api/ai-schedule/update-settings', {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${session.access_token}`
+        }
+      })
+
+      if (response.ok) {
+        const result = await response.json()
+        if (result.success && result.data) {
+          // Map database fields back to UI fields
+          setSettings(prev => ({
+            ...prev,
+            connectLocations: result.data.locaties_koppelen,
+            minutesBreakEveryLesson: result.data.pauze_tussen_lessen,
+            minutesPerBreak: result.data.lange_pauze_duur,
+            blokuren: result.data.blokuren
+          }))
+        }
+      } else {
+        console.error('Error fetching AI settings:', await response.json())
+      }
+    } catch (error) {
+      console.error('Error fetching AI settings:', error)
+    }
+  }
+
   useEffect(() => {
     if (user && mounted) {
       fetchInstructorAvailability()
       fetchStudents()
+      fetchAISettings()
     }
   }, [user, mounted])
 
@@ -938,17 +978,17 @@ function AISchedulePageContent() {
   const handleSettingsChange = async (field: string, value: any) => {
     setSettings(prev => ({ ...prev, [field]: value }))
     
-    // Update sample_input.json for specific fields
+    // Update AI settings in database for specific fields
     if (['connectLocations', 'minutesBreakEveryLesson', 'minutesPerBreak', 'blokuren'].includes(field)) {
       try {
         const { data: { session } } = await supabase.auth.getSession()
         
         if (!session?.access_token) {
-          console.error('No access token found for updating sample_input.json')
+          console.error('No access token found for updating AI settings')
           return
         }
 
-        // Map field names to sample_input.json field names
+        // Map field names to database field names
         const fieldMapping: Record<string, string> = {
           connectLocations: 'locatiesKoppelen',
           minutesBreakEveryLesson: 'pauzeTussenLessen',
@@ -962,7 +1002,7 @@ function AISchedulePageContent() {
         const updateData: any = {}
         updateData[mappedField] = value
 
-        const response = await fetch('/api/ai-schedule/update-sample-input', {
+        const response = await fetch('/api/ai-schedule/update-settings', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -973,12 +1013,12 @@ function AISchedulePageContent() {
 
         if (!response.ok) {
           const errorData = await response.json()
-          console.error('Error updating sample_input.json:', errorData)
+          console.error('Error updating AI settings:', errorData)
         } else {
-          console.log(`Successfully updated ${field} in sample_input.json`)
+          console.log(`Successfully updated ${field} in AI settings`)
         }
       } catch (error) {
-        console.error('Error updating sample_input.json:', error)
+        console.error('Error updating AI settings:', error)
       }
     }
     

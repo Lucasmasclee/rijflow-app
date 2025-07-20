@@ -98,4 +98,15 @@ export interface StudentAvailability {
   notes?: string
   created_at: string
   updated_at: string
+}
+
+export interface InstructorAISettings {
+  id: string
+  instructor_id: string
+  pauze_tussen_lessen: number
+  lange_pauze_duur: number
+  locaties_koppelen: boolean
+  blokuren: boolean
+  created_at: string
+  updated_at: string
 } 
