@@ -379,7 +379,7 @@ export default function StudentDetailPage({ params }: { params: Promise<{ id: st
       </nav>
 
       {/* Content with top padding to account for fixed navigation */}
-      <div className="container-mobile py-10 pt-24 pb-20">
+      <div className="container-mobile pt-32 pb-20">
         {/* Header - Non-editable first name */}
         <div className="mb-6">
           <h1 className="text-2xl md:text-3xl font-bold text-gray-900">
