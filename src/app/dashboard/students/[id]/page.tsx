@@ -373,19 +373,13 @@ export default function StudentDetailPage({ params }: { params: Promise<{ id: st
                   </>
                 )}
               </button>
-              <button
-                onClick={() => setShowDeleteModal(true)}
-                className="p-2 text-red-600 hover:text-red-700 hover:bg-red-50 rounded"
-              >
-                <Trash2 className="h-4 w-4" />
-              </button>
             </div>
           </div>
         </div>
       </nav>
 
       {/* Content with top padding to account for fixed navigation */}
-      <div className="container-mobile py-10 pt-32 pb-20">
+      <div className="container-mobile py-10 pt-48 pb-20">
         {/* Header - Non-editable first name */}
         <div className="mb-6">
           <h1 className="text-2xl md:text-3xl font-bold text-gray-900">
@@ -577,6 +571,17 @@ export default function StudentDetailPage({ params }: { params: Promise<{ id: st
               </div>
             </div>
           </div>
+        </div>
+
+        {/* Delete Student Button - Full width at bottom */}
+        <div className="mt-8">
+          <button
+            onClick={() => setShowDeleteModal(true)}
+            className="w-full btn bg-red-600 hover:bg-red-700 text-white flex items-center justify-center gap-2 py-3"
+          >
+            <Trash2 className="h-4 w-4" />
+            Verwijder Leerling
+          </button>
         </div>
       </div>
 
