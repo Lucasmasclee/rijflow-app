@@ -73,7 +73,8 @@ Is alles goed leesbaar, scrollbaar?
 - Naar het engels vertalen
 - Appstore link in landing page vervangen zodra app gepubliceerd is
 - Snel screenshots maken
-- App logo & naam goedzetten in playstore & appstore
+✅✅✅✅✅- App logo & naam goedzetten in playstore
+- Nieuwe versie in appstore
 
 Todolist:
 - Testscenario helemaal opnieuw (Minder dan 2 uur)
