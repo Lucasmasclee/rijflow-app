@@ -83,63 +83,63 @@ export default function HomePage() {
             </p>
           </div>
 
-          <div className="mobile-grid md:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
-            <div className="card">
-              <div className="flex items-center mb-4">
-                <Calendar className="h-12 w-12 text-blue-600 mr-3" />
-                <h3 className="text-lg md:text-xl font-semibold text-gray-900">AI Weekplanning</h3>
+          <div className="mobile-grid md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
+            <div className="card" style={{ padding: '11px', marginBottom: '11px' }}>
+              <div className="flex items-center mb-3">
+                <Calendar className="h-8 w-8 text-blue-600 mr-2" />
+                <h3 className="text-sm md:text-base font-semibold text-gray-900">AI Weekplanning</h3>
               </div>
-              <p className="text-gray-600">
+              <p className="text-gray-600 text-sm">
                 Laat AI je optimale weekplanning maken op basis van beschikbaarheid en voorkeuren.
               </p>
             </div>
 
-            <div className="card">
-              <div className="flex items-center mb-4">
-                <Users className="h-12 w-12 text-blue-600 mr-3" />
-                <h3 className="text-lg md:text-xl font-semibold text-gray-900">Dagplanning</h3>
+            <div className="card" style={{ padding: '11px', marginBottom: '11px' }}>
+              <div className="flex items-center mb-3">
+                <Users className="h-8 w-8 text-blue-600 mr-2" />
+                <h3 className="text-sm md:text-base font-semibold text-gray-900">Dagplanning</h3>
               </div>
-              <p className="text-gray-600">
+              <p className="text-gray-600 text-sm">
                 Overzichtelijke dagplanning met alle lessen, locaties en leerlingen.
               </p>
             </div>
 
-            <div className="card">
-              <div className="flex items-center mb-4">
-                <FileText className="h-12 w-12 text-blue-600 mr-3" />
-                <h3 className="text-lg md:text-xl font-semibold text-gray-900">Weekplanning</h3>
+            <div className="card" style={{ padding: '11px', marginBottom: '11px' }}>
+              <div className="flex items-center mb-3">
+                <FileText className="h-8 w-8 text-blue-600 mr-2" />
+                <h3 className="text-sm md:text-base font-semibold text-gray-900">Weekplanning</h3>
               </div>
-              <p className="text-gray-600">
+              <p className="text-gray-600 text-sm">
                 Plan je hele week vooruit met een duidelijk weekoverzicht van alle lessen.
               </p>
             </div>
 
-            <div className="card">
-              <div className="flex items-center mb-4">
-                <MessageSquare className="h-12 w-12 text-blue-600 mr-3" />
-                <h3 className="text-lg md:text-xl font-semibold text-gray-900">Leerlingbeheer</h3>
+            <div className="card" style={{ padding: '11px', marginBottom: '11px' }}>
+              <div className="flex items-center mb-3">
+                <MessageSquare className="h-8 w-8 text-blue-600 mr-2" />
+                <h3 className="text-sm md:text-base font-semibold text-gray-900">Leerlingbeheer</h3>
               </div>
-              <p className="text-gray-600">
+              <p className="text-gray-600 text-sm">
                 Beheer al je leerlingen, hun gegevens en lespakketten op één centrale plek.
               </p>
             </div>
 
-            <div className="card">
-              <div className="flex items-center mb-4">
-                <Clock className="h-12 w-12 text-blue-600 mr-3" />
-                <h3 className="text-lg md:text-xl font-semibold text-gray-900">Voortgang bijhouden</h3>
+            <div className="card" style={{ padding: '11px', marginBottom: '11px' }}>
+              <div className="flex items-center mb-3">
+                <Clock className="h-8 w-8 text-blue-600 mr-2" />
+                <h3 className="text-sm md:text-base font-semibold text-gray-900">Voortgang bijhouden</h3>
               </div>
-              <p className="text-gray-600">
+              <p className="text-gray-600 text-sm">
                 Houd de voortgang van je leerlingen bij en zie hun ontwikkeling over tijd.
               </p>
             </div>
 
-            <div className="card">
-              <div className="flex items-center mb-4">
-                <CheckCircle className="h-12 w-12 text-blue-600 mr-3" />
-                <h3 className="text-lg md:text-xl font-semibold text-gray-900">Urenregistratie</h3>
+            <div className="card" style={{ padding: '11px', marginBottom: '11px' }}>
+              <div className="flex items-center mb-3">
+                <CheckCircle className="h-8 w-8 text-blue-600 mr-2" />
+                <h3 className="text-sm md:text-base font-semibold text-gray-900">Urenregistratie</h3>
               </div>
-              <p className="text-gray-600">
+              <p className="text-gray-600 text-sm">
                 Automatische urenregistratie voor een complete administratie van je werkuren.
               </p>
             </div>
@@ -154,7 +154,7 @@ export default function HomePage() {
             Download de app
           </h2>
           <p className="text-mobile-lg md:text-xl text-gray-600 mb-8">
-            Gebruik RijFlow ook op je mobiele apparaat
+            Download RijFlow in de Appstores.
           </p>
           
           <div className="flex flex-col items-center gap-4">

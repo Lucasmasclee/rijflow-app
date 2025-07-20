@@ -344,9 +344,9 @@ export default function StudentDetailPage({ params }: { params: Promise<{ id: st
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 pb-20">
-      {/* Mobile Navigation */}
-      <nav className="bg-white shadow-sm border-b safe-area-top">
+    <div className="min-h-screen bg-gray-50">
+      {/* Fixed Mobile Navigation */}
+      <nav className="fixed top-0 left-0 right-0 bg-white shadow-sm border-b safe-area-top z-50">
         <div className="container-mobile">
           <div className="flex justify-between items-center h-16">
             <div className="flex items-center">
@@ -384,7 +384,8 @@ export default function StudentDetailPage({ params }: { params: Promise<{ id: st
         </div>
       </nav>
 
-      <div className="container-mobile py-10">
+      {/* Content with top padding to account for fixed navigation */}
+      <div className="container-mobile py-10 pt-24 pb-20">
         {/* Header - Non-editable first name */}
         <div className="mb-6">
           <h1 className="text-2xl md:text-3xl font-bold text-gray-900">
