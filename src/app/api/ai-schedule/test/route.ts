@@ -3,8 +3,8 @@ import { spawn } from 'child_process'
 import path from 'path'
 import fs from 'fs'
 
-export async function POST(request: NextRequest) {
-  return new Promise((resolve) => {
+export async function POST(request: NextRequest): Promise<Response> {
+  return new Promise<Response>((resolve) => {
     // Pad naar het Python-script
     const scriptPath = path.join(process.cwd(), 'scripts', 'generate_week_planning.py')
     
