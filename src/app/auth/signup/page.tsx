@@ -50,7 +50,7 @@ export default function SignUpPage() {
             </div>
             <h2 className="text-2xl md:text-3xl font-bold text-gray-900">Account aanmaken</h2>
             <p className="mt-2 text-sm text-gray-600">
-              Start je gratis proefperiode van 30 dagen
+              Deze tool is in ontwikkeling, en volledig gratis.
             </p>
           </div>
           <div className="card text-center">
@@ -72,7 +72,7 @@ export default function SignUpPage() {
           </Link>
           <h2 className="text-2xl md:text-3xl font-bold text-gray-900">Account aanmaken</h2>
           <p className="mt-2 text-sm text-gray-600">
-            Start je gratis proefperiode van 30 dagen
+            Deze tool is in ontwikkeling, en volledig gratis.
           </p>
         </div>
 
@@ -113,7 +113,7 @@ export default function SignUpPage() {
                       <div className="font-medium">Rijinstructeur</div>
                       <div className="text-xs text-gray-500 mt-1">Ik geef rijles</div>
                     </button>
-                    <button
+                    {/* <button
                       type="button"
                       onClick={() => setFormData({ ...formData, role: 'student' })}
                       className={`p-4 border-2 rounded-lg text-center transition-colors min-h-[80px] flex flex-col items-center justify-center ${
@@ -124,7 +124,7 @@ export default function SignUpPage() {
                     >
                       <div className="font-medium">Leerling</div>
                       <div className="text-xs text-gray-500 mt-1">Ik volg rijles</div>
-                    </button>
+                    </button> */}
                   </div>
                 </div>
 
