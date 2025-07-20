@@ -15,6 +15,15 @@ except:
         pass
 
 # Define the day order variations that match get_next_week_dates function
+day_variations = [
+    ['maandag', 'dinsdag', 'woensdag', 'donderdag', 'vrijdag', 'zaterdag', 'zondag'],
+    ['dinsdag', 'woensdag', 'donderdag', 'vrijdag', 'zaterdag', 'zondag', 'maandag'],
+    ['woensdag', 'donderdag', 'vrijdag', 'zaterdag', 'zondag', 'maandag', 'dinsdag'],
+    ['donderdag', 'vrijdag', 'zaterdag', 'zondag', 'maandag', 'dinsdag', 'woensdag'],
+    ['vrijdag', 'zaterdag', 'zondag', 'maandag', 'dinsdag', 'woensdag', 'donderdag'],
+    ['zaterdag', 'zondag', 'maandag', 'dinsdag', 'woensdag', 'donderdag', 'vrijdag'],
+    ['zondag', 'maandag', 'dinsdag', 'woensdag', 'donderdag', 'vrijdag', 'zaterdag'],
+]
 
 
 def parse_time(time_str):
@@ -695,7 +704,7 @@ def generate_week_planning(random_week_index, start_vanaf_begin, print_details=T
     
     return response, total_planned_lessons, total_time_between_lessons, start_vanaf_begin
 
-def create_output_json(best_result, best_week_index, best_start_vanaf_begin, filename="../src/app/dashboard/ai-schedule/ai-weekplanning-testoutput.json"):
+def create_output_json(best_result, best_week_index, best_start_vanaf_begin, filename="../src/app/dashboard/ai-schedule/best_week_planning.json"):
     """
     Create a JSON file in the exact format of sample_output.json from the best week planning results.
     
@@ -794,16 +803,6 @@ def create_output_json(best_result, best_week_index, best_start_vanaf_begin, fil
 if __name__ == "__main__":
     print("=== VERGELIJKING VAN 20 VERSCHILLENDE DAG VOLGORDES ===")
     print()
-
-    day_variations = [
-    ['maandag', 'dinsdag', 'woensdag', 'donderdag', 'vrijdag', 'zaterdag', 'zondag'],
-    ['dinsdag', 'woensdag', 'donderdag', 'vrijdag', 'zaterdag', 'zondag', 'maandag'],
-    ['woensdag', 'donderdag', 'vrijdag', 'zaterdag', 'zondag', 'maandag', 'dinsdag'],
-    ['donderdag', 'vrijdag', 'zaterdag', 'zondag', 'maandag', 'dinsdag', 'woensdag'],
-    ['vrijdag', 'zaterdag', 'zondag', 'maandag', 'dinsdag', 'woensdag', 'donderdag'],
-    ['zaterdag', 'zondag', 'maandag', 'dinsdag', 'woensdag', 'donderdag', 'vrijdag'],
-    ['zondag', 'maandag', 'dinsdag', 'woensdag', 'donderdag', 'vrijdag', 'zaterdag'],
-    ]
 
     days = ['maandag', 'dinsdag', 'woensdag', 'donderdag', 'vrijdag', 'zaterdag', 'zondag']
     list_available_days_integers = []

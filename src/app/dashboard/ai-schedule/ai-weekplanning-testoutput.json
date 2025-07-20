@@ -1,0 +1,279 @@
+{
+  "lessons": [
+    {
+      "date": "2025-07-21",
+      "startTime": "09:05",
+      "endTime": "09:55",
+      "studentId": "ab9e1b31-8772-4b59-b357-62d6cc8bf44b",
+      "studentName": "Luna van der Meer",
+      "notes": ""
+    },
+    {
+      "date": "2025-07-21",
+      "startTime": "09:55",
+      "endTime": "10:45",
+      "studentId": "ab9e1b31-8772-4b59-b357-62d6cc8bf44b",
+      "studentName": "Luna van der Meer",
+      "notes": ""
+    },
+    {
+      "date": "2025-07-21",
+      "startTime": "10:55",
+      "endTime": "11:55",
+      "studentId": "0c15476a-dc30-433f-9a85-e59527f2fc90",
+      "studentName": "Sara Bos",
+      "notes": ""
+    },
+    {
+      "date": "2025-07-21",
+      "startTime": "12:05",
+      "endTime": "12:55",
+      "studentId": "41434bbc-4aae-4db2-abb3-ff8539ff69b3",
+      "studentName": "Noah Bakker",
+      "notes": ""
+    },
+    {
+      "date": "2025-07-22",
+      "startTime": "11:00",
+      "endTime": "12:00",
+      "studentId": "616619e8-b605-43a7-a60f-87c27fd4934b",
+      "studentName": "Daan Willems",
+      "notes": ""
+    },
+    {
+      "date": "2025-07-22",
+      "startTime": "12:00",
+      "endTime": "13:00",
+      "studentId": "616619e8-b605-43a7-a60f-87c27fd4934b",
+      "studentName": "Daan Willems",
+      "notes": ""
+    },
+    {
+      "date": "2025-07-22",
+      "startTime": "13:10",
+      "endTime": "14:10",
+      "studentId": "2e08d1ca-f711-46c1-936d-1f69a2c6ff26",
+      "studentName": "Milan Koning",
+      "notes": ""
+    },
+    {
+      "date": "2025-07-22",
+      "startTime": "14:20",
+      "endTime": "15:10",
+      "studentId": "1e3177a8-a52a-41c5-ab41-aeef9ccb8119",
+      "studentName": "Thijs Vos",
+      "notes": ""
+    },
+    {
+      "date": "2025-07-22",
+      "startTime": "15:10",
+      "endTime": "16:00",
+      "studentId": "1e3177a8-a52a-41c5-ab41-aeef9ccb8119",
+      "studentName": "Thijs Vos",
+      "notes": ""
+    },
+    {
+      "date": "2025-07-23",
+      "startTime": "09:05",
+      "endTime": "09:55",
+      "studentId": "70fb4d19-38f8-4bbb-989a-fae00be78b55",
+      "studentName": "Luuk Schouten",
+      "notes": ""
+    },
+    {
+      "date": "2025-07-23",
+      "startTime": "09:55",
+      "endTime": "10:45",
+      "studentId": "70fb4d19-38f8-4bbb-989a-fae00be78b55",
+      "studentName": "Luuk Schouten",
+      "notes": ""
+    },
+    {
+      "date": "2025-07-23",
+      "startTime": "10:55",
+      "endTime": "11:40",
+      "studentId": "aa8fcc44-f8d1-4759-b1ef-0f68acebb151",
+      "studentName": "Bram Jansen",
+      "notes": ""
+    },
+    {
+      "date": "2025-07-23",
+      "startTime": "12:00",
+      "endTime": "12:50",
+      "studentId": "f34183d6-d636-40fe-ada5-2486978f7e5a",
+      "studentName": "Fleur van den Berg",
+      "notes": ""
+    },
+    {
+      "date": "2025-07-23",
+      "startTime": "13:00",
+      "endTime": "13:45",
+      "studentId": "64fab29f-0662-4269-a79a-10373313b4f6",
+      "studentName": "Jens van Leeuwen",
+      "notes": ""
+    },
+    {
+      "date": "2025-07-24",
+      "startTime": "09:05",
+      "endTime": "09:55",
+      "studentId": "04f254cb-6b2c-4a76-b033-ce8d6c3da69c",
+      "studentName": "Nina de Boer",
+      "notes": ""
+    },
+    {
+      "date": "2025-07-24",
+      "startTime": "10:05",
+      "endTime": "11:05",
+      "studentId": "0c15476a-dc30-433f-9a85-e59527f2fc90",
+      "studentName": "Sara Bos",
+      "notes": ""
+    },
+    {
+      "date": "2025-07-24",
+      "startTime": "11:05",
+      "endTime": "12:05",
+      "studentId": "0c15476a-dc30-433f-9a85-e59527f2fc90",
+      "studentName": "Sara Bos",
+      "notes": ""
+    },
+    {
+      "date": "2025-07-24",
+      "startTime": "12:15",
+      "endTime": "13:00",
+      "studentId": "dbe7cfc0-128a-4a2f-865c-64bea203fc47",
+      "studentName": "Sophie Hendriks",
+      "notes": ""
+    },
+    {
+      "date": "2025-07-24",
+      "startTime": "13:10",
+      "endTime": "14:10",
+      "studentId": "2e08d1ca-f711-46c1-936d-1f69a2c6ff26",
+      "studentName": "Milan Koning",
+      "notes": ""
+    },
+    {
+      "date": "2025-07-24",
+      "startTime": "14:10",
+      "endTime": "15:10",
+      "studentId": "2e08d1ca-f711-46c1-936d-1f69a2c6ff26",
+      "studentName": "Milan Koning",
+      "notes": ""
+    },
+    {
+      "date": "2025-07-24",
+      "startTime": "15:20",
+      "endTime": "16:05",
+      "studentId": "64fab29f-0662-4269-a79a-10373313b4f6",
+      "studentName": "Jens van Leeuwen",
+      "notes": ""
+    },
+    {
+      "date": "2025-07-24",
+      "startTime": "16:05",
+      "endTime": "16:50",
+      "studentId": "64fab29f-0662-4269-a79a-10373313b4f6",
+      "studentName": "Jens van Leeuwen",
+      "notes": ""
+    },
+    {
+      "date": "2025-07-25",
+      "startTime": "13:05",
+      "endTime": "13:55",
+      "studentId": "f34183d6-d636-40fe-ada5-2486978f7e5a",
+      "studentName": "Fleur van den Berg",
+      "notes": ""
+    },
+    {
+      "date": "2025-07-25",
+      "startTime": "13:55",
+      "endTime": "14:45",
+      "studentId": "f34183d6-d636-40fe-ada5-2486978f7e5a",
+      "studentName": "Fleur van den Berg",
+      "notes": ""
+    },
+    {
+      "date": "2025-07-25",
+      "startTime": "14:55",
+      "endTime": "15:45",
+      "studentId": "84645914-97cb-4479-9d3c-53c054cb50e1",
+      "studentName": "Tim van Dijk",
+      "notes": ""
+    },
+    {
+      "date": "2025-07-25",
+      "startTime": "15:45",
+      "endTime": "16:35",
+      "studentId": "84645914-97cb-4479-9d3c-53c054cb50e1",
+      "studentName": "Tim van Dijk",
+      "notes": ""
+    },
+    {
+      "date": "2025-07-26",
+      "startTime": "10:00",
+      "endTime": "11:00",
+      "studentId": "787ad556-66da-46ee-9ae3-c13bf841f65b",
+      "studentName": "Isa de Groot",
+      "notes": ""
+    },
+    {
+      "date": "2025-07-26",
+      "startTime": "11:00",
+      "endTime": "12:00",
+      "studentId": "787ad556-66da-46ee-9ae3-c13bf841f65b",
+      "studentName": "Isa de Groot",
+      "notes": ""
+    },
+    {
+      "date": "2025-07-26",
+      "startTime": "12:10",
+      "endTime": "13:00",
+      "studentId": "74608b9b-fe9e-497d-948e-cae3a0883124",
+      "studentName": "Mees Peeters",
+      "notes": ""
+    },
+    {
+      "date": "2025-07-26",
+      "startTime": "13:00",
+      "endTime": "13:50",
+      "studentId": "74608b9b-fe9e-497d-948e-cae3a0883124",
+      "studentName": "Mees Peeters",
+      "notes": ""
+    },
+    {
+      "date": "2025-07-26",
+      "startTime": "14:00",
+      "endTime": "14:45",
+      "studentId": "89ac3029-6c20-47d7-a54d-0ae91f9cb2d0",
+      "studentName": "Tess Visser",
+      "notes": ""
+    },
+    {
+      "date": "2025-07-26",
+      "startTime": "14:45",
+      "endTime": "15:30",
+      "studentId": "89ac3029-6c20-47d7-a54d-0ae91f9cb2d0",
+      "studentName": "Tess Visser",
+      "notes": ""
+    }
+  ],
+  "leerlingen_zonder_les": {
+    "Emma de Vries": 1,
+    "Noah Bakker": 1,
+    "Tess Visser": 1,
+    "Lars Smit": 4,
+    "Julia Mulder": 1,
+    "Milan Koning": 1,
+    "Lieke Kuiper": 1,
+    "Jens van Leeuwen": 1,
+    "Bram Jansen": 1,
+    "Luna van der Meer": 1,
+    "Mees Peeters": 2,
+    "Isa de Groot": 1,
+    "Luuk Schouten": 2
+  },
+  "schedule_details": {
+    "lessen": 32,
+    "totale_minuten_tussen_lessen": 150
+  }
+}

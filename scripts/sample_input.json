@@ -1,0 +1,448 @@
+{
+  "instructeur": {
+    "beschikbareUren": {
+      "maandag": [
+        "09:00",
+        "17:00"
+      ],
+      "dinsdag": [
+        "09:00",
+        "17:00"
+      ],
+      "woensdag": [
+        "09:00",
+        "13:00"
+      ],
+      "donderdag": [
+        "09:00",
+        "17:00"
+      ],
+      "vrijdag": [
+        "13:00",
+        "17:00"
+      ],
+      "zaterdag": [
+        "09:00",
+        "17:00"
+      ],
+      "zondag": [
+      ]
+    },
+    "datums": [
+      "2025-07-21",
+      "2025-07-22",
+      "2025-07-23",
+      "2025-07-24",
+      "2025-07-25",
+      "2025-07-26",
+      "2025-07-27"
+    ],
+    "maxLessenPerDag": 6,
+    "blokuren": true,
+    "pauzeTussenLessen": 10,
+    "langePauzeDuur": 0,
+    "locatiesKoppelen": true
+  },
+  "leerlingen": [
+    {
+      "id": "976a9a43-3c56-4a68-9131-772bc4a1d8aa",
+      "naam": "Emma de Vries",
+      "lessenPerWeek": 1,
+      "lesDuur": 45,
+      "beschikbaarheid": {
+        "vrijdag": [
+          "14:00",
+          "15:00"
+        ],
+        "dinsdag": [
+          "12:00",
+          "14:00"
+        ],
+        "zaterdag": [
+          "12:00",
+          "14:00"
+        ]
+      }
+    },
+    {
+      "id": "41434bbc-4aae-4db2-abb3-ff8539ff69b3",
+      "naam": "Noah Bakker",
+      "lessenPerWeek": 2,
+      "lesDuur": 50,
+      "beschikbaarheid": {
+        "maandag": [
+          "12:00",
+          "13:00"
+        ],
+        "vrijdag": [
+          "08:00",
+          "10:00"
+        ],
+        "woensdag": [
+          "09:00",
+          "11:00"
+        ]
+      }
+    },
+    {
+      "id": "89ac3029-6c20-47d7-a54d-0ae91f9cb2d0",
+      "naam": "Tess Visser",
+      "lessenPerWeek": 3,
+      "lesDuur": 45,
+      "beschikbaarheid": {
+        "zaterdag": [
+          "13:00",
+          "16:00"
+        ],
+        "donderdag": [
+          "14:00",
+          "16:00"
+        ]
+      }
+    },
+    {
+      "id": "974b4ec1-b234-4ef3-ba51-b89c9394d396",
+      "naam": "Lars Smit",
+      "lessenPerWeek": 4,
+      "lesDuur": 45,
+      "beschikbaarheid": {
+        "woensdag": [
+          "14:00",
+          "16:00"
+        ],
+        "dinsdag": [
+          "14:00",
+          "15:00"
+        ]
+      }
+    },
+    {
+      "id": "f601d3fc-15f1-4bff-ac02-1a0b3b0ded02",
+      "naam": "Julia Mulder",
+      "lessenPerWeek": 1,
+      "lesDuur": 60,
+      "beschikbaarheid": {
+        "woensdag": [
+          "08:00",
+          "09:00"
+        ],
+        "maandag": [
+          "09:00",
+          "11:00"
+        ]
+      }
+    },
+    {
+      "id": "616619e8-b605-43a7-a60f-87c27fd4934b",
+      "naam": "Daan Willems",
+      "lessenPerWeek": 2,
+      "lesDuur": 60,
+      "beschikbaarheid": {
+        "dinsdag": [
+          "11:00",
+          "14:00"
+        ],
+        "maandag": [
+          "08:00",
+          "09:00"
+        ],
+        "zaterdag": [
+          "11:00",
+          "13:00"
+        ]
+      }
+    },
+    {
+      "id": "0c15476a-dc30-433f-9a85-e59527f2fc90",
+      "naam": "Sara Bos",
+      "lessenPerWeek": 3,
+      "lesDuur": 60,
+      "beschikbaarheid": {
+        "dinsdag": [
+          "13:00",
+          "15:00"
+        ],
+        "maandag": [
+          "10:00",
+          "12:00"
+        ],
+        "donderdag": [
+          "10:00",
+          "13:00"
+        ]
+      }
+    },
+    {
+      "id": "2e08d1ca-f711-46c1-936d-1f69a2c6ff26",
+      "naam": "Milan Koning",
+      "lessenPerWeek": 4,
+      "lesDuur": 60,
+      "beschikbaarheid": {
+        "dinsdag": [
+          "13:00",
+          "15:00"
+        ],
+        "donderdag": [
+          "13:00",
+          "16:00"
+        ],
+        "zaterdag": [
+          "13:00",
+          "14:00"
+        ],
+        "woensdag": [
+          "08:00",
+          "10:00"
+        ]
+      }
+    },
+    {
+      "id": "036784a8-ee4c-4353-9930-2fa9e0c93740",
+      "naam": "Lieke Kuiper",
+      "lessenPerWeek": 1,
+      "lesDuur": 60,
+      "beschikbaarheid": {
+        "maandag": [
+          "11:00",
+          "14:00"
+        ],
+        "vrijdag": [
+          "10:00",
+          "13:00"
+        ],
+        "donderdag": [
+          "12:00",
+          "13:00"
+        ],
+        "woensdag": [
+          "10:00",
+          "12:00"
+        ]
+      }
+    },
+    {
+      "id": "84645914-97cb-4479-9d3c-53c054cb50e1",
+      "naam": "Tim van Dijk",
+      "lessenPerWeek": 2,
+      "lesDuur": 50,
+      "beschikbaarheid": {
+        "woensdag": [
+          "08:00",
+          "09:00"
+        ],
+        "donderdag": [
+          "14:00",
+          "17:00"
+        ],
+        "vrijdag": [
+          "14:00",
+          "17:00"
+        ],
+        "zaterdag": [
+          "12:00",
+          "14:00"
+        ]
+      }
+    },
+    {
+      "id": "f34183d6-d636-40fe-ada5-2486978f7e5a",
+      "naam": "Fleur van den Berg",
+      "lessenPerWeek": 3,
+      "lesDuur": 50,
+      "beschikbaarheid": {
+        "maandag": [
+          "09:00",
+          "12:00"
+        ],
+        "woensdag": [
+          "12:00",
+          "13:00"
+        ],
+        "dinsdag": [
+          "14:00",
+          "15:00"
+        ],
+        "vrijdag": [
+          "12:00",
+          "15:00"
+        ]
+      }
+    },
+    {
+      "id": "64fab29f-0662-4269-a79a-10373313b4f6",
+      "naam": "Jens van Leeuwen",
+      "lessenPerWeek": 4,
+      "lesDuur": 45,
+      "beschikbaarheid": {
+        "woensdag": [
+          "13:00",
+          "14:00"
+        ],
+        "donderdag": [
+          "14:00",
+          "17:00"
+        ],
+        "zaterdag": [
+          "08:00",
+          "09:00"
+        ]
+      }
+    },
+    {
+      "id": "04f254cb-6b2c-4a76-b033-ce8d6c3da69c",
+      "naam": "Nina de Boer",
+      "lessenPerWeek": 1,
+      "lesDuur": 50,
+      "beschikbaarheid": {
+        "donderdag": [
+          "09:00",
+          "11:00"
+        ],
+        "woensdag": [
+          "10:00",
+          "12:00"
+        ]
+      }
+    },
+    {
+      "id": "aa8fcc44-f8d1-4759-b1ef-0f68acebb151",
+      "naam": "Bram Jansen",
+      "lessenPerWeek": 2,
+      "lesDuur": 45,
+      "beschikbaarheid": {
+        "donderdag": [
+          "14:00",
+          "15:00"
+        ],
+        "vrijdag": [
+          "11:00",
+          "12:00"
+        ],
+        "woensdag": [
+          "09:00",
+          "12:00"
+        ]
+      }
+    },
+    {
+      "id": "ab9e1b31-8772-4b59-b357-62d6cc8bf44b",
+      "naam": "Luna van der Meer",
+      "lessenPerWeek": 3,
+      "lesDuur": 50,
+      "beschikbaarheid": {
+        "maandag": [
+          "09:00",
+          "11:00"
+        ],
+        "vrijdag": [
+          "11:00",
+          "14:00"
+        ],
+        "woensdag": [
+          "08:00",
+          "11:00"
+        ]
+      }
+    },
+    {
+      "id": "74608b9b-fe9e-497d-948e-cae3a0883124",
+      "naam": "Mees Peeters",
+      "lessenPerWeek": 4,
+      "lesDuur": 50,
+      "beschikbaarheid": {
+        "donderdag": [
+          "11:00",
+          "12:00"
+        ],
+        "zaterdag": [
+          "12:00",
+          "15:00"
+        ],
+        "vrijdag": [
+          "12:00",
+          "13:00"
+        ],
+        "dinsdag": [
+          "08:00",
+          "09:00"
+        ]
+      }
+    },
+    {
+      "id": "dbe7cfc0-128a-4a2f-865c-64bea203fc47",
+      "naam": "Sophie Hendriks",
+      "lessenPerWeek": 1,
+      "lesDuur": 45,
+      "beschikbaarheid": {
+        "dinsdag": [
+          "13:00",
+          "15:00"
+        ],
+        "donderdag": [
+          "12:00",
+          "15:00"
+        ]
+      }
+    },
+    {
+      "id": "1e3177a8-a52a-41c5-ab41-aeef9ccb8119",
+      "naam": "Thijs Vos",
+      "lessenPerWeek": 2,
+      "lesDuur": 50,
+      "beschikbaarheid": {
+        "woensdag": [
+          "11:00",
+          "14:00"
+        ],
+        "dinsdag": [
+          "13:00",
+          "16:00"
+        ],
+        "donderdag": [
+          "09:00",
+          "11:00"
+        ]
+      }
+    },
+    {
+      "id": "787ad556-66da-46ee-9ae3-c13bf841f65b",
+      "naam": "Isa de Groot",
+      "lessenPerWeek": 3,
+      "lesDuur": 60,
+      "beschikbaarheid": {
+        "vrijdag": [
+          "10:00",
+          "13:00"
+        ],
+        "zaterdag": [
+          "10:00",
+          "13:00"
+        ],
+        "woensdag": [
+          "10:00",
+          "11:00"
+        ],
+        "dinsdag": [
+          "13:00",
+          "14:00"
+        ]
+      }
+    },
+    {
+      "id": "70fb4d19-38f8-4bbb-989a-fae00be78b55",
+      "naam": "Luuk Schouten",
+      "lessenPerWeek": 4,
+      "lesDuur": 50,
+      "beschikbaarheid": {
+        "woensdag": [
+          "09:00",
+          "12:00"
+        ],
+        "vrijdag": [
+          "08:00",
+          "11:00"
+        ]
+      }
+    }
+  ]
+}
