@@ -81,6 +81,7 @@ function AISchedulePageContent() {
     minutesBreakEveryLesson: 5,
     breakAfterEachStudent: false,
     sendNotifications: false,
+    blokuren: true,
     additionalSpecifications: ''
   })
 
@@ -934,8 +935,53 @@ function AISchedulePageContent() {
 
 
   // Handle settings change
-  const handleSettingsChange = (field: string, value: any) => {
+  const handleSettingsChange = async (field: string, value: any) => {
     setSettings(prev => ({ ...prev, [field]: value }))
+    
+    // Update sample_input.json for specific fields
+    if (['connectLocations', 'minutesBreakEveryLesson', 'minutesPerBreak', 'blokuren'].includes(field)) {
+      try {
+        const { data: { session } } = await supabase.auth.getSession()
+        
+        if (!session?.access_token) {
+          console.error('No access token found for updating sample_input.json')
+          return
+        }
+
+        // Map field names to sample_input.json field names
+        const fieldMapping: Record<string, string> = {
+          connectLocations: 'locatiesKoppelen',
+          minutesBreakEveryLesson: 'pauzeTussenLessen',
+          minutesPerBreak: 'langePauzeDuur',
+          blokuren: 'blokuren'
+        }
+
+        const mappedField = fieldMapping[field]
+        if (!mappedField) return
+
+        const updateData: any = {}
+        updateData[mappedField] = value
+
+        const response = await fetch('/api/ai-schedule/update-sample-input', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${session.access_token}`
+          },
+          body: JSON.stringify(updateData)
+        })
+
+        if (!response.ok) {
+          const errorData = await response.json()
+          console.error('Error updating sample_input.json:', errorData)
+        } else {
+          console.log(`Successfully updated ${field} in sample_input.json`)
+        }
+      } catch (error) {
+        console.error('Error updating sample_input.json:', error)
+      }
+    }
+    
     // Reset AI prompt als instellingen worden gewijzigd
     if (hasGeneratedPrompt) {
       setHasGeneratedPrompt(false)
@@ -1071,9 +1117,10 @@ ${weekOverview}
 
 PLANNING INSTELLINGEN:
 - Locaties verbinden: ${settingsData.connectLocations ? 'Ja' : 'Nee'}
+- Blokuren: ${settingsData.blokuren ? 'Ja' : 'Nee'}
 - Aantal pauzes per dag: ${settingsData.numberOfBreaks}
-- Minuten per pauze: ${settingsData.minutesPerBreak}
-- Minuten pauze tussen lessen: ${settingsData.minutesBreakEveryLesson}
+- Lange pauze duur: ${settingsData.minutesPerBreak} minuten
+- Pauze tussen lessen: ${settingsData.minutesBreakEveryLesson} minuten
 - Pauze na elke leerling: ${settingsData.breakAfterEachStudent ? 'Ja' : 'Nee'}
 ${settingsData.additionalSpecifications ? `- Extra specificaties: ${settingsData.additionalSpecifications}` : ''}
 
@@ -1445,6 +1492,21 @@ OPDRACHT: Maak een optimaal lesrooster voor de geselecteerde week op basis van b
               </div>
               
               <div className="card">
+                <div className="flex items-center justify-between mb-4">
+                  <div>
+                    <h4 className="font-medium text-gray-900">Blokuren</h4>
+                    <p className="text-sm text-gray-600">Plan lessen in blokken van 2 uur</p>
+                  </div>
+                  <input
+                    type="checkbox"
+                    checked={settings.blokuren}
+                    onChange={(e) => handleSettingsChange('blokuren', e.target.checked)}
+                    className="w-4 h-4 text-blue-600 rounded focus:ring-blue-500"
+                  />
+                </div>
+              </div>
+              
+              <div className="card">
                 <h4 className="font-medium text-gray-900 mb-4">Pauzes</h4>
                 <div className="space-y-4">
                   <div className="mobile-grid md:grid-cols-2 gap-4">
@@ -1463,7 +1525,7 @@ OPDRACHT: Maak een optimaal lesrooster voor de geselecteerde week op basis van b
                     </div>
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Minuten per pauze
+                        Lange pauze duur (minuten)
                       </label>
                       <input
                         type="number"
@@ -1480,7 +1542,7 @@ OPDRACHT: Maak een optimaal lesrooster voor de geselecteerde week op basis van b
                   <div className="mobile-grid md:grid-cols-2 gap-4">
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Minuten pauze tussen lessen
+                        Pauze tussen lessen (minuten)
                       </label>
                       <input
                         type="number"
