@@ -177,7 +177,7 @@ def generate_week_planning(random_week_index, start_vanaf_begin, print_details=T
     """Generate optimized week planning maximizing number of lessons"""
     
     # Load input data
-    with open('sample_input.json', 'r', encoding='utf-8') as f:
+    with open('scripts/sample_input.json', 'r', encoding='utf-8') as f:
         data = json.load(f)
     
     instructor = data['instructeur']
@@ -704,7 +704,7 @@ def generate_week_planning(random_week_index, start_vanaf_begin, print_details=T
     
     return response, total_planned_lessons, total_time_between_lessons, start_vanaf_begin
 
-def create_output_json(best_result, best_week_index, best_start_vanaf_begin, filename="../src/app/dashboard/ai-schedule/best_week_planning.json"):
+def create_output_json(best_result, best_week_index, best_start_vanaf_begin, filename="src/app/dashboard/ai-schedule/best_week_planning.json"):
     """
     Create a JSON file in the exact format of sample_output.json from the best week planning results.
     
@@ -715,7 +715,7 @@ def create_output_json(best_result, best_week_index, best_start_vanaf_begin, fil
         filename: The output filename (default: best_week_planning.json)
     """
     # Load input data to get student information
-    with open('sample_input.json', 'r', encoding='utf-8') as f:
+    with open('scripts/sample_input.json', 'r', encoding='utf-8') as f:
         input_data = json.load(f)
     
     students = input_data['leerlingen']
@@ -809,7 +809,7 @@ if __name__ == "__main__":
     # Read on which days the instructor is available
     for i in range(7):
         # read json file 
-        with open('sample_input.json', 'r', encoding='utf-8') as f:
+        with open('scripts/sample_input.json', 'r', encoding='utf-8') as f:
             data = json.load(f)
         if(days[i] in data['instructeur']['beschikbareUren']):
             if(len(data['instructeur']['beschikbareUren'][days[i]]) > 0):

@@ -14,8 +14,8 @@ export async function POST(request: NextRequest): Promise<Response> {
     console.log('Starting Python script:', scriptPath)
     console.log('JSON file will be created at:', jsonFilePath)
 
-    // Probeer verschillende Python commando's
-    const pythonCommands = ['python3', 'python', 'py']
+    // Probeer verschillende Python commando's (py eerst voor Windows)
+    const pythonCommands = ['py', 'python3', 'python']
     let pythonProcess: any = null
     let commandUsed = ''
 
