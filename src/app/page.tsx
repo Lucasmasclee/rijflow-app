@@ -51,8 +51,7 @@ export default function HomePage() {
               <span className="ml-2 text-xl font-bold text-gray-900">RijFlow</span>
             </div>
             
-            {/* Desktop Navigation */}
-            <div className="hidden md:flex items-center space-x-4">
+            <div className="flex items-center space-x-4">
               <button
                 onClick={() => router.push('/auth/signin')}
                 className="text-gray-600 hover:text-gray-900 px-3 py-2 rounded-md text-sm font-medium"
