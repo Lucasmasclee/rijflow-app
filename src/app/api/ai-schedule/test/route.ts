@@ -1,104 +1,97 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { spawn } from 'child_process'
-import path from 'path'
-import fs from 'fs'
+import { generateAISchedule } from '@/lib/openai'
 
 export async function POST(request: NextRequest): Promise<Response> {
-  return new Promise<Response>((resolve) => {
-    // Pad naar het Python-script
-    const scriptPath = path.join(process.cwd(), 'scripts', 'generate_week_planning.py')
+  try {
+    // Genereer test data voor een week planning
+    const today = new Date()
+    const nextMonday = new Date(today)
+    nextMonday.setDate(today.getDate() + (8 - today.getDay()) % 7) // Volgende maandag
     
-    // Pad waar het JSON-bestand moet worden aangemaakt
-    const jsonFilePath = path.join(process.cwd(), 'src', 'app', 'dashboard', 'ai-schedule', 'best_week_planning.json')
+    const weekDates = []
+    for (let i = 0; i < 7; i++) {
+      const date = new Date(nextMonday)
+      date.setDate(nextMonday.getDate() + i)
+      weekDates.push(date.toISOString().slice(0, 10))
+    }
 
-    console.log('Starting Python script:', scriptPath)
-    console.log('JSON file will be created at:', jsonFilePath)
+    // Test instructeur beschikbaarheid (maandag t/m vrijdag)
+    const instructorAvailability = [
+      { day: 'monday', available: true, startTime: '09:00', endTime: '17:00' },
+      { day: 'tuesday', available: true, startTime: '09:00', endTime: '17:00' },
+      { day: 'wednesday', available: true, startTime: '09:00', endTime: '17:00' },
+      { day: 'thursday', available: true, startTime: '09:00', endTime: '17:00' },
+      { day: 'friday', available: true, startTime: '09:00', endTime: '17:00' },
+      { day: 'saturday', available: false, startTime: '09:00', endTime: '17:00' },
+      { day: 'sunday', available: false, startTime: '09:00', endTime: '17:00' },
+    ]
 
-    // Start het Python-script
-    const pythonProcess = spawn('python', [scriptPath])
-
-    let stdout = ''
-    let stderr = ''
-
-    pythonProcess.stdout.on('data', (data) => {
-      stdout += data.toString()
-      console.log('Python stdout:', data.toString())
-    })
-
-    pythonProcess.stderr.on('data', (data) => {
-      stderr += data.toString()
-      console.log('Python stderr:', data.toString())
-    })
-
-    pythonProcess.on('close', async (code) => {
-      console.log('Python script finished with code:', code)
-      
-      if (code !== 0) {
-        resolve(
-          NextResponse.json(
-            {
-              error: 'Fout bij het genereren van het test rooster',
-              details: stderr || `Python script exited with code ${code}`,
-            },
-            { status: 500 }
-          )
-        )
-        return
+    // Test leerlingen
+    const testStudents = [
+      {
+        id: 'test-student-1',
+        firstName: 'Jan',
+        lastName: 'Jansen',
+        lessons: 2,
+        minutes: 60,
+        aiNotes: 'Test leerling 1',
+        notes: 'Maandag, woensdag beschikbaar'
+      },
+      {
+        id: 'test-student-2',
+        firstName: 'Piet',
+        lastName: 'Pietersen',
+        lessons: 3,
+        minutes: 90,
+        aiNotes: 'Test leerling 2',
+        notes: 'Dinsdag, donderdag, vrijdag beschikbaar'
+      },
+      {
+        id: 'test-student-3',
+        firstName: 'Anna',
+        lastName: 'de Vries',
+        lessons: 1,
+        minutes: 45,
+        aiNotes: 'Test leerling 3',
+        notes: 'Alleen woensdag beschikbaar'
       }
+    ]
 
-      // Wacht even om zeker te zijn dat het bestand is geschreven
-      await new Promise(resolve => setTimeout(resolve, 1000))
+    // Test instellingen
+    const testSettings = {
+      connectLocations: true,
+      numberOfBreaks: 2,
+      minutesPerBreak: 15,
+      minutesBreakEveryLesson: 5,
+      breakAfterEachStudent: false,
+      sendNotifications: false,
+      additionalSpecifications: 'Test planning met AI'
+    }
 
-      // Controleer of het JSON-bestand bestaat
-      if (!fs.existsSync(jsonFilePath)) {
-        resolve(
-          NextResponse.json(
-            {
-              error: 'JSON bestand niet gevonden na uitvoering Python script',
-              details: `Verwacht bestand: ${jsonFilePath}`,
-              stdout: stdout,
-              stderr: stderr
-            },
-            { status: 500 }
-          )
-        )
-        return
-      }
+    // Maak de request data
+    const requestData = {
+      instructorAvailability,
+      students: testStudents,
+      settings: testSettings
+    }
 
-      try {
-        // Lees het JSON-bestand
-        const jsonData = fs.readFileSync(jsonFilePath, 'utf-8')
-        console.log('JSON file content length:', jsonData.length)
-        
-        const aiResponse = JSON.parse(jsonData)
-        console.log('Successfully parsed JSON response')
-        
-        resolve(NextResponse.json(aiResponse))
-      } catch (parseError) {
-        resolve(
-          NextResponse.json(
-            {
-              error: 'Fout bij het parsen van het JSON bestand',
-              details: parseError instanceof Error ? parseError.message : 'Unknown parse error',
-              filePath: jsonFilePath
-            },
-            { status: 500 }
-          )
-        )
-      }
-    })
+    console.log('Generating test AI schedule with data:', requestData)
 
-    pythonProcess.on('error', (err) => {
-      console.error('Failed to start Python script:', err)
-      resolve(
-        NextResponse.json(
-          {
-            error: 'Failed to start Python script',
-            details: err.message,
-          },
-          { status: 500 }
-        )
-      )
-    })
-  })
+    // Genereer het rooster met AI
+    const aiResponse = await generateAISchedule(requestData)
+
+    console.log('Test AI schedule generated successfully')
+
+    return NextResponse.json(aiResponse)
+
+  } catch (error) {
+    console.error('Error generating test AI schedule:', error)
+    return NextResponse.json(
+      { 
+        error: 'Fout bij het genereren van het test rooster',
+        details: error instanceof Error ? error.message : 'Unknown error'
+      },
+      { status: 500 }
+    )
+  }
 } 
