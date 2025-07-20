@@ -156,7 +156,7 @@ def can_schedule_normal_hour(student_id, day, used_time_slots, instructor):
     # (either they already have a normal hour or a block hour)
     return False
 
-def generate_week_planning(random_week_index, print_details=True):
+def generate_week_planning(random_week_index, start_vanaf_begin, print_details=True):
     """Generate optimized week planning maximizing number of lessons"""
     
     # Load input data
@@ -196,9 +196,12 @@ def generate_week_planning(random_week_index, print_details=True):
         instructor_end = parse_time(instructor['beschikbareUren'][day][1])
         
         # Create time slots every 5 minutes
-        current_time = instructor_start
+        if(start_vanaf_begin):
+            current_time = instructor_start
+        else:
+            current_time = instructor_end
         
-        while current_time < instructor_end:
+        while (start_vanaf_begin and current_time < instructor_end) or (not start_vanaf_begin and current_time > instructor_start):
             # Find all students available at this time
             available_students = []
             
@@ -233,7 +236,10 @@ def generate_week_planning(random_week_index, print_details=True):
                     'available_students': available_students.copy()
                 })
             
-            current_time += 5
+            if(start_vanaf_begin):
+                current_time += 5
+            else:
+                current_time -= 5
     
     # Sort time slots by priority:
     # 1. Day (according to the current week variation)
@@ -679,7 +685,7 @@ def generate_week_planning(random_week_index, print_details=True):
         "warnings": warnings
     }
     
-    return response, total_planned_lessons, total_time_between_lessons
+    return response, total_planned_lessons, total_time_between_lessons, start_vanaf_begin
 
 if __name__ == "__main__":
     print("=== VERGELIJKING VAN 20 VERSCHILLENDE DAG VOLGORDES ===")
@@ -725,15 +731,16 @@ if __name__ == "__main__":
     highest_score = 0
     best_week_index = 0
     best_rest_time = float('inf')  # Initialize with infinity for tiebreaker
-    
+    best_start_vanaf_begin = False
     for i in range(len(day_variations)):
         print(f"--- OPTIE {i+1} ---")
         # Get the first 5 days from each variation (work week)
         day_order = day_variations[i]
         print(f"Dag volgorde: {day_order}")
         print()
-        
-        result, score, total_time_between_lessons = generate_week_planning(i, print_details=False)
+        random_start_vanaf_begin = [True, False][random.randint(0, 1)]
+
+        result, score, total_time_between_lessons, start_vanaf_begin = generate_week_planning(i, random_start_vanaf_begin, print_details=False)
         results.append((i, score, total_time_between_lessons, result))
         
         # Update best option: prioritize number of lessons, then use rest time as tiebreaker
@@ -741,6 +748,7 @@ if __name__ == "__main__":
             highest_score = score
             best_week_index = i
             best_rest_time = total_time_between_lessons
+            best_start_vanaf_begin = start_vanaf_begin
         
         print(f"Optie {i+1}: {score} lessen ingepland")
         print("="*50)
@@ -762,7 +770,8 @@ if __name__ == "__main__":
     # Show details of the best option
     print(f"Optie {best_week_index+1} details:")
     print(f"Dag volgorde: {day_variations[best_week_index]}")
+    print(f"Start vanaf begin: {best_start_vanaf_begin}")
     print()
     
     # Re-run the best option with details
-    generate_week_planning(best_week_index, print_details=True)
+    generate_week_planning(best_week_index, best_start_vanaf_begin, print_details=True)
