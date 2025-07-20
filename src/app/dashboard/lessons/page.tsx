@@ -320,7 +320,7 @@ export default function LessonsPage() {
   }
 
   const getLessonsForDate = (date: Date) => {
-    const dateString = date.toISOString().split('T')[0]
+    const dateString = formatDateToISO(date)
     return lessons.filter(lesson => lesson.date === dateString)
   }
 
@@ -498,7 +498,7 @@ export default function LessonsPage() {
   }
 
   const getLessonsCountForDate = (date: Date) => {
-    const dateString = date.toISOString().split('T')[0]
+    const dateString = formatDateToISO(date)
     return lessons.filter(lesson => lesson.date === dateString).length
   }
 
