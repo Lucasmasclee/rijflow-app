@@ -22,9 +22,7 @@
           "maandag": ["10:00", "17:00"],
           "woensdag": ["09:00", "12:00"],
           "vrijdag": ["13:00", "17:00"]
-        },
-        "voorkeuren": ["vrijdag liever niet"],
-        "notities": "ophalen bij station"
+        }
       },
       {
         "id": "s2",
@@ -34,9 +32,7 @@
         "beschikbaarheid": {
           "dinsdag": ["12:00", "20:00"],
           "woensdag": ["09:00", "17:00"]
-        },
-        "voorkeuren": [],
-        "notities": ""
+        }
       }
     ]
   }
