@@ -66,42 +66,8 @@ export default function HomePage() {
                 Registreren
               </button>
             </div>
-
-            {/* Mobile Menu Button */}
-            {/* <button
-              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className="md:hidden p-2 rounded-md text-gray-600 hover:text-gray-900"
-            >
-              {mobileMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
-            </button> */}
           </div>
         </div>
-
-        {/* Mobile Menu */}
-        {/* {mobileMenuOpen && (
-          <div className="md:hidden bg-white border-t border-gray-200">
-            <div className="container-mobile py-4 space-y-4">
-              <button
-                onClick={() => {
-                  router.push('/auth/signin')
-                  setMobileMenuOpen(false)
-                }}
-                className="block w-full text-left text-gray-600 hover:text-gray-900 py-2 px-3 rounded-md text-base font-medium"
-              >
-                Inloggen
-              </button>
-              <button
-                onClick={() => {
-                  router.push('/auth/signup')
-                  setMobileMenuOpen(false)
-                }}
-                className="btn btn-primary w-full"
-              >
-                Registreren
-              </button>
-            </div>
-          </div>
-        )} */}
       </nav>
       {/* Features Section */}
       <div className="bg-gray-50 py-12 md:py-20">
@@ -117,48 +83,60 @@ export default function HomePage() {
 
           <div className="mobile-grid md:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
             <div className="card">
-              <Calendar className="h-12 w-12 text-blue-600 mb-4" />
-              <h3 className="text-lg md:text-xl font-semibold text-gray-900 mb-2">AI Weekplanning</h3>
+              <div className="flex items-center mb-4">
+                <Calendar className="h-12 w-12 text-blue-600 mr-3" />
+                <h3 className="text-lg md:text-xl font-semibold text-gray-900">AI Weekplanning</h3>
+              </div>
               <p className="text-gray-600">
                 Laat AI je optimale weekplanning maken op basis van beschikbaarheid en voorkeuren.
               </p>
             </div>
 
             <div className="card">
-              <Users className="h-12 w-12 text-blue-600 mb-4" />
-              <h3 className="text-lg md:text-xl font-semibold text-gray-900 mb-2">Dagplanning</h3>
+              <div className="flex items-center mb-4">
+                <Users className="h-12 w-12 text-blue-600 mr-3" />
+                <h3 className="text-lg md:text-xl font-semibold text-gray-900">Dagplanning</h3>
+              </div>
               <p className="text-gray-600">
                 Overzichtelijke dagplanning met alle lessen, locaties en leerlingen.
               </p>
             </div>
 
             <div className="card">
-              <FileText className="h-12 w-12 text-blue-600 mb-4" />
-              <h3 className="text-lg md:text-xl font-semibold text-gray-900 mb-2">Weekplanning</h3>
+              <div className="flex items-center mb-4">
+                <FileText className="h-12 w-12 text-blue-600 mr-3" />
+                <h3 className="text-lg md:text-xl font-semibold text-gray-900">Weekplanning</h3>
+              </div>
               <p className="text-gray-600">
                 Plan je hele week vooruit met een duidelijk weekoverzicht van alle lessen.
               </p>
             </div>
 
             <div className="card">
-              <MessageSquare className="h-12 w-12 text-blue-600 mb-4" />
-              <h3 className="text-lg md:text-xl font-semibold text-gray-900 mb-2">Leerlingbeheer</h3>
+              <div className="flex items-center mb-4">
+                <MessageSquare className="h-12 w-12 text-blue-600 mr-3" />
+                <h3 className="text-lg md:text-xl font-semibold text-gray-900">Leerlingbeheer</h3>
+              </div>
               <p className="text-gray-600">
                 Beheer al je leerlingen, hun gegevens en lespakketten op één centrale plek.
               </p>
             </div>
 
             <div className="card">
-              <Clock className="h-12 w-12 text-blue-600 mb-4" />
-              <h3 className="text-lg md:text-xl font-semibold text-gray-900 mb-2">Voortgang bijhouden</h3>
+              <div className="flex items-center mb-4">
+                <Clock className="h-12 w-12 text-blue-600 mr-3" />
+                <h3 className="text-lg md:text-xl font-semibold text-gray-900">Voortgang bijhouden</h3>
+              </div>
               <p className="text-gray-600">
                 Houd de voortgang van je leerlingen bij en zie hun ontwikkeling over tijd.
               </p>
             </div>
 
             <div className="card">
-              <CheckCircle className="h-12 w-12 text-blue-600 mb-4" />
-              <h3 className="text-lg md:text-xl font-semibold text-gray-900 mb-2">Urenregistratie</h3>
+              <div className="flex items-center mb-4">
+                <CheckCircle className="h-12 w-12 text-blue-600 mr-3" />
+                <h3 className="text-lg md:text-xl font-semibold text-gray-900">Urenregistratie</h3>
+              </div>
               <p className="text-gray-600">
                 Automatische urenregistratie voor een complete administratie van je werkuren.
               </p>
