@@ -390,6 +390,15 @@ export default function StudentDetailPage({ params }: { params: Promise<{ id: st
           </p>
         </div>
 
+        <div className="mb-6">
+          <h1 className="text-2xl md:text-3xl font-bold text-gray-900">
+            {student.first_name}
+          </h1>
+          <p className="text-gray-600 mt-2">
+            Leerling sinds {new Date(student.created_at).toLocaleDateString('nl-NL')}
+          </p>
+        </div>
+
         {/* Stats Cards - Compact */}
         <div className="grid grid-cols-2 gap-4 mb-6">
           <div className="card text-center py-4">

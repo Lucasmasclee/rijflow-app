@@ -215,8 +215,8 @@ export default function StudentsPage() {
 
       <div className="container-mobile py-10">
         {/* Search and Filter */}
-        <div className="card mb-6">
-          <div className="space-y-4">
+        {/* <div className="card mb-6">
+          <div className="space-y-4"> */}
             {/* <div className="relative">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
               <input
@@ -228,7 +228,7 @@ export default function StudentsPage() {
               />
             </div> */}
             
-            <div className="flex gap-2">
+            {/* <div className="flex gap-2">
               <button
                 onClick={() => setFilterStatus('all')}
                 className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
@@ -238,8 +238,8 @@ export default function StudentsPage() {
                 }`}
               >
                 Alle
-              </button>
-              <button
+              </button> */}
+              {/* <button
                 onClick={() => setFilterStatus('active')}
                 className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
                   filterStatus === 'active'
@@ -248,8 +248,8 @@ export default function StudentsPage() {
                 }`}
               >
                 Actief
-              </button>
-              <button
+              </button> */}
+              {/* <button
                 onClick={() => setFilterStatus('new')}
                 className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
                   filterStatus === 'new'
@@ -258,10 +258,10 @@ export default function StudentsPage() {
                 }`}
               >
                 Nieuw
-              </button>
-            </div>
-          </div>
-        </div>
+              </button> */}
+            {/* </div> */}
+          {/* </div>
+        </div> */}
 
         {/* Students List */}
         <div className="space-y-4">
