@@ -123,28 +123,28 @@ async function processDataInMemory(data: any) {
     },
     summary: {
       total_lessons: 0,
-      total_students: data.studenten?.length || 0,
+      total_students: data.leerlingen?.length || 0,
       week_dates: data.instructeur?.datums || []
     },
     metadata: {
       generated_at: new Date().toISOString(),
       input_data_summary: {
         instructor_available_days: Object.keys(data.instructeur?.beschikbareUren || {}),
-        students_count: data.studenten?.length || 0
+        students_count: data.leerlingen?.length || 0
       }
     },
     debug_info: {
       instructor_data: data.instructeur,
-      students_data: data.studenten,
+      students_data: data.leerlingen,
       processing_steps: []
     }
   }
 
   // Add some basic lesson scheduling logic
-  if (data.studenten && data.instructeur) {
+  if (data.leerlingen && data.instructeur) {
     console.log('=== DEBUG: Processing students and instructor data ===')
     
-    const students = data.studenten
+    const students = data.leerlingen
     const instructor = data.instructeur
     
     console.log('Students count:', students.length)
@@ -159,41 +159,82 @@ async function processDataInMemory(data: any) {
     let lessonCount = 0
     
     for (const student of students) {
-      console.log(`=== DEBUG: Processing student ${student.first_name} ${student.last_name || ''} ===`)
+      console.log(`=== DEBUG: Processing student ${student.naam} ===`)
       console.log('Student data:', JSON.stringify(student, null, 2))
       
-      const lessonsNeeded = student.lessons || 2
+      const lessonsNeeded = student.lessenPerWeek || 2
       console.log(`Lessons needed for this student: ${lessonsNeeded}`)
       
-      mockResult.debug_info.processing_steps.push(`Student ${student.first_name}: needs ${lessonsNeeded} lessons`)
+      mockResult.debug_info.processing_steps.push(`Student ${student.naam}: needs ${lessonsNeeded} lessons`)
       
-      for (let i = 0; i < lessonsNeeded && i < availableDays.length; i++) {
-        const day = availableDays[i]
+      // Check if student has availability
+      const studentAvailability = student.beschikbaarheid || {}
+      const availableStudentDays = Object.keys(studentAvailability)
+      console.log(`Student ${student.naam} available days:`, availableStudentDays)
+      
+      if (availableStudentDays.length === 0) {
+        console.log(`Student ${student.naam} has no availability, skipping`)
+        mockResult.debug_info.processing_steps.push(`Student ${student.naam} has no availability, skipping`)
+        continue
+      }
+      
+      for (let i = 0; i < lessonsNeeded && i < availableStudentDays.length; i++) {
+        const day = availableStudentDays[i]
         console.log(`Checking day: ${day}`)
         
-        const daySchedule = instructor.beschikbareUren[day]
-        console.log(`Day schedule for ${day}:`, JSON.stringify(daySchedule, null, 2))
+        // Check if instructor is available on this day
+        const instructorDaySchedule = instructor.beschikbareUren[day]
+        console.log(`Instructor schedule for ${day}:`, JSON.stringify(instructorDaySchedule, null, 2))
         
-        if (daySchedule && daySchedule.length > 0) {
-          const timeSlot = daySchedule[0] // Use first available time slot
-          console.log(`Using time slot:`, JSON.stringify(timeSlot, null, 2))
+        if (!instructorDaySchedule || instructorDaySchedule.length < 2) {
+          console.log(`Instructor not available on ${day}`)
+          mockResult.debug_info.processing_steps.push(`Instructor not available on ${day}`)
+          continue
+        }
+        
+        // Check if student is available on this day
+        const studentDaySchedule = studentAvailability[day]
+        console.log(`Student schedule for ${day}:`, JSON.stringify(studentDaySchedule, null, 2))
+        
+        if (!studentDaySchedule || studentDaySchedule.length < 2) {
+          console.log(`Student not available on ${day}`)
+          mockResult.debug_info.processing_steps.push(`Student not available on ${day}`)
+          continue
+        }
+        
+        // Find overlapping time window
+        // Convert instructor times from HH:MM:SS to HH:MM format to match student format
+        const instructorStart = instructorDaySchedule[0].substring(0, 5) // Take only HH:MM part
+        const instructorEnd = instructorDaySchedule[1].substring(0, 5) // Take only HH:MM part
+        const studentStart = studentDaySchedule[0]
+        const studentEnd = studentDaySchedule[1]
+        
+        console.log(`Instructor: ${instructorStart} - ${instructorEnd}`)
+        console.log(`Student: ${studentStart} - ${studentEnd}`)
+        
+        // Simple overlap check (now both in HH:MM format)
+        const overlapStart = instructorStart > studentStart ? instructorStart : studentStart
+        const overlapEnd = instructorEnd < studentEnd ? instructorEnd : studentEnd
+        
+        if (overlapStart < overlapEnd) {
+          const lessonDuration = student.lesDuur || 60
           
           mockResult.week_planning[day].push({
             student: {
               id: student.id,
-              name: `${student.first_name} ${student.last_name || ''}`.trim()
+              name: student.naam
             },
-            startTime: timeSlot.startTime,
-            endTime: timeSlot.endTime,
-            duration: student.minutes || 60
+            startTime: overlapStart,
+            endTime: overlapEnd,
+            duration: lessonDuration
           })
           
           lessonCount++
-          console.log(`Added lesson for ${student.first_name} on ${day}`)
-          mockResult.debug_info.processing_steps.push(`Scheduled lesson for ${student.first_name} on ${day} at ${timeSlot.startTime}`)
+          console.log(`Added lesson for ${student.naam} on ${day} at ${overlapStart}`)
+          mockResult.debug_info.processing_steps.push(`Scheduled lesson for ${student.naam} on ${day} at ${overlapStart}`)
         } else {
-          console.log(`No available time slots for ${day}`)
-          mockResult.debug_info.processing_steps.push(`No time slots available for ${day}`)
+          console.log(`No time overlap for ${student.naam} on ${day}`)
+          mockResult.debug_info.processing_steps.push(`No time overlap for ${student.naam} on ${day}`)
         }
       }
     }
@@ -203,7 +244,7 @@ async function processDataInMemory(data: any) {
     mockResult.debug_info.processing_steps.push(`Total lessons scheduled: ${lessonCount}`)
   } else {
     console.log('=== DEBUG: Missing students or instructor data ===')
-    console.log('Students:', data.studenten)
+    console.log('Students:', data.leerlingen)
     console.log('Instructor:', data.instructeur)
     mockResult.debug_info.processing_steps.push('Missing students or instructor data')
   }
