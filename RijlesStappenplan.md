@@ -76,10 +76,19 @@ Klik op “Toevoegen” en controleer of lessen in weekplanning verschijnen -->
 ✅✅✅✅✅- App logo & naam goedzetten in playstore
 - Nieuwe versie in appstore
 
+
+
+
+
 Todolist:
 - Gebruiker klikt "Start Test Planning" -> generate_week_planning.py runt -> json bestand wordt gemaakt/vervangen -> UI laat resultaat zien
 - UI elementen op AI-Weekplanning-Settings Pagina koppelen aan sample_input.json
+- Geselecteerde week koppelen aan sample_input.json
 - Met ChatGPT en cursor systeem maken voor automatisch beschikbaarheid leerlingen verzamelen EERST VOLLEDIGE UITWERKING NOTEREN
+
+
+
+
 
 
 - Uploaden naar appstore als dit niet gelukt is
