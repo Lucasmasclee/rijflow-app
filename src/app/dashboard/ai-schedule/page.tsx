@@ -2160,9 +2160,48 @@ OPDRACHT: Maak een optimaal lesrooster voor de geselecteerde week op basis van b
                   {students.map((student, index) => (
                     <div key={student.id} className="card">
                       <div className="flex items-center justify-between mb-4">
-                        <h4 className="font-medium text-gray-900">
-                          {student.first_name} {student.last_name || ''}
-                        </h4>
+                        <div className="flex items-center gap-6">
+                          <h4 className="font-medium text-gray-900">
+                            {student.first_name} {student.last_name || ''}
+                          </h4>
+                          
+                          {/* Lessen per week en lesduur direct naast de naam */}
+                          <div className="flex items-center gap-4">
+                            <div className="flex items-center gap-2">
+                              <span className="text-sm text-gray-600">Lessen/week:</span>
+                              <input
+                                type="number"
+                                min="1"
+                                max="7"
+                                value={student.lessons}
+                                onChange={(e) => handleStudentChange(student.id, 'lessons', parseInt(e.target.value))}
+                                className={`w-16 px-2 py-1 text-center border rounded focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm ${
+                                  isValueDifferentFromDefault(student, 'lessons') 
+                                    ? 'border-orange-300 bg-orange-50' 
+                                    : 'border-gray-300'
+                                }`}
+                              />
+                            </div>
+                            
+                            <div className="flex items-center gap-2">
+                              <span className="text-sm text-gray-600">Minuten:</span>
+                              <input
+                                type="number"
+                                min="30"
+                                max="180"
+                                step="15"
+                                value={student.minutes}
+                                onChange={(e) => handleStudentChange(student.id, 'minutes', parseInt(e.target.value))}
+                                className={`w-16 px-2 py-1 text-center border rounded focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm ${
+                                  isValueDifferentFromDefault(student, 'minutes') 
+                                    ? 'border-orange-300 bg-orange-50' 
+                                    : 'border-gray-300'
+                                }`}
+                              />
+                            </div>
+                          </div>
+                        </div>
+                        
                         {(isValueDifferentFromDefault(student, 'lessons') || isValueDifferentFromDefault(student, 'minutes')) && (
                           <button
                             onClick={() => resetToDefault(student.id)}
@@ -2171,44 +2210,6 @@ OPDRACHT: Maak een optimaal lesrooster voor de geselecteerde week op basis van b
                             Reset naar standaard
                           </button>
                         )}
-                      </div>
-                      
-                      <div className="mobile-grid md:grid-cols-2 gap-4">
-                        <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-2">
-                            Lessen per week
-                          </label>
-                          <input
-                            type="number"
-                            min="1"
-                            max="7"
-                            value={student.lessons}
-                            onChange={(e) => handleStudentChange(student.id, 'lessons', parseInt(e.target.value))}
-                            className={`w-full px-3 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
-                              isValueDifferentFromDefault(student, 'lessons') 
-                                ? 'border-orange-300 bg-orange-50' 
-                                : 'border-gray-300'
-                            }`}
-                          />
-                        </div>
-                        <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-2">
-                            Lesduur (minuten)
-                          </label>
-                          <input
-                            type="number"
-                            min="30"
-                            max="180"
-                            step="15"
-                            value={student.minutes}
-                            onChange={(e) => handleStudentChange(student.id, 'minutes', parseInt(e.target.value))}
-                            className={`w-full px-3 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
-                              isValueDifferentFromDefault(student, 'minutes') 
-                                ? 'border-orange-300 bg-orange-50' 
-                                : 'border-gray-300'
-                            }`}
-                          />
-                        </div>
                       </div>
                       
                       {/* <div className="mt-4">

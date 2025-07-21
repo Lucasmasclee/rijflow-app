@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { supabase } from '@/lib/supabase'
 import { Student, StudentAvailability } from '@/types/database'
+import { spawn } from 'child_process'
+import { writeFileSync, unlinkSync } from 'fs'
+import path from 'path'
 
 // Helper function to parse time string to minutes
 function parseTime(timeStr: string): number {
@@ -30,179 +33,79 @@ function getNextWeekDates(): string[] {
   return weekDates
 }
 
-// Helper function to check if student is available on a specific day and time
-function isStudentAvailable(student: any, day: string, startTime: number, endTime: number): boolean {
-  if (!student.beschikbaarheid || !student.beschikbaarheid[day]) {
-    return false
-  }
-  
-  const studentStart = parseTime(student.beschikbaarheid[day][0])
-  const studentEnd = parseTime(student.beschikbaarheid[day][1])
-  
-  return startTime >= studentStart && endTime <= studentEnd
-}
 
-// Helper function to check if instructor is available on a specific day and time
-function isInstructorAvailable(instructor: any, day: string, startTime: number, endTime: number): boolean {
-  if (!instructor.beschikbareUren || !instructor.beschikbareUren[day] || instructor.beschikbareUren[day].length < 2) {
-    return false
-  }
-  
-  const instructorStart = parseTime(instructor.beschikbareUren[day][0])
-  const instructorEnd = parseTime(instructor.beschikbareUren[day][1])
-  
-  return startTime >= instructorStart && endTime <= instructorEnd
-}
 
-// Helper function to check for lesson overlaps
-function hasOverlap(existingLessons: any[], newStart: number, newEnd: number, minPause: number): boolean {
-  for (const lesson of existingLessons) {
-    const lessonStart = parseTime(lesson.startTime)
-    const lessonEnd = parseTime(lesson.endTime)
-    
-    // Check for direct overlap
-    if (!(newEnd <= lessonStart || newStart >= lessonEnd)) {
-      return true
+// Main scheduling function using generate_week_planning.js
+async function generateSchedule(instructor: any, students: any[], weekDates: string[]): Promise<any> {
+  try {
+    // Create temporary input file for the script
+    const sampleInputData = {
+      instructeur: instructor,
+      leerlingen: students
     }
     
-    // Check for insufficient pause
-    if (newEnd <= lessonStart) {
-      const pause = lessonStart - newEnd
-      if (pause < minPause) return true
-    } else if (lessonEnd <= newStart) {
-      const pause = newStart - lessonEnd
-      if (pause < minPause) return true
-    }
-  }
-  return false
-}
-
-// Main scheduling function
-function generateSchedule(instructor: any, students: any[], weekDates: string[]): any {
-  const lessons: any[] = []
-  const warnings: string[] = []
-  
-  // Track lessons per student
-  const studentLessons: { [key: string]: number } = {}
-  students.forEach(student => {
-    studentLessons[student.id] = 0
-  })
-  
-  // Track lessons per day
-  const dayLessons: { [key: string]: any[] } = {}
-  weekDates.forEach(date => {
-    dayLessons[date] = []
-  })
-  
-  // Get day names for the week
-  const dayNames = ['maandag', 'dinsdag', 'woensdag', 'donderdag', 'vrijdag', 'zaterdag', 'zondag']
-  
-  // Try to schedule lessons for each student
-  for (const student of students) {
-    let remainingLessons = student.lessenPerWeek - studentLessons[student.id]
+    const tempInputPath = path.join(process.cwd(), 'temp_sample_input.json')
+    writeFileSync(tempInputPath, JSON.stringify(sampleInputData, null, 2))
     
-    while (remainingLessons > 0) {
-      let lessonScheduled = false
+    // Get the path to the generate_week_planning.js script
+    const scriptPath = path.join(process.cwd(), 'scripts', 'generate_week_planning.js')
+    
+    // Run the generate_week_planning.js script
+    return new Promise((resolve, reject) => {
+      const child = spawn('node', [scriptPath, tempInputPath], {
+        cwd: process.cwd(),
+        stdio: ['pipe', 'pipe', 'pipe']
+      })
       
-      // Try each day of the week
-      for (let dayIndex = 0; dayIndex < 7; dayIndex++) {
-        const dayName = dayNames[dayIndex]
-        const date = weekDates[dayIndex]
-        
-        if (!isInstructorAvailable(instructor, dayName, 0, 0)) {
-          continue // Instructor not available on this day
-        }
-        
-        if (!isStudentAvailable(student, dayName, 0, 0)) {
-          continue // Student not available on this day
-        }
-        
-        // Get instructor availability for this day
-        const instructorStart = parseTime(instructor.beschikbareUren[dayName][0])
-        const instructorEnd = parseTime(instructor.beschikbareUren[dayName][1])
-        
-        // Get student availability for this day
-        const studentStart = parseTime(student.beschikbaarheid[dayName][0])
-        const studentEnd = parseTime(student.beschikbaarheid[dayName][1])
-        
-        // Find available time slots
-        const availableStart = Math.max(instructorStart, studentStart)
-        const availableEnd = Math.min(instructorEnd, studentEnd)
-        
-        if (availableEnd - availableStart < student.lesDuur) {
-          continue // Not enough time for a lesson
-        }
-        
-        // Try to find a time slot that doesn't overlap with existing lessons
-        for (let time = availableStart; time <= availableEnd - student.lesDuur; time += 15) { // 15-minute intervals
-          const lessonStart = time
-          const lessonEnd = time + student.lesDuur
-          
-          if (!hasOverlap(dayLessons[date], lessonStart, lessonEnd, instructor.pauzeTussenLessen)) {
-            // Schedule the lesson
-            const lesson = {
-              date: date,
-              startTime: formatTime(lessonStart),
-              endTime: formatTime(lessonEnd),
-              studentId: student.id,
-              studentName: student.naam,
-              notes: ""
-            }
-            
-            lessons.push(lesson)
-            dayLessons[date].push(lesson)
-            studentLessons[student.id] += 1
-            remainingLessons -= 1
-            lessonScheduled = true
-            break
-          }
-        }
-        
-        if (lessonScheduled) break
-      }
+      let stdout = ''
+      let stderr = ''
       
-      if (!lessonScheduled) {
-        // Could not schedule this lesson
-        warnings.push(`Kon geen les inplannen voor ${student.naam}`)
-        break
-      }
-    }
-  }
-  
-  // Calculate students without lessons
-  const studentsWithoutLessons: { [key: string]: number } = {}
-  for (const student of students) {
-    const missingLessons = student.lessenPerWeek - studentLessons[student.id]
-    if (missingLessons > 0) {
-      studentsWithoutLessons[student.naam] = missingLessons
-    }
-  }
-  
-  // Calculate total time between lessons
-  let totalTimeBetweenLessons = 0
-  for (const [date, dayLessonsList] of Object.entries(dayLessons)) {
-    if (dayLessonsList.length > 1) {
-      // Sort lessons by start time
-      dayLessonsList.sort((a, b) => a.startTime.localeCompare(b.startTime))
+      child.stdout.on('data', (data) => {
+        stdout += data.toString()
+      })
       
-      // Calculate gaps between consecutive lessons
-      for (let i = 0; i < dayLessonsList.length - 1; i++) {
-        const currentEnd = parseTime(dayLessonsList[i].endTime)
-        const nextStart = parseTime(dayLessonsList[i + 1].startTime)
-        totalTimeBetweenLessons += nextStart - currentEnd
-      }
-    }
-  }
-  
-  return {
-    lessons: lessons,
-    leerlingen_zonder_les: studentsWithoutLessons,
-    schedule_details: {
-      lessen: lessons.length,
-      totale_minuten_tussen_lesson: totalTimeBetweenLessons
-    },
-    summary: `Planning voor komende week: ${lessons.length} lessen ingepland`,
-    warnings: warnings
+      child.stderr.on('data', (data) => {
+        stderr += data.toString()
+      })
+      
+      child.on('close', (code) => {
+        // Clean up temporary file
+        try {
+          unlinkSync(tempInputPath)
+        } catch (error) {
+          console.error('Error deleting temporary file:', error)
+        }
+        
+        if (code !== 0) {
+          console.error('Script stderr:', stderr)
+          reject(new Error(`Script failed with code ${code}: ${stderr}`))
+          return
+        }
+        
+        try {
+          const result = JSON.parse(stdout)
+          resolve(result)
+        } catch (error) {
+          console.error('Error parsing script output:', error)
+          console.error('Script stdout:', stdout)
+          reject(new Error('Failed to parse script output'))
+        }
+      })
+      
+      child.on('error', (error) => {
+        // Clean up temporary file
+        try {
+          unlinkSync(tempInputPath)
+        } catch (cleanupError) {
+          console.error('Error deleting temporary file:', cleanupError)
+        }
+        
+        reject(error)
+      })
+    })
+  } catch (error) {
+    console.error('Error in generateSchedule:', error)
+    throw error
   }
 }
 
@@ -427,8 +330,8 @@ export async function POST(request: NextRequest): Promise<Response> {
     console.log(JSON.stringify(sampleInputData, null, 2))
     console.log('=== END SAMPLE_INPUT.JSON DATA ===')
 
-    // Generate schedule
-    const result = generateSchedule(instructor, students, weekDates)
+    // Generate schedule using the generate_week_planning.js script
+    const result = await generateSchedule(instructor, students, weekDates)
     
     return NextResponse.json(result)
     
