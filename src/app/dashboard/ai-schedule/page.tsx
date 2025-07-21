@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import { ArrowLeft, ArrowRight, Users, Calendar, Settings, Brain, Check, X, Clock, MapPin } from 'lucide-react'
-import { useEffect, useState, Suspense } from 'react'
+import { useEffect, useState, Suspense, useRef } from 'react'
 import { useAuth } from '@/contexts/AuthContext'
 import { supabase } from '@/lib/supabase'
 import { Student, StudentAvailability } from '@/types/database'
@@ -240,6 +240,9 @@ function AISchedulePageContent() {
     }
   }
 
+  // Debounce timer for saving student availability
+  const saveTimeoutRef = useRef<NodeJS.Timeout | null>(null)
+
   const handleStudentTimeChange = (studentIndex: number, dayIndex: number, field: string, value: string) => {
     setStudents(prev => {
       const newStudents = [...prev]
@@ -278,8 +281,15 @@ function AISchedulePageContent() {
       return newStudents
     })
     
-    // Save to database
-    saveStudentAvailabilityToDatabase(studentIndex)
+    // Clear existing timeout
+    if (saveTimeoutRef.current) {
+      clearTimeout(saveTimeoutRef.current)
+    }
+    
+    // Set new timeout to save after 500ms of no typing
+    saveTimeoutRef.current = setTimeout(() => {
+      saveStudentAvailabilityToDatabase(studentIndex)
+    }, 500)
     
     // Reset AI prompt als beschikbaarheid wordt gewijzigd
     if (hasGeneratedPrompt) {
@@ -296,7 +306,57 @@ function AISchedulePageContent() {
       formattedValue = formatTimeOnBlur(value, 59)
     }
     
-    handleStudentTimeChange(studentIndex, dayIndex, field, formattedValue)
+    // Clear any pending timeout
+    if (saveTimeoutRef.current) {
+      clearTimeout(saveTimeoutRef.current)
+    }
+    
+    // Update the state immediately
+    setStudents(prev => {
+      const newStudents = [...prev]
+      const student = newStudents[studentIndex]
+      
+      // Initialize availability array if it doesn't exist
+      if (!student.availability) {
+        student.availability = DAY_ORDER.map((dayInfo, index) => ({
+          day: dayInfo.day,
+          available: false,
+          startTime: '09:00',
+          endTime: '17:00',
+          startHours: '09',
+          startMinutes: '00',
+          endHours: '17',
+          endMinutes: '00'
+        }))
+      }
+      
+      const day = student.availability[dayIndex]
+      
+      if (field === 'startHours') {
+        day.startHours = formattedValue
+        day.startTime = `${day.startHours}:${day.startMinutes}`
+      } else if (field === 'startMinutes') {
+        day.startMinutes = formattedValue
+        day.startTime = `${day.startHours}:${day.startMinutes}`
+      } else if (field === 'endHours') {
+        day.endHours = formattedValue
+        day.endTime = `${day.endHours}:${day.endMinutes}`
+      } else if (field === 'endMinutes') {
+        day.endMinutes = formattedValue
+        day.endTime = `${day.endHours}:${day.endMinutes}`
+      }
+      
+      return newStudents
+    })
+    
+    // Save immediately on blur
+    saveStudentAvailabilityToDatabase(studentIndex)
+    
+    // Reset AI prompt als beschikbaarheid wordt gewijzigd
+    if (hasGeneratedPrompt) {
+      setHasGeneratedPrompt(false)
+      setAiPrompt('')
+    }
   }
 
   const saveStudentAvailabilityToDatabase = async (studentIndex: number) => {
@@ -939,6 +999,15 @@ function AISchedulePageContent() {
       fetchAISettings()
     }
   }, [user, mounted])
+
+  // Cleanup timeout on unmount
+  useEffect(() => {
+    return () => {
+      if (saveTimeoutRef.current) {
+        clearTimeout(saveTimeoutRef.current)
+      }
+    }
+  }, [])
 
   // Initialize selected week from URL parameter
   useEffect(() => {
