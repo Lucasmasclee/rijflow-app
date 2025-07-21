@@ -2998,9 +2998,9 @@ OPDRACHT: Maak een optimaal lesrooster voor de geselecteerde week op basis van b
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 pb-20">
+    <div className="min-h-screen bg-gray-50 flex flex-col">
       {/* Mobile Navigation */}
-      <nav className="bg-white shadow-sm border-b safe-area-top">
+      <nav className="bg-white shadow-sm border-b safe-area-top flex-shrink-0">
         <div className="container-mobile">
           <div className="flex justify-between items-center h-16">
             <div className="flex items-center">
@@ -3017,107 +3017,114 @@ OPDRACHT: Maak een optimaal lesrooster voor de geselecteerde week op basis van b
         </div>
       </nav>
 
-      <div className="container-mobile py-6">
-        {/* Header */}
-        <div className="mb-6">
-          <h1 className="text-2xl md:text-3xl font-bold text-gray-900 mb-2">
-            AI-geassisteerde Planning
-          </h1>
-          <p className="text-gray-600">
-            Laat AI je optimale lesrooster maken
-          </p>
-          {getSelectedWeekInfo() && (
-            <div className="mt-3 p-3 bg-blue-50 border border-blue-200 rounded-lg">
-              <p className="text-sm text-blue-800">
-                <strong>Geselecteerde week:</strong> {getSelectedWeekInfo()?.start} - {getSelectedWeekInfo()?.end}
-              </p>
-            </div>
-          )}
-        </div>
+      {/* Main Content Area - Scrollable */}
+      <div className="flex-1 overflow-y-auto">
+        <div className="container-mobile py-6">
+          {/* Header */}
+          <div className="mb-6">
+            <h1 className="text-2xl md:text-3xl font-bold text-gray-900 mb-2">
+              AI-geassisteerde Planning
+            </h1>
+            <p className="text-gray-600">
+              Laat AI je optimale lesrooster maken
+            </p>
+            {getSelectedWeekInfo() && (
+              <div className="mt-3 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                <p className="text-sm text-blue-800">
+                  <strong>Geselecteerde week:</strong> {getSelectedWeekInfo()?.start} - {getSelectedWeekInfo()?.end}
+                </p>
+              </div>
+            )}
+          </div>
 
-        {/* Progress Steps */}
-        <div className="card mb-6">
-          <div className="flex items-center justify-between overflow-x-auto">
-            {steps.map((step, index) => {
-              const StepIcon = step.icon
-              const isActive = currentStep === step.key
-              const isCompleted = steps.findIndex(s => s.key === currentStep) > index
-              
-              return (
-                <div key={step.key} className="flex items-center flex-shrink-0">
-                  <div className={`flex items-center justify-center w-8 h-8 rounded-full text-sm font-medium ${
-                    isActive 
-                      ? 'bg-blue-600 text-white' 
-                      : isCompleted 
-                        ? 'bg-green-600 text-white' 
-                        : 'bg-gray-200 text-gray-600'
-                  }`}>
-                    {isCompleted ? (
-                      <Check className="h-4 w-4" />
-                    ) : (
-                      <StepIcon className="h-4 w-4" />
+          {/* Progress Steps */}
+          <div className="card mb-6">
+            <div className="flex items-center justify-between overflow-x-auto">
+              {steps.map((step, index) => {
+                const StepIcon = step.icon
+                const isActive = currentStep === step.key
+                const isCompleted = steps.findIndex(s => s.key === currentStep) > index
+                
+                return (
+                  <div key={step.key} className="flex items-center flex-shrink-0">
+                    <div className={`flex items-center justify-center w-8 h-8 rounded-full text-sm font-medium ${
+                      isActive 
+                        ? 'bg-blue-600 text-white' 
+                        : isCompleted 
+                          ? 'bg-green-600 text-white' 
+                          : 'bg-gray-200 text-gray-600'
+                    }`}>
+                      {isCompleted ? (
+                        <Check className="h-4 w-4" />
+                      ) : (
+                        <StepIcon className="h-4 w-4" />
+                      )}
+                    </div>
+                    <span className={`ml-2 text-sm font-medium whitespace-nowrap ${
+                      isActive ? 'text-blue-600' : 'text-gray-500'
+                    }`}>
+                      {step.name}
+                    </span>
+                    {index < steps.length - 1 && (
+                      <div className="mx-4 w-8 h-0.5 bg-gray-200 flex-shrink-0"></div>
                     )}
                   </div>
-                  <span className={`ml-2 text-sm font-medium whitespace-nowrap ${
-                    isActive ? 'text-blue-600' : 'text-gray-500'
-                  }`}>
-                    {step.name}
-                  </span>
-                  {index < steps.length - 1 && (
-                    <div className="mx-4 w-8 h-0.5 bg-gray-200 flex-shrink-0"></div>
-                  )}
-                </div>
-              )
-            })}
+                )
+              })}
+            </div>
+          </div>
+
+          {/* Step Content */}
+          <div className="card">
+            {renderCurrentStep()}
           </div>
         </div>
+      </div>
 
-        {/* Step Content */}
-        <div className="card mb-6">
-          {renderCurrentStep()}
-        </div>
-
-        {/* Navigation */}
-        <div className="flex gap-3">
-          {currentStep !== 'instructor' && (
-            <button
-              onClick={handlePrevious}
-              className="btn btn-secondary flex items-center gap-2"
-            >
-              <ArrowLeft className="h-4 w-4" />
-              Vorige
-            </button>
-          )}
-          
-          {currentStep !== 'test-planning' && (
-            <button
-              onClick={handleNext}
-              disabled={!canGoNext()}
-              className="btn btn-primary flex items-center gap-2 ml-auto disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              {currentStep === 'instructor' ? (
-                <>
-                  Leerlingen
-                  <ArrowRight className="h-4 w-4" />
-                </>
-              ) : currentStep === 'student-details' ? (
-                <>
-                  Instellingen
-                  <ArrowRight className="h-4 w-4" />
-                </>
-              ) : currentStep === 'settings' ? (
-                <>
-                  Test Planning
-                  <ArrowRight className="h-4 w-4" />
-                </>
-              ) : (
-                <>
-                  Volgende
-                  <ArrowRight className="h-4 w-4" />
-                </>
-              )}
-            </button>
-          )}
+      {/* Fixed Navigation Footer */}
+      <div className="flex-shrink-0 bg-white border-t border-gray-200 safe-area-bottom">
+        <div className="container-mobile py-4">
+          <div className="flex gap-3">
+            {currentStep !== 'instructor' && (
+              <button
+                onClick={handlePrevious}
+                className="btn btn-secondary flex items-center gap-2"
+              >
+                <ArrowLeft className="h-4 w-4" />
+                Vorige
+              </button>
+            )}
+            
+            {currentStep !== 'test-planning' && (
+              <button
+                onClick={handleNext}
+                disabled={!canGoNext()}
+                className="btn btn-primary flex items-center gap-2 ml-auto disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {currentStep === 'instructor' ? (
+                  <>
+                    Leerlingen
+                    <ArrowRight className="h-4 w-4" />
+                  </>
+                ) : currentStep === 'student-details' ? (
+                  <>
+                    Instellingen
+                    <ArrowRight className="h-4 w-4" />
+                  </>
+                ) : currentStep === 'settings' ? (
+                  <>
+                    Test Planning
+                    <ArrowRight className="h-4 w-4" />
+                  </>
+                ) : (
+                  <>
+                    Volgende
+                    <ArrowRight className="h-4 w-4" />
+                  </>
+                )}
+              </button>
+            )}
+          </div>
         </div>
       </div>
     </div>
