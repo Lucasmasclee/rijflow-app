@@ -102,10 +102,37 @@ export async function POST(request: NextRequest) {
       weekDates.push(date.toISOString().split('T')[0])
     }
 
-    // Convert students to the expected format
-    const leerlingen = students?.map(student => {
+    // Convert students to the expected format and handle missing availability
+    const leerlingen = []
+    
+    for (const student of students || []) {
       // Find availability for this student
-      const studentAvail = studentAvailability?.find(av => av.student_id === student.id)
+      let studentAvail = studentAvailability?.find(av => av.student_id === student.id)
+      
+      // If no availability found, create empty availability and post to database
+      if (!studentAvail) {
+        console.log(`Creating empty availability for student ${student.id}`)
+        
+        const emptyAvailability = {
+          student_id: student.id,
+          instructor_id: instructorId,
+          week_start: weekStart,
+          notes: JSON.stringify({}) // Empty availability object
+        }
+        
+        const { data: newAvailability, error: insertError } = await supabase
+          .from('student_availability')
+          .insert(emptyAvailability)
+          .select()
+          .single()
+        
+        if (insertError) {
+          console.error('Error creating empty availability for student:', insertError)
+          // Continue with empty availability even if insert fails
+        } else {
+          studentAvail = newAvailability
+        }
+      }
       
       // Convert availability notes to beschikbaarheid format
       const beschikbaarheid: Record<string, string[]> = {}
@@ -122,14 +149,14 @@ export async function POST(request: NextRequest) {
         }
       }
 
-      return {
+      leerlingen.push({
         id: student.id,
         naam: `${student.first_name} ${student.last_name}`.trim(),
         lessenPerWeek: student.default_lessons_per_week || 1,
         lesDuur: student.default_lesson_duration_minutes || 45,
         beschikbaarheid
-      }
-    }) || []
+      })
+    }
 
     // Create the editable input with database data
     const editableInput = {
