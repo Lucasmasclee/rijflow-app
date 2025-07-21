@@ -121,7 +121,7 @@ function add_long_break_if_needed(day_lessons, new_lesson_start, new_lesson_end,
         const adjusted_start = break_end + instructor.pauzeTussenLessen;
         
         if (print_details) {
-            console.log(`  [Lange pauze van ${instructor.langePauzeDuur} minuten toegevoegd]`);
+            // console.log(`  [Lange pauze van ${instructor.langePauzeDuur} minuten toegevoegd]`);
         }
         return adjusted_start;
     }
@@ -843,8 +843,8 @@ function create_output_json(best_result, best_week_index, best_start_vanaf_begin
 
 // Main execution
 // Verwijder alle console.log statements behalve de JSON output
-console.log("=== VERGELIJKING VAN 20 VERSCHILLENDE DAG VOLGORDES ===");
-console.log();
+// console.log("=== VERGELIJKING VAN 20 VERSCHILLENDE DAG VOLGORDES ===");
+// console.log();
 
 day_variations = [
     ['maandag', 'dinsdag', 'woensdag', 'donderdag', 'vrijdag', 'zaterdag', 'zondag'],
@@ -897,7 +897,7 @@ for (let i = 0; i < day_variations.length; i++) {
     // Get the first 5 days from each variation (work week)
     const day_order = day_variations[i];
     // Verwijder alle console.log statements behalve de JSON output
-    console.log();
+    // console.log();
     const random_start_vanaf_begin = [true, false][Math.floor(Math.random() * 2)];
 
     const [result, score, total_time_between_lessons, start_vanaf_begin] = generate_week_planning(i, random_start_vanaf_begin, false);
@@ -915,8 +915,8 @@ for (let i = 0; i < day_variations.length; i++) {
 }
 
 // Verwijder alle console.log statements behalve de JSON output
-console.log("=== SAMENVATTING VAN ALLE OPTIES ===");
-console.log();
+// console.log("=== SAMENVATTING VAN ALLE OPTIES ===");
+// console.log();
 
 for (const [i, score, total_time_between_lessons, result] of results) {
     const day_order = day_variations[i];
@@ -924,27 +924,27 @@ for (const [i, score, total_time_between_lessons, result] of results) {
 }
 
 // Verwijder alle console.log statements behalve de JSON output
-console.log();
+// console.log();
 // Verwijder alle console.log statements behalve de JSON output
-console.log(`BESTE OPTIE: Optie ${best_week_index+1} met ${highest_score} lessen en ${best_rest_time} minuten rust`);
-console.log();
+// console.log(`BESTE OPTIE: Optie ${best_week_index+1} met ${highest_score} lessen en ${best_rest_time} minuten rust`);
+// console.log();
 // Verwijder alle console.log statements behalve de JSON output
-console.log("=== DETAILS VAN BESTE OPTIE ===");
-console.log();
+// console.log("=== DETAILS VAN BESTE OPTIE ===");
+// console.log();
 
 // Show details of the best option
 // Verwijder alle console.log statements behalve de JSON output
-console.log(`Optie ${best_week_index+1} details:`);
-console.log(`Dag volgorde: ${day_variations[best_week_index]}`);
-console.log(`Start vanaf begin: ${best_start_vanaf_begin}`);
-console.log();
+// console.log(`Optie ${best_week_index+1} details:`);
+// console.log(`Dag volgorde: ${day_variations[best_week_index]}`);
+// console.log(`Start vanaf begin: ${best_start_vanaf_begin}`);
+// console.log();
 
 // Re-run the best option with details
 const [best_result, best_score, final_best_rest_time, final_best_start_vanaf_begin] = generate_week_planning(best_week_index, best_start_vanaf_begin, true);
 
 // Create JSON output file
 // Verwijder alle console.log statements behalve de JSON output
-console.log("\n=== JSON BESTAND AANMAKEN ===");
+// console.log("\n=== JSON BESTAND AANMAKEN ===");
 create_output_json(best_result, best_week_index, best_start_vanaf_begin);
 
 // Helper function for factorial
