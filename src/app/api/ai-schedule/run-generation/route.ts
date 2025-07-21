@@ -3,6 +3,16 @@ import { exec } from 'child_process'
 import path from 'path'
 import fs from 'fs'
 
+const DAY_ORDER = [
+  { day: 'monday', name: 'Maandag', shortName: 'Ma' },
+  { day: 'tuesday', name: 'Dinsdag', shortName: 'Di' },
+  { day: 'wednesday', name: 'Woensdag', shortName: 'Wo' },
+  { day: 'thursday', name: 'Donderdag', shortName: 'Do' },
+  { day: 'friday', name: 'Vrijdag', shortName: 'Vr' },
+  { day: 'saturday', name: 'Zaterdag', shortName: 'Za' },
+  { day: 'sunday', name: 'Zondag', shortName: 'Zo' },
+]
+
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
@@ -108,6 +118,8 @@ async function processDataInMemory(data: any) {
   
   const mockResult: {
     week_planning: { [key: string]: any[] };
+    lessons: any[];
+    schedule_details: any;
     summary: any;
     metadata: any;
     debug_info: any;
@@ -120,6 +132,11 @@ async function processDataInMemory(data: any) {
       vrijdag: [],
       zaterdag: [],
       zondag: []
+    },
+    lessons: [], // Flattened lessons array for UI
+    schedule_details: {
+      lessen: 0,
+      totale_minuten_tussen_lessen: 0
     },
     summary: {
       total_lessons: 0,
@@ -219,7 +236,8 @@ async function processDataInMemory(data: any) {
         if (overlapStart < overlapEnd) {
           const lessonDuration = student.lesDuur || 60
           
-          mockResult.week_planning[day].push({
+          // Add to week_planning
+          const lessonData = {
             student: {
               id: student.id,
               name: student.naam
@@ -227,6 +245,19 @@ async function processDataInMemory(data: any) {
             startTime: overlapStart,
             endTime: overlapEnd,
             duration: lessonDuration
+          }
+          
+          mockResult.week_planning[day].push(lessonData)
+          
+          // Add to flattened lessons array for UI
+          mockResult.lessons.push({
+            studentName: student.naam,
+            studentId: student.id,
+            date: data.instructeur?.datums?.[DAY_ORDER.findIndex(d => d.name.toLowerCase() === day)] || new Date().toISOString().split('T')[0],
+            startTime: overlapStart,
+            endTime: overlapEnd,
+            duration: lessonDuration,
+            day: day
           })
           
           lessonCount++
@@ -240,6 +271,7 @@ async function processDataInMemory(data: any) {
     }
     
     mockResult.summary.total_lessons = lessonCount
+    mockResult.schedule_details.lessen = lessonCount
     console.log(`=== DEBUG: Total lessons scheduled: ${lessonCount} ===`)
     mockResult.debug_info.processing_steps.push(`Total lessons scheduled: ${lessonCount}`)
   } else {
