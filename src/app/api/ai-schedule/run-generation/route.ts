@@ -27,7 +27,7 @@ export async function POST(request: NextRequest) {
     // Run the generate_week_planning.js script
     const scriptPath = path.join(process.cwd(), 'scripts', 'generate_week_planning.js')
     
-    return new Promise((resolve) => {
+    return new Promise<NextResponse>((resolve) => {
       exec(`node "${scriptPath}" "${editableInputPath}"`, {
         cwd: path.join(process.cwd(), 'scripts')
       }, (error, stdout, stderr) => {
