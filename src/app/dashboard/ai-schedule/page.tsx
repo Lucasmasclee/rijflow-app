@@ -1536,7 +1536,8 @@ OPDRACHT: Maak een optimaal lesrooster voor de geselecteerde week op basis van b
                               value={day.startHours}
                               onChange={(e) => handleTimeChange(index, 'startHours', e.target.value)}
                               onBlur={(e) => handleTimeBlur(index, 'startHours', e.target.value)}
-                              className="w-2 h-8 text-center border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+                              className="h-8 text-center border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+                              style={{ width: '8px' }}
                               maxLength={2}
                             />
                             <span className="text-sm text-gray-500">:</span>
@@ -1545,7 +1546,8 @@ OPDRACHT: Maak een optimaal lesrooster voor de geselecteerde week op basis van b
                               value={day.startMinutes}
                               onChange={(e) => handleTimeChange(index, 'startMinutes', e.target.value)}
                               onBlur={(e) => handleTimeBlur(index, 'startMinutes', e.target.value)}
-                              className="w-2 h-8 text-center border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+                              className="h-8 text-center border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+                              style={{ width: '8px' }}
                               maxLength={2}
                             />
                           </div>
@@ -1559,7 +1561,8 @@ OPDRACHT: Maak een optimaal lesrooster voor de geselecteerde week op basis van b
                               value={day.endHours}
                               onChange={(e) => handleTimeChange(index, 'endHours', e.target.value)}
                               onBlur={(e) => handleTimeBlur(index, 'endHours', e.target.value)}
-                              className="w-2 h-8 text-center border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+                              className="h-8 text-center border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+                              style={{ width: '8px' }}
                               maxLength={2}
                             />
                             <span className="text-sm text-gray-500">:</span>
@@ -1568,7 +1571,8 @@ OPDRACHT: Maak een optimaal lesrooster voor de geselecteerde week op basis van b
                               value={day.endMinutes}
                               onChange={(e) => handleTimeChange(index, 'endMinutes', e.target.value)}
                               onBlur={(e) => handleTimeBlur(index, 'endMinutes', e.target.value)}
-                              className="w-2 h-8 text-center border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+                              className="h-8 text-center border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+                              style={{ width: '8px' }}
                               maxLength={2}
                             />
                           </div>
@@ -2168,7 +2172,8 @@ OPDRACHT: Maak een optimaal lesrooster voor de geselecteerde week op basis van b
                                   value={dayAvailability.startHours}
                                   onChange={(e) => handleStudentTimeChange(studentIndex, dayIndex, 'startHours', e.target.value)}
                                   onBlur={(e) => handleStudentTimeBlur(studentIndex, dayIndex, 'startHours', e.target.value)}
-                                  className="w-2 h-8 text-center border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+                                  className="h-8 text-center border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+                                  style={{ width: '8px' }}
                                   maxLength={2}
                                 />
                                 <span className="text-sm text-gray-500">:</span>
@@ -2177,7 +2182,8 @@ OPDRACHT: Maak een optimaal lesrooster voor de geselecteerde week op basis van b
                                   value={dayAvailability.startMinutes}
                                   onChange={(e) => handleStudentTimeChange(studentIndex, dayIndex, 'startMinutes', e.target.value)}
                                   onBlur={(e) => handleStudentTimeBlur(studentIndex, dayIndex, 'startMinutes', e.target.value)}
-                                  className="w-2 h-8 text-center border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+                                  className="h-8 text-center border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+                                  style={{ width: '8px' }}
                                   maxLength={2}
                                 />
                               </div>
@@ -2191,7 +2197,8 @@ OPDRACHT: Maak een optimaal lesrooster voor de geselecteerde week op basis van b
                                   value={dayAvailability.endHours}
                                   onChange={(e) => handleStudentTimeChange(studentIndex, dayIndex, 'endHours', e.target.value)}
                                   onBlur={(e) => handleStudentTimeBlur(studentIndex, dayIndex, 'endHours', e.target.value)}
-                                  className="w-2 h-8 text-center border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+                                  className="h-8 text-center border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+                                  style={{ width: '8px' }}
                                   maxLength={2}
                                 />
                                 <span className="text-sm text-gray-500">:</span>
@@ -2200,7 +2207,8 @@ OPDRACHT: Maak een optimaal lesrooster voor de geselecteerde week op basis van b
                                   value={dayAvailability.endMinutes}
                                   onChange={(e) => handleStudentTimeChange(studentIndex, dayIndex, 'endMinutes', e.target.value)}
                                   onBlur={(e) => handleStudentTimeBlur(studentIndex, dayIndex, 'endMinutes', e.target.value)}
-                                  className="w-2 h-8 text-center border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+                                  className="h-8 text-center border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+                                  style={{ width: '8px' }}
                                   maxLength={2}
                                 />
                               </div>
