@@ -226,14 +226,43 @@ export default function LessonsPage() {
   }
 
   // Handle AI schedule week selection
-  const handleAIScheduleWeekSelection = (targetWeek: Date) => {
+  const handleAIScheduleWeekSelection = async (targetWeek: Date) => {
+    if (!user) return
+    
     setSelectedAIScheduleWeek(targetWeek)
     setShowAIScheduleModal(false)
     
-    // Navigate to AI schedule page with the selected week
-    const weekStart = getMonday(targetWeek)
-    const weekStartString = formatDateToISO(weekStart)
-    router.push(`/dashboard/ai-schedule?week=${weekStartString}`)
+    try {
+      // Create editable input from database
+      const weekStart = getMonday(targetWeek)
+      const weekStartString = formatDateToISO(weekStart)
+      
+      const response = await fetch('/api/ai-schedule/create-editable-input', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          instructorId: user.id,
+          weekStart: weekStartString
+        })
+      })
+
+      if (!response.ok) {
+        const error = await response.json()
+        toast.error('Fout bij het maken van weekplanning: ' + (error.error || 'Onbekende fout'))
+        return
+      }
+
+      const result = await response.json()
+      
+      // Navigate to AI schedule page with the editable input path
+      router.push(`/dashboard/ai-schedule?week=${weekStartString}&input=${result.editableInputPath}`)
+      
+    } catch (error) {
+      console.error('Error creating editable input:', error)
+      toast.error('Fout bij het maken van weekplanning')
+    }
   }
 
   // Handle week selection for copying

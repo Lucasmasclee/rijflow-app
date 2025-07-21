@@ -20,7 +20,7 @@ const DAY_ORDER = [
   { day: 'sunday', name: 'Zondag', shortName: 'Zo' },
 ]
 
-type Step = 'instructor' | 'student-details' | 'settings' | 'prompt' | 'result' | 'selection' | `student-${string}`
+type Step = 'instructor' | 'student-details' | 'settings' | 'prompt' | 'result' | 'selection' | 'test-planning' | `student-${string}`
 
 interface StudentWithScheduleData extends Student {
   lessons: number
@@ -56,6 +56,9 @@ function AISchedulePageContent() {
 
   // Selected week for AI scheduling
   const [selectedWeek, setSelectedWeek] = useState<Date | null>(null)
+  const [editableInputPath, setEditableInputPath] = useState<string | null>(null)
+  const [isRunningTestPlanning, setIsRunningTestPlanning] = useState(false)
+  const [testPlanningResult, setTestPlanningResult] = useState<any>(null)
 
   // Instructeur beschikbaarheid - nieuwe UI structuur
   const [availability, setAvailability] = useState<DayAvailability[]>([
@@ -1009,9 +1012,11 @@ function AISchedulePageContent() {
     }
   }, [])
 
-  // Initialize selected week from URL parameter
+  // Initialize selected week and input path from URL parameters
   useEffect(() => {
     const weekParam = searchParams.get('week')
+    const inputParam = searchParams.get('input')
+    
     if (weekParam) {
       try {
         const weekDate = new Date(weekParam)
@@ -1022,7 +1027,50 @@ function AISchedulePageContent() {
         console.error('Error parsing week parameter:', error)
       }
     }
+    
+    if (inputParam) {
+      setEditableInputPath(inputParam)
+      // Set initial step to test-planning when we have an editable input
+      setCurrentStep('test-planning')
+    }
   }, [searchParams])
+
+  // Handle test planning
+  const handleStartTestPlanning = async () => {
+    if (!editableInputPath) {
+      toast.error('Geen bewerkbare input gevonden')
+      return
+    }
+
+    setIsRunningTestPlanning(true)
+    try {
+      const response = await fetch('/api/ai-schedule/run-generation', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          editableInputPath
+        })
+      })
+
+      if (!response.ok) {
+        const error = await response.json()
+        toast.error('Fout bij het uitvoeren van test planning: ' + (error.error || 'Onbekende fout'))
+        return
+      }
+
+      const result = await response.json()
+      setTestPlanningResult(result.data)
+      toast.success('Test planning succesvol uitgevoerd')
+      
+    } catch (error) {
+      console.error('Error running test planning:', error)
+      toast.error('Fout bij het uitvoeren van test planning')
+    } finally {
+      setIsRunningTestPlanning(false)
+    }
+  }
 
   
 
@@ -2221,6 +2269,56 @@ OPDRACHT: Maak een optimaal lesrooster voor de geselecteerde week op basis van b
           </div>
         )
 
+      case 'test-planning':
+        return (
+          <div className="space-y-6">
+            <div>
+              <h3 className="text-lg font-semibold mb-4">Test Planning</h3>
+              <p className="text-gray-600 mb-6">
+                Start de test planning om de gegenereerde weekplanning te bekijken
+              </p>
+            </div>
+            
+            <div className="card">
+              <div className="text-center py-8">
+                <Brain className="h-12 w-12 text-blue-600 mx-auto mb-4" />
+                <h4 className="text-lg font-medium text-gray-900 mb-2">
+                  Start Test Planning
+                </h4>
+                <p className="text-gray-600 mb-6">
+                  Klik op de knop hieronder om de test planning uit te voeren met de bewerkbare kopie van sample_input.json
+                </p>
+                <button
+                  onClick={handleStartTestPlanning}
+                  disabled={isRunningTestPlanning}
+                  className="btn btn-primary disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 mx-auto"
+                >
+                  {isRunningTestPlanning ? (
+                    <>
+                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                      Test Planning wordt uitgevoerd...
+                    </>
+                  ) : (
+                    <>
+                      <Brain className="h-4 w-4" />
+                      Start Test Planning
+                    </>
+                  )}
+                </button>
+                
+                {testPlanningResult && (
+                  <div className="mt-6 p-4 bg-gray-50 rounded-lg">
+                    <h5 className="font-medium text-gray-900 mb-2">Resultaat:</h5>
+                    <pre className="text-sm text-gray-600 overflow-auto max-h-64">
+                      {JSON.stringify(testPlanningResult, null, 2)}
+                    </pre>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        )
+
       default:
         // Check if this is a student step
         if (currentStep.startsWith('student-')) {
@@ -2454,6 +2552,8 @@ OPDRACHT: Maak een optimaal lesrooster voor de geselecteerde week op basis van b
         return aiResponse?.lessons && selectedLessons.size > 0
       case 'result':
         return false
+      case 'test-planning':
+        return true // Always allow going to next step from test planning
       default:
         return false
     }
@@ -2496,6 +2596,13 @@ OPDRACHT: Maak een optimaal lesrooster voor de geselecteerde week op basis van b
       { key: 'selection', name: 'Selectie', icon: Check },
       { key: 'result', name: 'Resultaat', icon: Check }
     )
+    
+    // Add test planning step if we have an editable input path
+    if (editableInputPath) {
+      baseSteps.push(
+        { key: 'test-planning', name: 'Test Planning', icon: Brain }
+      )
+    }
     
     return baseSteps
   }

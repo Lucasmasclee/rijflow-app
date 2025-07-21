@@ -170,7 +170,7 @@ function generate_week_planning(random_week_index, start_vanaf_begin, print_deta
     // Generate optimized week planning maximizing number of lessons
     
     // Load input data
-    const data = JSON.parse(fs.readFileSync('sample_input.json', 'utf8'));
+    const data = JSON.parse(fs.readFileSync(inputFile, 'utf8'));
     
     const instructor = data.instructeur;
     const students = data.leerlingen;
@@ -856,12 +856,15 @@ day_variations = [
     ['zondag', 'maandag', 'dinsdag', 'woensdag', 'donderdag', 'vrijdag', 'zaterdag'],
 ];
 
+// Get input file from command line argument or use default
+const inputFile = process.argv[2] || 'sample_input.json';
+
 const days = ['maandag', 'dinsdag', 'woensdag', 'donderdag', 'vrijdag', 'zaterdag', 'zondag'];
 const list_available_days_integers = [];
 // Read on which days the instructor is available
 for (let i = 0; i < 7; i++) {
     // read json file 
-    const data = JSON.parse(fs.readFileSync('sample_input.json', 'utf8'));
+    const data = JSON.parse(fs.readFileSync(inputFile, 'utf8'));
     if (days[i] in data.instructeur.beschikbareUren) {
         if (data.instructeur.beschikbareUren[days[i]].length > 0) {
             list_available_days_integers.push(i);
