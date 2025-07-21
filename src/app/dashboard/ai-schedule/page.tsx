@@ -1420,6 +1420,59 @@ OPDRACHT: Maak een optimaal lesrooster voor de geselecteerde week op basis van b
     setIsGenerating(true)
     
     try {
+      // DEBUG: Log all input data before making the API call
+      console.log('=== START TEST PLANNING DEBUG ===')
+      console.log('Current user:', user ? { id: user.id, email: user.email } : 'No user')
+      console.log('Current step:', currentStep)
+      console.log('Students data:', students)
+      console.log('Settings:', settings)
+      console.log('Instructor availability:', availability)
+      
+      // Log detailed student availability
+      console.log('=== STUDENT AVAILABILITY DETAILS ===')
+      students.forEach((student, index) => {
+        console.log(`Student ${index + 1}:`, {
+          id: student.id,
+          name: `${student.first_name} ${student.last_name || ''}`,
+          lessons: student.lessons,
+          minutes: student.minutes,
+          notes: student.notes,
+          aiNotes: student.aiNotes,
+          availability: student.availability,
+          availabilityText: student.availabilityText
+        })
+      })
+      
+      // Log instructor availability details
+      console.log('=== INSTRUCTOR AVAILABILITY DETAILS ===')
+      availability.forEach((avail, index) => {
+        console.log(`Day ${index + 1}:`, {
+          day: avail.day,
+          available: avail.available,
+          startTime: avail.startTime,
+          endTime: avail.endTime,
+          startHours: avail.startHours,
+          startMinutes: avail.startMinutes,
+          endHours: avail.endHours,
+          endMinutes: avail.endMinutes
+        })
+      })
+      
+      // Log settings details
+      console.log('=== SETTINGS DETAILS ===')
+      console.log('Settings:', {
+        connectLocations: settings.connectLocations,
+        numberOfBreaks: settings.numberOfBreaks,
+        minutesPerBreak: settings.minutesPerBreak,
+        minutesBreakEveryLesson: settings.minutesBreakEveryLesson,
+        breakAfterEachStudent: settings.breakAfterEachStudent,
+        sendNotifications: settings.sendNotifications,
+        blokuren: settings.blokuren,
+        additionalSpecifications: settings.additionalSpecifications
+      })
+      
+      console.log('=== END TEST PLANNING DEBUG ===')
+      
       // Get the current session to get the JWT token
       const { data: { session } } = await supabase.auth.getSession()
       
