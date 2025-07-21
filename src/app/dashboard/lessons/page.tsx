@@ -222,7 +222,7 @@ export default function LessonsPage() {
     setShowCopyModal(true)
   }
 
-  // Handle AI schedule week selection
+  // Handle AI schedule button click
   const handleAIScheduleClick = () => {
     setShowAIScheduleModal(true)
   }
@@ -271,8 +271,12 @@ export default function LessonsPage() {
 
       const result = await response.json()
       
-      // Always pass the data directly to avoid file system issues
-      router.push(`/dashboard/ai-schedule?week=${weekStartString}&data=${encodeURIComponent(JSON.stringify(result.data))}`)
+      // Store the data in localStorage for the AI schedule page
+      localStorage.setItem('aiScheduleData', JSON.stringify(result.data))
+      localStorage.setItem('aiScheduleWeekStart', weekStartString)
+      
+      // Navigate to AI schedule page
+      router.push(`/dashboard/ai-schedule?week=${weekStartString}`)
       
     } catch (error) {
       console.error('Error creating editable input:', error)

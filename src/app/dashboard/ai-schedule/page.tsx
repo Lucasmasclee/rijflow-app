@@ -411,6 +411,8 @@ function AISchedulePageContent() {
         toast.error(`Fout bij opslaan beschikbaarheid: ${error.message}`)
       } else {
         console.log(`Successfully saved availability for student ${student.id}`)
+        // Update localStorage with new availability
+        updateLocalStorageData()
       }
     } catch (error) {
       console.error('Error saving student availability:', error)
@@ -476,6 +478,9 @@ function AISchedulePageContent() {
 
       if (error) {
         console.error('Error saving instructor availability:', error)
+      } else {
+        // Update localStorage with new availability
+        updateLocalStorageData()
       }
     } catch (error) {
       console.error('Error saving instructor availability:', error)
@@ -1015,7 +1020,6 @@ function AISchedulePageContent() {
   // Initialize selected week and data from URL parameters
   useEffect(() => {
     const weekParam = searchParams.get('week')
-    const dataParam = searchParams.get('data')
     
     if (weekParam) {
       try {
@@ -1028,18 +1032,204 @@ function AISchedulePageContent() {
       }
     }
     
-    if (dataParam) {
+    // Load data from localStorage if available
+    const storedData = localStorage.getItem('aiScheduleData')
+    if (storedData) {
       try {
-        const data = JSON.parse(decodeURIComponent(dataParam))
-        // Store the data in localStorage for later use
-        localStorage.setItem('aiScheduleData', JSON.stringify(data))
+        const data = JSON.parse(storedData)
         setEditableInputPath('data') // Use 'data' as a special identifier
         setCurrentStep('test-planning')
+        
+        // Initialize the UI with the stored data
+        initializeUIWithData(data)
       } catch (error) {
-        console.error('Error parsing data parameter:', error)
+        console.error('Error parsing stored data:', error)
       }
     }
   }, [searchParams])
+
+  // Initialize UI with data from localStorage
+  const initializeUIWithData = (data: any) => {
+    if (!data) return
+    
+    // Initialize instructor availability
+    if (data.instructeur) {
+      const instructor = data.instructeur
+      
+      // Convert beschikbareUren to availability format
+      const newAvailability = DAY_ORDER.map((dayInfo) => {
+        const dayName = dayInfo.name.toLowerCase()
+        const available = instructor.beschikbareUren && instructor.beschikbareUren[dayName]
+        const times = available ? instructor.beschikbareUren[dayName] : ['09:00', '17:00']
+        
+        const [startHours, startMinutes] = times[0].split(':')
+        const [endHours, endMinutes] = times[1].split(':')
+        
+        return {
+          day: dayInfo.day,
+          available: !!available,
+          startTime: times[0],
+          endTime: times[1],
+          startHours,
+          startMinutes,
+          endHours,
+          endMinutes
+        }
+      })
+      
+      setAvailability(newAvailability)
+      
+      // Update settings
+      setSettings(prev => ({
+        ...prev,
+        connectLocations: instructor.locatiesKoppelen ?? true,
+        blokuren: instructor.blokuren ?? true,
+        minutesBreakEveryLesson: instructor.pauzeTussenLessen ?? 10,
+        minutesPerBreak: instructor.langePauzeDuur ?? 0
+      }))
+    }
+    
+    // Initialize students
+    if (data.leerlingen) {
+      const newStudents = data.leerlingen.map((student: any) => {
+        // Convert beschikbaarheid to availability format
+        const availability = DAY_ORDER.map((dayInfo) => {
+          const dayName = dayInfo.name.toLowerCase()
+          const available = student.beschikbaarheid && student.beschikbaarheid[dayName]
+          const times = available ? student.beschikbaarheid[dayName] : ['09:00', '17:00']
+          
+          const [startHours, startMinutes] = times[0].split(':')
+          const [endHours, endMinutes] = times[1].split(':')
+          
+          return {
+            day: dayInfo.day,
+            available: !!available,
+            startTime: times[0],
+            endTime: times[1],
+            startHours,
+            startMinutes,
+            endHours,
+            endMinutes
+          }
+        })
+        
+        return {
+          id: student.id,
+          first_name: student.naam.split(' ')[0],
+          last_name: student.naam.split(' ').slice(1).join(' '),
+          lessons: student.lessenPerWeek,
+          minutes: student.lesDuur,
+          notes: '',
+          aiNotes: '',
+          availabilityNotes: [],
+          availabilityText: '',
+          availability
+        }
+      })
+      
+      setStudents(newStudents)
+    }
+  }
+
+  // Update localStorage with current UI data
+  const updateLocalStorageData = () => {
+    try {
+      const currentData = localStorage.getItem('aiScheduleData')
+      if (!currentData) return
+      
+      const data = JSON.parse(currentData)
+      
+      // Update instructor availability
+      if (data.instructeur) {
+        const beschikbareUren: Record<string, string[]> = {}
+        availability.forEach(day => {
+          if (day.available) {
+            const dayName = DAY_ORDER.find(d => d.day === day.day)?.name.toLowerCase()
+            if (dayName) {
+              beschikbareUren[dayName] = [day.startTime, day.endTime]
+            }
+          }
+        })
+        
+        data.instructeur.beschikbareUren = beschikbareUren
+        data.instructeur.blokuren = settings.blokuren
+        data.instructeur.pauzeTussenLessen = settings.minutesBreakEveryLesson
+        data.instructeur.langePauzeDuur = settings.minutesPerBreak
+        data.instructeur.locatiesKoppelen = settings.connectLocations
+      }
+      
+      // Update students
+      if (data.leerlingen) {
+        data.leerlingen = data.leerlingen.map((student: any) => {
+          const uiStudent = students.find(s => s.id === student.id)
+          if (uiStudent) {
+            const beschikbaarheid: Record<string, string[]> = {}
+            uiStudent.availability?.forEach(day => {
+              if (day.available) {
+                const dayName = DAY_ORDER.find(d => d.day === day.day)?.name.toLowerCase()
+                if (dayName) {
+                  beschikbaarheid[dayName] = [day.startTime, day.endTime]
+                }
+              }
+            })
+            
+            return {
+              ...student,
+              naam: uiStudent.last_name ? `${uiStudent.first_name} ${uiStudent.last_name}` : uiStudent.first_name,
+              lessenPerWeek: uiStudent.lessons,
+              lesDuur: uiStudent.minutes,
+              beschikbaarheid
+            }
+          }
+          return student
+        })
+      }
+      
+      localStorage.setItem('aiScheduleData', JSON.stringify(data))
+    } catch (error) {
+      console.error('Error updating localStorage data:', error)
+    }
+  }
+
+  // Reinitialize data from database
+  const reinitializeDataFromDatabase = async () => {
+    if (!user || !selectedWeek) return
+    
+    try {
+      const weekStart = selectedWeek.toISOString().split('T')[0]
+      
+      const response = await fetch('/api/ai-schedule/create-editable-input', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          instructorId: user.id,
+          weekStart: weekStart
+        })
+      })
+
+      if (!response.ok) {
+        const error = await response.json()
+        toast.error('Fout bij het herinitialiseren van data: ' + (error.error || 'Onbekende fout'))
+        return
+      }
+
+      const result = await response.json()
+      
+      // Update localStorage with fresh data
+      localStorage.setItem('aiScheduleData', JSON.stringify(result.data))
+      
+      // Reinitialize UI
+      initializeUIWithData(result.data)
+      
+      toast.success('Data hergeïnitialiseerd van database')
+      
+    } catch (error) {
+      console.error('Error reinitializing data:', error)
+      toast.error('Fout bij het herinitialiseren van data')
+    }
+  }
 
   // Handle test planning
   const handleStartTestPlanning = async () => {
@@ -1050,7 +1240,10 @@ function AISchedulePageContent() {
 
     setIsRunningTestPlanning(true)
     try {
-      // Always use data from localStorage
+      // First, reinitialize data from database
+      await reinitializeDataFromDatabase()
+      
+      // Then use the fresh data from localStorage
       const storedData = localStorage.getItem('aiScheduleData')
       if (!storedData) {
         throw new Error('Geen data gevonden')
@@ -1111,6 +1304,9 @@ function AISchedulePageContent() {
       return newStudents
     })
     
+    // Update localStorage when student data changes
+    updateLocalStorageData()
+    
     // Reset AI prompt als leerling data wordt gewijzigd (including availability)
     if (hasGeneratedPrompt && (field === 'availabilityText' || field === 'notes' || field === 'lessons' || field === 'minutes' || field === 'aiNotes')) {
       setHasGeneratedPrompt(false)
@@ -1150,75 +1346,25 @@ function AISchedulePageContent() {
     }
   }
 
-  // Navigation functions
+  // Navigation functions - simplified for editable data approach
   const handleNext = () => {
-    // Check if current step is a student step
-    if (currentStep.startsWith('student-')) {
-      const currentStudentId = currentStep.replace('student-', '')
-      const currentIndex = students.findIndex(s => s.id === currentStudentId)
-      
-      if (currentIndex < students.length - 1) {
-        // Go to next student
-        const nextStudent = students[currentIndex + 1]
-        setCurrentStep(`student-${nextStudent.id}`)
-      } else {
-        // Go to settings after last student
-        setCurrentStep('settings')
-      }
-    } else {
-      // Handle regular steps
-      const steps: Step[] = ['instructor', 'student-details', 'settings', 'prompt', 'selection', 'result']
-      const currentIndex = steps.indexOf(currentStep as Step)
-      
-      if (currentIndex < steps.length - 1) {
-        const nextStep = steps[currentIndex + 1]
-        
-        // If next step is student-details, go to first student instead
-        if (nextStep === 'student-details' && students.length > 0) {
-          setCurrentStep(`student-${students[0].id}`)
-        } else {
-          setCurrentStep(nextStep)
-        }
-      }
+    // For the new approach, we go directly to test-planning
+    if (currentStep === 'instructor') {
+      setCurrentStep('student-details')
+    } else if (currentStep === 'student-details') {
+      setCurrentStep('settings')
+    } else if (currentStep === 'settings') {
+      setCurrentStep('test-planning')
     }
   }
 
   const handlePrevious = () => {
-    // Check if current step is a student step
-    if (currentStep.startsWith('student-')) {
-      const currentStudentId = currentStep.replace('student-', '')
-      const currentIndex = students.findIndex(s => s.id === currentStudentId)
-      
-      if (currentIndex > 0) {
-        // Go to previous student
-        const previousStudent = students[currentIndex - 1]
-        setCurrentStep(`student-${previousStudent.id}`)
-      } else {
-        // Go to instructor after first student
-        setCurrentStep('instructor')
-      }
-    } else {
-      // Handle regular steps
-      const steps: Step[] = ['instructor', 'student-details', 'settings', 'prompt', 'selection', 'result']
-      const currentIndex = steps.indexOf(currentStep as Step)
-      
-      if (currentIndex > 0) {
-        const previousStep = steps[currentIndex - 1]
-        
-        // If previous step is student-details, go to last student instead
-        if (previousStep === 'student-details' && students.length > 0) {
-          const lastStudent = students[students.length - 1]
-          setCurrentStep(`student-${lastStudent.id}`)
-        } else {
-          setCurrentStep(previousStep)
-        }
-        
-        // Reset AI prompt als je teruggaat naar eerdere stappen
-        if (previousStep !== 'prompt') {
-          setHasGeneratedPrompt(false)
-          setAiPrompt('')
-        }
-      }
+    if (currentStep === 'student-details') {
+      setCurrentStep('instructor')
+    } else if (currentStep === 'settings') {
+      setCurrentStep('student-details')
+    } else if (currentStep === 'test-planning') {
+      setCurrentStep('settings')
     }
   }
 
@@ -1276,6 +1422,8 @@ function AISchedulePageContent() {
           console.error('Error updating AI settings:', errorData)
         } else {
           console.log(`Successfully updated ${field} in AI settings`)
+          // Update localStorage with new settings
+          updateLocalStorageData()
         }
 
         // Note: sample_input.json updates removed since we now use in-memory approach
@@ -1683,7 +1831,7 @@ OPDRACHT: Maak een optimaal lesrooster voor de geselecteerde week op basis van b
             <div>
               <h3 className="text-lg font-semibold mb-4">Instructeur beschikbaarheid</h3>
               <p className="text-gray-600 mb-6">
-                Vul je beschikbare tijden in. Heb je een gat midden in je dag? Laat de AI eerst een planning maken en verwijder vervolgens lessen die je niet wilt.
+                Vul je beschikbare tijden in. Wijzigingen worden automatisch opgeslagen naar de database.
               </p>
             </div>
             
@@ -1772,11 +1920,11 @@ OPDRACHT: Maak een optimaal lesrooster voor de geselecteerde week op basis van b
                 })}
               </div>
               
-              {/* <div className="mt-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+              <div className="mt-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
                 <p className="text-sm text-blue-800">
-                  <strong>Tip:</strong> Wijzigingen worden automatisch opgeslagen. De beschikbaarheid wordt gebruikt voor de AI planning.
+                  <strong>Tip:</strong> Wijzigingen worden automatisch opgeslagen naar de database en gebruikt voor de AI planning.
                 </p>
-              </div> */}
+              </div>
             </div>
           </div>
         )
@@ -1787,7 +1935,7 @@ OPDRACHT: Maak een optimaal lesrooster voor de geselecteerde week op basis van b
             <div>
               <h3 className="text-lg font-semibold mb-4">Leerling instellingen</h3>
               <p className="text-gray-600 mb-6">
-                Pas de lesinstellingen en beschikbaarheid aan voor elke leerling
+                Pas de lesinstellingen en beschikbaarheid aan voor elke leerling. Wijzigingen worden automatisch opgeslagen naar de database.
               </p>
             </div>
             
@@ -1813,7 +1961,7 @@ OPDRACHT: Maak een optimaal lesrooster voor de geselecteerde week op basis van b
                       Beschikbaarheid per leerling
                     </label>
                     <p className="text-sm text-gray-600 mb-4">
-                      Configureer de beschikbaarheid voor elke leerling per dag van de week.
+                      Configureer de beschikbaarheid voor elke leerling per dag van de week. Wijzigingen worden automatisch opgeslagen.
                     </p>
                     
                     {students.map((student, studentIndex) => (
@@ -1998,7 +2146,7 @@ OPDRACHT: Maak een optimaal lesrooster voor de geselecteerde week op basis van b
             <div>
               <h3 className="text-lg font-semibold mb-4">Planning instellingen</h3>
               <p className="text-gray-600 mb-6">
-                Configureer hoe de AI je rooster moet plannen
+                Configureer hoe de AI je rooster moet plannen. Wijzigingen worden automatisch opgeslagen naar de database.
               </p>
             </div>
             
@@ -2298,32 +2446,124 @@ OPDRACHT: Maak een optimaal lesrooster voor de geselecteerde week op basis van b
                   Start Test Planning
                 </h4>
                 <p className="text-gray-600 mb-6">
-                  Klik op de knop hieronder om de test planning uit te voeren met de bewerkbare kopie van sample_input.json
+                  Klik op de knop hieronder om de test planning uit te voeren. De data wordt eerst hergeïnitialiseerd van de database.
                 </p>
-                <button
-                  onClick={handleStartTestPlanning}
-                  disabled={isRunningTestPlanning}
-                  className="btn btn-primary disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 mx-auto"
-                >
-                  {isRunningTestPlanning ? (
-                    <>
-                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                      Test Planning wordt uitgevoerd...
-                    </>
-                  ) : (
-                    <>
-                      <Brain className="h-4 w-4" />
-                      Start Test Planning
-                    </>
-                  )}
-                </button>
+                
+                <div className="space-y-4">
+                  <button
+                    onClick={handleStartTestPlanning}
+                    disabled={isRunningTestPlanning}
+                    className="btn btn-primary disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 mx-auto"
+                  >
+                    {isRunningTestPlanning ? (
+                      <>
+                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                        Test Planning wordt uitgevoerd...
+                      </>
+                    ) : (
+                      <>
+                        <Brain className="h-4 w-4" />
+                        Start Test Planning
+                      </>
+                    )}
+                  </button>
+                  
+                  <button
+                    onClick={reinitializeDataFromDatabase}
+                    disabled={isRunningTestPlanning}
+                    className="btn btn-secondary disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 mx-auto"
+                  >
+                    <Settings className="h-4 w-4" />
+                    Herinitialiseer data van database
+                  </button>
+                </div>
                 
                 {testPlanningResult && (
-                  <div className="mt-6 p-4 bg-gray-50 rounded-lg">
-                    <h5 className="font-medium text-gray-900 mb-2">Resultaat:</h5>
-                    <pre className="text-sm text-gray-600 overflow-auto max-h-64">
-                      {JSON.stringify(testPlanningResult, null, 2)}
-                    </pre>
+                  <div className="mt-6 space-y-4">
+                    {/* Summary */}
+                    <div className="card">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                        <div className="bg-blue-50 p-4 rounded-lg">
+                          <h4 className="font-medium text-blue-900 mb-1">Lessen ingepland</h4>
+                          <p className="text-2xl font-bold text-blue-600">{testPlanningResult.schedule_details?.lessen || testPlanningResult.lessons?.length || 0}</p>
+                        </div>
+                        <div className="bg-green-50 p-4 rounded-lg">
+                          <h4 className="font-medium text-green-900 mb-1">Totale tijd tussen lessen</h4>
+                          <p className="text-2xl font-bold text-green-600">{testPlanningResult.schedule_details?.totale_minuten_tussen_lessen || 0} min</p>
+                        </div>
+                      </div>
+                    </div>
+                    
+                    {/* Lessons list */}
+                    {testPlanningResult.lessons && testPlanningResult.lessons.length > 0 && (
+                      <div className="card">
+                        <h4 className="font-medium text-gray-900 mb-4">Geplande lessen:</h4>
+                        <div className="space-y-2">
+                          {testPlanningResult.lessons.map((lesson: any, index: number) => {
+                            const studentNameParts = lesson.studentName.split(' ')
+                            const firstName = studentNameParts[0]
+                            const lastNameInitial = studentNameParts.length > 1 ? studentNameParts[1][0] : ''
+                            const displayName = lastNameInitial ? `${firstName} ${lastNameInitial}.` : firstName
+                            const lessonDate = new Date(lesson.date)
+                            const shortDate = lessonDate.toLocaleDateString('nl-NL', {
+                              weekday: 'short',
+                              day: 'numeric',
+                              month: 'long'
+                            })
+                            return (
+                              <div key={index} className="bg-white border border-gray-200 rounded-lg p-3 hover:shadow-sm transition-shadow">
+                                <div className="flex items-center justify-between text-sm">
+                                  <span className="font-medium text-gray-900">
+                                    {displayName}
+                                  </span>
+                                  <div className="flex items-center gap-3 text-gray-600">
+                                    <span>{shortDate}</span>
+                                    <span className="font-mono">{lesson.startTime} - {lesson.endTime}</span>
+                                  </div>
+                                </div>
+                              </div>
+                            )
+                          })}
+                        </div>
+                      </div>
+                    )}
+                    
+                    {/* Students without lessons warning */}
+                    {testPlanningResult.leerlingen_zonder_les && Object.keys(testPlanningResult.leerlingen_zonder_les).length > 0 && (
+                      <div className="card">
+                        <div className="p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
+                          <h5 className="font-medium text-yellow-800 mb-2">Leerlingen met onvoldoende lessen:</h5>
+                          <div className="text-sm text-yellow-700">
+                            {Object.entries(testPlanningResult.leerlingen_zonder_les).map(([name, count]) => (
+                              <div key={name} className="flex justify-between">
+                                <span>{name}</span>
+                                <span>{count as number} les(sen) tekort</span>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                    
+                    {/* Export to lessons */}
+                    <div className="card">
+                      <div className="text-center">
+                        <p className="text-sm text-gray-600 mb-4">
+                          <strong>Tip:</strong> Je kunt de resultaten exporteren naar je lessen overzicht
+                        </p>
+                        <Link href="/dashboard/lessons" className="btn btn-primary">
+                          Bekijk lessen overzicht
+                        </Link>
+                      </div>
+                    </div>
+                    
+                    {/* Raw JSON for debugging */}
+                    <details className="card">
+                      <summary className="cursor-pointer font-medium text-gray-900 mb-2">Debug: Raw JSON</summary>
+                      <pre className="text-sm text-gray-600 overflow-auto max-h-64">
+                        {JSON.stringify(testPlanningResult, null, 2)}
+                      </pre>
+                    </details>
                   </div>
                 )}
               </div>
@@ -2546,11 +2786,7 @@ OPDRACHT: Maak een optimaal lesrooster voor de geselecteerde week op basis van b
 
   // Check if can go to next step
   const canGoNext = () => {
-    // Check if current step is a student step
-    if (currentStep.startsWith('student-')) {
-      return true // Always allow going to next step from student step
-    }
-    
+    // For the new approach, we can always go next if we have data
     switch (currentStep) {
       case 'instructor':
         return availability.some(day => day.available)
@@ -2558,12 +2794,6 @@ OPDRACHT: Maak een optimaal lesrooster voor de geselecteerde week op basis van b
         return students.length > 0
       case 'settings':
         return true
-      case 'prompt':
-        return hasGeneratedPrompt
-      case 'selection':
-        return aiResponse?.lessons && selectedLessons.size > 0
-      case 'result':
-        return false
       case 'test-planning':
         return true // Always allow going to next step from test planning
       default:
@@ -2586,28 +2816,13 @@ OPDRACHT: Maak een optimaal lesrooster voor de geselecteerde week op basis van b
     return null
   }
 
-  // Generate steps dynamically to include individual student steps
+  // Generate steps for the new editable data approach
   const generateSteps = () => {
     const baseSteps = [
-      { key: 'instructor', name: 'Beschikbaarheid', icon: Calendar }
+      { key: 'instructor', name: 'Instructeur', icon: Calendar },
+      { key: 'student-details', name: 'Leerlingen', icon: Users },
+      { key: 'settings', name: 'Instellingen', icon: Settings }
     ]
-    
-    // Add student steps
-    students.forEach((student, index) => {
-      baseSteps.push({
-        key: `student-${student.id}`,
-        name: student.first_name,
-        icon: Users
-      })
-    })
-    
-    // Add remaining steps
-    baseSteps.push(
-      { key: 'settings', name: 'Instellingen', icon: Settings },
-      { key: 'prompt', name: 'AI Planning', icon: Brain },
-      { key: 'selection', name: 'Selectie', icon: Check },
-      { key: 'result', name: 'Resultaat', icon: Check }
-    )
     
     // Add test planning step if we have an editable input path
     if (editableInputPath) {
@@ -2725,61 +2940,44 @@ OPDRACHT: Maak een optimaal lesrooster voor de geselecteerde week op basis van b
 
         {/* Navigation */}
         <div className="flex gap-3">
-          {currentStep !== 'instructor' && currentStep !== 'result' && (
+          {currentStep !== 'instructor' && (
             <button
               onClick={handlePrevious}
               className="btn btn-secondary flex items-center gap-2"
             >
               <ArrowLeft className="h-4 w-4" />
-              {currentStep.startsWith('student-') && students.length > 0 ? (
-                (() => {
-                  const currentStudentId = currentStep.replace('student-', '')
-                  const currentIndex = students.findIndex(s => s.id === currentStudentId)
-                  if (currentIndex > 0) {
-                    return `Vorige leerling`
-                  } else {
-                    return `Beschikbaarheid`
-                  }
-                })()
-              ) : (
-                `Vorige`
-              )}
+              Vorige
             </button>
           )}
           
-          {currentStep !== 'result' && currentStep !== 'selection' && (
-            <div className="ml-auto flex items-center gap-3">
-              {currentStep === 'prompt' && !hasGeneratedPrompt && (
-                <span className="text-sm text-gray-500">
-                  Genereer eerst de AI prompt
-                </span>
+          {currentStep !== 'test-planning' && (
+            <button
+              onClick={handleNext}
+              disabled={!canGoNext()}
+              className="btn btn-primary flex items-center gap-2 ml-auto disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {currentStep === 'instructor' ? (
+                <>
+                  Leerlingen
+                  <ArrowRight className="h-4 w-4" />
+                </>
+              ) : currentStep === 'student-details' ? (
+                <>
+                  Instellingen
+                  <ArrowRight className="h-4 w-4" />
+                </>
+              ) : currentStep === 'settings' ? (
+                <>
+                  Test Planning
+                  <ArrowRight className="h-4 w-4" />
+                </>
+              ) : (
+                <>
+                  Volgende
+                  <ArrowRight className="h-4 w-4" />
+                </>
               )}
-              <button
-                onClick={handleNext}
-                disabled={!canGoNext()}
-                className="btn btn-primary flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                {currentStep.startsWith('student-') && students.length > 0 ? (
-                  <>
-                    {(() => {
-                      const currentStudentId = currentStep.replace('student-', '')
-                      const currentIndex = students.findIndex(s => s.id === currentStudentId)
-                      if (currentIndex < students.length - 1) {
-                        return `Volgende leerling`
-                      } else {
-                        return `Instellingen`
-                      }
-                    })()}
-                    <ArrowRight className="h-4 w-4" />
-                  </>
-                ) : (
-                  <>
-                    Volgende
-                    <ArrowRight className="h-4 w-4" />
-                  </>
-                )}
-              </button>
-            </div>
+            </button>
           )}
         </div>
       </div>
