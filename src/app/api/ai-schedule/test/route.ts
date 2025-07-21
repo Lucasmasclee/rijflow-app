@@ -306,6 +306,14 @@ export async function POST(request: NextRequest): Promise<Response> {
           
           resolve(NextResponse.json(aiResponse))
         } catch (parseError) {
+          // Extra debugging: show first 20 lines of stdout and highlight line 8
+          const stdoutLines = stdout.split('\n')
+          let debugLines = stdoutLines.slice(0, 20).map((line, idx) => {
+            if (idx === 7) {
+              return '>>> ' + line + '   <<< (line 8)'
+            }
+            return line
+          }).join('\n')
           console.error('JSON parse error:', parseError)
           console.error('JSON output that failed to parse:', jsonOutput || 'No JSON output found')
           resolve(
@@ -313,9 +321,10 @@ export async function POST(request: NextRequest): Promise<Response> {
               {
                 error: 'Fout bij het parsen van de JSON output',
                 details: parseError instanceof Error ? parseError.message : 'Unknown parse error',
-                stdout: stdout.substring(0, 500) + '...', // Limit stdout in error
+                stdout_preview: debugLines,
                 stderr: stderr,
-                command: 'node'
+                command: 'node',
+                suggestion: 'Let op: gebruik process.stdout.write(JSON.stringify(...)) in je script voor maximale zekerheid dat er geen extra newline na de JSON komt.'
               },
               { status: 500 }
             )
