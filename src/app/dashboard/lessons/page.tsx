@@ -271,8 +271,8 @@ export default function LessonsPage() {
 
       const result = await response.json()
       
-      // Navigate to AI schedule page with the editable input path
-      router.push(`/dashboard/ai-schedule?week=${weekStartString}&input=${result.editableInputPath}`)
+      // Always pass the data directly to avoid file system issues
+      router.push(`/dashboard/ai-schedule?week=${weekStartString}&data=${encodeURIComponent(JSON.stringify(result.data))}`)
       
     } catch (error) {
       console.error('Error creating editable input:', error)

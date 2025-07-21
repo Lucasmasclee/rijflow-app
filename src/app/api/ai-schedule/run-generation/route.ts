@@ -6,29 +6,48 @@ import fs from 'fs'
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
-    const { editableInputPath } = body
+    const { editableInputPath, data } = body
 
-    if (!editableInputPath) {
+    if (!editableInputPath && !data) {
       return NextResponse.json(
-        { error: 'Editable input path is required' },
+        { error: 'Either editable input path or data is required' },
         { status: 400 }
       )
     }
 
-    // Check if the editable input file exists
-    const fullPath = path.join(process.cwd(), 'scripts', editableInputPath)
-    if (!fs.existsSync(fullPath)) {
-      return NextResponse.json(
-        { error: 'Editable input file not found' },
-        { status: 404 }
-      )
+    let inputFilePath = editableInputPath
+
+    // If data is provided directly, create a temporary file
+    if (data) {
+      const timestamp = Date.now()
+      inputFilePath = `temp_input_${timestamp}.json`
+      const tempFilePath = path.join(process.cwd(), 'scripts', inputFilePath)
+      
+      try {
+        fs.writeFileSync(tempFilePath, JSON.stringify(data, null, 2))
+      } catch (fileError) {
+        console.error('Error writing temporary file:', fileError)
+        return NextResponse.json(
+          { error: 'Failed to create temporary input file' },
+          { status: 500 }
+        )
+      }
+    } else {
+      // Check if the editable input file exists
+      const fullPath = path.join(process.cwd(), 'scripts', editableInputPath)
+      if (!fs.existsSync(fullPath)) {
+        return NextResponse.json(
+          { error: 'Editable input file not found' },
+          { status: 404 }
+        )
+      }
     }
 
     // Run the generate_week_planning.js script
     const scriptPath = path.join(process.cwd(), 'scripts', 'generate_week_planning.js')
     
     return new Promise<NextResponse>((resolve) => {
-      exec(`node "${scriptPath}" "${editableInputPath}"`, {
+      exec(`node "${scriptPath}" "${inputFilePath}"`, {
         cwd: path.join(process.cwd(), 'scripts')
       }, (error, stdout, stderr) => {
         if (error) {
@@ -46,6 +65,19 @@ export async function POST(request: NextRequest) {
         if (fs.existsSync(outputPath)) {
           try {
             const outputData = JSON.parse(fs.readFileSync(outputPath, 'utf8'))
+            
+            // Clean up temporary file if it was created
+            if (data && inputFilePath !== editableInputPath) {
+              try {
+                const tempFilePath = path.join(process.cwd(), 'scripts', inputFilePath)
+                if (fs.existsSync(tempFilePath)) {
+                  fs.unlinkSync(tempFilePath)
+                }
+              } catch (cleanupError) {
+                console.warn('Failed to cleanup temporary file:', cleanupError)
+              }
+            }
+            
             resolve(NextResponse.json({
               success: true,
               data: outputData,

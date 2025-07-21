@@ -1012,10 +1012,10 @@ function AISchedulePageContent() {
     }
   }, [])
 
-  // Initialize selected week and input path from URL parameters
+  // Initialize selected week and data from URL parameters
   useEffect(() => {
     const weekParam = searchParams.get('week')
-    const inputParam = searchParams.get('input')
+    const dataParam = searchParams.get('data')
     
     if (weekParam) {
       try {
@@ -1028,10 +1028,16 @@ function AISchedulePageContent() {
       }
     }
     
-    if (inputParam) {
-      setEditableInputPath(inputParam)
-      // Set initial step to test-planning when we have an editable input
-      setCurrentStep('test-planning')
+    if (dataParam) {
+      try {
+        const data = JSON.parse(decodeURIComponent(dataParam))
+        // Store the data in localStorage for later use
+        localStorage.setItem('aiScheduleData', JSON.stringify(data))
+        setEditableInputPath('data') // Use 'data' as a special identifier
+        setCurrentStep('test-planning')
+      } catch (error) {
+        console.error('Error parsing data parameter:', error)
+      }
     }
   }, [searchParams])
 
@@ -1044,13 +1050,19 @@ function AISchedulePageContent() {
 
     setIsRunningTestPlanning(true)
     try {
+      // Always use data from localStorage
+      const storedData = localStorage.getItem('aiScheduleData')
+      if (!storedData) {
+        throw new Error('Geen data gevonden')
+      }
+
       const response = await fetch('/api/ai-schedule/run-generation', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          editableInputPath
+          data: JSON.parse(storedData)
         })
       })
 

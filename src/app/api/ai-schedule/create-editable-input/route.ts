@@ -186,16 +186,11 @@ export async function POST(request: NextRequest) {
       leerlingen
     }
 
-    // Create a unique filename for this editable input
-    const timestamp = Date.now()
-    const editableInputPath = path.join(process.cwd(), 'scripts', `editable_input_${timestamp}.json`)
-    
-    // Write the editable input to file
-    fs.writeFileSync(editableInputPath, JSON.stringify(editableInput, null, 2))
-
+    // Return the data directly without writing to file
+    // This avoids file system issues in serverless environments
     return NextResponse.json({
       success: true,
-      editableInputPath: `editable_input_${timestamp}.json`,
+      editableInputPath: null,
       data: editableInput
     })
 
