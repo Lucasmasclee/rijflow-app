@@ -194,7 +194,7 @@ export async function POST(request: NextRequest): Promise<Response> {
       const nodeProcess = spawn('node', [scriptPath], {
         stdio: ['pipe', 'pipe', 'pipe'],
         env,
-        cwd: process.cwd() // Explicitly set working directory
+        cwd: path.join(process.cwd(), 'src', 'app', 'dashboard', 'ai-schedule') // Set working directory to where sample_input.json is
       })
 
       let stdout = ''
