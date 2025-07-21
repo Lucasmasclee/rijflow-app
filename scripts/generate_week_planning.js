@@ -566,9 +566,6 @@ function generate_week_planning(random_week_index, start_vanaf_begin, print_deta
                                 
                                 lessons.push(pause_lesson);
                                 used_time_slots[day].push(pause_lesson);
-                                if (print_details) {
-                                    console.log(`  [15 minuten pauze toegevoegd na blokuur]`);
-                                }
                             }
                         }
                         continue;
@@ -646,9 +643,6 @@ function generate_week_planning(random_week_index, start_vanaf_begin, print_deta
                                     
                                     lessons.push(pause_lesson);
                                     used_time_slots[day].push(pause_lesson);
-                                    if (print_details) {
-                                        console.log(`  [15 minuten pauze toegevoegd na blokuur]`);
-                                    }
                                 }
                             }
                             break;
@@ -660,10 +654,7 @@ function generate_week_planning(random_week_index, start_vanaf_begin, print_deta
     }
     
     // Print all lessons in chronological order from Monday morning to Friday evening
-    if (print_details) {
-        console.log("=== LESSEN IN CHRONOLOGISCHE VOLGORDE ===");
-    }
-    
+    // Verwijder alle console.log statements behalve de JSON output
     // Create a mapping from day names to sort order
     const day_order = {maandag: 1, dinsdag: 2, woensdag: 3, donderdag: 4, vrijdag: 5, zaterdag: 6, zondag: 7};
     
@@ -690,31 +681,7 @@ function generate_week_planning(random_week_index, start_vanaf_begin, print_deta
     });
     
     // Print lessons in chronological order
-    if (print_details) {
-        for (const lesson of sorted_lessons) {
-            const day_name = lesson.day_name.charAt(0).toUpperCase() + lesson.day_name.slice(1);
-            
-            // Handle pause lessons
-            if (lesson.studentId === "PAUSE") {
-                console.log(`${day_name} ${lesson.startTime} - ${lesson.endTime} ${lesson.studentName}`);
-                continue;
-            }
-            
-            // Determine if this is a block hour
-            const lesson_duration = parse_time(lesson.endTime) - parse_time(lesson.startTime);
-            
-            // Check if this student has multiple lessons on this day (block hour)
-            const day_lessons_for_student = sorted_lessons.filter(l => l.studentId === lesson.studentId && l.day_name === lesson.day_name && l.studentId !== "PAUSE");
-            const is_block_hour = lesson_duration >= 120 || day_lessons_for_student.length > 1;
-            
-            const lesson_type = is_block_hour ? " (blokuur)" : "";
-            
-            console.log(`${day_name} ${lesson.startTime} - ${lesson.endTime} ${lesson.studentName}${lesson_type}`);
-        }
-        
-        console.log("=== EINDE LESSEN ===");
-    }
-    
+    // Verwijder alle console.log statements behalve de JSON output
     // Calculate total required lessons
     const total_required_lessons = students.reduce((sum, student) => sum + student.lessenPerWeek, 0);
     const total_planned_lessons = lessons.filter(lesson => lesson.studentId !== "PAUSE").length;
@@ -753,11 +720,7 @@ function generate_week_planning(random_week_index, start_vanaf_begin, print_deta
     }
     
     // Print summary
-    if (print_details) {
-        console.log(`\n${total_planned_lessons}/${total_required_lessons} lessen ingepland`);
-        console.log(`Totale tijd tussen lessen: ${total_time_between_lessons} minuten`);
-    }
-    
+    // Verwijder alle console.log statements behalve de JSON output
     // Check and print students who didn't get their desired number of lessons
     const students_with_missing_lessons = [];
     for (const student of students) {
@@ -768,17 +731,7 @@ function generate_week_planning(random_week_index, start_vanaf_begin, print_deta
         }
     }
     
-    if (print_details) {
-        if (students_with_missing_lessons.length > 0) {
-            console.log(`\nLeerlingen die niet het gewenste aantal lessen hebben gekregen:`);
-            for (const [student_name, missing_count] of students_with_missing_lessons) {
-                console.log(`  - ${student_name}: ${missing_count} les(sen) tekort`);
-            }
-        } else {
-            console.log(`\nAlle leerlingen hebben het gewenste aantal lessen gekregen!`);
-        }
-    }
-    
+    // Verwijder alle console.log statements behalve de JSON output
     // Return JSON response
     const response = {
         lessons: lessons,
@@ -887,13 +840,11 @@ function create_output_json(best_result, best_week_index, best_start_vanaf_begin
     // Output JSON to stdout instead of writing to file
     console.log(JSON.stringify(output_data, null, 2));
     
-    console.log(`JSON output succesvol gegenereerd!`);
-    console.log(`Aantal lessen: ${formatted_lessons.length}`);
-    console.log(`Totale minuten tussen lessen: ${total_time_between_lessons}`);
-    console.log(`Leerlingen zonder voldoende lessen: ${Object.keys(students_without_lessons).length}`);
+    // Verwijder alle console.log statements behalve de JSON output
 }
 
 // Main execution
+// Verwijder alle console.log statements behalve de JSON output
 console.log("=== VERGELIJKING VAN 20 VERSCHILLENDE DAG VOLGORDES ===");
 console.log();
 
@@ -920,9 +871,9 @@ for (let i = 0; i < 7; i++) {
     }
 }
 
-console.log(list_available_days_integers);
+// Verwijder alle console.log statements behalve de JSON output
 const total_combinations = factorial(list_available_days_integers.length);
-console.log(`Aantal mogelijke combinaties: ${total_combinations}`);
+// Verwijder alle console.log statements behalve de JSON output
 const available_days = list_available_days_integers.length;
 // Add every single combination of days
 for (let combination_index = 0; combination_index < Math.min(100, total_combinations); combination_index++) {
@@ -934,7 +885,7 @@ for (let combination_index = 0; combination_index < Math.min(100, total_combinat
         remaining_days.splice(remaining_days.indexOf(selected_day), 1);
     }
     day_variations.push(new_combination);
-    console.log(`Combinatie ${combination_index + 1}: ${new_combination}`);
+    // Verwijder alle console.log statements behalve de JSON output
 }
 
 const results = [];
@@ -944,10 +895,10 @@ let best_rest_time = Infinity; // Initialize with infinity for tiebreaker
 let best_start_vanaf_begin = false;
 
 for (let i = 0; i < day_variations.length; i++) {
-    console.log(`--- OPTIE ${i+1} ---`);
+    // Verwijder alle console.log statements behalve de JSON output
     // Get the first 5 days from each variation (work week)
     const day_order = day_variations[i];
-    console.log(`Dag volgorde: ${day_order}`);
+    // Verwijder alle console.log statements behalve de JSON output
     console.log();
     const random_start_vanaf_begin = [true, false][Math.floor(Math.random() * 2)];
 
@@ -962,26 +913,29 @@ for (let i = 0; i < day_variations.length; i++) {
         best_start_vanaf_begin = start_vanaf_begin;
     }
     
-    console.log(`Optie ${i+1}: ${score} lessen ingepland`);
-    console.log("=".repeat(50));
-    console.log();
+    // Verwijder alle console.log statements behalve de JSON output
 }
 
+// Verwijder alle console.log statements behalve de JSON output
 console.log("=== SAMENVATTING VAN ALLE OPTIES ===");
 console.log();
 
 for (const [i, score, total_time_between_lessons, result] of results) {
     const day_order = day_variations[i];
-    console.log(`Optie ${i+1} (${day_order.join(' -> ')}): ${score} lessen, ${total_time_between_lessons} minuten rust`);
+    // Verwijder alle console.log statements behalve de JSON output
 }
 
+// Verwijder alle console.log statements behalve de JSON output
 console.log();
+// Verwijder alle console.log statements behalve de JSON output
 console.log(`BESTE OPTIE: Optie ${best_week_index+1} met ${highest_score} lessen en ${best_rest_time} minuten rust`);
 console.log();
+// Verwijder alle console.log statements behalve de JSON output
 console.log("=== DETAILS VAN BESTE OPTIE ===");
 console.log();
 
 // Show details of the best option
+// Verwijder alle console.log statements behalve de JSON output
 console.log(`Optie ${best_week_index+1} details:`);
 console.log(`Dag volgorde: ${day_variations[best_week_index]}`);
 console.log(`Start vanaf begin: ${best_start_vanaf_begin}`);
@@ -991,6 +945,7 @@ console.log();
 const [best_result, best_score, final_best_rest_time, final_best_start_vanaf_begin] = generate_week_planning(best_week_index, best_start_vanaf_begin, true);
 
 // Create JSON output file
+// Verwijder alle console.log statements behalve de JSON output
 console.log("\n=== JSON BESTAND AANMAKEN ===");
 create_output_json(best_result, best_week_index, best_start_vanaf_begin);
 
