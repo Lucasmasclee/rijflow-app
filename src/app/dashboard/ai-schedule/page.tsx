@@ -11,13 +11,13 @@ import toast from 'react-hot-toast'
 import { useRouter, useSearchParams } from 'next/navigation'
 
 const DAY_ORDER = [
-  { day: 'monday', name: 'Maandag' },
-  { day: 'tuesday', name: 'Dinsdag' },
-  { day: 'wednesday', name: 'Woensdag' },
-  { day: 'thursday', name: 'Donderdag' },
-  { day: 'friday', name: 'Vrijdag' },
-  { day: 'saturday', name: 'Zaterdag' },
-  { day: 'sunday', name: 'Zondag' },
+  { day: 'monday', name: 'Maandag', shortName: 'Ma' },
+  { day: 'tuesday', name: 'Dinsdag', shortName: 'Di' },
+  { day: 'wednesday', name: 'Woensdag', shortName: 'Wo' },
+  { day: 'thursday', name: 'Donderdag', shortName: 'Do' },
+  { day: 'friday', name: 'Vrijdag', shortName: 'Vr' },
+  { day: 'saturday', name: 'Zaterdag', shortName: 'Za' },
+  { day: 'sunday', name: 'Zondag', shortName: 'Zo' },
 ]
 
 type Step = 'instructor' | 'student-details' | 'settings' | 'prompt' | 'result' | 'selection' | `student-${string}`
@@ -29,6 +29,17 @@ interface StudentWithScheduleData extends Student {
   aiNotes: string
   availabilityNotes: string[] // Per week, komende 5 weken
   availabilityText: string // Beschikbaarheid als tekst
+}
+
+interface DayAvailability {
+  day: string
+  available: boolean
+  startTime: string
+  endTime: string
+  startHours: string
+  startMinutes: string
+  endHours: string
+  endMinutes: string
 }
 
 // Force dynamic rendering to prevent static generation issues
@@ -45,19 +56,16 @@ function AISchedulePageContent() {
   // Selected week for AI scheduling
   const [selectedWeek, setSelectedWeek] = useState<Date | null>(null)
 
-  // Instructeur beschikbaarheid - geconsolideerd in één veld
-  const [availability, setAvailability] = useState([
-    { day: 'monday', available: true, startTime: '09:00', endTime: '17:00', availabilityText: '09:00 - 17:00' },
-    { day: 'tuesday', available: true, startTime: '09:00', endTime: '17:00', availabilityText: '09:00 - 17:00' },
-    { day: 'wednesday', available: true, startTime: '09:00', endTime: '17:00', availabilityText: '09:00 - 17:00' },
-    { day: 'thursday', available: true, startTime: '09:00', endTime: '17:00', availabilityText: '09:00 - 17:00' },
-    { day: 'friday', available: true, startTime: '09:00', endTime: '17:00', availabilityText: '09:00 - 17:00' },
-    { day: 'saturday', available: false, startTime: '09:00', endTime: '17:00', availabilityText: 'Niet beschikbaar' },
-    { day: 'sunday', available: false, startTime: '09:00', endTime: '17:00', availabilityText: 'Niet beschikbaar' },
+  // Instructeur beschikbaarheid - nieuwe UI structuur
+  const [availability, setAvailability] = useState<DayAvailability[]>([
+    { day: 'monday', available: true, startTime: '09:00', endTime: '17:00', startHours: '09', startMinutes: '00', endHours: '17', endMinutes: '00' },
+    { day: 'tuesday', available: true, startTime: '09:00', endTime: '17:00', startHours: '09', startMinutes: '00', endHours: '17', endMinutes: '00' },
+    { day: 'wednesday', available: true, startTime: '09:00', endTime: '17:00', startHours: '09', startMinutes: '00', endHours: '17', endMinutes: '00' },
+    { day: 'thursday', available: true, startTime: '09:00', endTime: '17:00', startHours: '09', startMinutes: '00', endHours: '17', endMinutes: '00' },
+    { day: 'friday', available: true, startTime: '09:00', endTime: '17:00', startHours: '09', startMinutes: '00', endHours: '17', endMinutes: '00' },
+    { day: 'saturday', available: false, startTime: '09:00', endTime: '17:00', startHours: '09', startMinutes: '00', endHours: '17', endMinutes: '00' },
+    { day: 'sunday', available: false, startTime: '09:00', endTime: '17:00', startHours: '09', startMinutes: '00', endHours: '17', endMinutes: '00' },
   ])
-  
-  // Geconsolideerde beschikbaarheid tekst
-  const [consolidatedAvailabilityText, setConsolidatedAvailabilityText] = useState('')
   
   // Geconsolideerde student beschikbaarheid tekst
   const [consolidatedStudentAvailabilityText, setConsolidatedStudentAvailabilityText] = useState('')
@@ -84,6 +92,103 @@ function AISchedulePageContent() {
     blokuren: true,
     additionalSpecifications: ''
   })
+
+  // Helper functions for time input handling (from lessons page)
+  const validateAndFormatTime = (timeValue: string): string => {
+    if (!timeValue) return ''
+    
+    // Remove any AM/PM indicators
+    let cleanTime = timeValue.toUpperCase().replace(/[AP]M/g, '').trim()
+    
+    // Parse hours and minutes
+    const [hours, minutes] = cleanTime.split(':')
+    if (!hours || !minutes) return timeValue
+    
+    const hourNum = parseInt(hours, 10)
+    const minuteNum = parseInt(minutes, 10)
+    
+    // Validate ranges
+    if (hourNum < 0 || hourNum > 23 || minuteNum < 0 || minuteNum > 59) {
+      return timeValue
+    }
+    
+    // Return formatted time
+    return `${hours.padStart(2, '0')}:${minutes.padStart(2, '0')}`
+  }
+
+  const formatTimeOnBlur = (value: string, maxValue: number): string => {
+    let numValue = parseInt(value, 10)
+    if (isNaN(numValue) || numValue < 0) {
+      numValue = 0
+    } else if (numValue > maxValue) {
+      numValue = maxValue
+    }
+    return numValue.toString().padStart(2, '0')
+  }
+
+  const updateTimeInputs = (dayIndex: number, field: string, value: string) => {
+    setAvailability(prev => {
+      const newAvailability = [...prev]
+      const day = newAvailability[dayIndex]
+      
+      if (field === 'startHours') {
+        day.startHours = value
+        day.startTime = `${day.startHours}:${day.startMinutes}`
+      } else if (field === 'startMinutes') {
+        day.startMinutes = value
+        day.startTime = `${day.startHours}:${day.startMinutes}`
+      } else if (field === 'endHours') {
+        day.endHours = value
+        day.endTime = `${day.endHours}:${day.endMinutes}`
+      } else if (field === 'endMinutes') {
+        day.endMinutes = value
+        day.endTime = `${day.endHours}:${day.endMinutes}`
+      }
+      
+      return newAvailability
+    })
+  }
+
+  const handleTimeBlur = (dayIndex: number, field: string, value: string) => {
+    let formattedValue = value
+    if (field.includes('Hours')) {
+      formattedValue = formatTimeOnBlur(value, 23)
+    } else if (field.includes('Minutes')) {
+      formattedValue = formatTimeOnBlur(value, 59)
+    }
+    
+    updateTimeInputs(dayIndex, field, formattedValue)
+  }
+
+  const handleAvailabilityChange = (dayIndex: number, available: boolean) => {
+    setAvailability(prev => {
+      const newAvailability = [...prev]
+      newAvailability[dayIndex].available = available
+      return newAvailability
+    })
+    
+    // Save to database
+    saveInstructorAvailability()
+    
+    // Reset AI prompt als beschikbaarheid wordt gewijzigd
+    if (hasGeneratedPrompt) {
+      setHasGeneratedPrompt(false)
+      setAiPrompt('')
+    }
+  }
+
+  const handleTimeChange = (dayIndex: number, field: string, value: string) => {
+    updateTimeInputs(dayIndex, field, value)
+    
+    // Save to database
+    saveInstructorAvailability()
+    
+    // Reset AI prompt als beschikbaarheid wordt gewijzigd
+    if (hasGeneratedPrompt) {
+      setHasGeneratedPrompt(false)
+      setAiPrompt('')
+    }
+  }
 
   // Initialize default availability for an instructor
   const initializeDefaultAvailability = async () => {
@@ -115,100 +220,13 @@ function AISchedulePageContent() {
     }
   }
 
-  // Parse consolidated availability text to update individual days
-  const parseConsolidatedAvailability = (text: string) => {
-    const newAvailability = [...availability]
-    
-    // Parse each day from the consolidated text
-    DAY_ORDER.forEach(({ day, name }) => {
-      // Look for patterns like "Maandag: 09:00 - 17:00" or "Maandag: Niet beschikbaar"
-      const dayPattern = new RegExp(`${name}:\\s*([^,]+)`, 'i')
-      const match = text.match(dayPattern)
-      
-      if (match) {
-        const dayText = match[1].trim()
-        const parsed = parseAvailabilityText(dayText)
-        
-        const dayIndex = newAvailability.findIndex(item => item.day === day)
-        if (dayIndex !== -1) {
-          newAvailability[dayIndex] = {
-            ...newAvailability[dayIndex],
-            available: parsed.available,
-            startTime: parsed.startTime,
-            endTime: parsed.endTime,
-            availabilityText: dayText
-          }
-        }
-      }
-    })
-    
-    return newAvailability
-  }
-
-  // Parse availability text to extract times
-  const parseAvailabilityText = (text: string) => {
-    const trimmed = text.trim().toLowerCase()
-    
-    if (trimmed === 'niet beschikbaar' || trimmed === 'niet' || trimmed === 'nee' || trimmed === '') {
-      return { available: false, startTime: '09:00', endTime: '17:00' }
-    }
-    
-    // Try to parse time ranges like "09:00 - 17:00" or "9:00-17:00"
-    const timeRangeMatch = trimmed.match(/(\d{1,2}):?(\d{2})?\s*-\s*(\d{1,2}):?(\d{2})?/)
-    if (timeRangeMatch) {
-      const startHour = timeRangeMatch[1]
-      const startMinute = timeRangeMatch[2] || '00'
-      const endHour = timeRangeMatch[3]
-      const endMinute = timeRangeMatch[4] || '00'
-      
-      return {
-        available: true,
-        startTime: `${startHour.padStart(2, '0')}:${startMinute}`,
-        endTime: `${endHour.padStart(2, '0')}:${endMinute}`
-      }
-    }
-    
-    // Try to parse single time like "09:00" (assume 8 hour workday)
-    const singleTimeMatch = trimmed.match(/(\d{1,2}):?(\d{2})?/)
-    if (singleTimeMatch) {
-      const hour = parseInt(singleTimeMatch[1])
-      const minute = singleTimeMatch[2] || '00'
-      const endHour = hour + 8
-      
-      return {
-        available: true,
-        startTime: `${hour.toString().padStart(2, '0')}:${minute}`,
-        endTime: `${endHour.toString().padStart(2, '0')}:${minute}`
-      }
-    }
-    
-    // Default to available if text is provided but can't be parsed
-    return { available: true, startTime: '09:00', endTime: '17:00' }
-  }
-
-  // Handle consolidated availability text change
-  const handleConsolidatedAvailabilityChange = (value: string) => {
-    setConsolidatedAvailabilityText(value)
-    const newAvailability = parseConsolidatedAvailability(value)
-    setAvailability(newAvailability)
-    
-    // Save instructor availability to database
-    saveInstructorAvailability(newAvailability)
-    
-    // Reset AI prompt als beschikbaarheid wordt gewijzigd
-    if (hasGeneratedPrompt) {
-      setHasGeneratedPrompt(false)
-      setAiPrompt('')
-    }
-  }
-
   // Save instructor availability to database
-  const saveInstructorAvailability = async (availabilityData: typeof availability) => {
+  const saveInstructorAvailability = async () => {
     if (!user) return
     
     try {
       // Convert UI format to database format
-      const availabilityToSave = availabilityData.map(day => ({
+      const availabilityToSave = availability.map(day => ({
         instructor_id: user.id,
         day_of_week: day.day === 'sunday' ? 0 : 
                      day.day === 'monday' ? 1 :
@@ -357,16 +375,12 @@ function AISchedulePageContent() {
               available: day !== 'saturday' && day !== 'sunday',
               startTime: '09:00',
               endTime: '17:00',
-              availabilityText: day !== 'saturday' && day !== 'sunday' ? '09:00 - 17:00' : 'Niet beschikbaar'
+              startHours: '09',
+              startMinutes: '00',
+              endHours: '17',
+              endMinutes: '00'
             }))
             setAvailability(fallbackAvailability)
-            
-            // Update consolidated text
-            const consolidatedText = fallbackAvailability.map(item => {
-              const dayName = DAY_ORDER.find(d => d.day === item.day)?.name
-              return `${dayName}: ${item.availabilityText}`
-            }).join('\n ')
-            setConsolidatedAvailabilityText(consolidatedText)
             return
           }
           
@@ -397,25 +411,22 @@ function AISchedulePageContent() {
               const available = dbData?.available ?? (day !== 'saturday' && day !== 'sunday')
               const startTime = dbData?.startTime ?? '09:00'
               const endTime = dbData?.endTime ?? '17:00'
-              const availabilityText = available ? `${startTime} - ${endTime}` : 'Niet beschikbaar'
+              const [startHours, startMinutes] = startTime.split(':')
+              const [endHours, endMinutes] = endTime.split(':')
               
               return {
                 day,
                 available,
                 startTime,
                 endTime,
-                availabilityText
+                startHours,
+                startMinutes,
+                endHours,
+                endMinutes
               }
             })
             
             setAvailability(newAvailability)
-            
-            // Update consolidated text
-            const consolidatedText = newAvailability.map(item => {
-              const dayName = DAY_ORDER.find(d => d.day === item.day)?.name
-              return `${dayName}: ${item.availabilityText}`
-            }).join('\n ')
-            setConsolidatedAvailabilityText(consolidatedText)
             return
           }
         }
@@ -450,24 +461,21 @@ function AISchedulePageContent() {
           const available = dbData?.available ?? (day !== 'saturday' && day !== 'sunday')
           const startTime = dbData?.startTime ?? '09:00'
           const endTime = dbData?.endTime ?? '17:00'
-          const availabilityText = available ? `${startTime} - ${endTime}` : 'Niet beschikbaar'
+          const [startHours, startMinutes] = startTime.split(':')
+          const [endHours, endMinutes] = endTime.split(':')
           
           return {
             day,
             available,
             startTime,
             endTime,
-            availabilityText
+            startHours,
+            startMinutes,
+            endHours,
+            endMinutes
           }
         })
         setAvailability(newAvailability)
-        
-        // Update consolidated text
-        const consolidatedText = newAvailability.map(item => {
-          const dayName = DAY_ORDER.find(d => d.day === item.day)?.name
-          return `${dayName}: ${item.availabilityText}`
-        }).join('\n ')
-        setConsolidatedAvailabilityText(consolidatedText)
       } else {
         // No data in database, initialize default availability and fetch again
         await initializeDefaultAvailability()
@@ -503,14 +511,18 @@ function AISchedulePageContent() {
             const available = dbData?.available ?? (day !== 'saturday' && day !== 'sunday')
             const startTime = dbData?.startTime ?? '09:00'
             const endTime = dbData?.endTime ?? '17:00'
-            const availabilityText = available ? `${startTime} - ${endTime}` : 'Niet beschikbaar'
+            const [startHours, startMinutes] = startTime.split(':')
+            const [endHours, endMinutes] = endTime.split(':')
             
             return {
               day,
               available,
               startTime,
               endTime,
-              availabilityText
+              startHours,
+              startMinutes,
+              endHours,
+              endMinutes
             }
           }))
         }
@@ -523,16 +535,12 @@ function AISchedulePageContent() {
         available: day !== 'saturday' && day !== 'sunday',
         startTime: '09:00',
         endTime: '17:00',
-        availabilityText: day !== 'saturday' && day !== 'sunday' ? '09:00 - 17:00' : 'Niet beschikbaar'
+        startHours: '09',
+        startMinutes: '00',
+        endHours: '17',
+        endMinutes: '00'
       }))
       setAvailability(fallbackAvailability)
-      
-      // Update consolidated text
-      const consolidatedText = fallbackAvailability.map(item => {
-        const dayName = DAY_ORDER.find(d => d.day === item.day)?.name
-        return `${dayName}: ${item.availabilityText}`
-      }).join('\n ')
-      setConsolidatedAvailabilityText(consolidatedText)
     }
   }
 
@@ -816,17 +824,6 @@ function AISchedulePageContent() {
       }
     }
   }, [searchParams])
-
-  // Initialize consolidated text when availability changes
-  useEffect(() => {
-    if (availability.length > 0 && !consolidatedAvailabilityText) {
-      const consolidatedText = availability.map(item => {
-        const dayName = DAY_ORDER.find(d => d.day === item.day)?.name
-        return `${dayName}: ${item.availabilityText}`
-      }).join('\n')
-      setConsolidatedAvailabilityText(consolidatedText)
-    }
-  }, [availability, consolidatedAvailabilityText])
 
   // Initialize consolidated student availability text when students change
   useEffect(() => {
@@ -1380,24 +1377,94 @@ OPDRACHT: Maak een optimaal lesrooster voor de geselecteerde week op basis van b
             <div>
               <h3 className="text-lg font-semibold mb-4">Instructeur beschikbaarheid</h3>
               <p className="text-gray-600 mb-6">
-                Configureer je beschikbare tijden voor de komende weken. Voer je beschikbaarheid in voor alle dagen.
+                Configureer je beschikbare tijden voor elke dag van de week. Vink de dagen aan waarop je beschikbaar bent en stel de tijden in.
               </p>
             </div>
             
             <div className="card">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Beschikbaarheid per dag
-                </label>
-                <textarea
-                  value={consolidatedAvailabilityText}
-                  onChange={(e) => handleConsolidatedAvailabilityChange(e.target.value)}
-                  className="w-full px-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
-                  rows={7}
-                  placeholder="Maandag: 09:00 - 17:00, Dinsdag: 09:00 - 17:00, Woensdag: 09:00 - 17:00, Donderdag: 09:00 - 17:00, Vrijdag: 09:00 - 17:00, Zaterdag: Niet beschikbaar, Zondag: Niet beschikbaar"
-                />
-                <p className="text-xs text-gray-500 mt-1">
-                  Voorbeelden: "Maandag: 09:00 - 17:00", "Dinsdag: Niet beschikbaar", "Woensdag: 10:00" (8 uur vanaf starttijd). Wijzigingen worden automatisch opgeslagen.
+              <div className="space-y-4">
+                {DAY_ORDER.map((dayInfo, index) => {
+                  const day = availability[index]
+                  return (
+                    <div key={dayInfo.day} className="flex items-center space-x-4 p-4 border border-gray-200 rounded-lg">
+                      {/* Checkbox */}
+                      <div className="flex items-center">
+                        <input
+                          type="checkbox"
+                          checked={day.available}
+                          onChange={(e) => handleAvailabilityChange(index, e.target.checked)}
+                          className="w-4 h-4 text-blue-600 rounded focus:ring-blue-500"
+                        />
+                        <label className="ml-2 text-sm font-medium text-gray-900 min-w-[80px]">
+                          {dayInfo.name}
+                        </label>
+                      </div>
+                      
+                      {/* Time inputs - only show if available */}
+                      {day.available && (
+                        <div className="flex items-center space-x-2">
+                          <span className="text-sm text-gray-500">Van</span>
+                          
+                          {/* Start time */}
+                          <div className="flex items-center space-x-1">
+                            <input
+                              type="text"
+                              value={day.startHours}
+                              onChange={(e) => handleTimeChange(index, 'startHours', e.target.value)}
+                              onBlur={(e) => handleTimeBlur(index, 'startHours', e.target.value)}
+                              className="w-8 h-8 text-center border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+                              maxLength={2}
+                            />
+                            <span className="text-sm text-gray-500">:</span>
+                            <input
+                              type="text"
+                              value={day.startMinutes}
+                              onChange={(e) => handleTimeChange(index, 'startMinutes', e.target.value)}
+                              onBlur={(e) => handleTimeBlur(index, 'startMinutes', e.target.value)}
+                              className="w-8 h-8 text-center border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+                              maxLength={2}
+                            />
+                          </div>
+                          
+                          <span className="text-sm text-gray-500">tot</span>
+                          
+                          {/* End time */}
+                          <div className="flex items-center space-x-1">
+                            <input
+                              type="text"
+                              value={day.endHours}
+                              onChange={(e) => handleTimeChange(index, 'endHours', e.target.value)}
+                              onBlur={(e) => handleTimeBlur(index, 'endHours', e.target.value)}
+                              className="w-8 h-8 text-center border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+                              maxLength={2}
+                            />
+                            <span className="text-sm text-gray-500">:</span>
+                            <input
+                              type="text"
+                              value={day.endMinutes}
+                              onChange={(e) => handleTimeChange(index, 'endMinutes', e.target.value)}
+                              onBlur={(e) => handleTimeBlur(index, 'endMinutes', e.target.value)}
+                              className="w-8 h-8 text-center border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+                              maxLength={2}
+                            />
+                          </div>
+                        </div>
+                      )}
+                      
+                      {/* Not available text */}
+                      {!day.available && (
+                        <span className="text-sm text-gray-500 italic">
+                          Niet beschikbaar
+                        </span>
+                      )}
+                    </div>
+                  )
+                })}
+              </div>
+              
+              <div className="mt-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                <p className="text-sm text-blue-800">
+                  <strong>Tip:</strong> Wijzigingen worden automatisch opgeslagen. De beschikbaarheid wordt gebruikt voor de AI planning.
                 </p>
               </div>
             </div>
