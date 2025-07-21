@@ -250,16 +250,33 @@ export async function POST(request: NextRequest): Promise<Response> {
           return
         }
 
+        // Parse JSON from stdout instead of reading from file
+        const lines = stdout.split('\n')
+        let jsonOutput = ''
+        let inJson = false
+        let braceCount = 0
+        
         try {
-          // Parse JSON from stdout instead of reading from file
-          const lines = stdout.split('\n')
-          let jsonOutput = ''
-          
-          // Find the JSON output in stdout (it should be a single JSON object)
+          // Find the JSON output in stdout (look for the last complete JSON object)
           for (const line of lines) {
-            if (line.trim().startsWith('{') || jsonOutput) {
-              jsonOutput += line + '\n'
-              if (line.trim().endsWith('}')) {
+            const trimmedLine = line.trim()
+            
+            // Check if this line starts a JSON object
+            if (trimmedLine.startsWith('{')) {
+              inJson = true
+              braceCount = 1
+              jsonOutput = trimmedLine
+            } else if (inJson) {
+              jsonOutput += '\n' + line
+              
+              // Count braces to track JSON structure
+              for (const char of line) {
+                if (char === '{') braceCount++
+                if (char === '}') braceCount--
+              }
+              
+              // If we've closed all braces, we have a complete JSON object
+              if (braceCount === 0) {
                 break
               }
             }
@@ -271,7 +288,7 @@ export async function POST(request: NextRequest): Promise<Response> {
                 {
                   error: 'Geen JSON output gevonden in stdout',
                   details: 'Het script heeft geen geldige JSON output gegenereerd',
-                  stdout: stdout,
+                  stdout: stdout.substring(0, 500) + '...', // Limit stdout in error
                   stderr: stderr,
                   command: 'node'
                 },
@@ -282,18 +299,21 @@ export async function POST(request: NextRequest): Promise<Response> {
           }
           
           console.log('JSON output from stdout length:', jsonOutput.length)
+          console.log('JSON output preview:', jsonOutput.substring(0, 200) + '...')
           
           const aiResponse = JSON.parse(jsonOutput.trim())
           console.log('Successfully parsed JSON response')
           
           resolve(NextResponse.json(aiResponse))
         } catch (parseError) {
+          console.error('JSON parse error:', parseError)
+          console.error('JSON output that failed to parse:', jsonOutput || 'No JSON output found')
           resolve(
             NextResponse.json(
               {
                 error: 'Fout bij het parsen van de JSON output',
                 details: parseError instanceof Error ? parseError.message : 'Unknown parse error',
-                stdout: stdout,
+                stdout: stdout.substring(0, 500) + '...', // Limit stdout in error
                 stderr: stderr,
                 command: 'node'
               },
