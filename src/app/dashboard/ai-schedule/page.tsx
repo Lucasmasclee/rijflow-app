@@ -1662,7 +1662,7 @@ OPDRACHT: Maak een optimaal lesrooster voor de geselecteerde week op basis van b
                               style={{ width: '32px', padding: '0', margin: '0' }}
                               maxLength={2}
                             />
-                            <span className="text-sm text-gray-500">:</span>
+                            <span className="text-sm text-gray-500"> :</span>
                             <input
                               type="text"
                               value={day.startMinutes}
@@ -1687,7 +1687,7 @@ OPDRACHT: Maak een optimaal lesrooster voor de geselecteerde week op basis van b
                               style={{ width: '32px', padding: '0', margin: '0' }}
                               maxLength={2}
                             />
-                            <span className="text-sm text-gray-500">:</span>
+                            <span className="text-sm text-gray-500"> :</span>
                             <input
                               type="text"
                               value={day.endMinutes}
@@ -2298,7 +2298,7 @@ OPDRACHT: Maak een optimaal lesrooster voor de geselecteerde week op basis van b
                                   style={{ width: '32px', padding: '0', margin: '0' }}
                                   maxLength={2}
                                 />
-                                <span className="text-sm text-gray-500">:</span>
+                                <span className="text-sm text-gray-500"> :</span>
                                 <input
                                   type="text"
                                   value={dayAvailability.startMinutes}
@@ -2323,7 +2323,7 @@ OPDRACHT: Maak een optimaal lesrooster voor de geselecteerde week op basis van b
                                   style={{ width: '32px', padding: '0', margin: '0' }}
                                   maxLength={2}
                                 />
-                                <span className="text-sm text-gray-500">:</span>
+                                <span className="text-sm text-gray-500"> :</span>
                                 <input
                                   type="text"
                                   value={dayAvailability.endMinutes}
