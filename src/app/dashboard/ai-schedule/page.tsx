@@ -1570,7 +1570,7 @@ OPDRACHT: Maak een optimaal lesrooster voor de geselecteerde week op basis van b
             <div>
               <h3 className="text-lg font-semibold mb-4">Instructeur beschikbaarheid</h3>
               <p className="text-gray-600 mb-6">
-                Configureer je beschikbare tijden voor elke dag van de week. Vink de dagen aan waarop je beschikbaar bent en stel de tijden in.
+                Vul je beschikbare tijden in. Heb je een gat midden in je dag? Laat de AI eerst een planning maken en verwijder vervolgens lessen die je niet wilt.
               </p>
             </div>
             
@@ -1605,7 +1605,7 @@ OPDRACHT: Maak een optimaal lesrooster voor de geselecteerde week op basis van b
                               value={day.startHours}
                               onChange={(e) => handleTimeChange(index, 'startHours', e.target.value)}
                               onBlur={(e) => handleTimeBlur(index, 'startHours', e.target.value)}
-                              className="h-8 text-center border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+                              className="h-8 text-left border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
                               style={{ width: '8px' }}
                               maxLength={2}
                             />
@@ -1615,7 +1615,7 @@ OPDRACHT: Maak een optimaal lesrooster voor de geselecteerde week op basis van b
                               value={day.startMinutes}
                               onChange={(e) => handleTimeChange(index, 'startMinutes', e.target.value)}
                               onBlur={(e) => handleTimeBlur(index, 'startMinutes', e.target.value)}
-                              className="h-8 text-center border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+                              className="h-8 text-left border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
                               style={{ width: '8px' }}
                               maxLength={2}
                             />
@@ -1630,7 +1630,7 @@ OPDRACHT: Maak een optimaal lesrooster voor de geselecteerde week op basis van b
                               value={day.endHours}
                               onChange={(e) => handleTimeChange(index, 'endHours', e.target.value)}
                               onBlur={(e) => handleTimeBlur(index, 'endHours', e.target.value)}
-                              className="h-8 text-center border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+                              className="h-8 text-left border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
                               style={{ width: '8px' }}
                               maxLength={2}
                             />
@@ -1640,7 +1640,7 @@ OPDRACHT: Maak een optimaal lesrooster voor de geselecteerde week op basis van b
                               value={day.endMinutes}
                               onChange={(e) => handleTimeChange(index, 'endMinutes', e.target.value)}
                               onBlur={(e) => handleTimeBlur(index, 'endMinutes', e.target.value)}
-                              className="h-8 text-center border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+                              className="h-8 text-left border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
                               style={{ width: '8px' }}
                               maxLength={2}
                             />
@@ -2241,7 +2241,7 @@ OPDRACHT: Maak een optimaal lesrooster voor de geselecteerde week op basis van b
                                   value={dayAvailability.startHours}
                                   onChange={(e) => handleStudentTimeChange(studentIndex, dayIndex, 'startHours', e.target.value)}
                                   onBlur={(e) => handleStudentTimeBlur(studentIndex, dayIndex, 'startHours', e.target.value)}
-                                  className="h-8 text-center border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+                                  className="h-8 text-left border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
                                   style={{ width: '8px' }}
                                   maxLength={2}
                                 />
@@ -2251,7 +2251,7 @@ OPDRACHT: Maak een optimaal lesrooster voor de geselecteerde week op basis van b
                                   value={dayAvailability.startMinutes}
                                   onChange={(e) => handleStudentTimeChange(studentIndex, dayIndex, 'startMinutes', e.target.value)}
                                   onBlur={(e) => handleStudentTimeBlur(studentIndex, dayIndex, 'startMinutes', e.target.value)}
-                                  className="h-8 text-center border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+                                  className="h-8 text-left border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
                                   style={{ width: '8px' }}
                                   maxLength={2}
                                 />
@@ -2266,7 +2266,7 @@ OPDRACHT: Maak een optimaal lesrooster voor de geselecteerde week op basis van b
                                   value={dayAvailability.endHours}
                                   onChange={(e) => handleStudentTimeChange(studentIndex, dayIndex, 'endHours', e.target.value)}
                                   onBlur={(e) => handleStudentTimeBlur(studentIndex, dayIndex, 'endHours', e.target.value)}
-                                  className="h-8 text-center border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+                                  className="h-8 text-left border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
                                   style={{ width: '8px' }}
                                   maxLength={2}
                                 />
@@ -2276,7 +2276,7 @@ OPDRACHT: Maak een optimaal lesrooster voor de geselecteerde week op basis van b
                                   value={dayAvailability.endMinutes}
                                   onChange={(e) => handleStudentTimeChange(studentIndex, dayIndex, 'endMinutes', e.target.value)}
                                   onBlur={(e) => handleStudentTimeBlur(studentIndex, dayIndex, 'endMinutes', e.target.value)}
-                                  className="h-8 text-center border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+                                  className="h-8 text-left border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
                                   style={{ width: '8px' }}
                                   maxLength={2}
                                 />
@@ -2347,7 +2347,7 @@ OPDRACHT: Maak een optimaal lesrooster voor de geselecteerde week op basis van b
                       </div>
                     </div>
                     
-                    <div>
+                    {/* <div>
                       <label className="block text-sm font-medium text-gray-700 mb-2">
                         Notities voor AI
                       </label>
@@ -2358,7 +2358,7 @@ OPDRACHT: Maak een optimaal lesrooster voor de geselecteerde week op basis van b
                         className="w-full px-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
                         placeholder="Speciale instructies voor de AI planner..."
                       />
-                    </div>
+                    </div> */}
                     
                     {(isValueDifferentFromDefault(student, 'lessons') || isValueDifferentFromDefault(student, 'minutes')) && (
                       <div className="flex justify-end">
