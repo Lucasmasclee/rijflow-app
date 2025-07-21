@@ -1,12 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { supabase } from '@/lib/supabase'
-import fs from 'fs'
-import path from 'path'
 
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
     const { instructorId, weekStart } = body
+
+    console.log('Creating editable input for:', { instructorId, weekStart })
 
     if (!instructorId || !weekStart) {
       return NextResponse.json(
@@ -15,11 +15,8 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Read the sample input file
-    const sampleInputPath = path.join(process.cwd(), 'scripts', 'sample_input.json')
-    const sampleInput = JSON.parse(fs.readFileSync(sampleInputPath, 'utf8'))
-
     // Fetch instructor availability from database
+    console.log('Fetching instructor availability...')
     const { data: instructorAvailability, error: instructorError } = await supabase
       .from('instructor_availability')
       .select('*')
@@ -27,13 +24,14 @@ export async function POST(request: NextRequest) {
 
     if (instructorError) {
       console.error('Error fetching instructor availability:', instructorError)
-      return NextResponse.json(
-        { error: 'Failed to fetch instructor availability' },
-        { status: 500 }
-      )
+      // Don't return error, just log it and continue with empty availability
+      console.log('Continuing with empty instructor availability due to error')
     }
 
+    console.log('Instructor availability:', instructorAvailability)
+
     // Fetch instructor AI settings from database
+    console.log('Fetching AI settings...')
     const { data: aiSettings, error: aiSettingsError } = await supabase
       .from('instructor_ai_settings')
       .select('*')
@@ -42,13 +40,14 @@ export async function POST(request: NextRequest) {
 
     if (aiSettingsError && aiSettingsError.code !== 'PGRST116') {
       console.error('Error fetching AI settings:', aiSettingsError)
-      return NextResponse.json(
-        { error: 'Failed to fetch AI settings' },
-        { status: 500 }
-      )
+      // Don't return error, just log it and continue with default settings
+      console.log('Continuing with default AI settings due to error')
     }
 
+    console.log('AI settings:', aiSettings)
+
     // Fetch students with their availability
+    console.log('Fetching students...')
     const { data: students, error: studentsError } = await supabase
       .from('students')
       .select('*')
@@ -61,6 +60,8 @@ export async function POST(request: NextRequest) {
         { status: 500 }
       )
     }
+
+    console.log('Students found:', students?.length || 0)
 
     if (!students || students.length === 0) {
       return NextResponse.json(
@@ -77,6 +78,7 @@ export async function POST(request: NextRequest) {
     // Get all student IDs for this instructor
     const studentIds = students?.map(s => s.id) || []
     
+    console.log('Fetching student availability for week:', weekStart, 'to', weekEndString)
     const { data: studentAvailability, error: availabilityError } = await supabase
       .from('student_availability')
       .select('*')
@@ -90,6 +92,8 @@ export async function POST(request: NextRequest) {
       console.log('Continuing with empty student availability due to error')
     }
 
+    console.log('Student availability found:', studentAvailability?.length || 0)
+
     // Convert instructor availability to the expected format
     const dayNames = ['zondag', 'maandag', 'dinsdag', 'woensdag', 'donderdag', 'vrijdag', 'zaterdag']
     const instructorBeschikbaarheid: Record<string, string[]> = {}
@@ -100,6 +104,8 @@ export async function POST(request: NextRequest) {
         instructorBeschikbaarheid[dayName] = [availability.start_time, availability.end_time]
       }
     })
+
+    console.log('Instructor beschikbaarheid:', instructorBeschikbaarheid)
 
     // Generate week dates
     const weekDates = []
@@ -172,6 +178,8 @@ export async function POST(request: NextRequest) {
       })
     }
 
+    console.log('Leerlingen prepared:', leerlingen.length)
+
     // Create the editable input with database data
     const editableInput = {
       instructeur: {
@@ -185,6 +193,8 @@ export async function POST(request: NextRequest) {
       },
       leerlingen
     }
+
+    console.log('Editable input created successfully')
 
     // Return the data directly without writing to file
     // This avoids file system issues in serverless environments
