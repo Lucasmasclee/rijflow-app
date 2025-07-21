@@ -97,6 +97,41 @@ function AISchedulePageContent() {
     additionalSpecifications: ''
   })
 
+  // Helper function to get date labels for the current week
+  const getDateLabels = () => {
+    // Bereken de datums voor de geselecteerde week of de komende week als fallback
+    let targetWeekStart: Date
+    if (selectedWeek) {
+      // Use the selected week
+      targetWeekStart = new Date(selectedWeek)
+    } else {
+      // Fallback to next week if no week is selected
+      const today = new Date()
+      targetWeekStart = new Date(today)
+      targetWeekStart.setDate(today.getDate() + (8 - today.getDay()) % 7) // Volgende maandag
+    }
+    
+    const weekDates = []
+    for (let i = 0; i < 7; i++) {
+      const date = new Date(targetWeekStart)
+      date.setDate(targetWeekStart.getDate() + i)
+      weekDates.push(date)
+    }
+    
+    // Maak een mapping van dagen naar datums
+    const dayToDateMap = {
+      'monday': weekDates[0],
+      'tuesday': weekDates[1], 
+      'wednesday': weekDates[2],
+      'thursday': weekDates[3],
+      'friday': weekDates[4],
+      'saturday': weekDates[5],
+      'sunday': weekDates[6]
+    }
+    
+    return dayToDateMap
+  }
+
   // Helper functions for time input handling (from lessons page)
   const validateAndFormatTime = (timeValue: string): string => {
     if (!timeValue) return ''
@@ -1038,7 +1073,8 @@ function AISchedulePageContent() {
       try {
         const data = JSON.parse(storedData)
         setEditableInputPath('data') // Use 'data' as a special identifier
-        setCurrentStep('test-planning')
+        // Keep the default step as 'instructor' instead of jumping to 'test-planning'
+        // setCurrentStep('test-planning') // Removed this line
         
         // Initialize the UI with the stored data
         initializeUIWithData(data)
@@ -1839,6 +1875,10 @@ OPDRACHT: Maak een optimaal lesrooster voor de geselecteerde week op basis van b
               <div className="space-y-4">
                 {DAY_ORDER.map((dayInfo, index) => {
                   const day = availability[index]
+                  const dateLabels = getDateLabels()
+                  const date = dateLabels[dayInfo.day as keyof typeof dateLabels]
+                  const dateLabel = date ? `${dayInfo.shortName} ${date.getDate()} ${date.toLocaleDateString('nl-NL', { month: 'short' })}` : dayInfo.name
+                  
                   return (
                     <div key={dayInfo.day} className="flex items-center space-x-4 p-4 border border-gray-200 rounded-lg">
                       {/* Checkbox */}
@@ -1849,8 +1889,8 @@ OPDRACHT: Maak een optimaal lesrooster voor de geselecteerde week op basis van b
                           onChange={(e) => handleAvailabilityChange(index, e.target.checked)}
                           className="w-4 h-4 text-blue-600 rounded focus:ring-blue-500"
                         />
-                        <label className="ml-2 text-sm font-medium text-gray-900 min-w-[80px]">
-                          {dayInfo.name}
+                        <label className="ml-2 text-sm font-medium text-gray-900 min-w-[100px]">
+                          {dateLabel}
                         </label>
                       </div>
                       
@@ -1983,6 +2023,10 @@ OPDRACHT: Maak een optimaal lesrooster voor de geselecteerde week op basis van b
                               endMinutes: '00'
                             }
                             
+                            const dateLabels = getDateLabels()
+                            const date = dateLabels[dayInfo.day as keyof typeof dateLabels]
+                            const dateLabel = date ? `${dayInfo.shortName} ${date.getDate()} ${date.toLocaleDateString('nl-NL', { month: 'short' })}` : dayInfo.name
+                            
                             return (
                               <div key={dayInfo.day} className="flex items-center space-x-4 p-3 border border-gray-100 rounded-lg">
                                 {/* Checkbox */}
@@ -1993,8 +2037,8 @@ OPDRACHT: Maak een optimaal lesrooster voor de geselecteerde week op basis van b
                                     onChange={(e) => handleStudentAvailabilityChange(studentIndex, dayIndex, e.target.checked)}
                                     className="w-4 h-4 text-blue-600 rounded focus:ring-blue-500"
                                   />
-                                  <label className="ml-2 text-sm font-medium text-gray-900 min-w-[60px]">
-                                    {dayInfo.shortName}
+                                  <label className="ml-2 text-sm font-medium text-gray-900 min-w-[100px]">
+                                    {dateLabel}
                                   </label>
                                 </div>
                                 
@@ -2010,16 +2054,18 @@ OPDRACHT: Maak een optimaal lesrooster voor de geselecteerde week op basis van b
                                         value={dayAvailability.startHours}
                                         onChange={(e) => handleStudentTimeChange(studentIndex, dayIndex, 'startHours', e.target.value)}
                                         onBlur={(e) => handleStudentTimeBlur(studentIndex, dayIndex, 'startHours', e.target.value)}
-                                        className="w-2 h-8 text-center border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+                                        className="h-8 text-center border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+                                        style={{ width: '32px', padding: '0', margin: '0' }}
                                         maxLength={2}
                                       />
-                                      <span className="text-sm text-gray-500">:</span>
+                                      <span className="text-sm text-gray-500"> :</span>
                                       <input
                                         type="text"
                                         value={dayAvailability.startMinutes}
                                         onChange={(e) => handleStudentTimeChange(studentIndex, dayIndex, 'startMinutes', e.target.value)}
                                         onBlur={(e) => handleStudentTimeBlur(studentIndex, dayIndex, 'startMinutes', e.target.value)}
-                                        className="w-2 h-8 text-center border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+                                        className="h-8 text-center border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+                                        style={{ width: '32px', padding: '0', margin: '0' }}
                                         maxLength={2}
                                       />
                                     </div>
@@ -2033,16 +2079,18 @@ OPDRACHT: Maak een optimaal lesrooster voor de geselecteerde week op basis van b
                                         value={dayAvailability.endHours}
                                         onChange={(e) => handleStudentTimeChange(studentIndex, dayIndex, 'endHours', e.target.value)}
                                         onBlur={(e) => handleStudentTimeBlur(studentIndex, dayIndex, 'endHours', e.target.value)}
-                                        className="w-2 h-8 text-center border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+                                        className="h-8 text-center border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+                                        style={{ width: '32px', padding: '0', margin: '0' }}
                                         maxLength={2}
                                       />
-                                      <span className="text-sm text-gray-500">:</span>
+                                      <span className="text-sm text-gray-500"> :</span>
                                       <input
                                         type="text"
                                         value={dayAvailability.endMinutes}
                                         onChange={(e) => handleStudentTimeChange(studentIndex, dayIndex, 'endMinutes', e.target.value)}
                                         onBlur={(e) => handleStudentTimeBlur(studentIndex, dayIndex, 'endMinutes', e.target.value)}
-                                        className="w-2 h-8 text-center border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+                                        className="h-8 text-center border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+                                        style={{ width: '32px', padding: '0', margin: '0' }}
                                         maxLength={2}
                                       />
                                     </div>
