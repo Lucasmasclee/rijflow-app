@@ -24,11 +24,18 @@ export async function POST(request: NextRequest) {
       const tempFilePath = path.join(process.cwd(), 'scripts', inputFilePath)
       
       try {
+        // Ensure the scripts directory exists
+        const scriptsDir = path.join(process.cwd(), 'scripts')
+        if (!fs.existsSync(scriptsDir)) {
+          fs.mkdirSync(scriptsDir, { recursive: true })
+        }
+        
         fs.writeFileSync(tempFilePath, JSON.stringify(data, null, 2))
       } catch (fileError) {
         console.error('Error writing temporary file:', fileError)
+        const errorMessage = fileError instanceof Error ? fileError.message : 'Unknown error'
         return NextResponse.json(
-          { error: 'Failed to create temporary input file' },
+          { error: 'Failed to create temporary input file: ' + errorMessage },
           { status: 500 }
         )
       }

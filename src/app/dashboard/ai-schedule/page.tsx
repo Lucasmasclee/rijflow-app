@@ -1267,6 +1267,42 @@ function AISchedulePageContent() {
     }
   }
 
+  const reinitializeDataFromDatabaseSilently = async () => {
+    if (!user || !selectedWeek) return
+    
+    try {
+      const weekStart = selectedWeek.toISOString().split('T')[0]
+      
+      const response = await fetch('/api/ai-schedule/create-editable-input', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          instructorId: user.id,
+          weekStart: weekStart
+        })
+      })
+
+      if (!response.ok) {
+        const error = await response.json()
+        throw new Error(error.error || 'Onbekende fout')
+      }
+
+      const result = await response.json()
+      
+      // Update localStorage with fresh data
+      localStorage.setItem('aiScheduleData', JSON.stringify(result.data))
+      
+      // Reinitialize UI
+      initializeUIWithData(result.data)
+      
+    } catch (error) {
+      console.error('Error reinitializing data:', error)
+      throw error
+    }
+  }
+
   // Handle test planning
   const handleStartTestPlanning = async () => {
     if (!editableInputPath) {
@@ -1276,8 +1312,8 @@ function AISchedulePageContent() {
 
     setIsRunningTestPlanning(true)
     try {
-      // First, reinitialize data from database
-      await reinitializeDataFromDatabase()
+      // First, reinitialize data from database (without showing success toast)
+      await reinitializeDataFromDatabaseSilently()
       
       // Then use the fresh data from localStorage
       const storedData = localStorage.getItem('aiScheduleData')
