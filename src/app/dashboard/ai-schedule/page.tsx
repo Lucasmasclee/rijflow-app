@@ -2099,9 +2099,10 @@ OPDRACHT: Maak een optimaal lesrooster voor de geselecteerde week op basis van b
         // Check if this is a student step
         if (currentStep.startsWith('student-')) {
           const studentId = currentStep.replace('student-', '')
+          const studentIndex = students.findIndex(s => s.id === studentId)
           const student = students.find(s => s.id === studentId)
           
-          if (!student) {
+          if (!student || studentIndex === -1) {
             return (
               <div className="text-center py-8">
                 <p className="text-gray-500">Leerling niet gevonden</p>
@@ -2123,18 +2124,102 @@ OPDRACHT: Maak een optimaal lesrooster voor de geselecteerde week op basis van b
               {/* Beschikbaarheid van [Leerling naam] */}
               <div className="card">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-sm font-medium text-gray-700 mb-4">
                     Beschikbaarheid van {student.first_name} {student.last_name || ''}
                   </label>
-                  <textarea
-                    value={student.availabilityText}
-                    onChange={(e) => handleStudentChange(student.id, 'availabilityText', e.target.value)}
-                    className="w-full px-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
-                    rows={7}
-                    placeholder="Bijvoorbeeld: Maandag, woensdag, vrijdag of Flexibel beschikbaar"
-                  />
-                  <p className="text-xs text-gray-500 mt-1">
-                    Beschrijf wanneer deze leerling beschikbaar is voor lessen. Voorbeelden: "Maandag, woensdag, vrijdag", "Flexibel beschikbaar", "Alleen 's avonds". Wijzigingen worden automatisch opgeslagen.
+                  
+                  <div className="space-y-4">
+                    {DAY_ORDER.map((dayInfo, dayIndex) => {
+                      const dayAvailability = student.availability?.[dayIndex] || {
+                        day: dayInfo.day,
+                        available: false,
+                        startTime: '09:00',
+                        endTime: '17:00',
+                        startHours: '09',
+                        startMinutes: '00',
+                        endHours: '17',
+                        endMinutes: '00'
+                      }
+                      
+                      return (
+                        <div key={dayInfo.day} className="flex items-center space-x-4 p-4 border border-gray-200 rounded-lg">
+                          {/* Checkbox */}
+                          <div className="flex items-center">
+                            <input
+                              type="checkbox"
+                              checked={dayAvailability.available}
+                              onChange={(e) => handleStudentAvailabilityChange(studentIndex, dayIndex, e.target.checked)}
+                              className="w-4 h-4 text-blue-600 rounded focus:ring-blue-500"
+                            />
+                            <label className="ml-2 text-sm font-medium text-gray-900 min-w-[80px]">
+                              {dayInfo.name}
+                            </label>
+                          </div>
+                          
+                          {/* Time inputs - only show if available */}
+                          {dayAvailability.available && (
+                            <div className="flex items-center space-x-2">
+                              <span className="text-sm text-gray-500">Van</span>
+                              
+                              {/* Start time */}
+                              <div className="flex items-center space-x-1">
+                                <input
+                                  type="text"
+                                  value={dayAvailability.startHours}
+                                  onChange={(e) => handleStudentTimeChange(studentIndex, dayIndex, 'startHours', e.target.value)}
+                                  onBlur={(e) => handleStudentTimeBlur(studentIndex, dayIndex, 'startHours', e.target.value)}
+                                  className="w-2 h-8 text-center border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+                                  maxLength={2}
+                                />
+                                <span className="text-sm text-gray-500">:</span>
+                                <input
+                                  type="text"
+                                  value={dayAvailability.startMinutes}
+                                  onChange={(e) => handleStudentTimeChange(studentIndex, dayIndex, 'startMinutes', e.target.value)}
+                                  onBlur={(e) => handleStudentTimeBlur(studentIndex, dayIndex, 'startMinutes', e.target.value)}
+                                  className="w-2 h-8 text-center border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+                                  maxLength={2}
+                                />
+                              </div>
+                              
+                              <span className="text-sm text-gray-500">tot</span>
+                              
+                              {/* End time */}
+                              <div className="flex items-center space-x-1">
+                                <input
+                                  type="text"
+                                  value={dayAvailability.endHours}
+                                  onChange={(e) => handleStudentTimeChange(studentIndex, dayIndex, 'endHours', e.target.value)}
+                                  onBlur={(e) => handleStudentTimeBlur(studentIndex, dayIndex, 'endHours', e.target.value)}
+                                  className="w-2 h-8 text-center border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+                                  maxLength={2}
+                                />
+                                <span className="text-sm text-gray-500">:</span>
+                                <input
+                                  type="text"
+                                  value={dayAvailability.endMinutes}
+                                  onChange={(e) => handleStudentTimeChange(studentIndex, dayIndex, 'endMinutes', e.target.value)}
+                                  onBlur={(e) => handleStudentTimeBlur(studentIndex, dayIndex, 'endMinutes', e.target.value)}
+                                  className="w-2 h-8 text-center border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+                                  maxLength={2}
+                                />
+                              </div>
+                            </div>
+                          )}
+                          
+                          {/* Not available text */}
+                          {!dayAvailability.available && (
+                            <span className="text-sm text-gray-500 italic">
+                              Niet beschikbaar
+                            </span>
+                          )}
+                        </div>
+                      )
+                    })}
+                  </div>
+                  
+                  <p className="text-xs text-gray-500 mt-3">
+                    Selecteer de dagen waarop deze leerling beschikbaar is en stel de tijden in. Wijzigingen worden automatisch opgeslagen.
                   </p>
                 </div>
               </div>
