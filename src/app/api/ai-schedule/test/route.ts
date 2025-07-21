@@ -190,6 +190,16 @@ export async function POST(request: NextRequest): Promise<Response> {
       console.log(`Working directory: ${process.cwd()}`)
       console.log(`Environment variables:`, env)
 
+      // --- NIEUW: sample_input.json initialiseren met databasewaarden ---
+      const sampleInputPath = path.join(process.cwd(), 'src', 'app', 'dashboard', 'ai-schedule', 'sample_input.json')
+      let sampleInput = JSON.parse(fs.readFileSync(sampleInputPath, 'utf8'))
+      sampleInput.instructeur.pauzeTussenLessen = settings.pauze_tussen_lessen
+      sampleInput.instructeur.langePauzeDuur = settings.lange_pauze_duur
+      sampleInput.instructeur.locatiesKoppelen = settings.locaties_koppelen
+      sampleInput.instructeur.blokuren = settings.blokuren
+      fs.writeFileSync(sampleInputPath, JSON.stringify(sampleInput, null, 2), 'utf8')
+      // --- EINDE NIEUW ---
+
       // Start the Node.js process
       const nodeProcess = spawn('node', [scriptPath], {
         stdio: ['pipe', 'pipe', 'pipe'],
