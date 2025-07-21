@@ -256,7 +256,16 @@ export default function LessonsPage() {
 
       if (!response.ok) {
         const error = await response.json()
-        toast.error('Fout bij het maken van weekplanning: ' + (error.error || 'Onbekende fout'))
+        const errorMessage = error.error || 'Onbekende fout'
+        
+        // Handle specific error cases
+        if (errorMessage.includes('No students found')) {
+          toast.error('Geen leerlingen gevonden. Voeg eerst leerlingen toe aan je rijschool.')
+        } else if (errorMessage.includes('Failed to fetch student availability')) {
+          toast.error('Fout bij het ophalen van leerling beschikbaarheid. Probeer het opnieuw.')
+        } else {
+          toast.error('Fout bij het maken van weekplanning: ' + errorMessage)
+        }
         return
       }
 

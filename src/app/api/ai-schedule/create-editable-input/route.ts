@@ -62,24 +62,32 @@ export async function POST(request: NextRequest) {
       )
     }
 
+    if (!students || students.length === 0) {
+      return NextResponse.json(
+        { error: 'No students found for this instructor' },
+        { status: 404 }
+      )
+    }
+
     // Fetch student availability for the selected week
     const weekEnd = new Date(weekStart)
     weekEnd.setDate(weekEnd.getDate() + 6)
     const weekEndString = weekEnd.toISOString().split('T')[0]
 
+    // Get all student IDs for this instructor
+    const studentIds = students?.map(s => s.id) || []
+    
     const { data: studentAvailability, error: availabilityError } = await supabase
       .from('student_availability')
       .select('*')
-      .eq('instructor_id', instructorId)
+      .in('student_id', studentIds)
       .gte('week_start', weekStart)
       .lte('week_start', weekEndString)
 
     if (availabilityError) {
       console.error('Error fetching student availability:', availabilityError)
-      return NextResponse.json(
-        { error: 'Failed to fetch student availability' },
-        { status: 500 }
-      )
+      // Don't return error here, just log it and continue with empty availability
+      console.log('Continuing with empty student availability due to error')
     }
 
     // Convert instructor availability to the expected format
@@ -121,7 +129,6 @@ export async function POST(request: NextRequest) {
         
         const emptyAvailability = {
           student_id: student.id,
-          instructor_id: instructorId,
           week_start: weekStart,
           notes: JSON.stringify({}) // Empty availability object
         }
@@ -142,7 +149,7 @@ export async function POST(request: NextRequest) {
       
       // Convert availability notes to beschikbaarheid format
       const beschikbaarheid: Record<string, string[]> = {}
-      if (studentAvail?.notes) {
+      if (studentAvail?.notes && studentAvail.notes !== '{}') {
         try {
           const availabilityData = JSON.parse(studentAvail.notes)
           Object.keys(availabilityData).forEach(day => {
@@ -152,6 +159,7 @@ export async function POST(request: NextRequest) {
           })
         } catch (e) {
           console.error('Error parsing student availability:', e)
+          // If parsing fails, use empty availability
         }
       }
 
