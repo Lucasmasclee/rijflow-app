@@ -150,13 +150,12 @@ export async function POST(request: NextRequest): Promise<Response> {
         blokuren: true
       }
 
-      // Pad naar het Python-script
-      const scriptPath = path.join(process.cwd(), 'scripts', 'generate_week_planning.py')
-      
-      // Pad waar het JSON-bestand moet worden aangemaakt
+      // Path to the JS script
+      const scriptPath = path.join(process.cwd(), 'scripts', 'generate_week_planning.js')
+      // Path where the JSON file should be created
       const jsonFilePath = path.join(process.cwd(), 'src', 'app', 'dashboard', 'ai-schedule', 'best_week_planning.json')
 
-      console.log('Starting Python script:', scriptPath)
+      console.log('Starting JS script:', scriptPath)
       console.log('JSON file will be created at:', jsonFilePath)
       console.log('Current working directory:', process.cwd())
       console.log('Script exists:', fs.existsSync(scriptPath))
@@ -167,58 +166,8 @@ export async function POST(request: NextRequest): Promise<Response> {
         resolve(
           NextResponse.json(
             {
-              error: 'Python script niet gevonden',
+              error: 'JS script niet gevonden',
               details: `Script pad: ${scriptPath}`,
-            },
-            { status: 500 }
-          )
-        )
-        return
-      }
-
-      // Probeer verschillende Python commando's in volgorde van voorkeur
-      const pythonCommands = ['python3', 'python', 'py', 'python3.9', 'python3.8', 'python3.7']
-      let commandUsed = ''
-
-      console.log('=== PYTHON COMMAND DETECTION ===')
-      console.log('Current working directory:', process.cwd())
-      console.log('Platform:', process.platform)
-      console.log('Architecture:', process.arch)
-      console.log('Node version:', process.version)
-
-      // First, try to find which Python command is available
-      for (const command of pythonCommands) {
-        console.log(`\nTesting Python command: ${command}`)
-        const exists = await commandExists(command)
-        if (exists) {
-          console.log(`✅ Found working Python command: ${command}`)
-          commandUsed = command
-          break
-        } else {
-          console.log(`❌ Command ${command} not found or failed`)
-        }
-      }
-
-      if (!commandUsed) {
-        console.log('\n=== PYTHON DETECTION FAILED ===')
-        console.log('Trying to check PATH environment...')
-        
-        // Try to run 'which python3' or 'where python' to see what's available
-        const pathCheck = process.platform === 'win32' ? 'where python' : 'which python3'
-        const pathResult = await tryRunCommand('sh', ['-c', pathCheck])
-        console.log('PATH check result:', pathResult)
-        
-        resolve(
-          NextResponse.json(
-            {
-              error: 'Python niet gevonden',
-              details: `Geen van de Python commando's (${pythonCommands.join(', ')}) is beschikbaar op dit systeem. Platform: ${process.platform}, PATH check: ${pathResult.output}`,
-              debug: {
-                platform: process.platform,
-                arch: process.arch,
-                cwd: process.cwd(),
-                pathCheck: pathResult
-              }
             },
             { status: 500 }
           )
@@ -235,14 +184,14 @@ export async function POST(request: NextRequest): Promise<Response> {
         BLOKUREN: settings.blokuren.toString()
       }
 
-      console.log(`\n=== STARTING PYTHON SCRIPT ===`)
-      console.log(`Command: ${commandUsed}`)
+      console.log(`\n=== STARTING JS SCRIPT ===`)
+      console.log(`Command: node`)
       console.log(`Script path: ${scriptPath}`)
       console.log(`Working directory: ${process.cwd()}`)
       console.log(`Environment variables:`, env)
 
-      // Start the Python process
-      const pythonProcess = spawn(commandUsed, [scriptPath], { 
+      // Start the Node.js process
+      const nodeProcess = spawn('node', [scriptPath], {
         stdio: ['pipe', 'pipe', 'pipe'],
         env,
         cwd: process.cwd() // Explicitly set working directory
@@ -251,26 +200,26 @@ export async function POST(request: NextRequest): Promise<Response> {
       let stdout = ''
       let stderr = ''
 
-      pythonProcess.stdout.on('data', (data: Buffer) => {
+      nodeProcess.stdout.on('data', (data: Buffer) => {
         stdout += data.toString()
-        console.log('Python stdout:', data.toString())
+        console.log('Node stdout:', data.toString())
       })
 
-      pythonProcess.stderr.on('data', (data: Buffer) => {
+      nodeProcess.stderr.on('data', (data: Buffer) => {
         stderr += data.toString()
-        console.log('Python stderr:', data.toString())
+        console.log('Node stderr:', data.toString())
       })
 
       // Add timeout to prevent hanging
       const timeout = setTimeout(() => {
-        console.log('Python script timeout - killing process')
-        pythonProcess.kill('SIGTERM')
+        console.log('JS script timeout - killing process')
+        nodeProcess.kill('SIGTERM')
         resolve(
           NextResponse.json(
             {
-              error: 'Python script timeout',
-              details: 'Het Python script heeft te lang geduurd om te voltooien',
-              command: commandUsed,
+              error: 'JS script timeout',
+              details: 'Het JS script heeft te lang geduurd om te voltooien',
+              command: 'node',
               stdout: stdout,
               stderr: stderr
             },
@@ -279,10 +228,10 @@ export async function POST(request: NextRequest): Promise<Response> {
         )
       }, 60000) // 60 second timeout
 
-      pythonProcess.on('close', async (code: number | null) => {
+      nodeProcess.on('close', async (code: number | null) => {
         clearTimeout(timeout) // Clear timeout if process completes
-        console.log('Python script finished with code:', code)
-        console.log('Command used:', commandUsed)
+        console.log('JS script finished with code:', code)
+        console.log('Command used: node')
         console.log('Total stdout length:', stdout.length)
         console.log('Total stderr length:', stderr.length)
         
@@ -291,8 +240,8 @@ export async function POST(request: NextRequest): Promise<Response> {
             NextResponse.json(
               {
                 error: 'Fout bij het genereren van het test rooster',
-                details: stderr || `Python script exited with code ${code}`,
-                command: commandUsed,
+                details: stderr || `JS script exited with code ${code}`,
+                command: 'node',
                 stdout: stdout
               },
               { status: 500 }
@@ -301,19 +250,19 @@ export async function POST(request: NextRequest): Promise<Response> {
           return
         }
 
-        // Wacht even om zeker te zijn dat het bestand is geschreven
+        // Wait a moment to be sure the file is written
         await new Promise(resolve => setTimeout(resolve, 2000))
 
-        // Controleer of het JSON-bestand bestaat
+        // Check if the JSON file exists
         if (!fs.existsSync(jsonFilePath)) {
           resolve(
             NextResponse.json(
               {
-                error: 'JSON bestand niet gevonden na uitvoering Python script',
+                error: 'JSON bestand niet gevonden na uitvoering JS script',
                 details: `Verwacht bestand: ${jsonFilePath}`,
                 stdout: stdout,
                 stderr: stderr,
-                command: commandUsed
+                command: 'node'
               },
               { status: 500 }
             )
@@ -322,7 +271,7 @@ export async function POST(request: NextRequest): Promise<Response> {
         }
 
         try {
-          // Lees het JSON-bestand
+          // Read the JSON file
           const jsonData = fs.readFileSync(jsonFilePath, 'utf-8')
           console.log('JSON file content length:', jsonData.length)
           
@@ -337,7 +286,7 @@ export async function POST(request: NextRequest): Promise<Response> {
                 error: 'Fout bij het parsen van het JSON bestand',
                 details: parseError instanceof Error ? parseError.message : 'Unknown parse error',
                 filePath: jsonFilePath,
-                command: commandUsed
+                command: 'node'
               },
               { status: 500 }
             )
@@ -345,21 +294,21 @@ export async function POST(request: NextRequest): Promise<Response> {
         }
       })
 
-      pythonProcess.on('error', (err: Error) => {
+      nodeProcess.on('error', (err: Error) => {
         clearTimeout(timeout) // Clear timeout on error
-        console.error('Failed to start Python script:', err)
+        console.error('Failed to start JS script:', err)
         console.error('Error details:', {
           message: err.message,
           code: (err as any).code,
-          command: commandUsed,
+          command: 'node',
           scriptPath: scriptPath
         })
         resolve(
           NextResponse.json(
             {
-              error: 'Failed to start Python script',
+              error: 'Failed to start JS script',
               details: err.message,
-              command: commandUsed,
+              command: 'node',
               code: (err as any).code
             },
             { status: 500 }
