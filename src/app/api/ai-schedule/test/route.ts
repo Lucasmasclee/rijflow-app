@@ -13,24 +13,93 @@ const supabase = createClient(
 // Helper function to check if a command exists
 async function commandExists(command: string): Promise<boolean> {
   return new Promise((resolve) => {
+    console.log(`Testing command: ${command}`)
+    
     const testProcess = spawn(command, ['--version'], { 
-      stdio: 'ignore',
+      stdio: 'pipe',
       shell: true 
     })
     
+    let stdout = ''
+    let stderr = ''
+    
+    testProcess.stdout.on('data', (data) => {
+      stdout += data.toString()
+    })
+    
+    testProcess.stderr.on('data', (data) => {
+      stderr += data.toString()
+    })
+    
     testProcess.on('close', (code) => {
+      console.log(`Command ${command} result:`, { code, stdout: stdout.trim(), stderr: stderr.trim() })
       resolve(code === 0)
     })
     
-    testProcess.on('error', () => {
+    testProcess.on('error', (err) => {
+      console.log(`Command ${command} error:`, err.message)
       resolve(false)
     })
     
-    // Timeout after 3 seconds
+    // Timeout after 5 seconds
     setTimeout(() => {
+      console.log(`Command ${command} timeout`)
       testProcess.kill()
       resolve(false)
-    }, 3000)
+    }, 5000)
+  })
+}
+
+// Helper function to try running a command directly
+async function tryRunCommand(command: string, args: string[]): Promise<{ success: boolean, output: string, error: string }> {
+  return new Promise((resolve) => {
+    console.log(`Trying to run: ${command} ${args.join(' ')}`)
+    
+    const childProcess = spawn(command, args, { 
+      stdio: 'pipe',
+      shell: true,
+      cwd: process.cwd()
+    })
+    
+    let stdout = ''
+    let stderr = ''
+    
+    childProcess.stdout.on('data', (data: Buffer) => {
+      stdout += data.toString()
+    })
+    
+    childProcess.stderr.on('data', (data: Buffer) => {
+      stderr += data.toString()
+    })
+    
+    childProcess.on('close', (code: number | null) => {
+      console.log(`Command finished with code: ${code}`)
+      resolve({
+        success: code === 0,
+        output: stdout,
+        error: stderr
+      })
+    })
+    
+    childProcess.on('error', (err: Error) => {
+      console.log(`Command error:`, err.message)
+      resolve({
+        success: false,
+        output: '',
+        error: err.message
+      })
+    })
+    
+    // Timeout after 10 seconds
+    setTimeout(() => {
+      console.log(`Command timeout`)
+      childProcess.kill()
+      resolve({
+        success: false,
+        output: '',
+        error: 'Timeout'
+      })
+    }, 10000)
   })
 }
 
@@ -108,26 +177,48 @@ export async function POST(request: NextRequest): Promise<Response> {
       }
 
       // Probeer verschillende Python commando's in volgorde van voorkeur
-      const pythonCommands = ['python3', 'python', 'py']
+      const pythonCommands = ['python3', 'python', 'py', 'python3.9', 'python3.8', 'python3.7']
       let commandUsed = ''
+
+      console.log('=== PYTHON COMMAND DETECTION ===')
+      console.log('Current working directory:', process.cwd())
+      console.log('Platform:', process.platform)
+      console.log('Architecture:', process.arch)
+      console.log('Node version:', process.version)
 
       // First, try to find which Python command is available
       for (const command of pythonCommands) {
-        console.log(`Testing Python command: ${command}`)
+        console.log(`\nTesting Python command: ${command}`)
         const exists = await commandExists(command)
         if (exists) {
-          console.log(`Found working Python command: ${command}`)
+          console.log(`✅ Found working Python command: ${command}`)
           commandUsed = command
           break
+        } else {
+          console.log(`❌ Command ${command} not found or failed`)
         }
       }
 
       if (!commandUsed) {
+        console.log('\n=== PYTHON DETECTION FAILED ===')
+        console.log('Trying to check PATH environment...')
+        
+        // Try to run 'which python3' or 'where python' to see what's available
+        const pathCheck = process.platform === 'win32' ? 'where python' : 'which python3'
+        const pathResult = await tryRunCommand('sh', ['-c', pathCheck])
+        console.log('PATH check result:', pathResult)
+        
         resolve(
           NextResponse.json(
             {
               error: 'Python niet gevonden',
-              details: 'Geen van de Python commando\'s (python3, python, py) is beschikbaar op dit systeem. Zorg ervoor dat Python is geïnstalleerd.',
+              details: `Geen van de Python commando's (${pythonCommands.join(', ')}) is beschikbaar op dit systeem. Platform: ${process.platform}, PATH check: ${pathResult.output}`,
+              debug: {
+                platform: process.platform,
+                arch: process.arch,
+                cwd: process.cwd(),
+                pathCheck: pathResult
+              }
             },
             { status: 500 }
           )
@@ -144,8 +235,10 @@ export async function POST(request: NextRequest): Promise<Response> {
         BLOKUREN: settings.blokuren.toString()
       }
 
-      console.log(`Starting Python script with command: ${commandUsed}`)
+      console.log(`\n=== STARTING PYTHON SCRIPT ===`)
+      console.log(`Command: ${commandUsed}`)
       console.log(`Script path: ${scriptPath}`)
+      console.log(`Working directory: ${process.cwd()}`)
       console.log(`Environment variables:`, env)
 
       // Start the Python process
