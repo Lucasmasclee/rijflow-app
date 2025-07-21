@@ -1028,34 +1028,7 @@ function AISchedulePageContent() {
           console.log(`Successfully updated ${field} in AI settings`)
         }
 
-        // --- NEW: Update sample_input.json for relevant fields ---
-        if ([
-          'minutesBreakEveryLesson',
-          'minutesPerBreak',
-          'blokuren'
-        ].includes(field)) {
-          // Map to sample_input.json keys
-          const sampleInputFieldMapping: Record<string, string> = {
-            minutesBreakEveryLesson: 'pauzeTussenLessen',
-            minutesPerBreak: 'langePauzeDuur',
-            blokuren: 'blokuren'
-          }
-          const sampleInputField = sampleInputFieldMapping[field]
-          if (sampleInputField) {
-            await fetch('/api/ai-schedule/update-sample-input', {
-              method: 'POST',
-              headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${session.access_token}`
-              },
-              body: JSON.stringify({
-                field: sampleInputField,
-                value
-              })
-            })
-          }
-        }
-        // --- END NEW ---
+        // Note: sample_input.json updates removed since we now use in-memory approach
       } catch (error) {
         console.error('Error updating AI settings:', error)
       }
