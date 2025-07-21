@@ -837,10 +837,8 @@ function create_output_json(best_result, best_week_index, best_start_vanaf_begin
         }
     };
     
-    // Output JSON to stdout instead of writing to file
-    console.log(JSON.stringify(output_data, null, 2));
-    
-    // Verwijder alle console.log statements behalve de JSON output
+    // Output alleen JSON naar stdout
+    process.stdout.write(JSON.stringify(output_data, null, 2));
 }
 
 // Main execution
