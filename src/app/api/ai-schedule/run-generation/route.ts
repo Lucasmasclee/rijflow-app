@@ -99,6 +99,9 @@ export async function POST(request: NextRequest) {
 
 // Function to process data in memory (simplified version)
 async function processDataInMemory(data: any) {
+  console.log('=== DEBUG: Starting processDataInMemory ===')
+  console.log('Input data structure:', JSON.stringify(data, null, 2))
+  
   // This is a simplified version that returns a basic structure
   // In a real implementation, you would port the logic from generate_week_planning.js
   // For now, we'll return a mock result to test the flow
@@ -107,6 +110,7 @@ async function processDataInMemory(data: any) {
     week_planning: { [key: string]: any[] };
     summary: any;
     metadata: any;
+    debug_info: any;
   } = {
     week_planning: {
       maandag: [],
@@ -128,26 +132,51 @@ async function processDataInMemory(data: any) {
         instructor_available_days: Object.keys(data.instructeur?.beschikbareUren || {}),
         students_count: data.studenten?.length || 0
       }
+    },
+    debug_info: {
+      instructor_data: data.instructeur,
+      students_data: data.studenten,
+      processing_steps: []
     }
   }
 
   // Add some basic lesson scheduling logic
   if (data.studenten && data.instructeur) {
+    console.log('=== DEBUG: Processing students and instructor data ===')
+    
     const students = data.studenten
     const instructor = data.instructeur
+    
+    console.log('Students count:', students.length)
+    console.log('Instructor data:', JSON.stringify(instructor, null, 2))
+    
     const availableDays = Object.keys(instructor.beschikbareUren || {})
+    console.log('Available days:', availableDays)
+    
+    mockResult.debug_info.processing_steps.push(`Found ${students.length} students`)
+    mockResult.debug_info.processing_steps.push(`Instructor available days: ${availableDays.join(', ')}`)
     
     let lessonCount = 0
     
     for (const student of students) {
+      console.log(`=== DEBUG: Processing student ${student.first_name} ${student.last_name || ''} ===`)
+      console.log('Student data:', JSON.stringify(student, null, 2))
+      
       const lessonsNeeded = student.lessons || 2
+      console.log(`Lessons needed for this student: ${lessonsNeeded}`)
+      
+      mockResult.debug_info.processing_steps.push(`Student ${student.first_name}: needs ${lessonsNeeded} lessons`)
       
       for (let i = 0; i < lessonsNeeded && i < availableDays.length; i++) {
         const day = availableDays[i]
+        console.log(`Checking day: ${day}`)
+        
         const daySchedule = instructor.beschikbareUren[day]
+        console.log(`Day schedule for ${day}:`, JSON.stringify(daySchedule, null, 2))
         
         if (daySchedule && daySchedule.length > 0) {
           const timeSlot = daySchedule[0] // Use first available time slot
+          console.log(`Using time slot:`, JSON.stringify(timeSlot, null, 2))
           
           mockResult.week_planning[day].push({
             student: {
@@ -160,12 +189,27 @@ async function processDataInMemory(data: any) {
           })
           
           lessonCount++
+          console.log(`Added lesson for ${student.first_name} on ${day}`)
+          mockResult.debug_info.processing_steps.push(`Scheduled lesson for ${student.first_name} on ${day} at ${timeSlot.startTime}`)
+        } else {
+          console.log(`No available time slots for ${day}`)
+          mockResult.debug_info.processing_steps.push(`No time slots available for ${day}`)
         }
       }
     }
     
     mockResult.summary.total_lessons = lessonCount
+    console.log(`=== DEBUG: Total lessons scheduled: ${lessonCount} ===`)
+    mockResult.debug_info.processing_steps.push(`Total lessons scheduled: ${lessonCount}`)
+  } else {
+    console.log('=== DEBUG: Missing students or instructor data ===')
+    console.log('Students:', data.studenten)
+    console.log('Instructor:', data.instructeur)
+    mockResult.debug_info.processing_steps.push('Missing students or instructor data')
   }
 
+  console.log('=== DEBUG: Final result ===')
+  console.log(JSON.stringify(mockResult, null, 2))
+  
   return mockResult
 } 

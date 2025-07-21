@@ -1321,13 +1321,17 @@ function AISchedulePageContent() {
         throw new Error('Geen data gevonden')
       }
 
+      console.log('=== DEBUG: Data being sent to API ===')
+      const parsedData = JSON.parse(storedData)
+      console.log('Parsed data:', JSON.stringify(parsedData, null, 2))
+
       const response = await fetch('/api/ai-schedule/run-generation', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          data: JSON.parse(storedData)
+          data: parsedData
         })
       })
 
@@ -1338,6 +1342,9 @@ function AISchedulePageContent() {
       }
 
       const result = await response.json()
+      console.log('=== DEBUG: API Response ===')
+      console.log('Result:', JSON.stringify(result, null, 2))
+      
       setTestPlanningResult(result.data)
       toast.success('Test planning succesvol uitgevoerd')
       
@@ -2641,12 +2648,60 @@ OPDRACHT: Maak een optimaal lesrooster voor de geselecteerde week op basis van b
                       </div>
                     </div>
                     
-                    {/* Raw JSON for debugging */}
+                    {/* Debug Information */}
                     <details className="card">
-                      <summary className="cursor-pointer font-medium text-gray-900 mb-2">Debug: Raw JSON</summary>
-                      <pre className="text-sm text-gray-600 overflow-auto max-h-64">
-                        {JSON.stringify(testPlanningResult, null, 2)}
-                      </pre>
+                      <summary className="cursor-pointer font-medium text-gray-900 mb-2">Debug: Processing Information</summary>
+                      <div className="space-y-4">
+                        {/* Processing Steps */}
+                        {testPlanningResult.debug_info?.processing_steps && (
+                          <div>
+                            <h4 className="font-medium text-gray-800 mb-2">Processing Steps:</h4>
+                            <ul className="list-disc list-inside text-sm text-gray-600 space-y-1">
+                              {testPlanningResult.debug_info.processing_steps.map((step: string, index: number) => (
+                                <li key={index}>{step}</li>
+                              ))}
+                            </ul>
+                          </div>
+                        )}
+                        
+                        {/* Input Data Summary */}
+                        {testPlanningResult.debug_info?.input_data_summary && (
+                          <div>
+                            <h4 className="font-medium text-gray-800 mb-2">Input Data Summary:</h4>
+                            <pre className="text-sm text-gray-600 overflow-auto max-h-32">
+                              {JSON.stringify(testPlanningResult.debug_info.input_data_summary, null, 2)}
+                            </pre>
+                          </div>
+                        )}
+                        
+                        {/* Instructor Data */}
+                        {testPlanningResult.debug_info?.instructor_data && (
+                          <div>
+                            <h4 className="font-medium text-gray-800 mb-2">Instructor Data:</h4>
+                            <pre className="text-sm text-gray-600 overflow-auto max-h-32">
+                              {JSON.stringify(testPlanningResult.debug_info.instructor_data, null, 2)}
+                            </pre>
+                          </div>
+                        )}
+                        
+                        {/* Students Data */}
+                        {testPlanningResult.debug_info?.students_data && (
+                          <div>
+                            <h4 className="font-medium text-gray-800 mb-2">Students Data:</h4>
+                            <pre className="text-sm text-gray-600 overflow-auto max-h-32">
+                              {JSON.stringify(testPlanningResult.debug_info.students_data, null, 2)}
+                            </pre>
+                          </div>
+                        )}
+                        
+                        {/* Raw JSON */}
+                        <div>
+                          <h4 className="font-medium text-gray-800 mb-2">Complete Raw JSON:</h4>
+                          <pre className="text-sm text-gray-600 overflow-auto max-h-64">
+                            {JSON.stringify(testPlanningResult, null, 2)}
+                          </pre>
+                        </div>
+                      </div>
                     </details>
                   </div>
                 )}
