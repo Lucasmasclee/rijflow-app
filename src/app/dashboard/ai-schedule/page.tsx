@@ -1218,11 +1218,19 @@ OPDRACHT: Maak een optimaal lesrooster voor de geselecteerde week op basis van b
     setIsGenerating(true)
     
     try {
+      // Get the current session to get the JWT token
+      const { data: { session } } = await supabase.auth.getSession()
+      
+      if (!session?.access_token) {
+        throw new Error('Geen geldige sessie gevonden')
+      }
+      
       // Roep de test AI API aan - gebruik de Python script
       const response = await fetch('/api/ai-schedule/test', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          'Authorization': `Bearer ${session.access_token}`
         },
         body: JSON.stringify({})
       })

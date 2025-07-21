@@ -3,6 +3,7 @@ import { spawn } from 'child_process'
 import path from 'path'
 import fs from 'fs'
 import { createClient } from '@supabase/supabase-js'
+import { cookies } from 'next/headers'
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -36,18 +37,31 @@ async function commandExists(command: string): Promise<boolean> {
 export async function POST(request: NextRequest): Promise<Response> {
   return new Promise<Response>(async (resolve) => {
     try {
-      // Get AI settings from database
-      const { data: { session } } = await supabase.auth.getSession()
-      if (!session?.access_token) {
-        resolve(NextResponse.json({ error: 'Unauthorized' }, { status: 401 }))
+      // Get the authorization header from the request
+      const authHeader = request.headers.get('authorization')
+      if (!authHeader || !authHeader.startsWith('Bearer ')) {
+        resolve(NextResponse.json({ error: 'Unauthorized - No token provided' }, { status: 401 }))
         return
       }
+
+      const token = authHeader.replace('Bearer ', '')
+      
+      // Verify the token and get user info
+      const { data: { user }, error: authError } = await supabase.auth.getUser(token)
+      
+      if (authError || !user) {
+        console.error('Auth error:', authError)
+        resolve(NextResponse.json({ error: 'Unauthorized - Invalid token' }, { status: 401 }))
+        return
+      }
+
+      console.log('Authenticated user:', user.id)
 
       // Get AI settings for the current user
       const { data: aiSettings, error: settingsError } = await supabase
         .from('instructor_ai_settings')
         .select('*')
-        .eq('instructor_id', session.user.id)
+        .eq('instructor_id', user.id)
         .single()
 
       if (settingsError && settingsError.code !== 'PGRST116') {
