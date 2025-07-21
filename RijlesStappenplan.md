@@ -86,7 +86,7 @@ Todolist:
 - UI elementen op AI-Weekplanning-Settings Pagina koppelen aan sample_input.json
 - Geselecteerde week koppelen aan sample_input.json
 - Met ChatGPT en cursor systeem maken voor automatisch beschikbaarheid leerlingen verzamelen EERST VOLLEDIGE UITWERKING NOTEREN
-
+.
 
 
 
