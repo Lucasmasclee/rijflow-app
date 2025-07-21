@@ -79,7 +79,7 @@ function AISchedulePageContent() {
     numberOfBreaks: 2,
     minutesPerBreak: 15,
     minutesBreakEveryLesson: 5,
-    breakAfterEachStudent: false,
+    breakAfterEachStudent: true, // altijd true
     sendNotifications: false,
     blokuren: true,
     additionalSpecifications: ''
@@ -976,7 +976,12 @@ function AISchedulePageContent() {
 
   // Handle settings change
   const handleSettingsChange = async (field: string, value: any) => {
-    setSettings(prev => ({ ...prev, [field]: value }))
+    // Force breakAfterEachStudent to true always
+    if (field === 'breakAfterEachStudent') {
+      setSettings(prev => ({ ...prev, breakAfterEachStudent: true }))
+      return
+    }
+    setSettings(prev => ({ ...prev, [field]: value, breakAfterEachStudent: true }))
     
     // Update AI settings in database for specific fields
     if ([
@@ -1635,18 +1640,7 @@ OPDRACHT: Maak een optimaal lesrooster voor de geselecteerde week op basis van b
                         className="w-full px-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                       />
                     </div>
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <h5 className="font-medium text-gray-900">Pauze na elke leerling</h5>
-                        <p className="text-sm text-gray-600">Extra pauze tussen leerlingen</p>
-                      </div>
-                      <input
-                        type="checkbox"
-                        checked={settings.breakAfterEachStudent}
-                        onChange={(e) => handleSettingsChange('breakAfterEachStudent', e.target.checked)}
-                        className="w-4 h-4 text-blue-600 rounded focus:ring-blue-500"
-                      />
-                    </div>
+                    {/* Pauze na elke leerling toggle verwijderd */}
                   </div>
                 </div>
               </div>
