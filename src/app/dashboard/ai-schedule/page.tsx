@@ -29,6 +29,7 @@ interface StudentWithScheduleData extends Student {
   aiNotes: string
   availabilityNotes: string[] // Per week, komende 5 weken
   availabilityText: string // Beschikbaarheid als tekst
+  availability: DayAvailability[] // Nieuwe structuur voor beschikbaarheid per dag
 }
 
 interface DayAvailability {
@@ -190,6 +191,170 @@ function AISchedulePageContent() {
     }
   }
 
+  // Student availability handlers
+  const handleStudentAvailabilityChange = (studentIndex: number, dayIndex: number, available: boolean) => {
+    setStudents(prev => {
+      const newStudents = [...prev]
+      const student = newStudents[studentIndex]
+      
+      // Initialize availability array if it doesn't exist
+      if (!student.availability) {
+        student.availability = DAY_ORDER.map((dayInfo, index) => ({
+          day: dayInfo.day,
+          available: false,
+          startTime: '09:00',
+          endTime: '17:00',
+          startHours: '09',
+          startMinutes: '00',
+          endHours: '17',
+          endMinutes: '00'
+        }))
+      }
+      
+      // Update the specific day
+      student.availability[dayIndex].available = available
+      
+      // Update availabilityText for backward compatibility
+      const availableDays = student.availability
+        .filter(day => day.available)
+        .map(day => {
+          const dayName = DAY_ORDER.find(d => d.day === day.day)?.name
+          return dayName
+        })
+        .filter(Boolean)
+      
+      student.availabilityText = availableDays.length > 0 
+        ? availableDays.join(', ')
+        : 'Niet beschikbaar'
+      
+      return newStudents
+    })
+    
+    // Save to database
+    saveStudentAvailabilityToDatabase(studentIndex)
+    
+    // Reset AI prompt als beschikbaarheid wordt gewijzigd
+    if (hasGeneratedPrompt) {
+      setHasGeneratedPrompt(false)
+      setAiPrompt('')
+    }
+  }
+
+  const handleStudentTimeChange = (studentIndex: number, dayIndex: number, field: string, value: string) => {
+    setStudents(prev => {
+      const newStudents = [...prev]
+      const student = newStudents[studentIndex]
+      
+      // Initialize availability array if it doesn't exist
+      if (!student.availability) {
+        student.availability = DAY_ORDER.map((dayInfo, index) => ({
+          day: dayInfo.day,
+          available: false,
+          startTime: '09:00',
+          endTime: '17:00',
+          startHours: '09',
+          startMinutes: '00',
+          endHours: '17',
+          endMinutes: '00'
+        }))
+      }
+      
+      const day = student.availability[dayIndex]
+      
+      if (field === 'startHours') {
+        day.startHours = value
+        day.startTime = `${day.startHours}:${day.startMinutes}`
+      } else if (field === 'startMinutes') {
+        day.startMinutes = value
+        day.startTime = `${day.startHours}:${day.startMinutes}`
+      } else if (field === 'endHours') {
+        day.endHours = value
+        day.endTime = `${day.endHours}:${day.endMinutes}`
+      } else if (field === 'endMinutes') {
+        day.endMinutes = value
+        day.endTime = `${day.endHours}:${day.endMinutes}`
+      }
+      
+      return newStudents
+    })
+    
+    // Save to database
+    saveStudentAvailabilityToDatabase(studentIndex)
+    
+    // Reset AI prompt als beschikbaarheid wordt gewijzigd
+    if (hasGeneratedPrompt) {
+      setHasGeneratedPrompt(false)
+      setAiPrompt('')
+    }
+  }
+
+  const handleStudentTimeBlur = (studentIndex: number, dayIndex: number, field: string, value: string) => {
+    let formattedValue = value
+    if (field.includes('Hours')) {
+      formattedValue = formatTimeOnBlur(value, 23)
+    } else if (field.includes('Minutes')) {
+      formattedValue = formatTimeOnBlur(value, 59)
+    }
+    
+    handleStudentTimeChange(studentIndex, dayIndex, field, formattedValue)
+  }
+
+  const saveStudentAvailabilityToDatabase = async (studentIndex: number) => {
+    if (!user) return
+    
+    const student = students[studentIndex]
+    if (!student) return
+    
+    try {
+      // Calculate the next 5 weeks starting from next Monday
+      const today = new Date()
+      const nextMonday = new Date(today)
+      nextMonday.setDate(today.getDate() + (8 - today.getDay()) % 7) // Volgende maandag
+      
+      const weekStarts: string[] = []
+      for (let i = 0; i < 5; i++) {
+        const weekStart = new Date(nextMonday)
+        weekStart.setDate(nextMonday.getDate() + (i * 7))
+        weekStarts.push(weekStart.toISOString().slice(0, 10))
+      }
+
+      // Save availability for the current week (first week)
+      const currentWeekStart = weekStarts[0]
+      
+      // Convert availability to text format for database
+      const availabilityText = student.availability
+        ?.filter(day => day.available)
+        .map(day => {
+          const dayName = DAY_ORDER.find(d => d.day === day.day)?.name
+          return `${dayName}: ${day.startTime} - ${day.endTime}`
+        })
+        .join(', ') || 'Niet beschikbaar'
+      
+      console.log(`Saving availability for student ${student.id} for week ${currentWeekStart}: ${availabilityText}`)
+      
+      const { error } = await supabase
+        .from('student_availability')
+        .upsert({
+          student_id: student.id,
+          week_start: currentWeekStart,
+          notes: availabilityText
+        }, {
+          onConflict: 'student_id,week_start',
+          ignoreDuplicates: false
+        })
+
+      if (error) {
+        console.error('Error saving student availability:', error)
+        toast.error(`Fout bij opslaan beschikbaarheid: ${error.message}`)
+      } else {
+        console.log(`Successfully saved availability for student ${student.id}`)
+      }
+    } catch (error) {
+      console.error('Error saving student availability:', error)
+      toast.error('Fout bij opslaan beschikbaarheid')
+    }
+  }
+
   // Initialize default availability for an instructor
   const initializeDefaultAvailability = async () => {
     if (!user) return
@@ -254,97 +419,9 @@ function AISchedulePageContent() {
     }
   }
 
-  // Parse consolidated student availability text to update individual students
-  const parseConsolidatedStudentAvailability = (text: string) => {
-    const newStudents = [...students]
-    
-    // Parse each student from the consolidated text
-    students.forEach((student, index) => {
-      const studentName = student.last_name ? `${student.first_name} ${student.last_name}` : student.first_name
-      
-      // Create a pattern that matches the student name followed by availability text
-      // The availability text should capture everything until the next student name or end of text
-      const escapedName = studentName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
-      const namePattern = new RegExp(`${escapedName}:\\s*([\\s\\S]*?)(?=\\n\\s*[A-Z][a-z]+\\s+[A-Z][a-z]+:|$)`, 'i')
-      const match = text.match(namePattern)
-      
-      if (match) {
-        const availabilityText = match[1].trim()
-        newStudents[index] = {
-          ...newStudents[index],
-          availabilityText,
-          notes: availabilityText // Also update notes field which is used by AI prompt generation
-        }
-      }
-    })
-    
-    return newStudents
-  }
 
-  // Handle consolidated student availability text change
-  const handleConsolidatedStudentAvailabilityChange = (value: string) => {
-    setConsolidatedStudentAvailabilityText(value)
-    const newStudents = parseConsolidatedStudentAvailability(value)
-    setStudents(newStudents)
-    
-    // Save student availability to database for changed students
-    newStudents.forEach(student => {
-      if (student.availabilityText) {
-        saveStudentAvailability(student.id, student.availabilityText)
-      }
-    })
-    
-    // Reset AI prompt als student beschikbaarheid wordt gewijzigd
-    if (hasGeneratedPrompt) {
-      setHasGeneratedPrompt(false)
-      setAiPrompt('')
-    }
-  }
 
-  // Save student availability to database
-  const saveStudentAvailability = async (studentId: string, availabilityText: string) => {
-    if (!user) return
-    
-    try {
-      // Calculate the next 5 weeks starting from next Monday
-      const today = new Date()
-      const nextMonday = new Date(today)
-      nextMonday.setDate(today.getDate() + (8 - today.getDay()) % 7) // Volgende maandag
-      
-      const weekStarts: string[] = []
-      for (let i = 0; i < 5; i++) {
-        const weekStart = new Date(nextMonday)
-        weekStart.setDate(nextMonday.getDate() + (i * 7))
-        weekStarts.push(weekStart.toISOString().slice(0, 10))
-      }
 
-      // Save availability for the current week (first week)
-      const currentWeekStart = weekStarts[0]
-      
-      console.log(`Saving availability for student ${studentId} for week ${currentWeekStart}: ${availabilityText}`)
-      
-      const { error } = await supabase
-        .from('student_availability')
-        .upsert({
-          student_id: studentId,
-          week_start: currentWeekStart,
-          notes: availabilityText
-        }, {
-          onConflict: 'student_id,week_start',
-          ignoreDuplicates: false
-        })
-
-      if (error) {
-        console.error('Error saving student availability:', error)
-        toast.error(`Fout bij opslaan beschikbaarheid: ${error.message}`)
-      } else {
-        console.log(`Successfully saved availability for student ${studentId}`)
-      }
-    } catch (error) {
-      console.error('Error saving student availability:', error)
-      toast.error('Fout bij opslaan beschikbaarheid')
-    }
-  }
 
   // Fetch instructor availability from database
   const fetchInstructorAvailability = async () => {
@@ -585,7 +662,17 @@ function AISchedulePageContent() {
         notes: '', // This will be set to student_availability.notes, not students.notes
         aiNotes: '',
         availabilityNotes: [],
-        availabilityText: 'Flexibel beschikbaar' // Will be updated by fetchStudentAvailability
+        availabilityText: 'Flexibel beschikbaar', // Will be updated by fetchStudentAvailability
+        availability: DAY_ORDER.map((dayInfo) => ({
+          day: dayInfo.day,
+          available: false,
+          startTime: '09:00',
+          endTime: '17:00',
+          startHours: '09',
+          startMinutes: '00',
+          endHours: '17',
+          endMinutes: '00'
+        }))
       }))
 
       console.log('Transformed students with schedule data:', studentsWithScheduleData.map(s => ({
@@ -699,10 +786,53 @@ function AISchedulePageContent() {
           }
         }
 
+        // Parse availability text to create availability array
+        const availability = DAY_ORDER.map((dayInfo) => {
+          const dayName = dayInfo.name
+          const dayPattern = new RegExp(`${dayName}:\\s*([^,]+)`, 'i')
+          const match = availabilityText.match(dayPattern)
+          
+          if (match) {
+            const timeText = match[1].trim()
+            const timeRangeMatch = timeText.match(/(\d{1,2}):?(\d{2})?\s*-\s*(\d{1,2}):?(\d{2})?/)
+            
+            if (timeRangeMatch) {
+              const startHour = timeRangeMatch[1].padStart(2, '0')
+              const startMinute = timeRangeMatch[2] || '00'
+              const endHour = timeRangeMatch[3].padStart(2, '0')
+              const endMinute = timeRangeMatch[4] || '00'
+              
+              return {
+                day: dayInfo.day,
+                available: true,
+                startTime: `${startHour}:${startMinute}`,
+                endTime: `${endHour}:${endMinute}`,
+                startHours: startHour,
+                startMinutes: startMinute,
+                endHours: endHour,
+                endMinutes: endMinute
+              }
+            }
+          }
+          
+          // Default: not available
+          return {
+            day: dayInfo.day,
+            available: false,
+            startTime: '09:00',
+            endTime: '17:00',
+            startHours: '09',
+            startMinutes: '00',
+            endHours: '17',
+            endMinutes: '00'
+          }
+        })
+
         return {
           ...student,
           availabilityNotes,
           availabilityText,
+          availability,
           notes: availabilityText // This now contains the student_availability.notes for AI prompt generation
         }
       })
@@ -825,16 +955,7 @@ function AISchedulePageContent() {
     }
   }, [searchParams])
 
-  // Initialize consolidated student availability text when students change
-  useEffect(() => {
-    if (students.length > 0 && !consolidatedStudentAvailabilityText) {
-      const consolidatedText = students.map(student => {
-        const studentName = student.last_name ? `${student.first_name} ${student.last_name}` : student.first_name
-        return `${studentName}: ${student.availabilityText}`
-      }).join('\n')
-      setConsolidatedStudentAvailabilityText(consolidatedText)
-    }
-  }, [students, consolidatedStudentAvailabilityText])
+  
 
   // Handle student data changes
   const handleStudentChange = (id: string, field: string, value: any) => {
@@ -852,7 +973,10 @@ function AISchedulePageContent() {
         setConsolidatedStudentAvailabilityText(consolidatedText)
         
         // Save availability to database immediately
-        saveStudentAvailability(id, value)
+        const studentIndex = students.findIndex(s => s.id === id)
+        if (studentIndex !== -1) {
+          saveStudentAvailabilityToDatabase(studentIndex)
+        }
       }
       
       return newStudents
@@ -1496,22 +1620,113 @@ OPDRACHT: Maak een optimaal lesrooster voor de geselecteerde week op basis van b
               </div>
             ) : (
               <div className="space-y-6">
-                {/* Geconsolideerde beschikbaarheid */}
+                {/* Leerling beschikbaarheid per dag */}
                 <div className="card">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
                       Beschikbaarheid per leerling
                     </label>
-                    <textarea
-                      value={consolidatedStudentAvailabilityText}
-                      onChange={(e) => handleConsolidatedStudentAvailabilityChange(e.target.value)}
-                      className="w-full px-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
-                      rows={7}
-                      placeholder="Jan Jansen: Maandag, woensdag, vrijdag&#10;Piet Pietersen: Flexibel beschikbaar&#10;Anna de Vries: Alleen 's avonds"
-                    />
-                    <p className="text-xs text-gray-500 mt-1">
-                      Voorbeelden: "Jan Jansen: Maandag, woensdag, vrijdag", "Piet Pietersen: Flexibel beschikbaar", "Anna de Vries: Alleen 's avonds". Wijzigingen worden automatisch opgeslagen.
+                    <p className="text-sm text-gray-600 mb-4">
+                      Configureer de beschikbaarheid voor elke leerling per dag van de week.
                     </p>
+                    
+                    {students.map((student, studentIndex) => (
+                      <div key={student.id} className="mb-6 p-4 border border-gray-200 rounded-lg">
+                        <h4 className="font-medium text-gray-900 mb-3">
+                          {student.first_name} {student.last_name || ''}
+                        </h4>
+                        
+                        <div className="space-y-3">
+                          {DAY_ORDER.map((dayInfo, dayIndex) => {
+                            const dayAvailability = student.availability?.[dayIndex] || {
+                              day: dayInfo.day,
+                              available: false,
+                              startTime: '09:00',
+                              endTime: '17:00',
+                              startHours: '09',
+                              startMinutes: '00',
+                              endHours: '17',
+                              endMinutes: '00'
+                            }
+                            
+                            return (
+                              <div key={dayInfo.day} className="flex items-center space-x-4 p-3 border border-gray-100 rounded-lg">
+                                {/* Checkbox */}
+                                <div className="flex items-center">
+                                  <input
+                                    type="checkbox"
+                                    checked={dayAvailability.available}
+                                    onChange={(e) => handleStudentAvailabilityChange(studentIndex, dayIndex, e.target.checked)}
+                                    className="w-4 h-4 text-blue-600 rounded focus:ring-blue-500"
+                                  />
+                                  <label className="ml-2 text-sm font-medium text-gray-900 min-w-[60px]">
+                                    {dayInfo.shortName}
+                                  </label>
+                                </div>
+                                
+                                {/* Time inputs - only show if available */}
+                                {dayAvailability.available && (
+                                  <div className="flex items-center space-x-2">
+                                    <span className="text-sm text-gray-500">Van</span>
+                                    
+                                    {/* Start time */}
+                                    <div className="flex items-center space-x-1">
+                                      <input
+                                        type="text"
+                                        value={dayAvailability.startHours}
+                                        onChange={(e) => handleStudentTimeChange(studentIndex, dayIndex, 'startHours', e.target.value)}
+                                        onBlur={(e) => handleStudentTimeBlur(studentIndex, dayIndex, 'startHours', e.target.value)}
+                                        className="w-8 h-8 text-center border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+                                        maxLength={2}
+                                      />
+                                      <span className="text-sm text-gray-500">:</span>
+                                      <input
+                                        type="text"
+                                        value={dayAvailability.startMinutes}
+                                        onChange={(e) => handleStudentTimeChange(studentIndex, dayIndex, 'startMinutes', e.target.value)}
+                                        onBlur={(e) => handleStudentTimeBlur(studentIndex, dayIndex, 'startMinutes', e.target.value)}
+                                        className="w-8 h-8 text-center border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+                                        maxLength={2}
+                                      />
+                                    </div>
+                                    
+                                    <span className="text-sm text-gray-500">tot</span>
+                                    
+                                    {/* End time */}
+                                    <div className="flex items-center space-x-1">
+                                      <input
+                                        type="text"
+                                        value={dayAvailability.endHours}
+                                        onChange={(e) => handleStudentTimeChange(studentIndex, dayIndex, 'endHours', e.target.value)}
+                                        onBlur={(e) => handleStudentTimeBlur(studentIndex, dayIndex, 'endHours', e.target.value)}
+                                        className="w-8 h-8 text-center border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+                                        maxLength={2}
+                                      />
+                                      <span className="text-sm text-gray-500">:</span>
+                                      <input
+                                        type="text"
+                                        value={dayAvailability.endMinutes}
+                                        onChange={(e) => handleStudentTimeChange(studentIndex, dayIndex, 'endMinutes', e.target.value)}
+                                        onBlur={(e) => handleStudentTimeBlur(studentIndex, dayIndex, 'endMinutes', e.target.value)}
+                                        className="w-8 h-8 text-center border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+                                        maxLength={2}
+                                      />
+                                    </div>
+                                  </div>
+                                )}
+                                
+                                {/* Not available text */}
+                                {!dayAvailability.available && (
+                                  <span className="text-sm text-gray-500 italic">
+                                    Niet beschikbaar
+                                  </span>
+                                )}
+                              </div>
+                            )
+                          })}
+                        </div>
+                      </div>
+                    ))}
                   </div>
                 </div>
 
@@ -1571,7 +1786,7 @@ OPDRACHT: Maak een optimaal lesrooster voor de geselecteerde week op basis van b
                         </div>
                       </div>
                       
-                      <div className="mt-4">
+                      {/* <div className="mt-4">
                         <label className="block text-sm font-medium text-gray-700 mb-2">
                           Notities voor AI
                         </label>
@@ -1582,7 +1797,7 @@ OPDRACHT: Maak een optimaal lesrooster voor de geselecteerde week op basis van b
                           className="w-full px-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
                           placeholder="Speciale instructies voor de AI planner..."
                         />
-                      </div>
+                      </div> */}
                     </div>
                   ))}
                 </div>
@@ -1700,7 +1915,7 @@ OPDRACHT: Maak een optimaal lesrooster voor de geselecteerde week op basis van b
                 </div>
               </div>
               
-              <div className="card">
+              {/* <div className="card">
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   Extra specificaties
                 </label>
@@ -1711,7 +1926,7 @@ OPDRACHT: Maak een optimaal lesrooster voor de geselecteerde week op basis van b
                   className="w-full px-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
                   placeholder="Extra instructies voor de AI planner..."
                 />
-              </div>
+              </div> */}
             </div>
           </div>
         )
