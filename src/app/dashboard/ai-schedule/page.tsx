@@ -1250,7 +1250,6 @@ OPDRACHT: Maak een optimaal lesrooster voor de geselecteerde week op basis van b
       const lessonIds = aiResult.lessons.map((lesson: any, index: number) => index.toString())
       setSelectedLessons(new Set(lessonIds))
       
-      setCurrentStep('selection')
       toast.success('Rooster succesvol gegenereerd!')
       
     } catch (error) {
@@ -1652,13 +1651,6 @@ OPDRACHT: Maak een optimaal lesrooster voor de geselecteerde week op basis van b
       case 'prompt':
         return (
           <div className="space-y-6">
-            <div>
-              <h3 className="text-lg font-semibold mb-4">AI Planning</h3>
-              <p className="text-gray-600 mb-6">
-                Start de AI planning om een optimaal rooster te genereren
-              </p>
-            </div>
-            
             <div className="card">
               <div className="text-center py-8">
                 <Brain className="h-12 w-12 text-blue-600 mx-auto mb-4" />
@@ -1687,19 +1679,7 @@ OPDRACHT: Maak een optimaal lesrooster voor de geselecteerde week op basis van b
                 </button>
               </div>
             </div>
-          </div>
-        )
-
-      case 'selection':
-        return (
-          <div className="space-y-6">
-            <div>
-              <h3 className="text-lg font-semibold mb-4">Gegenereerd Rooster</h3>
-              <p className="text-gray-600 mb-6">
-                Bekijk het gegenereerde rooster en selecteer welke lessen je wilt toevoegen
-              </p>
-            </div>
-            
+            {/* Show results below the button if available */}
             {aiResponse && (
               <>
                 {/* Samenvatting */}
@@ -1714,68 +1694,44 @@ OPDRACHT: Maak een optimaal lesrooster voor de geselecteerde week op basis van b
                       <p className="text-2xl font-bold text-green-600">{aiResponse.schedule_details?.totale_minuten_tussen_lessen || 0} min</p>
                     </div>
                   </div>
-                  
-                  
                 </div>
-
                 {/* Bulk selectie */}
                 <div className="card">
                   <div className="flex items-center justify-between mb-4">
                     <h4 className="font-medium text-gray-900">
                       Geselecteerd: {selectedLessons.size} van {aiResponse.lessons?.length || 0} lessen
                     </h4>
-                    {/* <div className="flex gap-2">
-                      <button
-                        onClick={handleSelectAll}
-                        className="text-sm text-blue-600 hover:text-blue-700"
-                      >
-                        Alles selecteren
-                      </button>
-                      <button
-                        onClick={handleDeselectAll}
-                        className="text-sm text-gray-600 hover:text-gray-700"
-                      >
-                        Alles deselecteren
-                      </button>
-                    </div> */}
                   </div>
                 </div>
-
                 {/* Lessen lijst */}
-                <div className="space-y-3">
+                <div className="space-y-2">
                   {aiResponse.lessons?.map((lesson, index) => {
-                    // Parse student name to get first name and first letter of last name
                     const studentNameParts = lesson.studentName.split(' ')
                     const firstName = studentNameParts[0]
                     const lastNameInitial = studentNameParts.length > 1 ? studentNameParts[1][0] : ''
                     const displayName = lastNameInitial ? `${firstName} ${lastNameInitial}.` : firstName
-                    
-                    // Format date as "Ma 21 juli" (short weekday, day, month)
                     const lessonDate = new Date(lesson.date)
                     const shortDate = lessonDate.toLocaleDateString('nl-NL', {
                       weekday: 'short',
                       day: 'numeric',
                       month: 'long'
                     })
-                    
                     return (
-                      <div key={index} className="card hover:shadow-md transition-shadow">
-                        <div className="flex items-center gap-4">
+                      <div key={index} className="bg-white border border-gray-200 rounded-lg p-3 hover:shadow-sm transition-shadow">
+                        <div className="flex items-center gap-3">
                           <input
                             type="checkbox"
                             checked={selectedLessons.has(index.toString())}
                             onChange={() => handleLessonSelection(index.toString())}
-                            className="w-4 h-4 text-blue-600 rounded focus:ring-blue-500"
+                            className="w-4 h-4 text-blue-600 rounded focus:ring-blue-500 flex-shrink-0"
                           />
-                          
-                          <div className="flex-1 flex items-center justify-between">
+                          <div className="flex-1 flex items-center justify-between text-sm">
                             <span className="font-medium text-gray-900">
                               {displayName}
                             </span>
-                            
-                            <div className="flex items-center gap-4 text-sm text-gray-600">
+                            <div className="flex items-center gap-3 text-gray-600">
                               <span>{shortDate}</span>
-                              <span>{lesson.startTime} - {lesson.endTime}</span>
+                              <span className="font-mono">{lesson.startTime} - {lesson.endTime}</span>
                             </div>
                           </div>
                         </div>
@@ -1783,8 +1739,9 @@ OPDRACHT: Maak een optimaal lesrooster voor de geselecteerde week op basis van b
                     )
                   })}
                 </div>
+                {/* Leerlingen zonder les waarschuwing */}
                 <div className="card">
-                {aiResponse.leerlingen_zonder_les && Object.keys(aiResponse.leerlingen_zonder_les).length > 0 && (
+                  {aiResponse.leerlingen_zonder_les && Object.keys(aiResponse.leerlingen_zonder_les).length > 0 && (
                     <div className="mt-4 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
                       <h5 className="font-medium text-yellow-800 mb-2">Leerlingen met onvoldoende lessen:</h5>
                       <div className="text-sm text-yellow-700">
@@ -1798,7 +1755,6 @@ OPDRACHT: Maak een optimaal lesrooster voor de geselecteerde week op basis van b
                     </div>
                   )}
                 </div>
-
                 {/* Toevoegen knop */}
                 <div className="card">
                   <div className="text-center">
