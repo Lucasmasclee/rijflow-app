@@ -96,11 +96,17 @@ export async function POST(request: NextRequest) {
     // Generate week dates
     const weekDates = []
     const startDate = new Date(weekStart)
+    console.log('Generating week dates from:', weekStart, 'startDate:', startDate)
+    
     for (let i = 0; i < 7; i++) {
       const date = new Date(startDate)
       date.setDate(startDate.getDate() + i)
-      weekDates.push(date.toISOString().split('T')[0])
+      const dateString = date.toISOString().split('T')[0]
+      weekDates.push(dateString)
+      console.log(`Day ${i + 1}: ${dateString}`)
     }
+    
+    console.log('Generated week dates:', weekDates)
 
     // Convert students to the expected format and handle missing availability
     const leerlingen = []

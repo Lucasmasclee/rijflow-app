@@ -194,9 +194,11 @@ export default function LessonsPage() {
 
 
   const getMonday = (date: Date) => {
-    const day = date.getDay()
-    const diff = date.getDate() - day + (day === 0 ? -6 : 1) // Adjust when day is Sunday
-    return new Date(date.setDate(diff))
+    const newDate = new Date(date) // Create a new Date object to avoid modifying the original
+    const day = newDate.getDay()
+    const diff = newDate.getDate() - day + (day === 0 ? -6 : 1) // Adjust when day is Sunday
+    newDate.setDate(diff)
+    return newDate
   }
 
   // Get the next 5 weeks for copy functionality
@@ -236,6 +238,10 @@ export default function LessonsPage() {
       // Create editable input from database
       const weekStart = getMonday(targetWeek)
       const weekStartString = formatDateToISO(weekStart)
+      
+      console.log('Selected week:', targetWeek)
+      console.log('Calculated Monday:', weekStart)
+      console.log('Week start string:', weekStartString)
       
       const response = await fetch('/api/ai-schedule/create-editable-input', {
         method: 'POST',
