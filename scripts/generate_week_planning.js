@@ -833,7 +833,7 @@ function create_output_json(best_result, best_week_index, best_start_vanaf_begin
         leerlingen_zonder_les: students_without_lessons,
         schedule_details: {
             lessen: formatted_lessons.length,
-            totale_minuten_tussen_lesson: total_time_between_lessons
+            totale_minuten_tussen_lessen: total_time_between_lessons
         }
     };
     
