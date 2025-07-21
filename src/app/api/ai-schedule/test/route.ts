@@ -250,39 +250,11 @@ export async function POST(request: NextRequest): Promise<Response> {
           return
         }
 
-        // Parse JSON from stdout instead of reading from file
-        const lines = stdout.split('\n')
-        let jsonOutput = ''
-        let inJson = false
-        let braceCount = 0
+        // Parse JSON from stdout - the script now outputs only JSON
+        const jsonOutput = stdout.trim()
         
         try {
-          // Find the JSON output in stdout (look for the last complete JSON object)
-          for (const line of lines) {
-            const trimmedLine = line.trim()
-            
-            // Check if this line starts a JSON object
-            if (trimmedLine.startsWith('{')) {
-              inJson = true
-              braceCount = 1
-              jsonOutput = trimmedLine
-            } else if (inJson) {
-              jsonOutput += '\n' + line
-              
-              // Count braces to track JSON structure
-              for (const char of line) {
-                if (char === '{') braceCount++
-                if (char === '}') braceCount--
-              }
-              
-              // If we've closed all braces, we have a complete JSON object
-              if (braceCount === 0) {
-                break
-              }
-            }
-          }
-          
-          if (!jsonOutput.trim()) {
+          if (!jsonOutput) {
             resolve(
               NextResponse.json(
                 {
@@ -301,7 +273,7 @@ export async function POST(request: NextRequest): Promise<Response> {
           console.log('JSON output from stdout length:', jsonOutput.length)
           console.log('JSON output preview:', jsonOutput.substring(0, 200) + '...')
           
-          const aiResponse = JSON.parse(jsonOutput.trim())
+          const aiResponse = JSON.parse(jsonOutput)
           console.log('Successfully parsed JSON response')
           
           resolve(NextResponse.json(aiResponse))
