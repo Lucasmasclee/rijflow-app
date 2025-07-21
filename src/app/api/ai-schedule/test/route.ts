@@ -377,6 +377,16 @@ export async function POST(request: NextRequest): Promise<Response> {
       }
     })
 
+    // Create the complete sample_input.json structure and log it
+    const sampleInputData = {
+      instructeur: instructor,
+      leerlingen: students
+    }
+    
+    console.log('=== SAMPLE_INPUT.JSON DATA ===')
+    console.log(JSON.stringify(sampleInputData, null, 2))
+    console.log('=== END SAMPLE_INPUT.JSON DATA ===')
+
     // Generate schedule
     const result = generateSchedule(instructor, students, weekDates)
     
