@@ -315,13 +315,17 @@ export async function POST(request: NextRequest): Promise<Response> {
       locatiesKoppelen: settings.locaties_koppelen
     }
 
-    // Map instructor availability
+    // Map instructor availability - only include available days
     const dayNames = ['zondag', 'maandag', 'dinsdag', 'woensdag', 'donderdag', 'vrijdag', 'zaterdag']
     instructorAvailability?.forEach(avail => {
       const dayName = dayNames[avail.day_of_week]
       if (avail.available) {
-        instructor.beschikbareUren[dayName] = [avail.start_time, avail.end_time]
+        // Format time to HH:MM format (remove seconds)
+        const startTime = avail.start_time.split(':').slice(0, 2).join(':')
+        const endTime = avail.end_time.split(':').slice(0, 2).join(':')
+        instructor.beschikbareUren[dayName] = [startTime, endTime]
       }
+      // Note: Unavailable days are simply not included in beschikbareUren
     })
 
     // Build students data structure
@@ -329,75 +333,84 @@ export async function POST(request: NextRequest): Promise<Response> {
       // Get availability for this student
       const studentAvail = studentAvailability?.find(sa => sa.student_id === student.id)
       
-      // Parse availability text to determine available days
-      const availabilityText = studentAvail?.notes || 'Flexibel beschikbaar'
+      // Use structured availability data if available, otherwise parse text
       const beschikbaarheid: { [key: string]: string[] } = {}
       
-      // Parse availability text to extract specific times
-      const dayNames = ['maandag', 'dinsdag', 'woensdag', 'donderdag', 'vrijdag', 'zaterdag', 'zondag']
-      
-      // Look for patterns like "Maandag: 09:00 - 17:00"
-      dayNames.forEach(day => {
-        const dayName = day === 'maandag' ? 'Maandag' :
-                       day === 'dinsdag' ? 'Dinsdag' :
-                       day === 'woensdag' ? 'Woensdag' :
-                       day === 'donderdag' ? 'Donderdag' :
-                       day === 'vrijdag' ? 'Vrijdag' :
-                       day === 'zaterdag' ? 'Zaterdag' : 'Zondag'
-        
-        const dayPattern = new RegExp(`${dayName}:\\s*([^,]+)`, 'i')
-        const match = availabilityText.match(dayPattern)
-        
-        if (match) {
-          const timeText = match[1].trim()
-          const timeRangeMatch = timeText.match(/(\d{1,2}):?(\d{2})?\s*-\s*(\d{1,2}):?(\d{2})?/)
-          
-          if (timeRangeMatch) {
-            const startHour = timeRangeMatch[1].padStart(2, '0')
-            const startMinute = timeRangeMatch[2] || '00'
-            const endHour = timeRangeMatch[3].padStart(2, '0')
-            const endMinute = timeRangeMatch[4] || '00'
-            
-            beschikbaarheid[day] = [`${startHour}:${startMinute}`, `${endHour}:${endMinute}`]
-          }
-        }
-      })
-      
-      // If no specific times found, check for simple day mentions
-      if (Object.keys(beschikbaarheid).length === 0) {
-        const dayMapping: { [key: string]: string } = {
-          'maandag': 'maandag',
-          'monday': 'maandag',
-          'dinsdag': 'dinsdag', 
-          'tuesday': 'dinsdag',
-          'woensdag': 'woensdag',
-          'wednesday': 'woensdag',
-          'donderdag': 'donderdag',
-          'thursday': 'donderdag',
-          'vrijdag': 'vrijdag',
-          'friday': 'vrijdag',
-          'zaterdag': 'zaterdag',
-          'saturday': 'zaterdag',
-          'zondag': 'zondag',
-          'sunday': 'zondag'
-        }
-        
-        const lowerText = availabilityText.toLowerCase()
-        for (const [english, dutch] of Object.entries(dayMapping)) {
-          if (lowerText.includes(english) || lowerText.includes(dutch)) {
-            // Assume 9:00-17:00 availability for mentioned days
-            beschikbaarheid[dutch] = ['09:00', '17:00']
-          }
-        }
+      // Map day names from English to Dutch
+      const dayMapping: { [key: string]: string } = {
+        'monday': 'maandag',
+        'tuesday': 'dinsdag',
+        'wednesday': 'woensdag',
+        'thursday': 'donderdag',
+        'friday': 'vrijdag',
+        'saturday': 'zaterdag',
+        'sunday': 'zondag'
       }
       
-      // If still no specific days mentioned, assume flexible availability
-      if (Object.keys(beschikbaarheid).length === 0) {
-        dayNames.forEach(day => {
-          if (day !== 'zondag') { // Skip Sunday by default
-            beschikbaarheid[day] = ['09:00', '17:00']
+      // If we have structured availability data, use it
+      if (student.availability && Array.isArray(student.availability)) {
+        student.availability.forEach((day: any) => {
+          if (day.available && dayMapping[day.day]) {
+            const dutchDay = dayMapping[day.day]
+            // Format time to HH:MM format (remove seconds)
+            const startTime = day.startTime.split(':').slice(0, 2).join(':')
+            const endTime = day.endTime.split(':').slice(0, 2).join(':')
+            beschikbaarheid[dutchDay] = [startTime, endTime]
           }
         })
+      }
+      
+      // If no structured data available, fall back to parsing text
+      if (Object.keys(beschikbaarheid).length === 0) {
+        const availabilityText = studentAvail?.notes || 'Flexibel beschikbaar'
+        const dayNames = ['maandag', 'dinsdag', 'woensdag', 'donderdag', 'vrijdag', 'zaterdag', 'zondag']
+        
+        // Look for patterns like "Maandag: 09:00 - 17:00"
+        dayNames.forEach(day => {
+          const dayName = day === 'maandag' ? 'Maandag' :
+                         day === 'dinsdag' ? 'Dinsdag' :
+                         day === 'woensdag' ? 'Woensdag' :
+                         day === 'donderdag' ? 'Donderdag' :
+                         day === 'vrijdag' ? 'Vrijdag' :
+                         day === 'zaterdag' ? 'Zaterdag' : 'Zondag'
+          
+          const dayPattern = new RegExp(`${dayName}:\\s*([^,]+)`, 'i')
+          const match = availabilityText.match(dayPattern)
+          
+          if (match) {
+            const timeText = match[1].trim()
+            const timeRangeMatch = timeText.match(/(\d{1,2}):?(\d{2})?\s*-\s*(\d{1,2}):?(\d{2})?/)
+            
+            if (timeRangeMatch) {
+              const startHour = timeRangeMatch[1].padStart(2, '0')
+              const startMinute = timeRangeMatch[2] || '00'
+              const endHour = timeRangeMatch[3].padStart(2, '0')
+              const endMinute = timeRangeMatch[4] || '00'
+              
+              beschikbaarheid[day] = [`${startHour}:${startMinute}`, `${endHour}:${endMinute}`]
+            }
+          }
+        })
+        
+        // If no specific times found, check for simple day mentions
+        if (Object.keys(beschikbaarheid).length === 0) {
+          const lowerText = availabilityText.toLowerCase()
+          for (const [english, dutch] of Object.entries(dayMapping)) {
+            if (lowerText.includes(english) || lowerText.includes(dutch)) {
+              // Assume 9:00-17:00 availability for mentioned days
+              beschikbaarheid[dutch] = ['09:00', '17:00']
+            }
+          }
+        }
+        
+        // If still no specific days mentioned, assume flexible availability
+        if (Object.keys(beschikbaarheid).length === 0) {
+          dayNames.forEach(day => {
+            if (day !== 'zondag') { // Skip Sunday by default
+              beschikbaarheid[day] = ['09:00', '17:00']
+            }
+          })
+        }
       }
       
       return {

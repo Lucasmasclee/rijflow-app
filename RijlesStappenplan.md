@@ -82,7 +82,7 @@ Klik op “Toevoegen” en controleer of lessen in weekplanning verschijnen -->
 
 Todolist:
 - Was bezig met de AI testinput. Ik wil dat als ik in de ai-schedule-settings minuten tussen lessen verander, ik andere outputs krijg. Dit is nog niet geval. Eerstvolgende taak daarna is lessen normaal weergeven.
-- Gebruiker bewerkt instellingen op ai-schedule pagina -> Dit bewerkt sample_input.json -> Gebruiker klikt "Start Test Planning" -> generate_week_planning.js leest sample_input.json -> generate_week_planning.js maakt best_week_planning.json -> UI laat resultaat zien
+- sample_input.json wordt geladen en geinitialiseerd vanuit de database -> Gebruiker bewerkt instellingen op ai-schedule pagina -> Dit bewerkt sample_input.json -> Gebruiker klikt "Start Test Planning" -> generate_week_planning.js leest sample_input.json -> generate_week_planning.js maakt best_week_planning.json -> UI laat resultaat zien
 - UI elementen op AI-Weekplanning-Settings Pagina koppelen aan sample_input.json
 - Geselecteerde week koppelen aan sample_input.json
 - Met ChatGPT en cursor systeem maken voor automatisch beschikbaarheid leerlingen verzamelen EERST VOLLEDIGE UITWERKING NOTEREN
