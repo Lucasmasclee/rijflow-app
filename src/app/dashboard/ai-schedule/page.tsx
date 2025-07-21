@@ -1312,10 +1312,10 @@ function AISchedulePageContent() {
 
     setIsRunningTestPlanning(true)
     try {
-      // First, reinitialize data from database (without showing success toast)
-      await reinitializeDataFromDatabaseSilently()
+      // First, update localStorage with current UI state (including availability)
+      updateLocalStorageData()
       
-      // Then use the fresh data from localStorage
+      // Then use the current data from localStorage
       const storedData = localStorage.getItem('aiScheduleData')
       if (!storedData) {
         throw new Error('Geen data gevonden')
