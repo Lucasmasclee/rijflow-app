@@ -77,15 +77,16 @@ Klik op “Toevoegen” en controleer of lessen in weekplanning verschijnen -->
 - Nieuwe versie in appstore
 
 Todolist:
-- Testscenario helemaal opnieuw (Minder dan 2 uur)
-- AI Weekplanning functie tijdelijk uitzetten
+- Gebruiker klikt "Start Test Planning" -> generate_week_planning.py runt -> json bestand wordt gemaakt/vervangen -> UI laat resultaat zien
+- UI elementen op AI-Weekplanning-Settings Pagina koppelen aan sample_input.json
+- Met ChatGPT en cursor systeem maken voor automatisch beschikbaarheid leerlingen verzamelen EERST VOLLEDIGE UITWERKING NOTEREN
+
+
 - Uploaden naar appstore als dit niet gelukt is
-- Naam & logo verandern in playstore
 - Snel screenshots maken
 - 100 Leads toevoegen aan instantly.ai
 - Emails in instantly.ai maken. 
 - NIET aan datascraper werken
-- 
 - Systeem voor personal trainers maken voor fitness app ?
 - 
 

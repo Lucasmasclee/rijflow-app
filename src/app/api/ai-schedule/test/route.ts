@@ -9,6 +9,30 @@ const supabase = createClient(
   process.env.SUPABASE_SERVICE_ROLE_KEY!
 )
 
+// Helper function to check if a command exists
+async function commandExists(command: string): Promise<boolean> {
+  return new Promise((resolve) => {
+    const testProcess = spawn(command, ['--version'], { 
+      stdio: 'ignore',
+      shell: true 
+    })
+    
+    testProcess.on('close', (code) => {
+      resolve(code === 0)
+    })
+    
+    testProcess.on('error', () => {
+      resolve(false)
+    })
+    
+    // Timeout after 3 seconds
+    setTimeout(() => {
+      testProcess.kill()
+      resolve(false)
+    }, 3000)
+  })
+}
+
 export async function POST(request: NextRequest): Promise<Response> {
   return new Promise<Response>(async (resolve) => {
     try {
@@ -52,52 +76,70 @@ export async function POST(request: NextRequest): Promise<Response> {
       console.log('Starting Python script:', scriptPath)
       console.log('JSON file will be created at:', jsonFilePath)
       console.log('Current working directory:', process.cwd())
-      console.log('Script exists:', require('fs').existsSync(scriptPath))
+      console.log('Script exists:', fs.existsSync(scriptPath))
       console.log('AI Settings:', settings)
 
-      // Probeer verschillende Python commando's (py eerst voor Windows)
-      const pythonCommands = ['py', 'python3', 'python']
-      let pythonProcess: any = null
-      let commandUsed = ''
-
-      for (const command of pythonCommands) {
-        try {
-          // Pass AI settings as environment variables
-          const env = {
-            ...process.env,
-            PAUZE_TUSSEN_LESSEN: settings.pauze_tussen_lessen.toString(),
-            LANGE_PAUZE_DUUR: settings.lange_pauze_duur.toString(),
-            LOCATIES_KOPPELEN: settings.locaties_koppelen.toString(),
-            BLOKUREN: settings.blokuren.toString()
-          }
-
-          // Use shell: true to ensure the command is found in PATH
-          pythonProcess = spawn(command, [scriptPath], { 
-            shell: true,
-            stdio: ['pipe', 'pipe', 'pipe'],
-            env
-          })
-          commandUsed = command
-          console.log(`Successfully started Python script with command: ${command}`)
-          break
-        } catch (error) {
-          console.log(`Command ${command} failed, trying next...`)
-          continue
-        }
-      }
-
-      if (!pythonProcess) {
+      // Check if script exists
+      if (!fs.existsSync(scriptPath)) {
         resolve(
           NextResponse.json(
             {
-              error: 'Python niet gevonden',
-              details: 'Geen van de Python commando\'s (python3, python, py) is beschikbaar op dit systeem',
+              error: 'Python script niet gevonden',
+              details: `Script pad: ${scriptPath}`,
             },
             { status: 500 }
           )
         )
         return
       }
+
+      // Probeer verschillende Python commando's in volgorde van voorkeur
+      const pythonCommands = ['python3', 'python', 'py']
+      let commandUsed = ''
+
+      // First, try to find which Python command is available
+      for (const command of pythonCommands) {
+        console.log(`Testing Python command: ${command}`)
+        const exists = await commandExists(command)
+        if (exists) {
+          console.log(`Found working Python command: ${command}`)
+          commandUsed = command
+          break
+        }
+      }
+
+      if (!commandUsed) {
+        resolve(
+          NextResponse.json(
+            {
+              error: 'Python niet gevonden',
+              details: 'Geen van de Python commando\'s (python3, python, py) is beschikbaar op dit systeem. Zorg ervoor dat Python is geïnstalleerd.',
+            },
+            { status: 500 }
+          )
+        )
+        return
+      }
+
+      // Pass AI settings as environment variables
+      const env = {
+        ...process.env,
+        PAUZE_TUSSEN_LESSEN: settings.pauze_tussen_lessen.toString(),
+        LANGE_PAUZE_DUUR: settings.lange_pauze_duur.toString(),
+        LOCATIES_KOPPELEN: settings.locaties_koppelen.toString(),
+        BLOKUREN: settings.blokuren.toString()
+      }
+
+      console.log(`Starting Python script with command: ${commandUsed}`)
+      console.log(`Script path: ${scriptPath}`)
+      console.log(`Environment variables:`, env)
+
+      // Start the Python process
+      const pythonProcess = spawn(commandUsed, [scriptPath], { 
+        stdio: ['pipe', 'pipe', 'pipe'],
+        env,
+        cwd: process.cwd() // Explicitly set working directory
+      })
 
       let stdout = ''
       let stderr = ''
@@ -112,8 +154,30 @@ export async function POST(request: NextRequest): Promise<Response> {
         console.log('Python stderr:', data.toString())
       })
 
+      // Add timeout to prevent hanging
+      const timeout = setTimeout(() => {
+        console.log('Python script timeout - killing process')
+        pythonProcess.kill('SIGTERM')
+        resolve(
+          NextResponse.json(
+            {
+              error: 'Python script timeout',
+              details: 'Het Python script heeft te lang geduurd om te voltooien',
+              command: commandUsed,
+              stdout: stdout,
+              stderr: stderr
+            },
+            { status: 500 }
+          )
+        )
+      }, 60000) // 60 second timeout
+
       pythonProcess.on('close', async (code: number | null) => {
+        clearTimeout(timeout) // Clear timeout if process completes
         console.log('Python script finished with code:', code)
+        console.log('Command used:', commandUsed)
+        console.log('Total stdout length:', stdout.length)
+        console.log('Total stderr length:', stderr.length)
         
         if (code !== 0) {
           resolve(
@@ -121,6 +185,8 @@ export async function POST(request: NextRequest): Promise<Response> {
               {
                 error: 'Fout bij het genereren van het test rooster',
                 details: stderr || `Python script exited with code ${code}`,
+                command: commandUsed,
+                stdout: stdout
               },
               { status: 500 }
             )
@@ -129,7 +195,7 @@ export async function POST(request: NextRequest): Promise<Response> {
         }
 
         // Wacht even om zeker te zijn dat het bestand is geschreven
-        await new Promise(resolve => setTimeout(resolve, 1000))
+        await new Promise(resolve => setTimeout(resolve, 2000))
 
         // Controleer of het JSON-bestand bestaat
         if (!fs.existsSync(jsonFilePath)) {
@@ -139,7 +205,8 @@ export async function POST(request: NextRequest): Promise<Response> {
                 error: 'JSON bestand niet gevonden na uitvoering Python script',
                 details: `Verwacht bestand: ${jsonFilePath}`,
                 stdout: stdout,
-                stderr: stderr
+                stderr: stderr,
+                command: commandUsed
               },
               { status: 500 }
             )
@@ -162,7 +229,8 @@ export async function POST(request: NextRequest): Promise<Response> {
               {
                 error: 'Fout bij het parsen van het JSON bestand',
                 details: parseError instanceof Error ? parseError.message : 'Unknown parse error',
-                filePath: jsonFilePath
+                filePath: jsonFilePath,
+                command: commandUsed
               },
               { status: 500 }
             )
@@ -171,6 +239,7 @@ export async function POST(request: NextRequest): Promise<Response> {
       })
 
       pythonProcess.on('error', (err: Error) => {
+        clearTimeout(timeout) // Clear timeout on error
         console.error('Failed to start Python script:', err)
         console.error('Error details:', {
           message: err.message,
