@@ -250,32 +250,40 @@ export async function POST(request: NextRequest): Promise<Response> {
           return
         }
 
-        // Wait a moment to be sure the file is written
-        await new Promise(resolve => setTimeout(resolve, 2000))
-
-        // Check if the JSON file exists
-        if (!fs.existsSync(jsonFilePath)) {
-          resolve(
-            NextResponse.json(
-              {
-                error: 'JSON bestand niet gevonden na uitvoering JS script',
-                details: `Verwacht bestand: ${jsonFilePath}`,
-                stdout: stdout,
-                stderr: stderr,
-                command: 'node'
-              },
-              { status: 500 }
-            )
-          )
-          return
-        }
-
         try {
-          // Read the JSON file
-          const jsonData = fs.readFileSync(jsonFilePath, 'utf-8')
-          console.log('JSON file content length:', jsonData.length)
+          // Parse JSON from stdout instead of reading from file
+          const lines = stdout.split('\n')
+          let jsonOutput = ''
           
-          const aiResponse = JSON.parse(jsonData)
+          // Find the JSON output in stdout (it should be a single JSON object)
+          for (const line of lines) {
+            if (line.trim().startsWith('{') || jsonOutput) {
+              jsonOutput += line + '\n'
+              if (line.trim().endsWith('}')) {
+                break
+              }
+            }
+          }
+          
+          if (!jsonOutput.trim()) {
+            resolve(
+              NextResponse.json(
+                {
+                  error: 'Geen JSON output gevonden in stdout',
+                  details: 'Het script heeft geen geldige JSON output gegenereerd',
+                  stdout: stdout,
+                  stderr: stderr,
+                  command: 'node'
+                },
+                { status: 500 }
+              )
+            )
+            return
+          }
+          
+          console.log('JSON output from stdout length:', jsonOutput.length)
+          
+          const aiResponse = JSON.parse(jsonOutput.trim())
           console.log('Successfully parsed JSON response')
           
           resolve(NextResponse.json(aiResponse))
@@ -283,9 +291,10 @@ export async function POST(request: NextRequest): Promise<Response> {
           resolve(
             NextResponse.json(
               {
-                error: 'Fout bij het parsen van het JSON bestand',
+                error: 'Fout bij het parsen van de JSON output',
                 details: parseError instanceof Error ? parseError.message : 'Unknown parse error',
-                filePath: jsonFilePath,
+                stdout: stdout,
+                stderr: stderr,
                 command: 'node'
               },
               { status: 500 }

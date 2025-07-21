@@ -880,14 +880,14 @@ function create_output_json(best_result, best_week_index, best_start_vanaf_begin
         leerlingen_zonder_les: students_without_lessons,
         schedule_details: {
             lessen: formatted_lessons.length,
-            totale_minuten_tussen_lessen: total_time_between_lessons
+            totale_minuten_tussen_lesson: total_time_between_lessons
         }
     };
     
-    // Write to JSON file
-    fs.writeFileSync(filename, JSON.stringify(output_data, null, 2), 'utf8');
+    // Output JSON to stdout instead of writing to file
+    console.log(JSON.stringify(output_data, null, 2));
     
-    console.log(`JSON bestand '${filename}' succesvol aangemaakt!`);
+    console.log(`JSON output succesvol gegenereerd!`);
     console.log(`Aantal lessen: ${formatted_lessons.length}`);
     console.log(`Totale minuten tussen lessen: ${total_time_between_lessons}`);
     console.log(`Leerlingen zonder voldoende lessen: ${Object.keys(students_without_lessons).length}`);
