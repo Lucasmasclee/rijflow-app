@@ -308,6 +308,9 @@ function AISchedulePageContent() {
         toast.success('Nieuwe beschikbaarheid aangemaakt met standaardwaarden')
       }
 
+      // Zorg ervoor dat alle studenten availability records hebben
+      await ensureStudentAvailability()
+
       // Debug: Check if student availability records exist after loading
       await debugStudentAvailability(weekStartString)
       
@@ -393,6 +396,55 @@ function AISchedulePageContent() {
     } catch (error) {
       console.error('Error saving availability:', error)
       toast.error('Fout bij opslaan van beschikbaarheid')
+    }
+  }
+
+  const ensureStudentAvailability = async () => {
+    if (!user || !selectedWeek) return
+    
+    try {
+      const { data: { session } } = await supabase.auth.getSession()
+      
+      if (!session?.access_token) {
+        console.error('No session token available for ensuring student availability')
+        return
+      }
+
+      const weekStartString = formatDateToISO(selectedWeek)
+      
+      console.log('Ensuring student availability for week:', weekStartString)
+
+      const response = await fetch('/api/ai-schedule/create-student-availability', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${session.access_token}`
+        },
+        body: JSON.stringify({
+          weekStart: weekStartString,
+          instructorId: user.id
+        })
+      })
+
+      if (!response.ok) {
+        const error = await response.json()
+        console.error('Error ensuring student availability:', error)
+        toast.error('Fout bij aanmaken van student beschikbaarheid: ' + (error.error || 'Onbekende fout'))
+        return
+      }
+
+      const result = await response.json()
+      console.log('Student availability creation result:', result)
+      
+      if (result.createdRecords > 0) {
+        toast.success(`${result.createdRecords} student beschikbaarheid records aangemaakt`)
+        // Herlaad de data om de nieuwe records te tonen
+        await loadWeekData(selectedWeek)
+      }
+      
+    } catch (error) {
+      console.error('Error ensuring student availability:', error)
+      toast.error('Fout bij aanmaken van student beschikbaarheid')
     }
   }
 
@@ -508,6 +560,10 @@ function AISchedulePageContent() {
         toast.error('Selecteer eerst een week')
         return
       }
+      
+      // Zorg ervoor dat alle studenten availability records hebben voor deze week
+      await ensureStudentAvailability()
+      
       // Data is al geladen wanneer de week werd geselecteerd
       setCurrentStep('instructor')
     } else if (currentStep === 'instructor') {
