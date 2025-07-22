@@ -78,6 +78,13 @@ export async function POST(request: NextRequest) {
       if (standardAvailability && !standardError && standardAvailability.availability_data) {
         availabilityData = standardAvailability.availability_data
         console.log('Using standard availability:', availabilityData)
+      } else if (standardError && standardError.code === 'PGRST116') {
+        // Geen standard_availability gevonden, gebruik default waarden
+        console.log('No standard availability found, using default values')
+      } else if (standardError) {
+        // Andere error bij het ophalen van standard_availability
+        console.error('Error fetching standard availability:', standardError)
+        console.log('Using default values due to error')
       } else {
         console.log('No standard availability found, using default values')
       }
@@ -106,6 +113,16 @@ export async function POST(request: NextRequest) {
           langePauzeDuur: aiSettings.lange_pauze_duur ?? 0,
           locatiesKoppelen: aiSettings.locaties_koppelen ?? true
         }
+        console.log('Using existing AI settings:', defaultSettings)
+      } else if (aiSettingsError && aiSettingsError.code === 'PGRST116') {
+        // Geen AI instellingen gevonden, gebruik default waarden
+        console.log('No AI settings found, using default values')
+      } else if (aiSettingsError) {
+        // Andere error bij het ophalen van AI instellingen
+        console.error('Error fetching AI settings:', aiSettingsError)
+        console.log('Using default values due to error')
+      } else {
+        console.log('No AI settings found, using default values')
       }
 
       // Debug: Log de data die we proberen in te voegen
@@ -138,39 +155,109 @@ export async function POST(request: NextRequest) {
       console.log('Successfully created new availability with default values')
     }
 
-    // Nu de data ophalen (nu zou er data moeten zijn)
-    const { data: aiData, error: aiError } = await supabase
-      .rpc('get_ai_weekplanning_data', {
-        p_instructor_id: instructorId,
-        p_week_start: weekStart
-      })
+    // Nu de data direct opbouwen in plaats van de database functie te gebruiken
+    console.log('Building AI data directly...')
+    
+    // Haal de instructor_availability op (nu zou deze moeten bestaan)
+    const { data: instructorAvailability, error: instructorError } = await supabase
+      .from('instructor_availability')
+      .select('*')
+      .eq('instructor_id', instructorId)
+      .eq('week_start', weekStart)
+      .single()
 
-    if (aiError) {
-      console.error('Error fetching AI weekplanning data:', aiError)
+    if (instructorError) {
+      console.error('Error fetching instructor availability:', instructorError)
       return NextResponse.json(
-        { error: 'Failed to fetch AI weekplanning data: ' + aiError.message },
+        { error: 'Failed to fetch instructor availability: ' + instructorError.message },
         { status: 500 }
       )
     }
 
-    // Debug: Log de data die we krijgen
-    console.log('AI data received:', aiData)
-
-    if (!aiData || !aiData.instructeur || !aiData.leerlingen) {
-      console.error('No valid AI data found:', aiData)
+    if (!instructorAvailability) {
+      console.error('No instructor availability found after creation')
       return NextResponse.json(
-        { error: 'No data found for the specified instructor and week' },
+        { error: 'No instructor availability found for the specified instructor and week' },
         { status: 404 }
       )
     }
 
-    // Controleer of er leerlingen zijn
-    if (!aiData.leerlingen || aiData.leerlingen.length === 0) {
+    // Haal leerlingen op
+    const { data: students, error: studentsError } = await supabase
+      .from('students')
+      .select('*')
+      .eq('instructor_id', instructorId)
+      .order('first_name', { ascending: true })
+
+    if (studentsError) {
+      console.error('Error fetching students:', studentsError)
+      return NextResponse.json(
+        { error: 'Failed to fetch students: ' + studentsError.message },
+        { status: 500 }
+      )
+    }
+
+    if (!students || students.length === 0) {
       return NextResponse.json(
         { error: 'No students found for this instructor. Please add students first.' },
         { status: 404 }
       )
     }
+
+    // Haal student availability op
+    const { data: studentAvailability, error: studentAvailError } = await supabase
+      .from('student_availability')
+      .select('*')
+      .in('student_id', students.map(s => s.id))
+      .eq('week_start', weekStart)
+
+    if (studentAvailError) {
+      console.error('Error fetching student availability:', studentAvailError)
+      // Continue without student availability
+    }
+
+    // Genereer week datums
+    const weekDates = []
+    const weekStartDate = new Date(weekStart)
+    for (let i = 0; i < 7; i++) {
+      const date = new Date(weekStartDate)
+      date.setDate(weekStartDate.getDate() + i)
+      weekDates.push(date.toISOString().split('T')[0])
+    }
+
+    // Bouw instructor data
+    const instructorData = {
+      beschikbareUren: instructorAvailability.availability_data || {},
+      datums: weekDates,
+      maxLessenPerDag: instructorAvailability.settings?.maxLessenPerDag || 6,
+      blokuren: instructorAvailability.settings?.blokuren ?? true,
+      pauzeTussenLessen: instructorAvailability.settings?.pauzeTussenLessen || 10,
+      langePauzeDuur: instructorAvailability.settings?.langePauzeDuur || 0,
+      locatiesKoppelen: instructorAvailability.settings?.locatiesKoppelen ?? true
+    }
+
+    // Bouw students data
+    const studentsData = students.map(student => {
+      const studentAvail = studentAvailability?.find(sa => sa.student_id === student.id)
+      return {
+        id: student.id,
+        naam: student.last_name ? `${student.first_name} ${student.last_name}` : student.first_name,
+        lessenPerWeek: student.default_lessons_per_week || 2,
+        lesDuur: student.default_lesson_duration_minutes || 60,
+        beschikbaarheid: studentAvail?.availability_data || {}
+      }
+    })
+
+    // Combineer data
+    const aiData = {
+      instructeur: instructorData,
+      leerlingen: studentsData
+    }
+
+    console.log('Successfully built AI data:', {
+      instructor: instructorData,
+      studentsCount: studentsData.length
+    })
 
     console.log('Successfully created editable input with data:', {
       instructor: aiData.instructeur,
