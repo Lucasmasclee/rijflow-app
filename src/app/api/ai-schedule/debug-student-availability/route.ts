@@ -42,6 +42,11 @@ export async function POST(request: NextRequest) {
       .select('id, first_name, last_name')
       .eq('instructor_id', instructorId)
 
+    console.log('Found students for instructor:', students?.map(s => ({
+      id: s.id,
+      name: `${s.first_name} ${s.last_name}`
+    })))
+
     if (studentsError) {
       console.error('Error fetching students:', studentsError)
       return NextResponse.json(
@@ -61,6 +66,7 @@ export async function POST(request: NextRequest) {
 
     // Get existing student availability records
     console.log('Searching for student availability with week_start:', weekStart, 'type:', typeof weekStart)
+    console.log('Student IDs to search for:', students.map(s => s.id))
     
     const { data: studentAvailability, error: availabilityError } = await supabase
       .from('student_availability')
@@ -91,6 +97,19 @@ export async function POST(request: NextRequest) {
       console.error('Error fetching all student availability:', allAvailabilityError)
     }
 
+    // Also check if there are ANY student_availability records for this week (regardless of student_id)
+    const { data: anyAvailabilityForWeek, error: anyAvailabilityError } = await supabase
+      .from('student_availability')
+      .select('student_id, week_start, availability_data')
+      .eq('week_start', weekStart)
+
+    if (anyAvailabilityError) {
+      console.error('Error fetching any availability for week:', anyAvailabilityError)
+    } else {
+      console.log('ANY availability records for week', weekStart, ':', anyAvailabilityForWeek?.length || 0)
+      console.log('Records:', anyAvailabilityForWeek)
+    }
+
     const debugInfo = {
       weekStart,
       instructorId,
@@ -114,7 +133,8 @@ export async function POST(request: NextRequest) {
         studentIds: students.map(s => s.id)
       },
       allStudentAvailability: studentAvailability || [],
-      allStudentAvailabilityRecords: allStudentAvailability || []
+      allStudentAvailabilityRecords: allStudentAvailability || [],
+      anyAvailabilityForWeek: anyAvailabilityForWeek || []
     }
 
     console.log('Debug info:', debugInfo)
