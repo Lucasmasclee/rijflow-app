@@ -34,8 +34,12 @@ export async function POST(request: NextRequest) {
       )
     }
 
+    console.log('Authenticated user:', user.id)
+    console.log('Requested instructor ID:', instructorId)
+
     // Verify that the user is the instructor
     if (user.id !== instructorId) {
+      console.error('User ID mismatch:', { userId: user.id, instructorId })
       return NextResponse.json(
         { error: 'Unauthorized: You can only create availability for your own students' },
         { status: 403 }
@@ -45,9 +49,10 @@ export async function POST(request: NextRequest) {
     console.log('Creating student availability for instructor:', instructorId, 'week:', weekStart)
 
     // Get all students for this instructor
+    console.log('Fetching students for instructor:', instructorId)
     const { data: students, error: studentsError } = await supabase
       .from('students')
-      .select('id, first_name, last_name')
+      .select('id, first_name, last_name, instructor_id')
       .eq('instructor_id', instructorId)
 
     if (studentsError) {
@@ -56,6 +61,11 @@ export async function POST(request: NextRequest) {
         { error: 'Failed to fetch students: ' + studentsError.message },
         { status: 500 }
       )
+    }
+
+    console.log('Found students:', students?.length || 0)
+    if (students && students.length > 0) {
+      console.log('Student details:', students.map(s => ({ id: s.id, name: `${s.first_name} ${s.last_name}`, instructor_id: s.instructor_id })))
     }
 
     if (!students || students.length === 0) {
@@ -132,6 +142,9 @@ export async function POST(request: NextRequest) {
     console.log('Week start being used:', weekStart, 'type:', typeof weekStart)
     console.log('Attempting to insert availability records:', availabilityRecords)
 
+    console.log('Attempting to insert', availabilityRecords.length, 'availability records')
+    console.log('Insert data:', JSON.stringify(availabilityRecords, null, 2))
+    
     const { data: insertData, error: insertError } = await supabase
       .from('student_availability')
       .insert(availabilityRecords)
@@ -148,11 +161,20 @@ export async function POST(request: NextRequest) {
       
       // Check if it's an RLS error
       if (insertError.message.includes('row-level security policy')) {
+        console.error('RLS Policy Error detected. Current user:', user.id)
+        console.error('Attempted to insert for students:', missingStudents.map(s => s.id))
+        
         return NextResponse.json(
           { 
             error: 'RLS policy error: ' + insertError.message,
             details: 'The row-level security policy is preventing the insert. Please check the RLS policies.',
-            hint: 'Run the RLS fix script in Supabase SQL Editor'
+            hint: 'Run the production-rls-fix.sql script in Supabase SQL Editor',
+            debug: {
+              userId: user.id,
+              instructorId: instructorId,
+              studentIds: missingStudents.map(s => s.id),
+              weekStart: weekStart
+            }
           },
           { status: 403 }
         )
@@ -162,7 +184,13 @@ export async function POST(request: NextRequest) {
         { 
           error: 'Failed to create student availability records: ' + insertError.message,
           details: insertError.details,
-          hint: insertError.hint
+          hint: insertError.hint,
+          debug: {
+            userId: user.id,
+            instructorId: instructorId,
+            studentIds: missingStudents.map(s => s.id),
+            weekStart: weekStart
+          }
         },
         { status: 500 }
       )
