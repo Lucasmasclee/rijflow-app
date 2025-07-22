@@ -229,7 +229,16 @@ function AISchedulePageContent() {
 
       if (!response.ok) {
         const error = await response.json()
-        toast.error('Fout bij laden van weekdata: ' + (error.error || 'Onbekende fout'))
+        const errorMessage = error.error || 'Onbekende fout'
+        
+        // Specifieke afhandeling voor "No data found" fout
+        if (errorMessage.includes('No data found for the specified instructor and week')) {
+          toast.error('Fout bij laden van weekdata: Geen data gevonden voor deze instructeur en week')
+        } else if (errorMessage.includes('No students found for this instructor')) {
+          toast.error('Fout bij laden van weekdata: Geen leerlingen gevonden voor deze instructeur. Voeg eerst leerlingen toe.')
+        } else {
+          toast.error('Fout bij laden van weekdata: ' + errorMessage)
+        }
         return
       }
 
@@ -283,6 +292,11 @@ function AISchedulePageContent() {
           instructeur_id: user.id,
         }))
         setStudents(newStudents)
+      }
+      
+      // Toon succesbericht als er een nieuwe beschikbaarheid is aangemaakt
+      if (result.message && result.message.includes('New availability created with default values')) {
+        toast.success('Nieuwe beschikbaarheid aangemaakt met standaardwaarden')
       }
       
     } catch (error) {
@@ -575,7 +589,7 @@ function AISchedulePageContent() {
                       }`}
                     >
                       <div className="font-medium text-gray-900">
-                        {index === 0 ? 'Volgende week' : 'Week ' + (index + 1)}
+                        {index === 0 ? 'Deze week' : 'Over ' + (index + 1) + ' Weken'}
                       </div>
                       <div className="text-sm text-gray-600">
                         {weekStart.toLocaleDateString('nl-NL', {
