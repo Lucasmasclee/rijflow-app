@@ -77,6 +77,8 @@ export async function POST(request: NextRequest) {
           if (studentError) {
             console.error('Error updating student availability for student:', student.id, studentError)
             // Continue with other students even if one fails
+          } else {
+            console.log('Successfully updated availability for student:', student.id)
           }
         }
       }

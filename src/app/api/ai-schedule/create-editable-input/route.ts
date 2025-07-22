@@ -205,7 +205,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Haal student availability op
-    const { data: studentAvailability, error: studentAvailError } = await supabase
+    let { data: studentAvailability, error: studentAvailError } = await supabase
       .from('student_availability')
       .select('*')
       .in('student_id', students.map(s => s.id))
@@ -214,6 +214,71 @@ export async function POST(request: NextRequest) {
     if (studentAvailError) {
       console.error('Error fetching student availability:', studentAvailError)
       // Continue without student availability
+    }
+
+    // Automatisch student availability records aanmaken voor studenten die er nog geen hebben
+    if (students && students.length > 0) {
+      const existingStudentIds = studentAvailability?.map(sa => sa.student_id) || []
+      const missingStudentIds = students.filter(s => !existingStudentIds.includes(s.id)).map(s => s.id)
+      
+      if (missingStudentIds.length > 0) {
+        console.log('Creating missing student availability records for students:', missingStudentIds)
+        
+        // Haal standaard beschikbaarheid op voor studenten
+        const { data: standardStudentAvailability, error: standardStudentError } = await supabase
+          .from('standard_availability')
+          .select('availability_data')
+          .eq('instructor_id', instructorId)
+          .single()
+
+        let defaultStudentAvailability = {
+          maandag: ["09:00", "17:00"],
+          dinsdag: ["09:00", "17:00"],
+          woensdag: ["09:00", "17:00"],
+          donderdag: ["09:00", "17:00"],
+          vrijdag: ["09:00", "17:00"]
+        }
+
+        // Gebruik standaard beschikbaarheid als deze bestaat
+        if (standardStudentAvailability && !standardStudentError && standardStudentAvailability.availability_data) {
+          defaultStudentAvailability = standardStudentAvailability.availability_data
+          console.log('Using standard availability for students:', defaultStudentAvailability)
+        }
+
+        // Maak records aan voor ontbrekende studenten
+        const studentAvailabilityRecords = missingStudentIds.map(studentId => ({
+          student_id: studentId,
+          week_start: weekStart,
+          availability_data: defaultStudentAvailability
+        }))
+
+        const { error: insertStudentError } = await supabase
+          .from('student_availability')
+          .insert(studentAvailabilityRecords)
+
+        if (insertStudentError) {
+          console.error('Error creating student availability records:', insertStudentError)
+          // Continue even if student availability creation fails
+        } else {
+          console.log('Successfully created student availability records for', missingStudentIds.length, 'students')
+        }
+
+        // Haal de bijgewerkte student availability op
+        const { data: updatedStudentAvailability, error: updatedStudentAvailError } = await supabase
+          .from('student_availability')
+          .select('*')
+          .in('student_id', students.map(s => s.id))
+          .eq('week_start', weekStart)
+
+        if (!updatedStudentAvailError) {
+          // Update de studentAvailability variabele met de nieuwe data
+          const existingRecords = studentAvailability || []
+          const newRecords = updatedStudentAvailability?.filter(sa => 
+            !existingRecords.some(existing => existing.student_id === sa.student_id)
+          ) || []
+          studentAvailability = [...existingRecords, ...newRecords]
+        }
+      }
     }
 
     // Genereer week datums

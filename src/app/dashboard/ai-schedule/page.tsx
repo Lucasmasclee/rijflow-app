@@ -443,6 +443,7 @@ function AISchedulePageContent() {
         toast.error('Selecteer eerst een week')
         return
       }
+      // Data is al geladen wanneer de week werd geselecteerd
       setCurrentStep('instructor')
     } else if (currentStep === 'instructor') {
       setCurrentStep('students')
@@ -598,7 +599,10 @@ function AISchedulePageContent() {
                   return (
                     <button
                       key={index}
-                      onClick={() => setSelectedWeek(week)}
+                      onClick={() => {
+                        setSelectedWeek(week)
+                        loadWeekData(week)
+                      }}
                       className={`p-4 border rounded-lg text-left transition-colors ${
                         selectedWeek?.getTime() === week.getTime()
                           ? 'border-blue-600 bg-blue-50'

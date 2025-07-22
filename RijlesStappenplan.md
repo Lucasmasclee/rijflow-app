@@ -69,53 +69,46 @@ Klik op “Toevoegen” en controleer of lessen in weekplanning verschijnen -->
 ✅✅✅✅✅- Rijflow.nl kopen
 ✅✅✅✅✅- Rijflow.nl moet doortsturen naar de vercel app
 ✅✅✅✅✅- Datascraper maken die met cbr.nl emailadressen van rijscholen vindt
-- Instantly AI opzetten voor rijflow app
-- Naar het engels vertalen
-- Appstore link in landing page vervangen zodra app gepubliceerd is
-- Snel screenshots maken
 ✅✅✅✅✅- App logo & naam goedzetten in playstore
-- Nieuwe versie in appstore
-
-
-
-
-
-Todolist:
-- In dashboard/lessons als je op "AI-Weekplanning" klikt duurt het 5 seconde voordat je wordt doorgestuurd.
-
-- In dashboard/lessons wordt geklikt op "AI Weekplanning" -> Er worden een BEWERKBAAR json bestand geladen/gemaakt in het EXACTE formaat van sample_input.json -> Dit bewerkbare bestand wordt geinitialiseerd met alle data vanuit de database -> In de ai-schedule pagina kan alle data die gebruikt wordt voor de ai planning worden aangepast. Let op: Deze data wordt tijdens het bewerken alleen maar geupdated naar de database -> Zodra er wordt geklikt op "Start Test Planning" wordt dit bewerkbare json bestand opnieuw geinitialiseerd met de gegevens van de database -> generate_week_planning.js leest de bewerkbare kopie van sample_input.json -> generate_week_planning.js maakt best_week_planning.json -> UI laat resultaat zien.
-- UI elementen op AI-Weekplanning-Settings Pagina koppelen aan sample_input.json
-- Geselecteerde week koppelen aan sample_input.json
-- Met ChatGPT en cursor systeem maken voor automatisch beschikbaarheid leerlingen verzamelen EERST VOLLEDIGE UITWERKING NOTEREN
-.
-
-
-
-
-
-- Uploaden naar appstore als dit niet gelukt is
+- Instantly AI opzetten voor rijflow app
 - Snel screenshots maken
-- 100 Leads toevoegen aan instantly.ai
-- Emails in instantly.ai maken. 
-- NIET aan datascraper werken
-- Systeem voor personal trainers maken voor fitness app ?
-- 
-
-AI WEEKPLANNING ALGORITME
-Input:
-Gegeven	Verplicht?	Toelichting
-Beschikbare tijden  ✅ Eis	Hier mag je nooit buiten plannen.
-Maximale lessen per dag	🔁 Wens	Bijv. “max 5 lessen per dag”, om geen burn-out te krijgen.
-Tijd tussen lessen (pauze)	✅ Eis	Bijv. 5 min reistijd/herstel tussen lessen.
-Aantal grote pauzes per dag (bijv. 2x 30 minuten) 🔁 Wens Bijv. lunch en middagpauze.
-Lengte per grote pauze (bijv. 20–30 min) ✅ Eis	Planning moet dit inbouwen.
-Locaties moeten aansluiten (toggle)	🔁 Wens	Indien aan: probeer leerlingen bij elkaar in de buurt te plannen.
-👤 Voor elke leerling
-Beschikbare dagen/tijden	✅ Eis	Plan alleen als instructeur én leerling beschikbaar zijn
-Aantal lessen per week	✅ Eis	Bijv. 2 of 3 lessen
-Duur per les (in minuten)	✅ Eis	Bijv. 60 minuten
+- Naar het engels vertalen
+- Met ChatGPT en cursor systeem maken voor automatisch beschikbaarheid leerlingen verzamelen EERST VOLLEDIGE UITWERKING NOTEREN
+- Screenshots in playstore & appstore
 
 
+
+
+Todolist / Glitches:
+- In AI-Schedule pagina alles automatisch opslaan ipv een knop gebruiken
+- Beschikbaarheid leerling wordt niet goed geladen
+- In dashboard/lessons wordt geklikt op "AI Weekplanning" -> Er worden een BEWERKBAAR json bestand geladen/gemaakt in het EXACTE formaat van sample_input.json -> Dit bewerkbare bestand wordt geinitialiseerd met alle data vanuit de database -> In de ai-schedule pagina kan alle data die gebruikt wordt voor de ai planning worden aangepast. Let op: Deze data wordt tijdens het bewerken alleen maar geupdated naar de database -> Zodra er wordt geklikt op "Start Test Planning" wordt dit bewerkbare json bestand opnieuw geinitialiseerd met de gegevens van de database -> generate_week_planning.js leest de bewerkbare kopie van sample_input.json -> generate_week_planning.js maakt best_week_planning.json -> UI laat resultaat zien.
+
+
+Hele werking:
+Proces 1:
+1: Instructeur is in leerlingoverzicht
+2: Instructeur klikt op "Automatische beschikbaarheid  
+
+Proces 2: AI-Weekplanning
+1: Instructeur is op dashboard
+2: Instructeur klikt op "AI-Weekplanning" in dashboard
+3: Instructeur gaat naar AI-schedule pagina
+4: Op AI schedule pagina selecteert de instructeur de week voor AI-Weekplanning in eerste scherm 
+5: Op AI schedule pagina wordt beschikbaarheid van instructeur uit database gehaald en laten zien in tweede scherm
+6: Op AI schedule pagina wordt beschikbaarheid van leerlingen uit database gehaald en laten zien in derde scherm
+7: Op AI schedule pagina wordt AI-Weekplanning instellingen van instructeur uit database gehaald en laten zien in vierde scherm
+8: Als op de AI schedule pagina iets aangepast wordt, wordt dit direct geupdated in de database.
+9: Instructeur klikt in AI schedule pagina op "Start AI-Weekplanning" in vijfde scherm
+10: Er wordt een json bestand gemaakt in het exacte formaat van sample_input.json
+11: sample_input.json wordt geinitialiseerd met alle gegevens uit de database: Beschikbaarheid instructeur, Beschikbaarheid leerlingen, AI-Weekplanning instellingen van instructeur
+12: generate_week_planning.js wordt gerund.
+13: generate_week_planning.js gebruikt sample_input.json, en genereert vervolgens best_week_planning.json
+14: Frontend leest best_week_planning.json
+15: In AI-schedule pagina laat de UI het resultaat van best_week_planning.json zien: Elke les, totaal aantal lessen, en totale minuten tussen les. 
+16: Gebruiker kan per les selecteren of deze wordt toegevoegd
+17: Gebruiker klikt op "Voeg X lessen toe"
+18: Alle geselecteerde lessen worden toegevoegd aan het rooster van de instructeur.
 
 
 
