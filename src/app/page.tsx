@@ -175,7 +175,7 @@ export default function HomePage() {
 
               {/* App Store Button */}
               <a
-                href="https://apps.apple.com/us/app/optimalfitness-workout-diet/id6742567522"
+                href="https://apps.apple.com/us/app/rijflow/id6742565334"
                 className="inline-block"
               >
                 <Image
