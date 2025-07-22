@@ -68,6 +68,17 @@ export async function POST(request: NextRequest) {
     console.log('Searching for student availability with week_start:', weekStart, 'type:', typeof weekStart)
     console.log('Student IDs to search for:', students.map(s => s.id))
     
+    // First, let's check if there are ANY records for this week (regardless of student_id)
+    const { data: anyRecordsForWeek, error: anyRecordsError } = await supabase
+      .from('student_availability')
+      .select('id, student_id, week_start, availability_data')
+      .eq('week_start', weekStart)
+    
+    console.log('ANY records for week', weekStart, ':', anyRecordsForWeek?.length || 0)
+    if (anyRecordsForWeek && anyRecordsForWeek.length > 0) {
+      console.log('Available student_ids in database:', anyRecordsForWeek.map(r => r.student_id))
+    }
+    
     const { data: studentAvailability, error: availabilityError } = await supabase
       .from('student_availability')
       .select('student_id, availability_data, week_start')
@@ -134,7 +145,8 @@ export async function POST(request: NextRequest) {
       },
       allStudentAvailability: studentAvailability || [],
       allStudentAvailabilityRecords: allStudentAvailability || [],
-      anyAvailabilityForWeek: anyAvailabilityForWeek || []
+      anyAvailabilityForWeek: anyAvailabilityForWeek || [],
+      anyRecordsForWeek: anyRecordsForWeek || []
     }
 
     console.log('Debug info:', debugInfo)
