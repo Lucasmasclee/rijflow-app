@@ -61,20 +61,20 @@ SELECT
 -- Test get_ai_weekplanning_data functie (alleen als er instructeurs zijn)
 DO $$
 DECLARE
-  instructor_id UUID;
+  instructor_uuid UUID;
   test_result JSONB;
 BEGIN
   -- Zoek een instructeur
-  SELECT id INTO instructor_id 
-  FROM auth.users 
-  WHERE id IN (SELECT DISTINCT instructor_id FROM students WHERE instructor_id IS NOT NULL)
+  SELECT u.id INTO instructor_uuid 
+  FROM auth.users u
+  WHERE u.id IN (SELECT DISTINCT s.instructor_id FROM students s WHERE s.instructor_id IS NOT NULL)
   LIMIT 1;
   
-  IF instructor_id IS NOT NULL THEN
+  IF instructor_uuid IS NOT NULL THEN
     -- Test de functie
-    SELECT get_ai_weekplanning_data(instructor_id, '2025-01-20'::date) INTO test_result;
+    SELECT get_ai_weekplanning_data(instructor_uuid, '2025-01-20'::date) INTO test_result;
     
-    RAISE NOTICE 'get_ai_weekplanning_data test voor instructeur %: %', instructor_id, test_result;
+    RAISE NOTICE 'get_ai_weekplanning_data test voor instructeur %: %', instructor_uuid, test_result;
   ELSE
     RAISE NOTICE 'Geen instructeurs gevonden om te testen';
   END IF;
@@ -87,19 +87,19 @@ END $$;
 -- Test instructor availability insertie
 DO $$
 DECLARE
-  instructor_id UUID;
+  instructor_uuid UUID;
 BEGIN
   -- Zoek een instructeur
-  SELECT id INTO instructor_id 
-  FROM auth.users 
-  WHERE id IN (SELECT DISTINCT instructor_id FROM students WHERE instructor_id IS NOT NULL)
+  SELECT u.id INTO instructor_uuid 
+  FROM auth.users u
+  WHERE u.id IN (SELECT DISTINCT s.instructor_id FROM students s WHERE s.instructor_id IS NOT NULL)
   LIMIT 1;
   
-  IF instructor_id IS NOT NULL THEN
+  IF instructor_uuid IS NOT NULL THEN
     -- Test insert
     INSERT INTO instructor_availability (instructor_id, week_start, availability_data, settings)
     VALUES (
-      instructor_id,
+      instructor_uuid,
       '2025-01-20'::date,
       '{
         "maandag": ["09:00", "17:00"],
@@ -119,7 +119,7 @@ BEGIN
     )
     ON CONFLICT (instructor_id, week_start) DO NOTHING;
     
-    RAISE NOTICE 'Instructor availability test data toegevoegd voor instructeur %', instructor_id;
+    RAISE NOTICE 'Instructor availability test data toegevoegd voor instructeur %', instructor_uuid;
   ELSE
     RAISE NOTICE 'Geen instructeurs gevonden om test data toe te voegen';
   END IF;
@@ -128,19 +128,19 @@ END $$;
 -- Test student availability insertie
 DO $$
 DECLARE
-  student_id UUID;
+  student_uuid UUID;
 BEGIN
   -- Zoek een student
-  SELECT id INTO student_id 
-  FROM students 
-  WHERE instructor_id IS NOT NULL
+  SELECT s.id INTO student_uuid 
+  FROM students s
+  WHERE s.instructor_id IS NOT NULL
   LIMIT 1;
   
-  IF student_id IS NOT NULL THEN
+  IF student_uuid IS NOT NULL THEN
     -- Test insert
     INSERT INTO student_availability (student_id, week_start, availability_data)
     VALUES (
-      student_id,
+      student_uuid,
       '2025-01-20'::date,
       '{
         "maandag": ["09:00", "17:00"],
@@ -150,7 +150,7 @@ BEGIN
     )
     ON CONFLICT (student_id, week_start) DO NOTHING;
     
-    RAISE NOTICE 'Student availability test data toegevoegd voor student %', student_id;
+    RAISE NOTICE 'Student availability test data toegevoegd voor student %', student_uuid;
   ELSE
     RAISE NOTICE 'Geen studenten gevonden om test data toe te voegen';
   END IF;

@@ -82,9 +82,9 @@ export default function LessonsPage() {
   const [selectedTargetWeek, setSelectedTargetWeek] = useState<Date | null>(null)
   const [copyingLessons, setCopyingLessons] = useState(false)
 
-  // AI Schedule week selection functionality
-  const [showAIScheduleModal, setShowAIScheduleModal] = useState(false)
-  const [selectedAIScheduleWeek, setSelectedAIScheduleWeek] = useState<Date | null>(null)
+  // AI Schedule week selection functionality - COMMENTED OUT: now handled in AI schedule page
+  // const [showAIScheduleModal, setShowAIScheduleModal] = useState(false)
+  // const [selectedAIScheduleWeek, setSelectedAIScheduleWeek] = useState<Date | null>(null)
 
   useEffect(() => {
     if (!loading && !user) {
@@ -222,35 +222,35 @@ export default function LessonsPage() {
     setShowCopyModal(true)
   }
 
-  // Handle AI schedule button click
-  const handleAIScheduleClick = () => {
-    setShowAIScheduleModal(true)
-  }
+  // Handle AI schedule button click - COMMENTED OUT: now handled in AI schedule page
+  // const handleAIScheduleClick = () => {
+  //   setShowAIScheduleModal(true)
+  // }
 
-  // Handle AI schedule week selection
-  const handleAIScheduleWeekSelection = async (targetWeek: Date) => {
-    if (!user) return
-    
-    setSelectedAIScheduleWeek(targetWeek)
-    setShowAIScheduleModal(false)
-    
-    try {
-      // Navigate directly to AI schedule page with week parameter
-      const weekStart = getMonday(targetWeek)
-      const weekStartString = formatDateToISO(weekStart)
-      
-      console.log('Selected week:', targetWeek)
-      console.log('Calculated Monday:', weekStart)
-      console.log('Week start string:', weekStartString)
-      
-      // Navigate to AI schedule page with week parameter
-      router.push(`/dashboard/ai-schedule?week=${weekStartString}`)
-      
-    } catch (error) {
-      console.error('Error navigating to AI schedule:', error)
-      toast.error('Fout bij navigeren naar AI weekplanning')
-    }
-  }
+  // Handle AI schedule week selection - COMMENTED OUT: now handled in AI schedule page
+  // const handleAIScheduleWeekSelection = async (targetWeek: Date) => {
+  //   if (!user) return
+  //   
+  //   setSelectedAIScheduleWeek(targetWeek)
+  //   setShowAIScheduleModal(false)
+  //   
+  //   try {
+  //     // Navigate directly to AI schedule page with week parameter
+  //     const weekStart = getMonday(targetWeek)
+  //     const weekStartString = formatDateToISO(weekStart)
+  //     
+  //     console.log('Selected week:', targetWeek)
+  //     console.log('Calculated Monday:', weekStart)
+  //     console.log('Week start string:', weekStartString)
+  //     
+  //     // Navigate to AI schedule page with week parameter
+  //     router.push(`/dashboard/ai-schedule?week=${weekStartString}`)
+  //     
+  //   } catch (error) {
+  //     console.error('Error navigating to AI schedule:', error)
+  //     toast.error('Fout bij navigeren naar AI weekplanning')
+  //   }
+  // }
 
   // Handle week selection for copying
   const handleWeekSelection = (targetWeek: Date) => {
@@ -724,13 +724,14 @@ export default function LessonsPage() {
               <Plus className="h-4 w-4" />
               Nieuwe les
             </button>
-            <button
+            {/* AI Schedule button - COMMENTED OUT: now handled in AI schedule page */}
+            {/* <button
               onClick={handleAIScheduleClick}
               className="btn btn-secondary w-full flex items-center justify-center gap-2"
             >
               <Calendar className="h-4 w-4" />
               AI Weekplanning
-            </button>
+            </button> */}
             <Link
               href="/dashboard/schedule-settings"
               className="btn btn-secondary w-full flex items-center justify-center gap-2"
@@ -1319,8 +1320,8 @@ export default function LessonsPage() {
         </div>
       )}
 
-      {/* AI Schedule Week Selection Modal */}
-      {showAIScheduleModal && (
+      {/* AI Schedule Week Selection Modal - COMMENTED OUT: now handled in AI schedule page */}
+      {/* {showAIScheduleModal && (
         <div className="fixed inset-0 bg-gray-500 bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white rounded-lg p-6 w-full max-w-md mx-4">
             <div className="flex justify-between items-center mb-4">
@@ -1370,7 +1371,7 @@ export default function LessonsPage() {
             </div>
           </div>
         </div>
-      )}
+      )} */}
     </div>
   )
 } 
