@@ -307,6 +307,9 @@ function AISchedulePageContent() {
       if (result.message && result.message.includes('New availability created with default values')) {
         toast.success('Nieuwe beschikbaarheid aangemaakt met standaardwaarden')
       }
+
+      // Debug: Check if student availability records exist after loading
+      await debugStudentAvailability(weekStartString)
       
     } catch (error) {
       console.error('Error loading week data:', error)
@@ -321,6 +324,9 @@ function AISchedulePageContent() {
     
     try {
       const weekStartString = formatDateToISO(selectedWeek)
+      
+      console.log('Saving availability data for week:', weekStartString)
+      console.log('Number of students:', students.length)
       
       // Convert instructor availability to JSON format
       const instructorAvailabilityData: Record<string, string[]> = {}
@@ -341,36 +347,89 @@ function AISchedulePageContent() {
         return
       }
 
+      const requestBody = {
+        weekStart: weekStartString,
+        instructorAvailability: {
+          availability_data: instructorAvailabilityData,
+          settings: settings
+        },
+        studentAvailability: students.map(student => ({
+          id: student.id,
+          availability_data: student.availability_data || {}
+        }))
+      }
+
+      console.log('Sending request to update-availability:', requestBody)
+
       const response = await fetch('/api/ai-schedule/update-availability', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${session.access_token}`
         },
+        body: JSON.stringify(requestBody)
+      })
+
+      if (!response.ok) {
+        const error = await response.json()
+        console.error('Error response from update-availability:', error)
+        toast.error('Fout bij opslaan: ' + (error.error || 'Onbekende fout'))
+        return
+      }
+
+      const result = await response.json()
+      console.log('Success response from update-availability:', result)
+      toast.success('Beschikbaarheid succesvol opgeslagen')
+
+      // Debug: Check if student availability records were created
+      await debugStudentAvailability(weekStartString)
+      
+    } catch (error) {
+      console.error('Error saving availability:', error)
+      toast.error('Fout bij opslaan van beschikbaarheid')
+    }
+  }
+
+  const debugStudentAvailability = async (weekStart: string) => {
+    if (!user) return
+    
+    try {
+      const { data: { session } } = await supabase.auth.getSession()
+      
+      if (!session?.access_token) {
+        console.error('No session token available for debug')
+        return
+      }
+
+      const response = await fetch('/api/ai-schedule/debug-student-availability', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${session.access_token}`
+        },
         body: JSON.stringify({
-          weekStart: weekStartString,
-          instructorAvailability: {
-            availability_data: instructorAvailabilityData,
-            settings: settings
-          },
-          studentAvailability: students.map(student => ({
-            id: student.id,
-            availability_data: student.availability_data || {}
-          }))
+          weekStart,
+          instructorId: user.id
         })
       })
 
       if (!response.ok) {
         const error = await response.json()
-        toast.error('Fout bij opslaan: ' + (error.error || 'Onbekende fout'))
+        console.error('Debug API error:', error)
         return
       }
 
-      toast.success('Beschikbaarheid succesvol opgeslagen')
+      const result = await response.json()
+      console.log('Debug student availability result:', result.debugInfo)
+      
+      if (result.debugInfo.missingStudents > 0) {
+        console.warn('Missing student availability records:', result.debugInfo.missingStudentsDetails)
+      } else {
+        console.log('All students have availability records!')
+      }
       
     } catch (error) {
-      console.error('Error saving availability:', error)
-      toast.error('Fout bij opslaan van beschikbaarheid')
+      console.error('Error in debug function:', error)
     }
   }
 
@@ -437,7 +496,7 @@ function AISchedulePageContent() {
   }, [selectedWeek, user])
 
   // Navigation
-  const handleNext = () => {
+  const handleNext = async () => {
     if (currentStep === 'week-selection') {
       if (!selectedWeek) {
         toast.error('Selecteer eerst een week')
@@ -446,10 +505,16 @@ function AISchedulePageContent() {
       // Data is al geladen wanneer de week werd geselecteerd
       setCurrentStep('instructor')
     } else if (currentStep === 'instructor') {
+      // Sla instructeur beschikbaarheid op voordat we naar de volgende stap gaan
+      await saveAvailabilityData()
       setCurrentStep('students')
     } else if (currentStep === 'students') {
+      // Sla student beschikbaarheid op voordat we naar de volgende stap gaan
+      await saveAvailabilityData()
       setCurrentStep('settings')
     } else if (currentStep === 'settings') {
+      // Sla instellingen op voordat we naar de volgende stap gaan
+      await saveAvailabilityData()
       setCurrentStep('test-planning')
     }
   }
