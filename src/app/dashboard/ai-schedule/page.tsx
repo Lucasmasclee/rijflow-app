@@ -83,9 +83,14 @@ function AISchedulePageContent() {
   // Helper functions
   const getMonday = (date: Date) => {
     const newDate = new Date(date)
-    const day = newDate.getDay()
-    const diff = newDate.getDate() - day + (day === 0 ? -6 : 1)
-    newDate.setDate(diff)
+    const day = newDate.getDay() // 0 = zondag, 1 = maandag, ..., 6 = zaterdag
+    // Bereken hoeveel dagen we terug moeten naar maandag
+    // Als het zondag is (day = 0), dan moeten we 6 dagen terug
+    // Als het maandag is (day = 1), dan hoeven we 0 dagen terug
+    // Als het dinsdag is (day = 2), dan moeten we 1 dag terug
+    // etc.
+    const daysToSubtract = day === 0 ? 6 : day - 1
+    newDate.setDate(newDate.getDate() - daysToSubtract)
     return newDate
   }
 
