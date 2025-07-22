@@ -153,7 +153,11 @@ export async function POST(request: NextRequest) {
       )
     }
 
+    // Debug: Log de data die we krijgen
+    console.log('AI data received:', aiData)
+
     if (!aiData || !aiData.instructeur || !aiData.leerlingen) {
+      console.error('No valid AI data found:', aiData)
       return NextResponse.json(
         { error: 'No data found for the specified instructor and week' },
         { status: 404 }
