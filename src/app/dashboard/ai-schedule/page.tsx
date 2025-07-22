@@ -97,7 +97,11 @@ function AISchedulePageContent() {
   const formatDateToISO = (date: Date) => {
     // Zorg ervoor dat we de maandag van de geselecteerde week krijgen
     const mondayOfWeek = getMonday(date)
-    return mondayOfWeek.toISOString().split('T')[0]
+    // Use timezone-safe date formatting to avoid UTC conversion issues
+    const year = mondayOfWeek.getFullYear()
+    const month = String(mondayOfWeek.getMonth() + 1).padStart(2, '0')
+    const day = String(mondayOfWeek.getDate()).padStart(2, '0')
+    return `${year}-${month}-${day}`
   }
 
   const generateAvailableWeeks = () => {
