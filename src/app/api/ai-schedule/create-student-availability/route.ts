@@ -124,17 +124,45 @@ export async function POST(request: NextRequest) {
 
     console.log('Creating availability records for students:', missingStudents.map(s => s.first_name + ' ' + s.last_name))
 
-    const { error: insertError } = await supabase
+    console.log('Attempting to insert availability records:', availabilityRecords)
+
+    const { data: insertData, error: insertError } = await supabase
       .from('student_availability')
       .insert(availabilityRecords)
+      .select()
 
     if (insertError) {
       console.error('Error creating student availability records:', insertError)
+      console.error('Error details:', {
+        code: insertError.code,
+        message: insertError.message,
+        details: insertError.details,
+        hint: insertError.hint
+      })
+      
+      // Check if it's an RLS error
+      if (insertError.message.includes('row-level security policy')) {
+        return NextResponse.json(
+          { 
+            error: 'RLS policy error: ' + insertError.message,
+            details: 'The row-level security policy is preventing the insert. Please check the RLS policies.',
+            hint: 'Run the RLS fix script in Supabase SQL Editor'
+          },
+          { status: 403 }
+        )
+      }
+      
       return NextResponse.json(
-        { error: 'Failed to create student availability records: ' + insertError.message },
+        { 
+          error: 'Failed to create student availability records: ' + insertError.message,
+          details: insertError.details,
+          hint: insertError.hint
+        },
         { status: 500 }
       )
     }
+
+    console.log('Successfully inserted records:', insertData)
 
     console.log('Successfully created availability records for', missingStudents.length, 'students')
 

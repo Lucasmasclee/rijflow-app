@@ -90,7 +90,9 @@ function AISchedulePageContent() {
   }
 
   const formatDateToISO = (date: Date) => {
-    return date.toISOString().split('T')[0]
+    // Zorg ervoor dat we de maandag van de geselecteerde week krijgen
+    const mondayOfWeek = getMonday(date)
+    return mondayOfWeek.toISOString().split('T')[0]
   }
 
   const generateAvailableWeeks = () => {
@@ -412,6 +414,10 @@ function AISchedulePageContent() {
 
       const weekStartString = formatDateToISO(selectedWeek)
       
+      // Debug: Log de datum berekening
+      console.log('Selected week date:', selectedWeek)
+      console.log('Calculated Monday of week:', getMonday(selectedWeek))
+      console.log('Formatted week start string:', weekStartString)
       console.log('Ensuring student availability for week:', weekStartString)
 
       const response = await fetch('/api/ai-schedule/create-student-availability', {
