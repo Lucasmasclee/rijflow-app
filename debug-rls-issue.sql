@@ -120,21 +120,44 @@ ORDER BY routine_name;
 SELECT get_week_dates('2025-01-20'::date) as test_week_dates;
 
 -- ============================================================================
--- STAP 8: CONTROLEER API CALL PARAMETERS
+-- STAP 8: ALTERNATIEVE RLS POLICY TEST
 -- ============================================================================
 
--- Controleer of de API de juiste parameters gebruikt
--- Dit helpt om te zien of het probleem in de API call zit
+-- Als de normale policy niet werkt, probeer deze tijdelijke fix:
+-- DROP POLICY IF EXISTS "Instructors can manage their own availability" ON instructor_availability;
+-- CREATE POLICY "Instructors can manage their own availability" ON instructor_availability
+--   FOR ALL USING (auth.uid() IS NOT NULL AND auth.uid() = instructor_id);
 
--- Test de get_ai_weekplanning_data functie met een dummy instructor_id
--- (Dit zou een error moeten geven als de instructor niet bestaat, maar geen RLS error)
+-- ============================================================================
+-- STAP 9: CONTROLEER AUTH CONTEXT
+-- ============================================================================
+
+-- Controleer of de auth context correct is ingesteld
 SELECT 
-  'Testing get_ai_weekplanning_data function' as test_info,
-  CASE 
-    WHEN EXISTS (
-      SELECT 1 
-      FROM get_ai_weekplanning_data('00000000-0000-0000-0000-000000000000'::uuid, '2025-01-20'::date)
-    ) 
-    THEN 'Function works' 
-    ELSE 'Function error' 
-  END as function_status; 
+  'Auth context check' as info,
+  auth.uid() as current_user_id,
+  auth.jwt() ->> 'email' as user_email,
+  auth.jwt() ->> 'role' as user_role;
+
+-- ============================================================================
+-- STAP 10: TEST ZONDER RLS (TIJDELIJK)
+-- ============================================================================
+
+-- Als laatste redmiddel, test zonder RLS (vergeet niet om het later weer aan te zetten!)
+-- ALTER TABLE instructor_availability DISABLE ROW LEVEL SECURITY;
+
+-- Test insert zonder RLS:
+-- INSERT INTO instructor_availability (
+--   instructor_id,
+--   week_start,
+--   availability_data,
+--   settings
+-- ) VALUES (
+--   auth.uid(),
+--   '2025-01-20'::date,
+--   '{"maandag": ["09:00", "17:00"]}'::jsonb,
+--   '{"maxLessenPerDag": 6}'::jsonb
+-- );
+
+-- Zet RLS weer aan:
+-- ALTER TABLE instructor_availability ENABLE ROW LEVEL SECURITY; 

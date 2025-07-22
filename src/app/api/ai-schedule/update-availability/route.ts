@@ -3,14 +3,26 @@ import { supabase } from '@/lib/supabase'
 
 export async function POST(request: NextRequest) {
   try {
-    const { instructorId, weekStart, instructorAvailability, studentAvailability } = await request.json()
+    const { weekStart, instructorAvailability, studentAvailability } = await request.json()
 
-    if (!instructorId || !weekStart) {
+    if (!weekStart) {
       return NextResponse.json(
-        { error: 'Missing required parameters: instructorId and weekStart' },
+        { error: 'Missing required parameter: weekStart' },
         { status: 400 }
       )
     }
+
+    // Get the current authenticated user
+    const { data: userData, error: userError } = await supabase.auth.getUser()
+    
+    if (userError || !userData?.user?.id) {
+      return NextResponse.json(
+        { error: 'Not authenticated' },
+        { status: 401 }
+      )
+    }
+
+    const instructorId = userData.user.id // Always use the current user's ID
 
     console.log('Updating availability for instructor:', instructorId, 'week:', weekStart)
 

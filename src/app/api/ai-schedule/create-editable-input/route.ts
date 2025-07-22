@@ -3,22 +3,29 @@ import { supabase } from '@/lib/supabase'
 
 export async function POST(request: NextRequest) {
   try {
-    const { instructorId, weekStart } = await request.json()
+    const { weekStart } = await request.json()
 
-    if (!instructorId || !weekStart) {
+    if (!weekStart) {
       return NextResponse.json(
-        { error: 'Missing required parameters: instructorId and weekStart' },
+        { error: 'Missing required parameter: weekStart' },
         { status: 400 }
       )
     }
 
-    console.log('Creating editable input for instructor:', instructorId, 'week:', weekStart)
-
-    // Debug: Controleer of de gebruiker bestaat
+    // Get the current authenticated user
     const { data: userData, error: userError } = await supabase.auth.getUser()
-    console.log('Current user:', userData?.user?.id)
-    console.log('Requested instructorId:', instructorId)
-    console.log('User match:', userData?.user?.id === instructorId)
+    
+    if (userError || !userData?.user?.id) {
+      return NextResponse.json(
+        { error: 'Not authenticated' },
+        { status: 401 }
+      )
+    }
+
+    const instructorId = userData.user.id // Always use the current user's ID
+
+    console.log('Creating editable input for instructor:', instructorId, 'week:', weekStart)
+    console.log('Current user:', userData.user.id)
 
     // Eerst controleren of er al beschikbaarheid bestaat voor deze instructeur en week
     const { data: existingAvailability, error: checkError } = await supabase

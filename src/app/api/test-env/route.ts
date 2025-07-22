@@ -1,54 +1,71 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createClient } from '@supabase/supabase-js'
+import { supabase } from '@/lib/supabase'
 
 export async function GET(request: NextRequest) {
   try {
-    // Check environment variables
-    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
-    const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+    // Test 1: Controleer authenticatie
+    const { data: userData, error: userError } = await supabase.auth.getUser()
     
-    // Get the authorization header
-    const authHeader = request.headers.get('authorization')
-    
-    const response: any = {
-      environment: {
-        supabaseUrl: supabaseUrl ? 'Set' : 'Missing',
-        supabaseAnonKey: supabaseAnonKey ? 'Set' : 'Missing',
-      },
-      auth: {
-        hasAuthHeader: !!authHeader,
-        startsWithBearer: authHeader?.startsWith('Bearer ') || false,
-        tokenLength: authHeader ? authHeader.replace('Bearer ', '').length : 0
-      }
+    if (userError || !userData.user) {
+      return NextResponse.json(
+        { error: 'Not authenticated', userError },
+        { status: 401 }
+      )
     }
-    
-    // If we have a token, try to validate it
-    if (authHeader && authHeader.startsWith('Bearer ')) {
-      const token = authHeader.replace('Bearer ', '')
-      
-      if (supabaseUrl && supabaseAnonKey) {
-        const supabase = createClient(supabaseUrl, supabaseAnonKey, {
-          global: {
-            headers: {
-              Authorization: `Bearer ${token}`
-            }
-          }
-        })
-        
-        const { data: { user }, error } = await supabase.auth.getUser()
-        
-        response.auth = {
-          ...response.auth,
-          user: user ? { id: user.id, email: user.email } : null,
-          error: error?.message || null
-        }
-      }
+
+    const userId = userData.user.id
+
+    // Test 2: Controleer tabel structuur
+    const { data: tableStructure, error: tableError } = await supabase
+      .from('instructor_availability')
+      .select('*')
+      .limit(0)
+
+    // Test 3: Probeer een test insert
+    const testData = {
+      instructor_id: userId,
+      week_start: '2025-01-20',
+      availability_data: { maandag: ["09:00", "17:00"] },
+      settings: { maxLessenPerDag: 6 }
     }
-    
-    return NextResponse.json(response)
-    
+
+    const { data: insertData, error: insertError } = await supabase
+      .from('instructor_availability')
+      .insert(testData)
+      .select()
+
+    if (insertError) {
+      return NextResponse.json({
+        success: false,
+        error: 'Insert failed',
+        details: {
+          code: insertError.code,
+          message: insertError.message,
+          details: insertError.details,
+          hint: insertError.hint
+        },
+        user: userId,
+        testData
+      }, { status: 500 })
+    }
+
+    // Test 4: Verwijder test data
+    await supabase
+      .from('instructor_availability')
+      .delete()
+      .eq('instructor_id', userId)
+      .eq('week_start', '2025-01-20')
+
+    return NextResponse.json({
+      success: true,
+      message: 'RLS test passed',
+      user: userId,
+      tableStructure: tableStructure ? 'Table exists' : 'Table error',
+      insertTest: 'PASSED'
+    })
+
   } catch (error) {
-    console.error('Error in test-env API:', error)
+    console.error('Test error:', error)
     return NextResponse.json(
       { error: 'Internal server error', details: error },
       { status: 500 }

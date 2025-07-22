@@ -16,7 +16,29 @@ export async function GET(request: NextRequest) {
     const userId = userData.user.id
     console.log('Testing RLS for user:', userId)
 
-    // Test 1: Probeer een test record toe te voegen
+    // Test 1: Controleer tabel structuur
+    const { data: tableInfo, error: tableError } = await supabase
+      .from('information_schema.columns')
+      .select('column_name, data_type, is_nullable')
+      .eq('table_schema', 'public')
+      .eq('table_name', 'instructor_availability')
+      .order('ordinal_position')
+
+    if (tableError) {
+      console.error('Table structure error:', tableError)
+    }
+
+    // Test 2: Controleer RLS policies
+    let policies = null
+    try {
+      const { data: policiesData, error: policiesError } = await supabase
+        .rpc('get_policies', { table_name: 'instructor_availability' })
+      policies = policiesData
+    } catch (error) {
+      console.log('RPC not available, skipping policies check')
+    }
+
+    // Test 3: Probeer een test record toe te voegen
     const testData = {
       instructor_id: userId,
       week_start: '2025-01-20',
@@ -43,13 +65,15 @@ export async function GET(request: NextRequest) {
           hint: insertError.hint
         },
         user: userId,
-        testData
+        testData,
+        tableStructure: tableInfo,
+        policies: policies
       }, { status: 500 })
     }
 
     console.log('Insert successful:', insertData)
 
-    // Test 2: Probeer de data op te halen
+    // Test 4: Probeer de data op te halen
     const { data: selectData, error: selectError } = await supabase
       .from('instructor_availability')
       .select('*')
@@ -68,7 +92,7 @@ export async function GET(request: NextRequest) {
 
     console.log('Select successful:', selectData)
 
-    // Test 3: Verwijder de test data
+    // Test 5: Verwijder de test data
     const { error: deleteError } = await supabase
       .from('instructor_availability')
       .delete()
@@ -95,7 +119,9 @@ export async function GET(request: NextRequest) {
         insert: 'PASSED',
         select: 'PASSED',
         delete: 'PASSED'
-      }
+      },
+      tableStructure: tableInfo,
+      policies: policies
     })
 
   } catch (error) {

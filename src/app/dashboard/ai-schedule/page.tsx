@@ -223,7 +223,6 @@ function AISchedulePageContent() {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          instructorId: user.id,
           weekStart: weekStartString
         })
       })
@@ -331,7 +330,6 @@ function AISchedulePageContent() {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          instructorId: user.id,
           weekStart: weekStartString,
           instructorAvailability: {
             availability_data: instructorAvailabilityData,
