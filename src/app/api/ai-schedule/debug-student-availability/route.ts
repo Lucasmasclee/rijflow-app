@@ -60,9 +60,11 @@ export async function POST(request: NextRequest) {
     }
 
     // Get existing student availability records
+    console.log('Searching for student availability with week_start:', weekStart, 'type:', typeof weekStart)
+    
     const { data: studentAvailability, error: availabilityError } = await supabase
       .from('student_availability')
-      .select('student_id, availability_data')
+      .select('student_id, availability_data, week_start')
       .in('student_id', students.map(s => s.id))
       .eq('week_start', weekStart)
 
@@ -77,6 +79,17 @@ export async function POST(request: NextRequest) {
     // Find missing students
     const existingStudentIds = studentAvailability?.map(sa => sa.student_id) || []
     const missingStudents = students.filter(s => !existingStudentIds.includes(s.id))
+
+    // Get ALL student availability records for this instructor (for debugging)
+    const { data: allStudentAvailability, error: allAvailabilityError } = await supabase
+      .from('student_availability')
+      .select('student_id, week_start, availability_data')
+      .in('student_id', students.map(s => s.id))
+      .order('week_start', { ascending: true })
+
+    if (allAvailabilityError) {
+      console.error('Error fetching all student availability:', allAvailabilityError)
+    }
 
     const debugInfo = {
       weekStart,
@@ -93,7 +106,15 @@ export async function POST(request: NextRequest) {
       missingStudentsDetails: missingStudents.map(s => ({
         id: s.id,
         name: `${s.first_name} ${s.last_name}`
-      }))
+      })),
+      // Add more debug information
+      searchQuery: {
+        weekStart,
+        weekStartType: typeof weekStart,
+        studentIds: students.map(s => s.id)
+      },
+      allStudentAvailability: studentAvailability || [],
+      allStudentAvailabilityRecords: allStudentAvailability || []
     }
 
     console.log('Debug info:', debugInfo)

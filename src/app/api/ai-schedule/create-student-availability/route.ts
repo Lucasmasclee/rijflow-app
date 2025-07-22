@@ -67,9 +67,11 @@ export async function POST(request: NextRequest) {
     }
 
     // Get existing student availability records for this week
+    console.log('Checking for existing availability with week_start:', weekStart, 'type:', typeof weekStart)
+    
     const { data: existingAvailability, error: availabilityError } = await supabase
       .from('student_availability')
-      .select('student_id')
+      .select('student_id, week_start')
       .in('student_id', students.map(s => s.id))
       .eq('week_start', weekStart)
 
@@ -84,6 +86,10 @@ export async function POST(request: NextRequest) {
     // Find students that don't have availability records for this week
     const existingStudentIds = existingAvailability?.map(sa => sa.student_id) || []
     const missingStudents = students.filter(s => !existingStudentIds.includes(s.id))
+    
+    console.log('Existing availability records found:', existingAvailability?.length || 0)
+    console.log('Existing records:', existingAvailability)
+    console.log('Missing students:', missingStudents.map(s => `${s.first_name} ${s.last_name}`))
 
     if (missingStudents.length === 0) {
       return NextResponse.json({
@@ -123,7 +129,7 @@ export async function POST(request: NextRequest) {
     }))
 
     console.log('Creating availability records for students:', missingStudents.map(s => s.first_name + ' ' + s.last_name))
-
+    console.log('Week start being used:', weekStart, 'type:', typeof weekStart)
     console.log('Attempting to insert availability records:', availabilityRecords)
 
     const { data: insertData, error: insertError } = await supabase
