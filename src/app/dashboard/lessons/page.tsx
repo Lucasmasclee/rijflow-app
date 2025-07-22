@@ -724,14 +724,13 @@ export default function LessonsPage() {
               <Plus className="h-4 w-4" />
               Nieuwe les
             </button>
-            {/* AI Schedule button - COMMENTED OUT: now handled in AI schedule page */}
-            {/* <button
-              onClick={handleAIScheduleClick}
+            <Link
+              href="/dashboard/ai-schedule"
               className="btn btn-secondary w-full flex items-center justify-center gap-2"
             >
               <Calendar className="h-4 w-4" />
               AI Weekplanning
-            </button> */}
+            </Link>
             <Link
               href="/dashboard/schedule-settings"
               className="btn btn-secondary w-full flex items-center justify-center gap-2"
