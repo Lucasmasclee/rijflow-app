@@ -100,6 +100,52 @@ export interface StudentAvailability {
   updated_at: string
 }
 
+// Nieuwe interfaces voor het herstructureerde systeem
+export interface NewStudentAvailability {
+  id: string
+  student_id: string
+  week_start: string // YYYY-MM-DD format
+  availability_data: Record<string, string[]> // { "maandag": ["09:00", "17:00"], ... }
+  created_at: string
+  updated_at: string
+}
+
+export interface NewInstructorAvailability {
+  id: string
+  instructor_id: string
+  week_start: string // YYYY-MM-DD format
+  availability_data: Record<string, string[]> // { "maandag": ["09:00", "17:00"], ... }
+  settings: {
+    maxLessenPerDag?: number
+    blokuren?: boolean
+    pauzeTussenLessen?: number
+    langePauzeDuur?: number
+    locatiesKoppelen?: boolean
+  }
+  created_at: string
+  updated_at: string
+}
+
+// Interface voor AI weekplanning data
+export interface AIWeekplanningData {
+  instructeur: {
+    beschikbareUren: Record<string, string[]>
+    datums: string[]
+    maxLessenPerDag: number
+    blokuren: boolean
+    pauzeTussenLessen: number
+    langePauzeDuur: number
+    locatiesKoppelen: boolean
+  }
+  leerlingen: Array<{
+    id: string
+    naam: string
+    lessenPerWeek: number
+    lesDuur: number
+    beschikbaarheid: Record<string, string[]>
+  }>
+}
+
 export interface InstructorAISettings {
   id: string
   instructor_id: string

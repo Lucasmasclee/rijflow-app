@@ -235,7 +235,7 @@ export default function LessonsPage() {
     setShowAIScheduleModal(false)
     
     try {
-      // Create editable input from database
+      // Navigate directly to AI schedule page with week parameter
       const weekStart = getMonday(targetWeek)
       const weekStartString = formatDateToISO(weekStart)
       
@@ -243,44 +243,12 @@ export default function LessonsPage() {
       console.log('Calculated Monday:', weekStart)
       console.log('Week start string:', weekStartString)
       
-      const response = await fetch('/api/ai-schedule/create-editable-input', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          instructorId: user.id,
-          weekStart: weekStartString
-        })
-      })
-
-      if (!response.ok) {
-        const error = await response.json()
-        const errorMessage = error.error || 'Onbekende fout'
-        
-        // Handle specific error cases
-        if (errorMessage.includes('No students found')) {
-          toast.error('Geen leerlingen gevonden. Voeg eerst leerlingen toe aan je rijschool.')
-        } else if (errorMessage.includes('Failed to fetch student availability')) {
-          toast.error('Fout bij het ophalen van leerling beschikbaarheid. Probeer het opnieuw.')
-        } else {
-          toast.error('Fout bij het maken van weekplanning: ' + errorMessage)
-        }
-        return
-      }
-
-      const result = await response.json()
-      
-      // Store the data in localStorage for the AI schedule page
-      localStorage.setItem('aiScheduleData', JSON.stringify(result.data))
-      localStorage.setItem('aiScheduleWeekStart', weekStartString)
-      
-      // Navigate to AI schedule page
+      // Navigate to AI schedule page with week parameter
       router.push(`/dashboard/ai-schedule?week=${weekStartString}`)
       
     } catch (error) {
-      console.error('Error creating editable input:', error)
-      toast.error('Fout bij het maken van weekplanning')
+      console.error('Error navigating to AI schedule:', error)
+      toast.error('Fout bij navigeren naar AI weekplanning')
     }
   }
 
