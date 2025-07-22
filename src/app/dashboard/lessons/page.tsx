@@ -761,7 +761,7 @@ export default function LessonsPage() {
               className="btn btn-secondary w-full flex items-center justify-center gap-2"
             >
               <Calendar className="h-4 w-4" />
-              AI-Weekplanning
+              AI Weekplanning
             </button>
             <Link
               href="/dashboard/schedule-settings"
@@ -1357,7 +1357,7 @@ export default function LessonsPage() {
           <div className="bg-white rounded-lg p-6 w-full max-w-md mx-4">
             <div className="flex justify-between items-center mb-4">
               <h3 className="text-lg font-semibold text-gray-900">
-                AI-Weekplanning voor...
+                AI Weekplanning voor...
               </h3>
               <button
                 onClick={() => setShowAIScheduleModal(false)}
@@ -1369,7 +1369,7 @@ export default function LessonsPage() {
             
             <div className="space-y-3">
               <p className="text-sm text-gray-600 mb-4">
-                Selecteer een week waarvoor je een AI-Weekplanning wilt genereren:
+                Selecteer een week waarvoor je een AI Weekplanning wilt genereren:
               </p>
               
               {getNext5Weeks().map((week, index) => {

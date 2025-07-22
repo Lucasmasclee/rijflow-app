@@ -5,8 +5,8 @@ import { ArrowLeft, ArrowRight, Users, Calendar, Settings, Brain, Check, X, Cloc
 import { useEffect, useState, Suspense, useRef } from 'react'
 import { useAuth } from '@/contexts/AuthContext'
 import { supabase } from '@/lib/supabase'
-import { Student, StudentAvailability } from '@/types/database'
-import { AIScheduleLesson, AIScheduleResponse } from '@/lib/openai'
+import { Student } from '@/types/database'
+
 import toast from 'react-hot-toast'
 import { useRouter, useSearchParams } from 'next/navigation'
 
@@ -78,12 +78,8 @@ function AISchedulePageContent() {
   const [students, setStudents] = useState<StudentWithScheduleData[]>([])
 
   // AI Resultaat
-  const [aiResponse, setAiResponse] = useState<AIScheduleResponse | null>(null)
   const [selectedLessons, setSelectedLessons] = useState<Set<string>>(new Set())
-  const [isGenerating, setIsGenerating] = useState(false)
   const [isAddingLessons, setIsAddingLessons] = useState(false)
-  const [aiPrompt, setAiPrompt] = useState<string>('')
-  const [hasGeneratedPrompt, setHasGeneratedPrompt] = useState(false)
 
   // Settings state
   const [settings, setSettings] = useState({
@@ -208,12 +204,6 @@ function AISchedulePageContent() {
     
     // Save to database
     saveInstructorAvailability()
-    
-    // Reset AI prompt als beschikbaarheid wordt gewijzigd
-    if (hasGeneratedPrompt) {
-      setHasGeneratedPrompt(false)
-      setAiPrompt('')
-    }
   }
 
   const handleTimeChange = (dayIndex: number, field: string, value: string) => {
@@ -221,12 +211,6 @@ function AISchedulePageContent() {
     
     // Save to database
     saveInstructorAvailability()
-    
-    // Reset AI prompt als beschikbaarheid wordt gewijzigd
-    if (hasGeneratedPrompt) {
-      setHasGeneratedPrompt(false)
-      setAiPrompt('')
-    }
   }
 
   // Student availability handlers
@@ -270,12 +254,6 @@ function AISchedulePageContent() {
     
     // Save to database
     saveStudentAvailabilityToDatabase(studentIndex)
-    
-    // Reset AI prompt als beschikbaarheid wordt gewijzigd
-    if (hasGeneratedPrompt) {
-      setHasGeneratedPrompt(false)
-      setAiPrompt('')
-    }
   }
 
   // Debounce timer for saving student availability
@@ -329,11 +307,7 @@ function AISchedulePageContent() {
       saveStudentAvailabilityToDatabase(studentIndex)
     }, 500)
     
-    // Reset AI prompt als beschikbaarheid wordt gewijzigd
-    if (hasGeneratedPrompt) {
-      setHasGeneratedPrompt(false)
-      setAiPrompt('')
-    }
+    // Availability updated
   }
 
   const handleStudentTimeBlur = (studentIndex: number, dayIndex: number, field: string, value: string) => {
@@ -389,12 +363,6 @@ function AISchedulePageContent() {
     
     // Save immediately on blur
     saveStudentAvailabilityToDatabase(studentIndex)
-    
-    // Reset AI prompt als beschikbaarheid wordt gewijzigd
-    if (hasGeneratedPrompt) {
-      setHasGeneratedPrompt(false)
-      setAiPrompt('')
-    }
   }
 
   const saveStudentAvailabilityToDatabase = async (studentIndex: number) => {
@@ -1312,8 +1280,8 @@ function AISchedulePageContent() {
 
     setIsRunningTestPlanning(true)
     try {
-      // First, update localStorage with current UI state (including availability)
-      updateLocalStorageData()
+      // First, reinitialize data from database to ensure we have the latest data
+      await reinitializeDataFromDatabaseSilently()
       
       // Then use the current data from localStorage
       const storedData = localStorage.getItem('aiScheduleData')
@@ -1337,7 +1305,7 @@ function AISchedulePageContent() {
 
       if (!response.ok) {
         const error = await response.json()
-        toast.error('Fout bij het uitvoeren van test planning: ' + (error.error || 'Onbekende fout'))
+        toast.error('Fout bij het uitvoeren van planning: ' + (error.error || 'Onbekende fout'))
         return
       }
 
@@ -1346,11 +1314,11 @@ function AISchedulePageContent() {
       console.log('Result:', JSON.stringify(result, null, 2))
       
       setTestPlanningResult(result.data)
-      toast.success('Test planning succesvol uitgevoerd')
+      toast.success('Weekplanning succesvol gegenereerd')
       
     } catch (error) {
-      console.error('Error running test planning:', error)
-      toast.error('Fout bij het uitvoeren van test planning')
+      console.error('Error running planning:', error)
+      toast.error('Fout bij het uitvoeren van planning')
     } finally {
       setIsRunningTestPlanning(false)
     }
@@ -1385,12 +1353,6 @@ function AISchedulePageContent() {
     
     // Update localStorage when student data changes
     updateLocalStorageData()
-    
-    // Reset AI prompt als leerling data wordt gewijzigd (including availability)
-    if (hasGeneratedPrompt && (field === 'availabilityText' || field === 'notes' || field === 'lessons' || field === 'minutes' || field === 'aiNotes')) {
-      setHasGeneratedPrompt(false)
-      setAiPrompt('')
-    }
   }
 
   // Check if value is different from default
@@ -1418,11 +1380,7 @@ function AISchedulePageContent() {
       return student
     }))
     
-    // Reset AI prompt when default values are reset
-    if (hasGeneratedPrompt) {
-      setHasGeneratedPrompt(false)
-      setAiPrompt('')
-    }
+    // Reset completed
   }
 
   // Navigation functions - simplified for editable data approach
@@ -1511,296 +1469,12 @@ function AISchedulePageContent() {
       }
     }
     
-    // Reset AI prompt als instellingen worden gewijzigd
-    if (hasGeneratedPrompt) {
-      setHasGeneratedPrompt(false)
-      setAiPrompt('')
-    }
+    // Settings updated
   }
 
-  // Generate AI prompt
-  const generateAIPrompt = async () => {
-    // Refresh student availability data from database first
-    await fetchStudentAvailability(students)
-    
-    // Fetch the latest availability data from the database
-    const availabilityData = await fetchLatestStudentAvailability()
-    
-    const requestData = {
-      instructorAvailability: availability,
-      students: students.map((student: StudentWithScheduleData) => {
-        // Get the availability for this student from the database
-        const studentAvailability = availabilityData.find((a: any) => a.student_id === student.id)
-        // Use the availability from student_availability table, fallback to current student.notes (which should contain the availability)
-        const availabilityText = studentAvailability?.notes || student.notes || 'Flexibel beschikbaar'
-        
-        return {
-          id: student.id,
-          firstName: student.first_name,
-          lastName: student.last_name,
-          lessons: student.lessons,
-          minutes: student.minutes,
-          aiNotes: student.aiNotes,
-          notes: availabilityText // Use actual database availability from student_availability table
-        }
-      }),
-      settings
-    }
+  // Generate AI prompt - removed as we now use actual planning
 
-    // Genereer de prompt (gebruik dezelfde logica als in openai.ts)
-    const { instructorAvailability: instructorAvail, students: studentsData, settings: settingsData } = requestData
-    
-    // Bereken de datums voor de geselecteerde week of de komende week als fallback
-    let targetWeekStart: Date
-    if (selectedWeek) {
-      // Use the selected week
-      targetWeekStart = new Date(selectedWeek)
-    } else {
-      // Fallback to next week if no week is selected
-      const today = new Date()
-      targetWeekStart = new Date(today)
-      targetWeekStart.setDate(today.getDate() + (8 - today.getDay()) % 7) // Volgende maandag
-    }
-    
-    const weekDates = []
-    for (let i = 0; i < 7; i++) {
-      const date = new Date(targetWeekStart)
-      date.setDate(targetWeekStart.getDate() + i)
-      weekDates.push(date)
-    }
-    
-    // Maak een mapping van dagen naar datums
-    const dayToDateMap = {
-      'monday': weekDates[0],
-      'tuesday': weekDates[1], 
-      'wednesday': weekDates[2],
-      'thursday': weekDates[3],
-      'friday': weekDates[4],
-      'saturday': weekDates[5],
-      'sunday': weekDates[6]
-    }
-    
-    // Instructeur beschikbaarheid met datums
-    const availabilityWithDates = instructorAvail
-      .filter((day: any) => day.available)
-      .map((day: any) => {
-        const date = dayToDateMap[day.day as keyof typeof dayToDateMap]
-        const dateStr = date.toLocaleDateString('nl-NL', { 
-          weekday: 'long', 
-          day: 'numeric', 
-          month: 'long' 
-        })
-        // Ensure time format is HH:MM
-        const startTime = day.startTime.split(':').slice(0, 2).join(':')
-        const endTime = day.endTime.split(':').slice(0, 2).join(':')
-        return `${dateStr} (${day.day}): ${startTime} - ${endTime}`
-      })
-      .join('\n')
-
-    // Leerlingen informatie
-    const studentsText = studentsData.map((student: any) => {
-      // Use the actual availability text from the student_availability table
-      // student.notes contains the availability from the database (set by fetchStudentAvailability)
-      const availabilityText = student.notes ? `\nBeschikbaarheid: ${student.notes}` : ''
-      const aiNotes = student.aiNotes ? `\nAI Notities: ${student.aiNotes}` : ''
-      const fullName = student.lastName ? `${student.firstName} ${student.lastName}` : student.firstName
-      
-      return `- ${fullName}:
-  ${student.lessons} lessen van ${student.minutes} minuten per week${availabilityText}${aiNotes}`
-    }).join('\n')
-
-    // Week overzicht met datums
-    const weekOverview = weekDates.map(date => {
-      const dayName = date.toLocaleDateString('nl-NL', { weekday: 'long' }).toLowerCase()
-      const dayKey = dayName === 'maandag' ? 'monday' :
-                    dayName === 'dinsdag' ? 'tuesday' :
-                    dayName === 'woensdag' ? 'wednesday' :
-                    dayName === 'donderdag' ? 'thursday' :
-                    dayName === 'vrijdag' ? 'friday' :
-                    dayName === 'zaterdag' ? 'saturday' : 'sunday'
-      
-      const dayData = instructorAvail.find((d: any) => d.day === dayKey)
-      const isAvailable = dayData?.available || false
-      const timeRange = isAvailable && dayData ? 
-        `${dayData.startTime.split(':').slice(0, 2).join(':')} - ${dayData.endTime.split(':').slice(0, 2).join(':')}` : 
-        'Niet beschikbaar'
-      
-      return `${date.toLocaleDateString('nl-NL', { 
-        weekday: 'long', 
-        day: 'numeric', 
-        month: 'long' 
-      })}: ${timeRange}`
-    }).join('\n')
-
-    // Bepaal de week titel op basis van of er een specifieke week is geselecteerd
-    const weekTitle = selectedWeek 
-      ? `PLANNING VOOR DE WEEK VAN ${targetWeekStart.toLocaleDateString('nl-NL', { day: 'numeric', month: 'long', year: 'numeric' })} - ${weekDates[6].toLocaleDateString('nl-NL', { day: 'numeric', month: 'long', year: 'numeric' })}`
-      : `PLANNING VOOR DE KOMENDE WEEK (${targetWeekStart.toLocaleDateString('nl-NL', { day: 'numeric', month: 'long', year: 'numeric' })} - ${weekDates[6].toLocaleDateString('nl-NL', { day: 'numeric', month: 'long', year: 'numeric' })})`
-
-    // Instellingen
-    const prompt = `
-${weekTitle}
-
-WEEK OVERZICHT:
-${weekOverview}
-
-PLANNING INSTELLINGEN:
-- Locaties verbinden: ${settingsData.connectLocations ? 'Ja' : 'Nee'}
-- Blokuren: ${settingsData.blokuren ? 'Ja' : 'Nee'}
-- Aantal pauzes per dag: ${settingsData.numberOfBreaks}
-- Lange pauze duur: ${settingsData.minutesPerBreak} minuten
-- Pauze tussen lessen: ${settingsData.minutesBreakEveryLesson} minuten
-- Pauze na elke leerling: ${settingsData.breakAfterEachStudent ? 'Ja' : 'Nee'}
-${settingsData.additionalSpecifications ? `- Extra specificaties: ${settingsData.additionalSpecifications}` : ''}
-
-KRITIEKE PLANNING REGELS:
-1. Plan ALLEEN op dagen én tijden dat de instructeur beschikbaar is (zie week overzicht hierboven)
-2. Plan ALLEEN op dagen én tijden dat de leerling beschikbaar is (uit hun beschikbaarheid notities)
-3. Als een leerling specifieke beschikbare dagen heeft, plan dan NOOIT op andere dagen
-4. Zoek naar Nederlandse en Engelse dagnamen in de notities (maandag/monday, dinsdag/tuesday, etc.)
-5. Als een leerling specifieke tijden heeft (bijv. "maandag 8:00 - 12:00"), plan dan ALLEEN binnen die tijden
-6. Verdeel de lessen gelijkmatig over de beschikbare dagen
-7. Respecteer de lesduur van elke leerling
-8. Plan pauzes tussen lessen volgens de instellingen
-9. Als er geen overlappende beschikbare dagen zijn, geef dan een waarschuwing
-
-BESCHIKBARE TIJDEN PER DAG:
-${availabilityWithDates}
-
-LEERLINGEN:
-${studentsText}
-
-BELANGRIJK: Geef ALTIJD een geldig JSON object terug in exact dit formaat, zonder extra tekst ervoor of erna. Gebruik de exacte datums uit het week overzicht hierboven:
-
-{
-  "lessons": [
-    {
-      "date": "YYYY-MM-DD",
-      "startTime": "HH:MM",
-      "endTime": "HH:MM", 
-      "studentId": "student-id",
-      "studentName": "Voornaam Achternaam",
-      "notes": "Optionele notities"
-    }
-  ],
-  "summary": "Samenvatting van het rooster voor de komende week",
-  "warnings": ["Eventuele waarschuwingen"]
-}
-
-OPDRACHT: Maak een optimaal lesrooster voor de geselecteerde week op basis van bovenstaande informatie. Zorg ervoor dat alle lessen worden ingepland binnen de beschikbare tijden en dat alle regels worden gevolgd.
-`
-
-    setAiPrompt(prompt)
-    setHasGeneratedPrompt(true)
-  }
-
-  // Send to AI
-  const handleSendToAI = async () => {
-    if (!user) return
-    
-    // Check if there are any students at all
-    if (students.length === 0) {
-      toast.error('Geen leerlingen gevonden. Voeg eerst leerlingen toe aan je rijschool.')
-      return
-    }
-    
-    setIsGenerating(true)
-    
-    try {
-      // DEBUG: Log all input data before making the API call
-      console.log('=== START TEST PLANNING DEBUG ===')
-      console.log('Current user:', user ? { id: user.id, email: user.email } : 'No user')
-      console.log('Current step:', currentStep)
-      console.log('Students data:', students)
-      console.log('Settings:', settings)
-      console.log('Instructor availability:', availability)
-      
-      // Log detailed student availability
-      console.log('=== STUDENT AVAILABILITY DETAILS ===')
-      students.forEach((student, index) => {
-        console.log(`Student ${index + 1}:`, {
-          id: student.id,
-          name: `${student.first_name} ${student.last_name || ''}`,
-          lessons: student.lessons,
-          minutes: student.minutes,
-          notes: student.notes,
-          aiNotes: student.aiNotes,
-          availability: student.availability,
-          availabilityText: student.availabilityText
-        })
-      })
-      
-      // Log instructor availability details
-      console.log('=== INSTRUCTOR AVAILABILITY DETAILS ===')
-      availability.forEach((avail, index) => {
-        console.log(`Day ${index + 1}:`, {
-          day: avail.day,
-          available: avail.available,
-          startTime: avail.startTime,
-          endTime: avail.endTime,
-          startHours: avail.startHours,
-          startMinutes: avail.startMinutes,
-          endHours: avail.endHours,
-          endMinutes: avail.endMinutes
-        })
-      })
-      
-      // Log settings details
-      console.log('=== SETTINGS DETAILS ===')
-      console.log('Settings:', {
-        connectLocations: settings.connectLocations,
-        numberOfBreaks: settings.numberOfBreaks,
-        minutesPerBreak: settings.minutesPerBreak,
-        minutesBreakEveryLesson: settings.minutesBreakEveryLesson,
-        breakAfterEachStudent: settings.breakAfterEachStudent,
-        sendNotifications: settings.sendNotifications,
-        blokuren: settings.blokuren,
-        additionalSpecifications: settings.additionalSpecifications
-      })
-      
-      console.log('=== END TEST PLANNING DEBUG ===')
-      
-      // Get the current session to get the JWT token
-      const { data: { session } } = await supabase.auth.getSession()
-      
-      if (!session?.access_token) {
-        throw new Error('Geen geldige sessie gevonden')
-      }
-      
-      // Roep de test AI API aan - gebruik de Python script
-      const response = await fetch('/api/ai-schedule/test', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${session.access_token}`
-        },
-        body: JSON.stringify({})
-      })
-
-      if (!response.ok) {
-        const errorData = await response.json()
-        const errorMessage = errorData.details 
-          ? `${errorData.error}: ${errorData.details}`
-          : errorData.error || 'Fout bij het genereren van het rooster'
-        throw new Error(errorMessage)
-      }
-
-      const aiResult = await response.json()
-      setAiResponse(aiResult)
-      
-      // Selecteer alle lessen standaard
-      const lessonIds = aiResult.lessons.map((lesson: any, index: number) => index.toString())
-      setSelectedLessons(new Set(lessonIds))
-      
-      toast.success('Rooster succesvol gegenereerd!')
-      
-    } catch (error) {
-      console.error('Error generating AI schedule:', error)
-      toast.error(error instanceof Error ? error.message : 'Fout bij het genereren van het rooster')
-    } finally {
-      setIsGenerating(false)
-    }
-  }
+  // Send to AI - removed as we now use actual planning
 
   // Handle lesson selection
   const handleLessonSelection = (lessonIndex: string) => {
@@ -1817,8 +1491,8 @@ OPDRACHT: Maak een optimaal lesrooster voor de geselecteerde week op basis van b
 
   // Handle bulk lesson selection
   const handleSelectAll = () => {
-    if (aiResponse && aiResponse.lessons) {
-      const allLessonIds = aiResponse.lessons.map((_, index) => index.toString())
+    if (testPlanningResult && testPlanningResult.lessons) {
+      const allLessonIds = testPlanningResult.lessons.map((_: any, index: number) => index.toString())
       setSelectedLessons(new Set(allLessonIds))
     }
   }
@@ -1829,9 +1503,9 @@ OPDRACHT: Maak een optimaal lesrooster voor de geselecteerde week op basis van b
 
   // Add selected lessons to database
   const handleAddSelectedLessons = async () => {
-    if (!user || !aiResponse || !aiResponse.lessons) return
+    if (!user || !testPlanningResult || !testPlanningResult.lessons) return
     
-    const selectedLessonData = aiResponse.lessons.filter((_, index) => 
+    const selectedLessonData = testPlanningResult.lessons.filter((_: any, index: number) => 
       selectedLessons.has(index.toString())
     )
     
@@ -2370,11 +2044,11 @@ OPDRACHT: Maak een optimaal lesrooster voor de geselecteerde week op basis van b
                   De AI zal een optimaal rooster maken op basis van je instellingen en beschikbaarheid.
                 </p>
                 <button
-                  onClick={handleSendToAI}
-                  disabled={isGenerating}
+                  onClick={handleStartTestPlanning}
+                  disabled={isRunningTestPlanning}
                   className="btn btn-primary flex items-center gap-2 mx-auto disabled:opacity-50"
                 >
-                  {isGenerating ? (
+                  {isRunningTestPlanning ? (
                     <>
                       <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
                       Planning genereren...
@@ -2382,25 +2056,25 @@ OPDRACHT: Maak een optimaal lesrooster voor de geselecteerde week op basis van b
                   ) : (
                     <>
                       <Brain className="h-4 w-4" />
-                      Start Test Planning
+                      Start Planning
                     </>
                   )}
                 </button>
               </div>
             </div>
             {/* Show results below the button if available */}
-            {aiResponse && (
+            {testPlanningResult && (
               <>
                 {/* Samenvatting */}
                 <div className="card">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                     <div className="bg-blue-50 p-4 rounded-lg">
                       <h4 className="font-medium text-blue-900 mb-1">Lessen ingepland</h4>
-                      <p className="text-2xl font-bold text-blue-600">{aiResponse.schedule_details?.lessen || aiResponse.lessons?.length || 0}</p>
+                      <p className="text-2xl font-bold text-blue-600">{testPlanningResult.schedule_details?.lessen || testPlanningResult.lessons?.length || 0}</p>
                     </div>
                     <div className="bg-green-50 p-4 rounded-lg">
                       <h4 className="font-medium text-green-900 mb-1">Totale tijd tussen lessen</h4>
-                      <p className="text-2xl font-bold text-green-600">{aiResponse.schedule_details?.totale_minuten_tussen_lessen || 0} min</p>
+                      <p className="text-2xl font-bold text-green-600">{testPlanningResult.schedule_details?.totale_minuten_tussen_lessen || 0} min</p>
                     </div>
                   </div>
                 </div>
@@ -2408,13 +2082,27 @@ OPDRACHT: Maak een optimaal lesrooster voor de geselecteerde week op basis van b
                 <div className="card">
                   <div className="flex items-center justify-between mb-4">
                     <h4 className="font-medium text-gray-900">
-                      Geselecteerd: {selectedLessons.size} van {aiResponse.lessons?.length || 0} lessen
+                      Geselecteerd: {selectedLessons.size} van {testPlanningResult.lessons?.length || 0} lessen
                     </h4>
+                    <div className="flex gap-2">
+                      <button
+                        onClick={handleSelectAll}
+                        className="text-sm text-blue-600 hover:text-blue-700"
+                      >
+                        Alles selecteren
+                      </button>
+                      <button
+                        onClick={handleDeselectAll}
+                        className="text-sm text-gray-600 hover:text-gray-700"
+                      >
+                        Selectie opheffen
+                      </button>
+                    </div>
                   </div>
                 </div>
                 {/* Lessen lijst */}
                 <div className="space-y-2">
-                  {aiResponse.lessons?.map((lesson, index) => {
+                  {testPlanningResult.lessons?.map((lesson: any, index: number) => {
                     const studentNameParts = lesson.studentName.split(' ')
                     const firstName = studentNameParts[0]
                     const lastNameInitial = studentNameParts.length > 1 ? studentNameParts[1][0] : ''
@@ -2450,14 +2138,14 @@ OPDRACHT: Maak een optimaal lesrooster voor de geselecteerde week op basis van b
                 </div>
                 {/* Leerlingen zonder les waarschuwing */}
                 <div className="card">
-                  {aiResponse.leerlingen_zonder_les && Object.keys(aiResponse.leerlingen_zonder_les).length > 0 && (
+                  {testPlanningResult.leerlingen_zonder_les && Object.keys(testPlanningResult.leerlingen_zonder_les).length > 0 && (
                     <div className="mt-4 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
                       <h5 className="font-medium text-yellow-800 mb-2">Leerlingen met onvoldoende lessen:</h5>
                       <div className="text-sm text-yellow-700">
-                        {Object.entries(aiResponse.leerlingen_zonder_les).map(([name, count]) => (
+                        {Object.entries(testPlanningResult.leerlingen_zonder_les).map(([name, count]: [string, any]) => (
                           <div key={name} className="flex justify-between">
                             <span>{name}</span>
-                            <span>{count} les(sen) tekort</span>
+                            <span>{count as number} les(sen) tekort</span>
                           </div>
                         ))}
                       </div>
@@ -2468,22 +2156,22 @@ OPDRACHT: Maak een optimaal lesrooster voor de geselecteerde week op basis van b
                 <div className="card">
                   <div className="text-center">
                     <p className="text-sm text-gray-600 mb-4">
-                      <strong>Tip:</strong> Bewerken kan na het toevoegen van lessen
+                      Selecteer de lessen die je wilt toevoegen aan je rooster
                     </p>
                     <button
                       onClick={handleAddSelectedLessons}
                       disabled={selectedLessons.size === 0 || isAddingLessons}
-                      className="btn btn-primary flex items-center gap-2 mx-auto disabled:opacity-50"
+                      className="btn btn-primary disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                       {isAddingLessons ? (
                         <>
-                          <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                          <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
                           Lessen toevoegen...
                         </>
                       ) : (
                         <>
-                          <Check className="h-4 w-4" />
-                          {selectedLessons.size} lessen toevoegen
+                          <Check className="h-4 w-4 mr-2" />
+                          Geselecteerde lessen toevoegen ({selectedLessons.size})
                         </>
                       )}
                     </button>
@@ -2626,7 +2314,7 @@ OPDRACHT: Maak een optimaal lesrooster voor de geselecteerde week op basis van b
                         <div className="p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
                           <h5 className="font-medium text-yellow-800 mb-2">Leerlingen met onvoldoende lessen:</h5>
                           <div className="text-sm text-yellow-700">
-                            {Object.entries(testPlanningResult.leerlingen_zonder_les).map(([name, count]) => (
+                            {Object.entries(testPlanningResult.leerlingen_zonder_les).map(([name, count]: [string, any]) => (
                               <div key={name} className="flex justify-between">
                                 <span>{name}</span>
                                 <span>{count as number} les(sen) tekort</span>
