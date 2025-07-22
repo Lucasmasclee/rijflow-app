@@ -217,10 +217,19 @@ function AISchedulePageContent() {
     try {
       const weekStartString = formatDateToISO(weekStart)
       
+      // Get the current session to include auth token
+      const { data: { session } } = await supabase.auth.getSession()
+      
+      if (!session?.access_token) {
+        toast.error('Niet ingelogd. Log opnieuw in.')
+        return
+      }
+
       const response = await fetch('/api/ai-schedule/create-editable-input', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          'Authorization': `Bearer ${session.access_token}`
         },
         body: JSON.stringify({
           weekStart: weekStartString
@@ -324,10 +333,19 @@ function AISchedulePageContent() {
         }
       })
       
+      // Get the current session to include auth token
+      const { data: { session } } = await supabase.auth.getSession()
+      
+      if (!session?.access_token) {
+        toast.error('Niet ingelogd. Log opnieuw in.')
+        return
+      }
+
       const response = await fetch('/api/ai-schedule/update-availability', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          'Authorization': `Bearer ${session.access_token}`
         },
         body: JSON.stringify({
           weekStart: weekStartString,

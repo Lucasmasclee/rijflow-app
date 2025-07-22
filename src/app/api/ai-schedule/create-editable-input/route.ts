@@ -12,20 +12,32 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Get the current authenticated user
-    const { data: userData, error: userError } = await supabase.auth.getUser()
-    
-    if (userError || !userData?.user?.id) {
+    // Get the current authenticated user from the request headers
+    const authHeader = request.headers.get('authorization')
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
       return NextResponse.json(
-        { error: 'Not authenticated' },
+        { error: 'No authorization token provided' },
         { status: 401 }
       )
     }
 
-    const instructorId = userData.user.id // Always use the current user's ID
+    const token = authHeader.replace('Bearer ', '')
+    
+    // Verify the token and get user info
+    const { data: { user }, error: authError } = await supabase.auth.getUser(token)
+    
+    if (authError || !user) {
+      console.error('Auth error:', authError)
+      return NextResponse.json(
+        { error: 'Invalid or expired token' },
+        { status: 401 }
+      )
+    }
+
+    const instructorId = user.id // Always use the current user's ID
 
     console.log('Creating editable input for instructor:', instructorId, 'week:', weekStart)
-    console.log('Current user:', userData.user.id)
+    console.log('Current user:', user.id)
 
     // Eerst controleren of er al beschikbaarheid bestaat voor deze instructeur en week
     const { data: existingAvailability, error: checkError } = await supabase
