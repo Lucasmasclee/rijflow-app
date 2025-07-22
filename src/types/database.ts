@@ -155,4 +155,13 @@ export interface InstructorAISettings {
   blokuren: boolean
   created_at: string
   updated_at: string
+}
+
+// Interface voor standaard beschikbaarheid van instructeurs
+export interface StandardAvailability {
+  id: string
+  instructor_id: string
+  availability_data: Record<string, string[]> // { "maandag": ["09:00", "17:00"], ... }
+  created_at: string
+  updated_at: string
 } 

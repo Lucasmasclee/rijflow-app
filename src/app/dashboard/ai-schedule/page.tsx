@@ -6,6 +6,7 @@ import { useEffect, useState, Suspense, useRef } from 'react'
 import { useAuth } from '@/contexts/AuthContext'
 import { supabase } from '@/lib/supabase'
 import { Student, AIWeekplanningData } from '@/types/database'
+import TimeInput from '@/components/TimeInput'
 
 import toast from 'react-hot-toast'
 import { useRouter, useSearchParams } from 'next/navigation'
@@ -589,7 +590,7 @@ function AISchedulePageContent() {
                       }`}
                     >
                       <div className="font-medium text-gray-900">
-                        {index === 0 ? 'Deze week' : 'Over ' + (index + 1) + ' Weken'}
+                        {index === 0 ? 'Deze week' : index === 1 ? 'Volgende week' : 'Over ' + (index) + ' weken'}
                       </div>
                       <div className="text-sm text-gray-600">
                         {weekStart.toLocaleDateString('nl-NL', {
@@ -640,47 +641,18 @@ function AISchedulePageContent() {
                       </div>
                       
                       {day.available && (
-                        <div className="flex items-center gap-2">
-                          <div className="flex items-center gap-1">
-                            <input
-                              type="text"
-                              value={day.startHours}
-                              onChange={(e) => handleTimeChange(index, 'startHours', e.target.value)}
-                              onBlur={(e) => handleTimeBlur(index, 'startHours', e.target.value)}
-                              className="w-8 h-8 text-center border border-gray-300 rounded text-sm"
-                              maxLength={2}
-                            />
-                            <span>:</span>
-                            <input
-                              type="text"
-                              value={day.startMinutes}
-                              onChange={(e) => handleTimeChange(index, 'startMinutes', e.target.value)}
-                              onBlur={(e) => handleTimeBlur(index, 'startMinutes', e.target.value)}
-                              className="w-8 h-8 text-center border border-gray-300 rounded text-sm"
-                              maxLength={2}
-                            />
-                          </div>
-                          <span>-</span>
-                          <div className="flex items-center gap-1">
-                            <input
-                              type="text"
-                              value={day.endHours}
-                              onChange={(e) => handleTimeChange(index, 'endHours', e.target.value)}
-                              onBlur={(e) => handleTimeBlur(index, 'endHours', e.target.value)}
-                              className="w-8 h-8 text-center border border-gray-300 rounded text-sm"
-                              maxLength={2}
-                            />
-                            <span>:</span>
-                            <input
-                              type="text"
-                              value={day.endMinutes}
-                              onChange={(e) => handleTimeChange(index, 'endMinutes', e.target.value)}
-                              onBlur={(e) => handleTimeBlur(index, 'endMinutes', e.target.value)}
-                              className="w-8 h-8 text-center border border-gray-300 rounded text-sm"
-                              maxLength={2}
-                            />
-                          </div>
-                        </div>
+                        <TimeInput
+                          startTime={day.startTime}
+                          endTime={day.endTime}
+                          onTimeChange={(startTime, endTime) => {
+                            const [startHours, startMinutes] = startTime.split(':')
+                            const [endHours, endMinutes] = endTime.split(':')
+                            updateTimeInputs(index, 'startHours', startHours)
+                            updateTimeInputs(index, 'startMinutes', startMinutes)
+                            updateTimeInputs(index, 'endHours', endHours)
+                            updateTimeInputs(index, 'endMinutes', endMinutes)
+                          }}
+                        />
                       )}
                     </div>
                   ))}

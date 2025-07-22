@@ -13,12 +13,14 @@ import {
 } from 'lucide-react'
 import Link from 'next/link'
 import { supabase } from '@/lib/supabase'
-import { InstructorAvailability } from '@/types/database'
+import { StandardAvailability } from '@/types/database'
 import toast from 'react-hot-toast'
+import TimeInput from '@/components/TimeInput'
 
 interface DayAvailability {
   day: string
   name: string
+  dutchName: string
   available: boolean
   startTime: string
   endTime: string
@@ -31,48 +33,40 @@ export default function ScheduleSettingsPage() {
   const { user, loading } = useAuth()
   const router = useRouter()
   const [availability, setAvailability] = useState<DayAvailability[]>([
-    { day: 'monday', name: 'Maandag', available: true, startTime: '09:00', endTime: '17:00' },
-    { day: 'tuesday', name: 'Dinsdag', available: true, startTime: '09:00', endTime: '17:00' },
-    { day: 'wednesday', name: 'Woensdag', available: true, startTime: '09:00', endTime: '17:00' },
-    { day: 'thursday', name: 'Donderdag', available: true, startTime: '09:00', endTime: '17:00' },
-    { day: 'friday', name: 'Vrijdag', available: true, startTime: '09:00', endTime: '17:00' },
-    { day: 'saturday', name: 'Zaterdag', available: false, startTime: '09:00', endTime: '17:00' },
-    { day: 'sunday', name: 'Zondag', available: false, startTime: '09:00', endTime: '17:00' }
+    { day: 'monday', name: 'Maandag', dutchName: 'maandag', available: true, startTime: '09:00', endTime: '17:00' },
+    { day: 'tuesday', name: 'Dinsdag', dutchName: 'dinsdag', available: true, startTime: '09:00', endTime: '17:00' },
+    { day: 'wednesday', name: 'Woensdag', dutchName: 'woensdag', available: true, startTime: '09:00', endTime: '17:00' },
+    { day: 'thursday', name: 'Donderdag', dutchName: 'donderdag', available: true, startTime: '09:00', endTime: '17:00' },
+    { day: 'friday', name: 'Vrijdag', dutchName: 'vrijdag', available: true, startTime: '09:00', endTime: '17:00' },
+    { day: 'saturday', name: 'Zaterdag', dutchName: 'zaterdag', available: false, startTime: '09:00', endTime: '17:00' },
+    { day: 'sunday', name: 'Zondag', dutchName: 'zondag', available: false, startTime: '09:00', endTime: '17:00' }
   ])
   const [saved, setSaved] = useState(false)
   const [loadingAvailability, setLoadingAvailability] = useState(true)
   const [saving, setSaving] = useState(false)
-
-  // Map day names to day numbers (0-6, Sunday-Saturday)
-  const dayToNumber = {
-    'sunday': 0,
-    'monday': 1,
-    'tuesday': 2,
-    'wednesday': 3,
-    'thursday': 4,
-    'friday': 5,
-    'saturday': 6
-  }
 
   // Initialize default availability for an instructor
   const initializeDefaultAvailability = async () => {
     if (!user) return
     
     try {
-      const defaultAvailability = [
-        { instructor_id: user.id, day_of_week: 1, available: true },  // Monday
-        { instructor_id: user.id, day_of_week: 2, available: true },  // Tuesday
-        { instructor_id: user.id, day_of_week: 3, available: true },  // Wednesday
-        { instructor_id: user.id, day_of_week: 4, available: true },  // Thursday
-        { instructor_id: user.id, day_of_week: 5, available: true },  // Friday
-        { instructor_id: user.id, day_of_week: 6, available: false }, // Saturday
-        { instructor_id: user.id, day_of_week: 0, available: false }  // Sunday
-      ]
+      const defaultAvailabilityData = {
+        maandag: ['09:00', '17:00'],
+        dinsdag: ['09:00', '17:00'],
+        woensdag: ['09:00', '17:00'],
+        donderdag: ['09:00', '17:00'],
+        vrijdag: ['09:00', '17:00'],
+        zaterdag: ['09:00', '17:00'],
+        zondag: ['09:00', '17:00']
+      }
 
       const { error } = await supabase
-        .from('instructor_availability')
-        .upsert(defaultAvailability, { 
-          onConflict: 'instructor_id,day_of_week',
+        .from('standard_availability')
+        .upsert({
+          instructor_id: user.id,
+          availability_data: defaultAvailabilityData
+        }, { 
+          onConflict: 'instructor_id',
           ignoreDuplicates: false 
         })
 
@@ -91,77 +85,67 @@ export default function ScheduleSettingsPage() {
     try {
       setLoadingAvailability(true)
       const { data, error } = await supabase
-        .from('instructor_availability')
+        .from('standard_availability')
         .select('*')
         .eq('instructor_id', user.id)
+        .single()
 
       if (error) {
         // If table doesn't exist, show error message
         if (error.code === '42P01') {
-          console.error('Instructor availability table not found. Please run the database setup script.')
+          console.error('Standard availability table not found. Please run the database setup script.')
           toast.error('Database tabel ontbreekt. Neem contact op met de beheerder.')
+          return
+        }
+        // If no data found, initialize default availability
+        if (error.code === 'PGRST116') {
+          await initializeDefaultAvailability()
+          // Fetch the newly created data
+          const { data: newData, error: newError } = await supabase
+            .from('standard_availability')
+            .select('*')
+            .eq('instructor_id', user.id)
+            .single()
+
+          if (newData) {
+            updateAvailabilityFromData(newData.availability_data)
+          }
           return
         }
         console.error('Error fetching availability:', error)
         return
       }
 
-      // Transform database data to UI format
-      if (data && data.length > 0) {
-        const dbAvailability = data.reduce((acc, item) => {
-          const dayName = Object.keys(dayToNumber).find(key => dayToNumber[key as keyof typeof dayToNumber] === item.day_of_week)
-          if (dayName) {
-            acc[dayName] = {
-              available: item.available,
-              startTime: item.start_time || '09:00',
-              endTime: item.end_time || '17:00'
-            }
-          }
-          return acc
-        }, {} as Record<string, { available: boolean; startTime: string; endTime: string }>)
-
-        setAvailability(prev => prev.map(day => ({
-          ...day,
-          available: dbAvailability[day.day]?.available ?? day.available,
-          startTime: dbAvailability[day.day]?.startTime ?? day.startTime,
-          endTime: dbAvailability[day.day]?.endTime ?? day.endTime
-        })))
-      } else {
-        // No data in database, initialize default availability and fetch again
-        await initializeDefaultAvailability()
-        
-        // Fetch the newly created data
-        const { data: newData, error: newError } = await supabase
-          .from('instructor_availability')
-          .select('*')
-          .eq('instructor_id', user.id)
-
-        if (newData && newData.length > 0) {
-          const dbAvailability = newData.reduce((acc, item) => {
-            const dayName = Object.keys(dayToNumber).find(key => dayToNumber[key as keyof typeof dayToNumber] === item.day_of_week)
-            if (dayName) {
-              acc[dayName] = {
-                available: item.available,
-                startTime: item.start_time || '09:00',
-                endTime: item.end_time || '17:00'
-              }
-            }
-            return acc
-          }, {} as Record<string, { available: boolean; startTime: string; endTime: string }>)
-
-          setAvailability(prev => prev.map(day => ({
-            ...day,
-            available: dbAvailability[day.day]?.available ?? day.available,
-            startTime: dbAvailability[day.day]?.startTime ?? day.startTime,
-            endTime: dbAvailability[day.day]?.endTime ?? day.endTime
-          })))
-        }
+      if (data) {
+        updateAvailabilityFromData(data.availability_data)
       }
     } catch (error) {
       console.error('Error fetching availability:', error)
     } finally {
       setLoadingAvailability(false)
     }
+  }
+
+  // Update availability state from database data
+  const updateAvailabilityFromData = (availabilityData: Record<string, string[]>) => {
+    setAvailability(prev => prev.map(day => {
+      const dayData = availabilityData[day.dutchName]
+      if (dayData && dayData.length >= 2) {
+        return {
+          ...day,
+          available: true,
+          startTime: dayData[0],
+          endTime: dayData[1]
+        }
+      } else {
+        return {
+          ...day,
+          available: false,
+          startTime: '09:00',
+          endTime: '17:00'
+        }
+      }
+    }))
   }
 
   useEffect(() => {
@@ -184,11 +168,11 @@ export default function ScheduleSettingsPage() {
     )
   }
 
-  const updateDayTime = (day: string, field: 'startTime' | 'endTime', value: string) => {
+  const updateDayTime = (day: string, startTime: string, endTime: string) => {
     setAvailability(prev => 
       prev.map(item => 
         item.day === day 
-          ? { ...item, [field]: value }
+          ? { ...item, startTime, endTime }
           : item
       )
     )
@@ -199,19 +183,23 @@ export default function ScheduleSettingsPage() {
     
     try {
       setSaving(true)
+      
       // Convert UI format to database format
-      const availabilityData = availability.map(day => ({
-        instructor_id: user.id,
-        day_of_week: dayToNumber[day.day as keyof typeof dayToNumber],
-        available: day.available,
-        start_time: day.startTime,
-        end_time: day.endTime
-      }))
+      const availabilityData: Record<string, string[]> = {}
+      
+      availability.forEach(day => {
+        if (day.available) {
+          availabilityData[day.dutchName] = [day.startTime, day.endTime]
+        }
+      })
 
       const { error } = await supabase
-        .from('instructor_availability')
-        .upsert(availabilityData, { 
-          onConflict: 'instructor_id,day_of_week',
+        .from('standard_availability')
+        .upsert({
+          instructor_id: user.id,
+          availability_data: availabilityData
+        }, { 
+          onConflict: 'instructor_id',
           ignoreDuplicates: false 
         })
 
@@ -299,7 +287,6 @@ export default function ScheduleSettingsPage() {
                 )}
               </button>
               <Settings className="h-8 w-8 text-blue-600" />
-              {/* <span className="ml-2 text-xl font-bold text-gray-900">Instellingen</span> */}
             </div>
           </div>
         </div>
@@ -312,7 +299,7 @@ export default function ScheduleSettingsPage() {
             Planning Instellingen
           </h1>
           <p className="text-gray-600">
-            Configureer je beschikbare tijden voor lesplanning
+            Configureer je standaard beschikbare tijden voor lesplanning
           </p>
         </div>
 
@@ -332,7 +319,7 @@ export default function ScheduleSettingsPage() {
 
         {/* Availability Settings */}
         <div className="card mb-6">
-          <h3 className="text-lg font-semibold mb-4">Dagelijkse beschikbaarheid</h3>
+          <h3 className="text-lg font-semibold mb-4">Standaard dagelijkse beschikbaarheid</h3>
           
           {loadingAvailability ? (
             <div className="text-center py-8">
@@ -363,29 +350,13 @@ export default function ScheduleSettingsPage() {
                   </div>
                   
                   {day.available && (
-                    <div className="mobile-grid md:grid-cols-2 gap-4">
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">
-                          Starttijd
-                        </label>
-                        <input
-                          type="time"
-                          value={day.startTime}
-                          onChange={(e) => updateDayTime(day.day, 'startTime', e.target.value)}
-                          className="w-full px-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                        />
-                      </div>
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">
-                          Eindtijd
-                        </label>
-                        <input
-                          type="time"
-                          value={day.endTime}
-                          onChange={(e) => updateDayTime(day.day, 'endTime', e.target.value)}
-                          className="w-full px-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                        />
-                      </div>
+                    <div className="flex items-center gap-4">
+                      <TimeInput
+                        startTime={day.startTime}
+                        endTime={day.endTime}
+                        onTimeChange={(startTime, endTime) => updateDayTime(day.day, startTime, endTime)}
+                        className="flex-1"
+                      />
                     </div>
                   )}
                 </div>
@@ -393,8 +364,6 @@ export default function ScheduleSettingsPage() {
             </div>
           )}
         </div>
-
-
       </div>
     </div>
   )

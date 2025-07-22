@@ -14,6 +14,12 @@ export async function POST(request: NextRequest) {
 
     console.log('Creating editable input for instructor:', instructorId, 'week:', weekStart)
 
+    // Debug: Controleer of de gebruiker bestaat
+    const { data: userData, error: userError } = await supabase.auth.getUser()
+    console.log('Current user:', userData?.user?.id)
+    console.log('Requested instructorId:', instructorId)
+    console.log('User match:', userData?.user?.id === instructorId)
+
     // Eerst controleren of er al beschikbaarheid bestaat voor deze instructeur en week
     const { data: existingAvailability, error: checkError } = await supabase
       .from('instructor_availability')
@@ -30,17 +36,31 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Als er geen bestaande beschikbaarheid is, maak een nieuwe aan met standaardwaarden
+    // Als er geen bestaande beschikbaarheid is, haal eerst de standaard beschikbaarheid op
     if (!existingAvailability) {
-      console.log('No existing availability found, creating new availability with default values')
+      console.log('No existing availability found, checking standard availability')
       
-      // Standaard beschikbaarheid voor werkdagen (maandag-vrijdag)
-      const availabilityData = {
+      // Haal standaard beschikbaarheid op
+      const { data: standardAvailability, error: standardError } = await supabase
+        .from('standard_availability')
+        .select('availability_data')
+        .eq('instructor_id', instructorId)
+        .single()
+
+      let availabilityData = {
         maandag: ["09:00", "17:00"],
         dinsdag: ["09:00", "17:00"],
         woensdag: ["09:00", "17:00"],
         donderdag: ["09:00", "17:00"],
         vrijdag: ["09:00", "17:00"]
+      }
+
+      // Gebruik standaard beschikbaarheid als deze bestaat
+      if (standardAvailability && !standardError && standardAvailability.availability_data) {
+        availabilityData = standardAvailability.availability_data
+        console.log('Using standard availability:', availabilityData)
+      } else {
+        console.log('No standard availability found, using default values')
       }
 
       // Haal AI instellingen op uit instructor_ai_settings tabel
@@ -69,17 +89,27 @@ export async function POST(request: NextRequest) {
         }
       }
 
+      // Debug: Log de data die we proberen in te voegen
+      const insertData = {
+        instructor_id: instructorId,
+        week_start: weekStart,
+        availability_data: availabilityData,
+        settings: defaultSettings
+      }
+      console.log('Attempting to insert data:', JSON.stringify(insertData, null, 2))
+
       const { error: insertError } = await supabase
         .from('instructor_availability')
-        .insert({
-          instructor_id: instructorId,
-          week_start: weekStart,
-          availability_data: availabilityData,
-          settings: defaultSettings
-        })
+        .insert(insertData)
 
       if (insertError) {
         console.error('Error creating new availability:', insertError)
+        console.error('Error details:', {
+          code: insertError.code,
+          message: insertError.message,
+          details: insertError.details,
+          hint: insertError.hint
+        })
         return NextResponse.json(
           { error: 'Failed to create new availability: ' + insertError.message },
           { status: 500 }
