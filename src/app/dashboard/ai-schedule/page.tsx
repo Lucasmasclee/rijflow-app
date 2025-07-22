@@ -359,6 +359,12 @@ function AISchedulePageContent() {
         }))
       }
 
+      console.log('Request body details:')
+      console.log('- Week start:', weekStartString)
+      console.log('- Instructor availability:', instructorAvailabilityData)
+      console.log('- Number of students:', students.length)
+      console.log('- Student IDs:', students.map(s => s.id))
+
       console.log('Sending request to update-availability:', requestBody)
 
       const response = await fetch('/api/ai-schedule/update-availability', {
