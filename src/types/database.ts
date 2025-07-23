@@ -44,6 +44,7 @@ export interface Lesson {
   instructor_id: string
   status: 'scheduled' | 'completed' | 'cancelled'
   notes?: string
+  lessen_geregistreerd: number
   created_at: string
   updated_at: string
 }

@@ -92,7 +92,7 @@ export default function StudentsPage() {
       // Get all lessons for this student (both completed and scheduled)
       const { data: allLessons, error: lessonsError } = await supabase
         .from('lessons')
-        .select('date, start_time, end_time, status')
+        .select('date, lessen_geregistreerd, status')
         .eq('student_id', studentId)
         .not('status', 'eq', 'cancelled')
         .order('date', { ascending: true })
@@ -105,35 +105,20 @@ export default function StudentsPage() {
         }
       }
 
-      // Get default lesson duration for the instructor
-      const defaultLessonDuration = await getDefaultLessonDuration(user?.id || '')
-
       // Separate completed and scheduled lessons
       const completedLessons = (allLessons || []).filter(lesson => lesson.date <= today)
       const scheduledLessons = (allLessons || []).filter(lesson => lesson.date > today)
 
-      // Calculate lesson counts based on duration
-      const completedCount = calculateTotalLessonCount(completedLessons, defaultLessonDuration)
-      const scheduledCount = calculateTotalLessonCount(scheduledLessons, defaultLessonDuration)
+      // Sum up the stored lessen_geregistreerd values
+      const completedCount = completedLessons.reduce((sum, lesson) => sum + (lesson.lessen_geregistreerd || 1), 0)
+      const scheduledCount = scheduledLessons.reduce((sum, lesson) => sum + (lesson.lessen_geregistreerd || 1), 0)
 
       // Debug logging
       console.log(`=== Lesson Stats for Student ${studentId} ===`)
-      console.log('Default lesson duration:', defaultLessonDuration, 'minutes')
       console.log('Completed lessons data:', completedLessons)
       console.log('Scheduled lessons data:', scheduledLessons)
       console.log('Calculated completed count:', completedCount)
       console.log('Calculated scheduled count:', scheduledCount)
-      
-      // Log individual lesson calculations
-      completedLessons.forEach((lesson, index) => {
-        const lessonCount = calculateLessonCount(lesson.start_time, lesson.end_time, defaultLessonDuration)
-        console.log(`Completed lesson ${index + 1}: ${lesson.start_time}-${lesson.end_time} = ${lessonCount} lessons`)
-      })
-      
-      scheduledLessons.forEach((lesson, index) => {
-        const lessonCount = calculateLessonCount(lesson.start_time, lesson.end_time, defaultLessonDuration)
-        console.log(`Scheduled lesson ${index + 1}: ${lesson.start_time}-${lesson.end_time} = ${lessonCount} lessons`)
-      })
 
       return {
         lessonsCompleted: completedCount,

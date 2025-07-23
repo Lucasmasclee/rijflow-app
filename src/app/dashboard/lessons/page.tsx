@@ -301,6 +301,7 @@ export default function LessonsPage() {
           student_id: lesson.student_id,
           instructor_id: lesson.instructor_id,
           status: 'scheduled',
+          lessen_geregistreerd: lesson.lessen_geregistreerd,
           // Remove notes as requested
           notes: null
         }
@@ -653,13 +654,19 @@ export default function LessonsPage() {
       // Update lesson form with current time inputs before saving
       updateLessonFormTime()
       
+      // Calculate the number of lessons based on duration
+      const startTime = `${timeInputs.startHours}:${timeInputs.startMinutes}`
+      const endTime = `${timeInputs.endHours}:${timeInputs.endMinutes}`
+      const lessonCount = calculateLessonCount(startTime, endTime, defaultLessonDuration)
+      
       const lessonData = {
         date: lessonForm.date,
-        start_time: `${timeInputs.startHours}:${timeInputs.startMinutes}`,
-        end_time: `${timeInputs.endHours}:${timeInputs.endMinutes}`,
+        start_time: startTime,
+        end_time: endTime,
         student_id: lessonForm.studentId,
         instructor_id: user.id,
-        notes: lessonForm.notes || null
+        notes: lessonForm.notes || null,
+        lessen_geregistreerd: lessonCount
       }
 
       let result
@@ -780,9 +787,9 @@ export default function LessonsPage() {
           <h1 className="text-2xl md:text-3xl font-bold text-gray-900 mb-2">
             Lessen
           </h1>
-          <p className="text-gray-600">
+          {/* <p className="text-gray-600">
             Beheer je lesrooster en planning
-          </p>
+          </p> */}
         </div>
 
         {/* View Mode Toggle */}

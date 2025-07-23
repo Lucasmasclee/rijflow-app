@@ -22,6 +22,7 @@ import {
 import Link from 'next/link'
 import { supabase } from '@/lib/supabase'
 import { Student, Lesson } from '@/types/database'
+import { calculateLessonCount, getDefaultLessonDuration } from '@/lib/lesson-utils'
 import toast from 'react-hot-toast'
 
 interface LessonWithStudent extends Lesson {
@@ -261,6 +262,10 @@ export default function DayOverviewPage({ params }: { params: Promise<{ date: st
     }
 
     try {
+      // Calculate the number of lessons based on duration
+      const defaultLessonDuration = await getDefaultLessonDuration(user.id)
+      const lessonCount = calculateLessonCount(lessonForm.startTime, lessonForm.endTime, defaultLessonDuration)
+
       if (editingLesson) {
         // Update existing lesson
         const { error } = await supabase
@@ -270,7 +275,8 @@ export default function DayOverviewPage({ params }: { params: Promise<{ date: st
             start_time: lessonForm.startTime,
             end_time: lessonForm.endTime,
             student_id: lessonForm.studentId,
-            notes: lessonForm.notes
+            notes: lessonForm.notes,
+            lessen_geregistreerd: lessonCount
           })
           .eq('id', editingLesson.id)
           .eq('instructor_id', user.id)
@@ -292,7 +298,8 @@ export default function DayOverviewPage({ params }: { params: Promise<{ date: st
             start_time: lessonForm.startTime,
             end_time: lessonForm.endTime,
             student_id: lessonForm.studentId,
-            notes: lessonForm.notes
+            notes: lessonForm.notes,
+            lessen_geregistreerd: lessonCount
           })
 
         if (error) {
