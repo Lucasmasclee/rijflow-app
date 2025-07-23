@@ -1,7 +1,7 @@
 <?xml version='1.0' encoding='utf-8'?>
 <resources>
-    <string name="app_name">rijflow-app</string>
-    <string name="title_activity_main">rijflow-app</string>
+    <string name="app_name">Rijflow</string>
+    <string name="title_activity_main">Rijflow</string>
     <string name="package_name">com.rijflow.app</string>
     <string name="custom_url_scheme">com.rijflow.app</string>
 </resources>
