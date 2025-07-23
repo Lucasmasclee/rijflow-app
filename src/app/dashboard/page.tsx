@@ -554,8 +554,8 @@ function InstructorDashboard() {
                 value={notesText}
                 onChange={(e) => setNotesText(e.target.value)}
                 placeholder="Bijvoorbeeld:&#10;18 juli: Achteruit inparkeren&#10;25 juli: Hellingproef"
-                className="w-full p-2 border border-gray-300 rounded-lg resize-none text-sm"
-                rows={4}
+                className="w-full p-2 border border-gray-300 rounded-lg resize-none text-xs"
+                rows={8}
               />
               <button
                 onClick={handleSaveProgressNotes}

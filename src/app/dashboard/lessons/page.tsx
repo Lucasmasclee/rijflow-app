@@ -748,13 +748,13 @@ export default function LessonsPage() {
 
       {/* Quick Actions */}
       <div className="card">
-          <h3 className="text-lg font-semibold mb-4">Snelle acties</h3>
-          <div className="space-y-3">
+          {/* <h3 className="text-lg font-semibold mb-4">Snelle acties</h3> */}
+          <div className="space-y-1">
             <button
               onClick={() => openAddLesson()}
               className="btn btn-primary w-full flex items-center justify-center gap-2"
             >
-              <Plus className="h-4 w-4" />
+              <Plus className="h-3 w-4" />
               Nieuwe les
             </button>
             {/* <Link
@@ -768,14 +768,14 @@ export default function LessonsPage() {
               href="/dashboard/schedule-settings"
               className="btn btn-secondary w-full flex items-center justify-center gap-2"
             >
-              <Settings className="h-4 w-4" />
+              <Settings className="h-3 w-4" />
               Rooster instellingen
             </Link>
             <button
               onClick={handleCopyWeekClick}
               className="btn btn-secondary w-full flex items-center justify-center gap-2"
             >
-              <Copy className="h-4 w-4" />
+              <Copy className="h-3 w-4" />
               Kopieer weekplanning naar...
             </button>
           </div>
