@@ -905,7 +905,7 @@ export default function LessonsPage() {
                     ) : (
                       <div className="space-y-0.5">
                         {dayLessons.map((lesson) => (
-                          <div key={lesson.id} className="bg-gray-50 rounded-lg py-0.5 px-2 h-12 relative">
+                          <div key={lesson.id} className="bg-gray-50 rounded-lg py-0 px-2 h-12 relative">
                             <div className="flex items-center justify-between h-full">
                               <div className="flex items-center gap-1">
                                 <Clock className="h-3 w-3 text-blue-600" />
