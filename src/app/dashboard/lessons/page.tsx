@@ -724,13 +724,13 @@ export default function LessonsPage() {
               <Plus className="h-4 w-4" />
               Nieuwe les
             </button>
-            <Link
+            {/* <Link
               href="/dashboard/ai-schedule"
               className="btn btn-secondary w-full flex items-center justify-center gap-2"
             >
               <Calendar className="h-4 w-4" />
               AI Weekplanning
-            </Link>
+            </Link> */}
             <Link
               href="/dashboard/schedule-settings"
               className="btn btn-secondary w-full flex items-center justify-center gap-2"
@@ -879,7 +879,7 @@ export default function LessonsPage() {
                     ) : (
                       <div className="space-y-0.5">
                         {dayLessons.map((lesson) => (
-                          <div key={lesson.id} className="bg-gray-50 rounded-lg p-2">
+                          <div key={lesson.id} className="bg-gray-50 rounded-lg py-1 px-2">
                             <div className="flex items-center justify-between">
                               <div className="flex items-center gap-2">
                                 <Clock className="h-3 w-3 text-blue-600" />
