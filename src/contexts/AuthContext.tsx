@@ -79,6 +79,21 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           console.error('Kon instructeur niet toevoegen aan instructors-tabel bij eerste login:', insertError)
         }
       }
+
+      // Check of instructeur al standaard beschikbaarheid heeft ingesteld
+      const { data: availabilityData, error: availabilityError } = await supabase
+        .from('standard_availability')
+        .select('id')
+        .eq('instructor_id', user.id)
+        .single()
+
+      // Als er geen standaard beschikbaarheid is ingesteld, stuur naar schedule-settings
+      if (availabilityError && availabilityError.code === 'PGRST116') {
+        // Redirect naar schedule-settings pagina voor nieuwe instructeurs
+        if (typeof window !== 'undefined') {
+          window.location.href = '/dashboard/schedule-settings'
+        }
+      }
     }
 
     // --- Student koppelen bij eerste login ---

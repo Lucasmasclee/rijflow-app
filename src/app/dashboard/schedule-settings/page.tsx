@@ -41,6 +41,7 @@ export default function ScheduleSettingsPage() {
     { day: 'saturday', name: 'Zaterdag', dutchName: 'zaterdag', available: false, startTime: '09:00', endTime: '17:00' },
     { day: 'sunday', name: 'Zondag', dutchName: 'zondag', available: false, startTime: '09:00', endTime: '17:00' }
   ])
+  const [defaultLessonDuration, setDefaultLessonDuration] = useState(50) // Default 50 minutes
   const [saved, setSaved] = useState(false)
   const [loadingAvailability, setLoadingAvailability] = useState(true)
   const [saving, setSaving] = useState(false)
@@ -64,7 +65,8 @@ export default function ScheduleSettingsPage() {
         .from('standard_availability')
         .upsert({
           instructor_id: user.id,
-          availability_data: defaultAvailabilityData
+          availability_data: defaultAvailabilityData,
+          default_lesson_duration: defaultLessonDuration
         }, { 
           onConflict: 'instructor_id',
           ignoreDuplicates: false 
@@ -109,6 +111,9 @@ export default function ScheduleSettingsPage() {
 
           if (newData) {
             updateAvailabilityFromData(newData.availability_data)
+            if (newData.default_lesson_duration) {
+              setDefaultLessonDuration(newData.default_lesson_duration)
+            }
           }
           return
         }
@@ -118,6 +123,9 @@ export default function ScheduleSettingsPage() {
 
       if (data) {
         updateAvailabilityFromData(data.availability_data)
+        if (data.default_lesson_duration) {
+          setDefaultLessonDuration(data.default_lesson_duration)
+        }
       }
     } catch (error) {
       console.error('Error fetching availability:', error)
@@ -197,7 +205,8 @@ export default function ScheduleSettingsPage() {
         .from('standard_availability')
         .upsert({
           instructor_id: user.id,
-          availability_data: availabilityData
+          availability_data: availabilityData,
+          default_lesson_duration: defaultLessonDuration
         }, { 
           onConflict: 'instructor_id',
           ignoreDuplicates: false 
@@ -209,14 +218,17 @@ export default function ScheduleSettingsPage() {
         return
       }
 
-      toast.success('Beschikbaarheid succesvol opgeslagen!')
+      toast.success('Instellingen succesvol opgeslagen!')
       setSaved(true)
       
-      // Reset saved state after 1 second
-      setTimeout(() => setSaved(false), 1000)
+      // Reset saved state after 1 second and redirect to dashboard
+      setTimeout(() => {
+        setSaved(false)
+        router.push('/dashboard')
+      }, 1000)
     } catch (error) {
       console.error('Error saving availability:', error)
-      toast.error('Fout bij het opslaan van de beschikbaarheid')
+      toast.error('Fout bij het opslaan van de instellingen')
     } finally {
       setSaving(false)
     }
@@ -299,8 +311,36 @@ export default function ScheduleSettingsPage() {
             Planning Instellingen
           </h1>
           <p className="text-gray-600">
-            Configureer je standaard beschikbare tijden voor lesplanning
+            Configureer je standaard beschikbare tijden en lesduur voor lesplanning
           </p>
+        </div>
+
+        {/* Default Lesson Duration */}
+        <div className="card mb-6">
+          <h3 className="text-lg font-semibold mb-4">Standaard lesduur</h3>
+          <div className="space-y-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Standaard aantal minuten per les
+              </label>
+              <div className="flex items-center gap-3">
+                <input
+                  type="number"
+                  min="15"
+                  max="180"
+                  step="5"
+                  value={defaultLessonDuration}
+                  onChange={(e) => setDefaultLessonDuration(parseInt(e.target.value) || 50)}
+                  className="w-24 p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-center"
+                />
+                <span className="text-gray-600">minuten</span>
+              </div>
+              <p className="text-sm text-gray-500 mt-2">
+                Deze duur wordt gebruikt om te berekenen hoeveel lessen er worden geregistreerd voor een les.
+                Bijvoorbeeld: een les van 95-105 minuten wordt geteld als 2 lessen van {defaultLessonDuration} minuten.
+              </p>
+            </div>
+          </div>
         </div>
 
         {/* Stats */}

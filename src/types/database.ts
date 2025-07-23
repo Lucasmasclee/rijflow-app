@@ -162,6 +162,7 @@ export interface StandardAvailability {
   id: string
   instructor_id: string
   availability_data: Record<string, string[]> // { "maandag": ["09:00", "17:00"], ... }
+  default_lesson_duration: number // Standaard lesduur in minuten
   created_at: string
   updated_at: string
 } 

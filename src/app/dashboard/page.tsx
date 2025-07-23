@@ -98,6 +98,7 @@ export default function DashboardPage() {
     if (!loading && !user) {
       router.push('/auth/signin')
     }
+    
     if (user) {
       // Get user role from user metadata
       const role = user.user_metadata?.role || 'instructor'
@@ -106,9 +107,30 @@ export default function DashboardPage() {
       // Fetch instructor data if user is instructor
       if (role === 'instructor') {
         fetchInstructorData()
+        // Check if instructor needs to set up schedule settings
+        checkInstructorSetup()
       }
     }
   }, [user, loading, router])
+
+  const checkInstructorSetup = async () => {
+    if (!user) return
+    
+    try {
+      const { data: availabilityData, error: availabilityError } = await supabase
+        .from('standard_availability')
+        .select('id')
+        .eq('instructor_id', user.id)
+        .single()
+
+      // Als er geen standaard beschikbaarheid is ingesteld, stuur naar schedule-settings
+      if (availabilityError && availabilityError.code === 'PGRST116') {
+        router.push('/dashboard/schedule-settings')
+      }
+    } catch (error) {
+      console.error('Error checking instructor setup:', error)
+    }
+  }
 
   const handleSignOut = async () => {
     try {

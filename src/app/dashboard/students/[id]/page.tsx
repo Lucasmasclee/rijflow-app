@@ -8,6 +8,7 @@ import Link from 'next/link'
 import toast from 'react-hot-toast'
 import React from 'react'
 import { supabase } from '@/lib/supabase'
+import { calculateTotalLessonCount, getDefaultLessonDuration } from '@/lib/lesson-utils'
 
 interface Student {
   id: string
@@ -185,7 +186,7 @@ export default function StudentDetailPage({ params }: { params: Promise<{ id: st
         // Get completed lessons (date <= today)
         const { data: completedLessons, error: completedError } = await supabase
           .from('lessons')
-          .select('id')
+          .select('start_time, end_time')
           .eq('student_id', studentId)
           .lte('date', today)
           .not('status', 'eq', 'cancelled')
@@ -197,7 +198,7 @@ export default function StudentDetailPage({ params }: { params: Promise<{ id: st
         // Get scheduled lessons (date > today)
         const { data: scheduledLessons, error: scheduledError } = await supabase
           .from('lessons')
-          .select('id')
+          .select('start_time, end_time')
           .eq('student_id', studentId)
           .gt('date', today)
           .not('status', 'eq', 'cancelled')
@@ -206,9 +207,16 @@ export default function StudentDetailPage({ params }: { params: Promise<{ id: st
           console.error('Error fetching scheduled lessons:', scheduledError)
         }
 
+        // Get default lesson duration for the instructor
+        const defaultLessonDuration = await getDefaultLessonDuration(user?.id || '')
+
+        // Calculate lesson counts based on duration
+        const completedCount = calculateTotalLessonCount(completedLessons || [], defaultLessonDuration)
+        const scheduledCount = calculateTotalLessonCount(scheduledLessons || [], defaultLessonDuration)
+
         setLessonStats({
-          lessonsCompleted: completedLessons?.length || 0,
-          lessonsScheduled: scheduledLessons?.length || 0
+          lessonsCompleted: completedCount,
+          lessonsScheduled: scheduledCount
         })
       } catch (error) {
         console.error('Error fetching lesson statistics:', error)
