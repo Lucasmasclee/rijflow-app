@@ -306,12 +306,12 @@ export default function StudentsPage() {
                       )}
                     </div>
                     
-                    <div className="space-y-1 text-sm text-gray-600">
-                      <div className="flex items-center gap-2">
+                    {/* <div className="space-y-1 text-sm text-gray-600"> */}
+                      {/* <div className="flex items-center gap-2">
                         <Mail className="h-4 w-4" />
                         <span>{student.email}</span>
-                      </div>
-                      {student.phone && (
+                      </div> */}
+                      {/* {student.phone && (
                         <div className="flex items-center gap-2">
                           <Phone className="h-4 w-4" />
                           <span>{student.phone}</span>
@@ -322,8 +322,8 @@ export default function StudentsPage() {
                           <MapPin className="h-4 w-4" />
                           <span className="truncate">{student.address}</span>
                         </div>
-                      )}
-                    </div>
+                      )} */}
+                    {/* </div> */}
 
                     <div className="flex items-center gap-4 mt-3 text-sm text-gray-500">
                       <div className="flex items-center gap-1 whitespace-nowrap">

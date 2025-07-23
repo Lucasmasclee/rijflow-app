@@ -805,7 +805,22 @@ export default function LessonsPage() {
             
             <h2 className="text-lg font-semibold text-gray-900">
               {viewMode === 'week' 
-                ? `Week ${currentDate.getDate()} - ${new Date(currentDate.getTime() + 6 * 24 * 60 * 60 * 1000).getDate()} ${currentDate.toLocaleDateString('nl-NL', { month: 'long', year: 'numeric' })}`
+                ? (() => {
+                    const monday = getMonday(currentDate)
+                    const sunday = new Date(monday)
+                    sunday.setDate(monday.getDate() + 6)
+                    
+                    const mondayFormatted = monday.toLocaleDateString('nl-NL', { 
+                      day: 'numeric', 
+                      month: 'long' 
+                    })
+                    const sundayFormatted = sunday.toLocaleDateString('nl-NL', { 
+                      day: 'numeric', 
+                      month: 'long' 
+                    })
+                    
+                    return `${mondayFormatted} - ${sundayFormatted}`
+                  })()
                 : currentDate.toLocaleDateString('nl-NL', { month: 'long', year: 'numeric' })
               }
             </h2>
