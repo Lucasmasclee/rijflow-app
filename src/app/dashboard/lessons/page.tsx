@@ -907,7 +907,7 @@ export default function LessonsPage() {
                         {dayLessons.map((lesson) => (
                           <div key={lesson.id} className="bg-gray-50 rounded-lg py-0.5 px-2 h-12 relative">
                             <div className="flex items-center justify-between h-full">
-                              <div className="flex items-center gap-2">
+                              <div className="flex items-center gap-1">
                                 <Clock className="h-3 w-3 text-blue-600" />
                                 <span className="text-xs font-medium text-blue-900">
                                   {formatTime(lesson.start_time)} - {formatTime(lesson.end_time)}

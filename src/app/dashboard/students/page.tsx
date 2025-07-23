@@ -7,7 +7,7 @@ import { Users, Plus, Mail, Phone, MapPin, Calendar, MessageSquare, Edit, Trash2
 import Link from 'next/link'
 import toast from 'react-hot-toast'
 import { supabase } from '@/lib/supabase'
-import { calculateTotalLessonCount, getDefaultLessonDuration } from '@/lib/lesson-utils'
+import { calculateTotalLessonCount, calculateLessonCount, getDefaultLessonDuration } from '@/lib/lesson-utils'
 
 interface Student {
   id: string
@@ -115,6 +115,25 @@ export default function StudentsPage() {
       // Calculate lesson counts based on duration
       const completedCount = calculateTotalLessonCount(completedLessons, defaultLessonDuration)
       const scheduledCount = calculateTotalLessonCount(scheduledLessons, defaultLessonDuration)
+
+      // Debug logging
+      console.log(`=== Lesson Stats for Student ${studentId} ===`)
+      console.log('Default lesson duration:', defaultLessonDuration, 'minutes')
+      console.log('Completed lessons data:', completedLessons)
+      console.log('Scheduled lessons data:', scheduledLessons)
+      console.log('Calculated completed count:', completedCount)
+      console.log('Calculated scheduled count:', scheduledCount)
+      
+      // Log individual lesson calculations
+      completedLessons.forEach((lesson, index) => {
+        const lessonCount = calculateLessonCount(lesson.start_time, lesson.end_time, defaultLessonDuration)
+        console.log(`Completed lesson ${index + 1}: ${lesson.start_time}-${lesson.end_time} = ${lessonCount} lessons`)
+      })
+      
+      scheduledLessons.forEach((lesson, index) => {
+        const lessonCount = calculateLessonCount(lesson.start_time, lesson.end_time, defaultLessonDuration)
+        console.log(`Scheduled lesson ${index + 1}: ${lesson.start_time}-${lesson.end_time} = ${lessonCount} lessons`)
+      })
 
       return {
         lessonsCompleted: completedCount,
