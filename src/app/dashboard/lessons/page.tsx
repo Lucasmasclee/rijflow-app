@@ -905,17 +905,17 @@ export default function LessonsPage() {
                     ) : (
                       <div className="space-y-0.5">
                         {dayLessons.map((lesson) => (
-                          <div key={lesson.id} className="bg-gray-50 rounded-lg py-0.5 px-2">
-                            <div className="flex items-center justify-between">
+                          <div key={lesson.id} className="bg-gray-50 rounded-lg py-0.5 px-2 h-12 relative">
+                            <div className="flex items-center justify-between h-full">
                               <div className="flex items-center gap-2">
                                 <Clock className="h-3 w-3 text-blue-600" />
-                                <span className="text-sm font-medium text-blue-900">
+                                <span className="text-xs font-medium text-blue-900">
                                   {formatTime(lesson.start_time)} - {formatTime(lesson.end_time)}
                                 </span>
                               </div>
                               <div className="flex items-center space-x-1">
                                 <button 
-                                  className="p-1 text-blue-600 hover:text-blue-700 hover:bg-blue-200 rounded"
+                                  className="p-0.5 text-blue-600 hover:text-blue-700 hover:bg-blue-200 rounded"
                                   onClick={(e) => {
                                     e.stopPropagation()
                                     openEditLesson(lesson)
@@ -924,7 +924,7 @@ export default function LessonsPage() {
                                   <Edit2 className="h-3 w-3" />
                                 </button>
                                 <button 
-                                  className="p-1 text-green-600 hover:text-green-700 hover:bg-green-200 rounded"
+                                  className="p-0.5 text-green-600 hover:text-green-700 hover:bg-green-200 rounded"
                                   onClick={(e) => {
                                     e.stopPropagation()
                                     duplicateLesson(lesson)
@@ -933,7 +933,7 @@ export default function LessonsPage() {
                                   <Copy className="h-3 w-3" />
                                 </button>
                                 <button 
-                                  className="p-1 text-red-600 hover:text-red-700 hover:bg-red-200 rounded"
+                                  className="p-0.5 text-red-600 hover:text-red-700 hover:bg-red-200 rounded"
                                   onClick={(e) => {
                                     e.stopPropagation()
                                     deleteLesson(lesson.id)
@@ -943,16 +943,16 @@ export default function LessonsPage() {
                                 </button>
                               </div>
                             </div>
-                            <div className="mt-1">
+                            <div className="absolute bottom-0 left-2 right-2">
                               <div className="flex items-center space-x-2">
-                                <User className="h-3 w-3 text-gray-500" />
-                                <span className="text-xs text-gray-600">
+                                <User className="h-2 w-2 text-gray-500" />
+                                <span className="text-xs text-gray-600 truncate">
                                   {lesson.student ? `${lesson.student.first_name} ${lesson.student.last_name || ''}` : 'Onbekende leerling'}
                                 </span>
                               </div>
                               {lesson.notes && (
-                                <div className="bg-gray-50 p-1 rounded-lg mt-0.5">
-                                  <p className="text-xs text-gray-500 leading-tight">{lesson.notes}</p>
+                                <div className="bg-gray-100 p-0.5 rounded mt-0.5">
+                                  <p className="text-xs text-gray-500 leading-tight truncate">{lesson.notes}</p>
                                 </div>
                               )}
                             </div>
