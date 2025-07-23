@@ -903,9 +903,9 @@ export default function LessonsPage() {
                     {dayLessons.length === 0 ? (
                       <p className="text-gray-500 text-sm py-1">Geen lessen gepland</p>
                     ) : (
-                      <div className="space-y-0.25">
+                      <div className="space-y-1">
                         {dayLessons.map((lesson) => (
-                          <div key={lesson.id} className="bg-gray-50 rounded-lg py-0.5 px-2 h-12 relative">
+                          <div key={lesson.id} className="bg-gray-50 rounded-lg py-0.5 px-2 h-8 relative">
                             <div className="flex flex-col justify-between h-full">
                               <div className="flex items-center justify-between">
                                 <div className="flex items-center gap-2">
