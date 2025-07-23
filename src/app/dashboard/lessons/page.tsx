@@ -905,7 +905,7 @@ export default function LessonsPage() {
                     ) : (
                       <div className="space-y-0.5">
                         {dayLessons.map((lesson) => (
-                          <div key={lesson.id} className="bg-gray-50 rounded-lg py-1 px-2">
+                          <div key={lesson.id} className="bg-gray-50 rounded-lg py-0.5 px-2">
                             <div className="flex items-center justify-between">
                               <div className="flex items-center gap-2">
                                 <Clock className="h-3 w-3 text-blue-600" />
@@ -943,7 +943,7 @@ export default function LessonsPage() {
                                 </button>
                               </div>
                             </div>
-                            <div className="mt-2">
+                            <div className="mt-1">
                               <div className="flex items-center space-x-2">
                                 <User className="h-3 w-3 text-gray-500" />
                                 <span className="text-xs text-gray-600">
@@ -951,8 +951,8 @@ export default function LessonsPage() {
                                 </span>
                               </div>
                               {lesson.notes && (
-                                <div className="bg-gray-50 p-2 rounded-lg mt-1">
-                                  <p className="text-xs text-gray-500">{lesson.notes}</p>
+                                <div className="bg-gray-50 p-1 rounded-lg mt-0.5">
+                                  <p className="text-xs text-gray-500 leading-tight">{lesson.notes}</p>
                                 </div>
                               )}
                             </div>

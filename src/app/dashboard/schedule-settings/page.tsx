@@ -308,11 +308,11 @@ export default function ScheduleSettingsPage() {
         {/* Header */}
         <div className="mb-6">
           <h1 className="text-2xl md:text-3xl font-bold text-gray-900 mb-2">
-            Planning Instellingen
+            Rooster Instellingen
           </h1>
-          <p className="text-gray-600">
+          {/* <p className="text-gray-600">
             Configureer je standaard beschikbare tijden en lesduur voor lesplanning
-          </p>
+          </p> */}
         </div>
 
         {/* Default Lesson Duration */}
@@ -320,9 +320,9 @@ export default function ScheduleSettingsPage() {
           <h3 className="text-lg font-semibold mb-4">Standaard lesduur</h3>
           <div className="space-y-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              {/* <label className="block text-sm font-medium text-gray-700 mb-2">
                 Standaard aantal minuten per les
-              </label>
+              </label> */}
               <div className="flex items-center gap-3">
                 <input
                   type="number"
@@ -335,16 +335,16 @@ export default function ScheduleSettingsPage() {
                 />
                 <span className="text-gray-600">minuten</span>
               </div>
-              <p className="text-sm text-gray-500 mt-2">
+              {/* <p className="text-sm text-gray-500 mt-2">
                 Deze duur wordt gebruikt om te berekenen hoeveel lessen er worden geregistreerd voor een les.
                 Bijvoorbeeld: een les van 95-105 minuten wordt geteld als 2 lessen van {defaultLessonDuration} minuten.
-              </p>
+              </p> */}
             </div>
           </div>
         </div>
 
         {/* Stats */}
-        <div className="mobile-grid md:grid-cols-2 gap-4 mb-6">
+        <div className="grid grid-cols-2 gap-4 mb-6">
           <div className="card text-center">
             <Calendar className="h-8 w-8 text-blue-600 mx-auto mb-2" />
             <div className="text-2xl font-bold text-gray-900">{getAvailableDaysCount()}</div>
