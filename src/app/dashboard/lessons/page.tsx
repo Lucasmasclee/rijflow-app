@@ -25,6 +25,7 @@ import {
 import Link from 'next/link'
 import { supabase } from '@/lib/supabase'
 import { Student, Lesson } from '@/types/database'
+import { calculateLessonCount, getDefaultLessonDuration } from '@/lib/lesson-utils'
 import toast from 'react-hot-toast'
 
 interface LessonWithStudent extends Lesson {
@@ -81,6 +82,9 @@ export default function LessonsPage() {
   const [showConfirmationModal, setShowConfirmationModal] = useState(false)
   const [selectedTargetWeek, setSelectedTargetWeek] = useState<Date | null>(null)
   const [copyingLessons, setCopyingLessons] = useState(false)
+
+  // Default lesson duration
+  const [defaultLessonDuration, setDefaultLessonDuration] = useState(50)
 
   // AI Schedule week selection functionality - COMMENTED OUT: now handled in AI schedule page
   // const [showAIScheduleModal, setShowAIScheduleModal] = useState(false)
@@ -188,8 +192,21 @@ export default function LessonsPage() {
   useEffect(() => {
     if (user && !loading) {
       fetchLessons()
+      fetchDefaultLessonDuration()
     }
   }, [user, loading, currentDate, viewMode])
+
+  // Fetch default lesson duration for the instructor
+  const fetchDefaultLessonDuration = async () => {
+    if (!user) return
+    
+    try {
+      const duration = await getDefaultLessonDuration(user.id)
+      setDefaultLessonDuration(duration)
+    } catch (error) {
+      console.error('Error fetching default lesson duration:', error)
+    }
+  }
 
 
 
@@ -481,6 +498,8 @@ export default function LessonsPage() {
     const startTime = `${timeInputs.startHours}:${timeInputs.startMinutes}`
     const endTime = `${timeInputs.endHours}:${timeInputs.endMinutes}`
     setLessonForm(prev => ({ ...prev, startTime, endTime }))
+    // Force re-render to update lesson count display
+    setTimeInputs(prev => ({ ...prev }))
   }
 
   // Month view helper functions
@@ -516,6 +535,13 @@ export default function LessonsPage() {
   const getLessonsCountForDate = (date: Date) => {
     const dateString = formatDateToISO(date)
     return lessons.filter(lesson => lesson.date === dateString).length
+  }
+
+  // Calculate lesson count for current form data
+  const getCurrentLessonCount = () => {
+    const startTime = `${timeInputs.startHours}:${timeInputs.startMinutes}`
+    const endTime = `${timeInputs.endHours}:${timeInputs.endMinutes}`
+    return calculateLessonCount(startTime, endTime, defaultLessonDuration)
   }
 
 
@@ -1080,6 +1106,7 @@ export default function LessonsPage() {
                         const value = e.target.value
                         if (value === '' || /^\d{0,2}$/.test(value)) {
                           updateTimeInputs('startHours', value)
+                          updateLessonFormTime()
                         }
                       }}
                       onBlur={(e) => {
@@ -1099,6 +1126,7 @@ export default function LessonsPage() {
                         const value = e.target.value
                         if (value === '' || /^\d{0,2}$/.test(value)) {
                           updateTimeInputs('startMinutes', value)
+                          updateLessonFormTime()
                         }
                       }}
                       onBlur={(e) => {
@@ -1124,6 +1152,7 @@ export default function LessonsPage() {
                         const value = e.target.value
                         if (value === '' || /^\d{0,2}$/.test(value)) {
                           updateTimeInputs('endHours', value)
+                          updateLessonFormTime()
                         }
                       }}
                       onBlur={(e) => {
@@ -1143,6 +1172,7 @@ export default function LessonsPage() {
                         const value = e.target.value
                         if (value === '' || /^\d{0,2}$/.test(value)) {
                           updateTimeInputs('endMinutes', value)
+                          updateLessonFormTime()
                         }
                       }}
                       onBlur={(e) => {
@@ -1153,6 +1183,18 @@ export default function LessonsPage() {
                       placeholder="MM"
                     />
                   </div>
+                </div>
+              </div>
+              
+              {/* Real-time lesson count display */}
+              <div className="text-center">
+                <div className="inline-flex items-center gap-2 bg-blue-50 px-3 py-2 rounded-lg border border-blue-200">
+                  <span className="text-sm text-blue-800 font-medium">
+                    {getCurrentLessonCount()} {getCurrentLessonCount() === 1 ? 'lesuur' : 'lesuren'} geregistreerd
+                  </span>
+                  {/* <span className="text-xs text-blue-600">
+                    (Standaard: {defaultLessonDuration} min)
+                  </span> */}
                 </div>
               </div>
               
