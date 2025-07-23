@@ -89,36 +89,32 @@ export default function StudentsPage() {
     try {
       const today = new Date().toISOString().split('T')[0]
       
-      // Get completed lessons (date <= today)
-      const { data: completedLessons, error: completedError } = await supabase
+      // Get all lessons for this student (both completed and scheduled)
+      const { data: allLessons, error: lessonsError } = await supabase
         .from('lessons')
-        .select('start_time, end_time')
+        .select('date, start_time, end_time, status')
         .eq('student_id', studentId)
-        .lte('date', today)
         .not('status', 'eq', 'cancelled')
+        .order('date', { ascending: true })
 
-      if (completedError) {
-        console.error('Error fetching completed lessons:', completedError)
-      }
-
-      // Get scheduled lessons (date > today)
-      const { data: scheduledLessons, error: scheduledError } = await supabase
-        .from('lessons')
-        .select('start_time, end_time')
-        .eq('student_id', studentId)
-        .gt('date', today)
-        .not('status', 'eq', 'cancelled')
-
-      if (scheduledError) {
-        console.error('Error fetching scheduled lessons:', scheduledError)
+      if (lessonsError) {
+        console.error('Error fetching lessons:', lessonsError)
+        return {
+          lessonsCompleted: 0,
+          lessonsScheduled: 0
+        }
       }
 
       // Get default lesson duration for the instructor
       const defaultLessonDuration = await getDefaultLessonDuration(user?.id || '')
 
+      // Separate completed and scheduled lessons
+      const completedLessons = (allLessons || []).filter(lesson => lesson.date <= today)
+      const scheduledLessons = (allLessons || []).filter(lesson => lesson.date > today)
+
       // Calculate lesson counts based on duration
-      const completedCount = calculateTotalLessonCount(completedLessons || [], defaultLessonDuration)
-      const scheduledCount = calculateTotalLessonCount(scheduledLessons || [], defaultLessonDuration)
+      const completedCount = calculateTotalLessonCount(completedLessons, defaultLessonDuration)
+      const scheduledCount = calculateTotalLessonCount(scheduledLessons, defaultLessonDuration)
 
       return {
         lessonsCompleted: completedCount,
