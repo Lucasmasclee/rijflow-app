@@ -253,7 +253,7 @@ Proces 1: SMS Leerlingen (Instructeur Flow)
 ✅6: Instructeur is in leerlingoverzicht
 ✅7: Instructeur klikt op "SMS Leerlingen"
 ✅8: Instructeur klikt op Week waarvoor beschikbaarheid moet worden verzameld (8 weken in toekomst)
-Weken in formaat "17 juli - 23 juli" met "[Maandag vd Week - Zondag vd Week]"
+✅Weken in formaat "17 juli - 23 juli" met "[Maandag vd Week - Zondag vd Week]"
 ✅9: Instructeur selecteert voor elke leerling wel/niet te sturen met een toggle. 
 Toggle staat automatisch uit voor leerlingen waarnaar de SMS minder dan 6 dagen geleden gestuurd is, dit kan worden bepaald door de SMS_laatst_gestuurd kolom van de students tabel.
 ✅10: Laten zien voor welke leerlingen telefoonnummer niet valide is
