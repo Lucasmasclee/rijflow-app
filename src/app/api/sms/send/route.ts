@@ -6,6 +6,22 @@ import { cookies } from 'next/headers'
 const accountSid = process.env.TWILIO_ACCOUNT_SID
 const authToken = process.env.TWILIO_AUTH_TOKEN
 const fromNumber = process.env.TWILIO_FROM_NUMBER
+const messagingServiceSid = process.env.TWILIO_MESSAGING_SERVICE_SID // Messaging Service SID
+const senderName = process.env.TWILIO_SENDER_NAME || 'RijFlow' // Custom sender name
+
+// Helper function to determine the best sender to use
+const getSenderId = () => {
+  // If we have a custom sender name, use it
+  if (senderName && senderName !== 'RijFlow') {
+    return senderName
+  }
+  // Fallback to phone number if available
+  if (fromNumber) {
+    return fromNumber
+  }
+  // Final fallback
+  return 'RijFlow'
+}
 
 interface SMSRequest {
   studentIds: string[]
@@ -17,7 +33,7 @@ export async function POST(request: NextRequest) {
   try {
     const { studentIds, weekStart, weekEnd }: SMSRequest = await request.json()
 
-    if (!accountSid || !authToken || !fromNumber) {
+    if (!accountSid || !authToken) {
       return NextResponse.json(
         { error: 'Twilio configuration missing' },
         { status: 500 }
@@ -102,7 +118,7 @@ export async function POST(request: NextRequest) {
               'Content-Type': 'application/x-www-form-urlencoded',
             },
             body: new URLSearchParams({
-              From: fromNumber,
+              MessagingServiceSid: messagingServiceSid || '',
               To: formattedPhone,
               Body: message,
             }),

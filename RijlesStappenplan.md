@@ -245,34 +245,38 @@ Todolist / Glitches:
 
 Hele werking:
 Proces 1: SMS Leerlingen (Instructeur Flow)
-1: Voeg kolom public_token text UNIQUE toe aan de students-tabel in Supabase. Voeg ook "SMS_laatst_gestuurd" toe met een datum object
-2: Genereer automatisch een UUID of hash (bijv. uuidv4() of crypto.randomUUID()) bij het aanmaken van een nieuwe leerling.
-3: Voeg deze token toe aan het nieuwe leerlingrecord.
-4: Format link als: https://rijflow.nl/beschikbaarheid/[public_token]
-5: Sla de volledige link eventueel ook op als public_url voor gebruiksgemak.
+✅1: Voeg kolom public_token text UNIQUE toe aan de students-tabel in Supabase. Voeg ook "SMS_laatst_gestuurd" toe met een datum object
+✅2: Genereer automatisch een UUID of hash (bijv. uuidv4() of crypto.randomUUID()) bij het aanmaken van een nieuwe leerling.
+✅3: Voeg deze token toe aan het nieuwe leerlingrecord.
+✅4: Format link als: https://rijflow.nl/beschikbaarheid/[public_token]
+✅5: Sla de volledige link eventueel ook op als public_url voor gebruiksgemak.
 ✅6: Instructeur is in leerlingoverzicht
 ✅7: Instructeur klikt op "SMS Leerlingen"
 ✅8: Instructeur klikt op Week waarvoor beschikbaarheid moet worden verzameld (8 weken in toekomst)
-9: Instructeur selecteert voor elke leerling wel/niet te sturen met een toggle. Toggle staat automatisch uit voor leerlingen waarnaar de SMS minder dan 6 dagen geleden gestuurd is, dit kan worden bepaald door de SMS_laatst_gestuurd kolom van de students tabel.
-10: Laten zien voor welke leerlingen telefoonnummer niet valide is
-11: Instructeur klikt op "Sturen"
-12: Gebruik Twilio API in je backend of edge function om de SMS te sturen. De nodige keys en tokens staan al in .env.local
-13: Vanuit Proces 2 Stap 3: Persoonlijke link per leerling ophalen uit database: 
-14: Twilio API: Voor elke leerling bericht personaliseren: "Beste [LeerlingNaam], Vul je beschikbaarheid in voor [Week...] met deze link: [PersoonlijkeLink].
+Weken in formaat "17 juli - 23 juli" met "[Maandag vd Week - Zondag vd Week]"
+✅9: Instructeur selecteert voor elke leerling wel/niet te sturen met een toggle. 
+Toggle staat automatisch uit voor leerlingen waarnaar de SMS minder dan 6 dagen geleden gestuurd is, dit kan worden bepaald door de SMS_laatst_gestuurd kolom van de students tabel.
+✅10: Laten zien voor welke leerlingen telefoonnummer niet valide is
+✅11: Instructeur klikt op "Sturen"
+✅12: Gebruik Twilio API in je backend of edge function om de SMS te sturen. De nodige keys en tokens staan al in .env.local
+✅13: Vanuit Proces 2 Stap 3: Persoonlijke link per leerling ophalen uit database: 
+✅14: Twilio API: Voor elke leerling bericht personaliseren: "Beste [LeerlingNaam], Vul je beschikbaarheid in voor [Week...] met deze link: [PersoonlijkeLink].
+Datums staan goed op basis van de gekozen week van de instructeur in formaat "17 juli - 23 juli"
 15: Vanuit Proces 2 Stap 12: Instructeur moet deze beschikbaarheid kunnen ophalen en te zien krijgen in ai-schedule pagina op het scherm leerling beschikbaarheid
 
 Proces 2: SMS Leerlingen (Leerling Flow)
-1: Vanuit Proces 1 stap 11: Leerling krijgt een SMS met een persoonlijke link
-2: Leerling klikt op de link en vult beschikbaarheid in
-3: Haal via Supabase API het student record op: js Copy Edit supabase.from('students').select('*').eq('public_token', token)
-4: Valideer token: als geen match → toon 404 of foutmelding.
-5: De Frontend-pagina op /beschikbaarheid/[public_token] heeft ALLEEN: Beschikbaarheid invullen op EXACT zelfde manier als schedule-settings pagina & Opslaan Knop
-6: Leerling klikt op "Opslaan" knop
-7: Verstuur ingevulde beschikbaarheid via POST of PATCH request.
-8: Werk in de student_availability tabel met de 'notes' kolom
-9: Exacte formaat beschikbaarheid = {"zondag": ["09:00", "17:00"], "dinsdag": ["09:00", "17:00"], "maandag": ["09:00", "17:00"], "vrijdag": ["09:00", "17:00"], "woensdag": ["09:00", "17:00"], "donderdag": ["09:00", "17:00"]}
-10: Voeg RLS toe: Alleen UPDATE/INSERT mogelijk als students.public_token = current_setting(...)
-11: Gebruik foreign key van availability.student_id → students.id
+✅1: Vanuit Proces 1 stap 11: Leerling krijgt een SMS met een persoonlijke link
+✅2: Leerling klikt op de link en vult beschikbaarheid in
+Bericht voor leerlingen duidelijk maken: "Je instructeur kan zien wat je hier invult. Deze beschikbaarheid kan je later altijd bewerken door opnieuw op de link te klikken."
+✅3: Haal via Supabase API het student record op: js Copy Edit supabase.from('students').select('*').eq('public_token', token)
+✅4: Valideer token: als geen match → toon 404 of foutmelding.
+✅5: De Frontend-pagina op /beschikbaarheid/[public_token] heeft ALLEEN: Beschikbaarheid invullen op EXACT zelfde manier als schedule-settings pagina & Opslaan Knop
+✅6: Leerling klikt op "Opslaan" knop
+✅7: Verstuur ingevulde beschikbaarheid via POST of PATCH request.
+✅8: Werk in de student_availability tabel met de 'notes' kolom
+✅9: Exacte formaat beschikbaarheid = {"zondag": ["09:00", "17:00"], "dinsdag": ["09:00", "17:00"], "maandag": ["09:00", "17:00"], "vrijdag": ["09:00", "17:00"], ✅"woensdag": ["09:00", "17:00"], "donderdag": ["09:00", "17:00"]}
+✅10: Voeg RLS toe: Alleen UPDATE/INSERT mogelijk als students.public_token = current_setting(...)
+✅11: Gebruik foreign key van availability.student_id → students.id
 12: Student_availability tabel is bewerkt -> Proces 1 Stap 15
 
 <!-- Query:
