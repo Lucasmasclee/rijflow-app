@@ -148,11 +148,11 @@ export default function StudentsPage() {
       const scheduledCount = scheduledLessons.reduce((sum, lesson) => sum + (lesson.lessen_geregistreerd || 1), 0)
 
       // Debug logging
-      console.log(`=== Lesson Stats for Student ${studentId} ===`)
-      console.log('Completed lessons data:', completedLessons)
-      console.log('Scheduled lessons data:', scheduledLessons)
-      console.log('Calculated completed count:', completedCount)
-      console.log('Calculated scheduled count:', scheduledCount)
+      // console.log(`=== Lesson Stats for Student ${studentId} ===`)
+      // console.log('Completed lessons data:', completedLessons)
+      // console.log('Scheduled lessons data:', scheduledLessons)
+      // console.log('Calculated completed count:', completedCount)
+      // console.log('Calculated scheduled count:', scheduledCount)
 
       return {
         lessonsCompleted: completedCount,
@@ -212,7 +212,7 @@ export default function StudentsPage() {
 
   // Helper: validate phone number
   const isValidPhoneNumber = (phone: string) => {
-    const phoneRegex = /^(\+31|0)6\d{8}$/
+    const phoneRegex = /^(\+31|0)6\d{8,9}$/
     return phoneRegex.test(phone.replace(/\s/g, ''))
   }
 

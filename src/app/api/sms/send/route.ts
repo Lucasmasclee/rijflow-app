@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { supabase } from '@/lib/supabase'
+import { createServerClient } from '@supabase/ssr'
+import { cookies } from 'next/headers'
 
 // Twilio client setup
 const accountSid = process.env.TWILIO_ACCOUNT_SID
@@ -22,6 +23,20 @@ export async function POST(request: NextRequest) {
         { status: 500 }
       )
     }
+
+    // Create authenticated Supabase client
+    const cookieStore = await cookies()
+    const supabase = createServerClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+      {
+        cookies: {
+          get(name: string) {
+            return cookieStore.get(name)?.value
+          },
+        },
+      }
+    )
 
     // Get students data
     const { data: students, error: studentsError } = await supabase
@@ -51,7 +66,7 @@ export async function POST(request: NextRequest) {
       }
 
       // Validate phone number (basic check)
-      const phoneRegex = /^(\+31|0)6\d{8}$/
+      const phoneRegex = /^(\+31|0)6\d{8,9}$/
       if (!phoneRegex.test(student.phone.replace(/\s/g, ''))) {
         results.push({
           studentId: student.id,
