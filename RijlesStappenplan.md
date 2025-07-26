@@ -1,3 +1,159 @@
+Huidige navigatie: 
+�� RijFlow App - Volledige Navigatie & Functionaliteit Overzicht
+�� Hoofdpagina (/)
+Functionaliteit:
+Landing page met app introductie
+Call-to-action voor registratie/inloggen
+Feature overzicht van de app
+Navigatie naar auth pagina's
+🔐 Authenticatie
+Inloggen (/auth/signin)
+Functionaliteit:
+Email/wachtwoord inloggen
+Hydration-safe password input
+Automatische redirect naar dashboard na login
+Error handling met toast notifications
+Registreren (/auth/signup)
+Functionaliteit:
+Nieuwe gebruiker registratie
+Rol selectie (instructor/student)
+Email verificatie
+Automatische redirect naar dashboard
+Uitnodiging (/invite/[invite_token])
+Functionaliteit:
+Student registratie via uitnodigingslink
+Automatische koppeling aan instructeur
+Invite token validatie
+Directe toegang tot student dashboard
+📊 Dashboard (/dashboard)
+Hoofddashboard
+Functionaliteit:
+Rol-gebaseerde toegang (instructor/student)
+Rijschoolnaam beheer (instructeurs)
+Mobiele navigatie met bottom tabs
+Automatische setup check voor nieuwe instructeurs
+Instructeur Dashboard
+Functionaliteit:
+Dagoverzicht met lessen van vandaag
+Navigatie tussen dagen (vorige/volgende)
+Les details met uitklapbare informatie
+Leerling overzicht (eerste 5 leerlingen)
+Progress notes per les
+Google Maps integratie voor adressen
+Snelle acties naar andere pagina's
+Student Dashboard
+Functionaliteit:
+Beschikbaarheid beheer voor komende 5 weken
+Weeknotities per week
+Automatische opslag van beschikbaarheid
+Real-time updates
+📅 Lesplanning
+Weekplanning (/dashboard/lessons)
+Functionaliteit:
+Week/Maand overzicht toggle
+Les toevoegen/bewerken modal
+Bulk les operaties (kopiëren van week)
+Les statistieken per dag
+Student selectie met autocomplete
+Tijd input met custom component
+Les duur berekening (standaard 50 min)
+AI Schedule integratie knop
+Dagoverzicht (/dashboard/day-overview/[date])
+Functionaliteit:
+Specifieke dag planning
+Les details met uitklapbare info
+Progress notes per les
+Les toevoegen/bewerken
+Navigatie tussen dagen
+👥 Leerling Beheer
+Leerlingen Overzicht (/dashboard/students)
+Functionaliteit:
+Leerling lijst met zoekfunctie
+Filter opties (alle/actieve/nieuwe)
+Les statistieken per leerling
+Snelle acties (bewerken/verwijderen)
+Uitnodigingslink generatie
+Bulk operaties
+Nieuwe Leerling (/dashboard/students/new)
+Functionaliteit:
+Leerling registratie formulier
+Verplichte velden validatie
+Uitnodigingslink generatie
+Automatische redirect naar leerling overzicht
+Leerling Details (/dashboard/students/[id])
+Functionaliteit:
+Persoonlijke informatie bewerken
+Les instellingen (lessen per week, lesduur)
+Les statistieken (voltooid/gepland)
+Progress notes beheer
+Uitnodigingslink delen
+Google Maps integratie
+Verwijder bevestiging
+🤖 AI Planning
+AI Schedule (/dashboard/ai-schedule)
+Functionaliteit:
+Week selectie voor planning
+Instructeur beschikbaarheid tonen/bewerken
+Leerling beschikbaarheid tonen/bewerken
+AI instellingen configuratie
+AI planning generatie met OpenAI
+Planning preview met selectie opties
+Bulk les toevoegen aan rooster
+Custom prompts voor AI
+Schedule Settings (/dashboard/schedule-settings)
+Functionaliteit:
+Standaard beschikbaarheid per dag
+Tijd instellingen per dag
+Lesduur instellingen
+Automatische opslag
+Setup voor nieuwe instructeurs
+🔧 API Endpoints
+AI Schedule API's
+POST /api/ai-schedule - AI planning generatie
+POST /api/ai-schedule/create-student-availability - Leerling beschikbaarheid
+POST /api/ai-schedule/update-availability - Beschikbaarheid updates
+POST /api/ai-schedule/run-generation - Planning uitvoeren
+POST /api/ai-schedule/update-settings - Instellingen opslaan
+Les API's
+POST /api/lessons/bulk - Bulk les operaties
+Test API's
+GET /api/test-env - Omgeving testen
+GET /api/test-lessons - Les functionaliteit testen
+📱 Mobiele Navigatie
+Bottom Navigation Tabs
+Dagplanning (/dashboard) - Hoofddashboard
+Weekplanning (/dashboard/lessons) - Les overzicht
+Leerlingen (/dashboard/students) - Leerling beheer
+Mobiele Features
+Responsive design voor alle schermformaten
+Touch-friendly interface
+Safe area ondersteuning voor iOS
+Offline-capable met service worker
+🎯 Kernfunctionaliteiten
+Voor Instructeurs
+✅ Leerling beheer met uitnodigingssysteem
+✅ Lesplanning met week/maand overzicht
+✅ AI-geassisteerde planning met OpenAI
+✅ Progress tracking per leerling
+✅ Beschikbaarheid beheer
+✅ Les statistieken en rapportages
+✅ Google Maps integratie
+Voor Studenten
+✅ Beschikbaarheid doorgeven per week
+✅ Les overzicht en planning
+✅ Progress notes bekijken
+✅ Communicatie met instructeur
+Algemene Features
+✅ Real-time updates met Supabase
+✅ Offline functionaliteit
+✅ Push notifications (voorbereid)
+✅ Multi-platform (web, iOS, Android)
+✅ Responsive design
+✅ Dark mode ready (CSS voorbereid)
+
+
+
+
 18 juli:
 ✅✅✅✅✅- Publiceren in appstore
 ✅✅✅✅✅- TESTSCENARIO op telefoon
@@ -80,17 +236,31 @@ Klik op “Toevoegen” en controleer of lessen in weekplanning verschijnen -->
 
 
 Todolist / Glitches:
+- Proces 1: Optie om elke week automatisch SMS naar elke leerling te sturen
+- Optie om ergens in de app de ingevulde beschikbaarheden te zien van leerlingen (Een andere plek dan AI Weekplanning)
 - In AI-Schedule pagina alles automatisch opslaan ipv een knop gebruiken
-- Beschikbaarheid leerling wordt niet goed geladen
+- Beschikbaarheid leerling wordt niet automatisch gecreeerd als die nog niet bestaat voor de geselecteerde wek
 - In dashboard/lessons wordt geklikt op "AI Weekplanning" -> Er worden een BEWERKBAAR json bestand geladen/gemaakt in het EXACTE formaat van sample_input.json -> Dit bewerkbare bestand wordt geinitialiseerd met alle data vanuit de database -> In de ai-schedule pagina kan alle data die gebruikt wordt voor de ai planning worden aangepast. Let op: Deze data wordt tijdens het bewerken alleen maar geupdated naar de database -> Zodra er wordt geklikt op "Start Test Planning" wordt dit bewerkbare json bestand opnieuw geinitialiseerd met de gegevens van de database -> generate_week_planning.js leest de bewerkbare kopie van sample_input.json -> generate_week_planning.js maakt best_week_planning.json -> UI laat resultaat zien.
 
 
 Hele werking:
-Proces 1:
+Proces 1: SMS Leerlingen
 1: Instructeur is in leerlingoverzicht
-2: Instructeur klikt op "Automatische beschikbaarheid  
+2: Instructeur klikt op "SMS Leerlingen"
+3: Als telefoonnummer van instructeur nog niet is geverifieerd, moet hij dit eerst doen 
+4: Instructeur klikt op Week waarvoor beschikbaarheid moet worden verzameld (8 weken in toekomst)
+5: Voor elke leerling een toggle om wel/niet te sturen. Toggle staat automatisch uit voor leerlingen waarnaar de SMS minder dan 6 dagen geleden gestuurd is. 
+6: Instructeur klikt op "Sturen"
+7: Twilio API: SMS wordt verstuurd vanuit telefoonnummer +31 970 10254026
+8: Persoonlijke link per leerling ophalen uit database
+9: Twilio API: Voor elke leerling bericht personaliseren: "Beste [LeerlingNaam], Vul je beschikbaarheid in voor [Week...] met deze link: [PersoonlijkeLink].
+10: Laten zien voor welke leerlingen telefoonnummer niet valide is
+11: SMS sturen naar telefoonnummers van geselecteerde leerlingen in stap 5
 
-Proces 2: AI-Weekplanning
+Proces 2: Beschikbaarheid Link voor leerlingen
+1: PersoonlijkeLink wordt automatisch gecreeerd zodra een leerling wordt aangemaakt
+
+Proces 3: AI-Weekplanning
 1: Instructeur is op dashboard
 2: Instructeur klikt op "AI-Weekplanning" in dashboard
 3: Instructeur gaat naar AI-schedule pagina
@@ -109,6 +279,7 @@ Proces 2: AI-Weekplanning
 16: Gebruiker kan per les selecteren of deze wordt toegevoegd
 17: Gebruiker klikt op "Voeg X lessen toe"
 18: Alle geselecteerde lessen worden toegevoegd aan het rooster van de instructeur.
+19: Optie om SMS te sturen naar elke ingeplande les
 
 
 

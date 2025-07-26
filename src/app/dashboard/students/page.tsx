@@ -3,7 +3,7 @@
 import { useAuth } from '@/contexts/AuthContext'
 import { useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
-import { Users, Plus, Mail, Phone, MapPin, Calendar, MessageSquare, Edit, Trash2, Clock } from 'lucide-react'
+import { Users, Plus, Mail, Phone, MapPin, Calendar, MessageSquare, Edit, Trash2, Clock, X } from 'lucide-react'
 import Link from 'next/link'
 import toast from 'react-hot-toast'
 import { supabase } from '@/lib/supabase'
@@ -41,6 +41,33 @@ export default function StudentsPage() {
   const [filterStatus, setFilterStatus] = useState<'all' | 'active' | 'new'>('all')
   const [deleteModalStudentId, setDeleteModalStudentId] = useState<string | null>(null)
   const [deleteModalStudentName, setDeleteModalStudentName] = useState<string>('')
+  // Nieuw: state voor SMS Leerlingen modal
+  const [showSmsModal, setShowSmsModal] = useState(false)
+  // State voor gekozen week
+  const [selectedSmsWeek, setSelectedSmsWeek] = useState<Date | null>(null)
+
+  // Helper: maandag van een datum
+  const getMonday = (date: Date) => {
+    const newDate = new Date(date)
+    const day = newDate.getDay()
+    const diff = newDate.getDate() - day + (day === 0 ? -6 : 1)
+    newDate.setDate(diff)
+    newDate.setHours(0,0,0,0)
+    return newDate
+  }
+
+  // Helper: volgende 8 weken (vanaf volgende week)
+  const getNext8Weeks = () => {
+    const weeks = []
+    const today = new Date()
+    const currentWeekMonday = getMonday(today)
+    for (let i = 1; i <= 8; i++) {
+      const weekStart = new Date(currentWeekMonday)
+      weekStart.setDate(currentWeekMonday.getDate() + (i * 7))
+      weeks.push(weekStart)
+    }
+    return weeks
+  }
 
   useEffect(() => {
     if (!loading && !user) {
@@ -222,6 +249,15 @@ export default function StudentsPage() {
       </nav>
 
       <div className="container-mobile py-10">
+        {/* SMS Leerlingen knop */}
+        <div className="flex justify-end mb-6">
+          <button
+            className="btn btn-secondary"
+            onClick={() => setShowSmsModal(true)}
+          >
+            SMS Leerlingen
+          </button>
+        </div>
         {/* Search and Filter */}
         {/* <div className="card mb-6">
           <div className="space-y-4"> */}
@@ -421,6 +457,104 @@ export default function StudentsPage() {
                 </button>
               </div>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* SMS Leerlingen Modal */}
+      {showSmsModal && (
+        <div className="fixed inset-0 bg-gray-500 bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 w-full max-w-md mx-4">
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="text-lg font-semibold text-gray-900">
+                SMS Leerlingen
+              </h3>
+              <button
+                onClick={() => {
+                  setShowSmsModal(false)
+                  setSelectedSmsWeek(null)
+                }}
+                className="text-gray-400 hover:text-gray-600"
+              >
+                <span className="sr-only">Sluiten</span>
+                <X className="h-5 w-5" />
+              </button>
+            </div>
+
+            {/* Stap 1: Week-selectie */}
+            {!selectedSmsWeek && (
+              <div className="space-y-3">
+                <p className="text-sm text-gray-600 mb-4">
+                  Selecteer een week waarvoor je leerlingen wilt sms'en:
+                </p>
+                {getNext8Weeks().map((week, index) => {
+                  const weekStart = getMonday(week)
+                  const weekEnd = new Date(weekStart)
+                  weekEnd.setDate(weekStart.getDate() + 6)
+                  return (
+                    <button
+                      key={index}
+                      onClick={() => setSelectedSmsWeek(week)}
+                      className="w-full p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors text-left"
+                    >
+                      <div className="font-medium text-gray-900">
+                        {index === 0 ? 'Volgende week' : 'Week ' + (index + 1)}
+                      </div>
+                      <div className="text-sm text-gray-600">
+                        {weekStart.toLocaleDateString('nl-NL', {
+                          day: '2-digit',
+                          month: 'long'
+                        })} - {weekEnd.toLocaleDateString('nl-NL', {
+                          day: '2-digit',
+                          month: 'long',
+                          year: 'numeric'
+                        })}
+                      </div>
+                    </button>
+                  )
+                })}
+              </div>
+            )}
+
+            {/* Stap 2: Lijst met leerlingen */}
+            {selectedSmsWeek && (
+              <div>
+                <p className="text-sm text-gray-600 mb-4">
+                  Leerlingen voor week: {(() => {
+                    const weekStart = getMonday(selectedSmsWeek)
+                    const weekEnd = new Date(weekStart)
+                    weekEnd.setDate(weekStart.getDate() + 6)
+                    return `${weekStart.toLocaleDateString('nl-NL', {
+                      day: '2-digit', month: 'long'
+                    })} - ${weekEnd.toLocaleDateString('nl-NL', {
+                      day: '2-digit', month: 'long', year: 'numeric'
+                    })}`
+                  })()}
+                </p>
+                <div className="divide-y divide-gray-200">
+                  {students.map(student => (
+                    <div key={student.id} className="py-3 flex items-center justify-between">
+                      <div>
+                        <div className="font-medium text-gray-900">
+                          {student.first_name} {student.last_name}
+                        </div>
+                        <div className="text-sm text-gray-600">
+                          {student.phone || <span className="italic text-gray-400">Geen telefoonnummer</span>}
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+                <div className="flex justify-end mt-6">
+                  <button
+                    className="btn btn-secondary"
+                    onClick={() => setSelectedSmsWeek(null)}
+                  >
+                    Terug naar weekselectie
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
         </div>
       )}
