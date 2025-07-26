@@ -27,6 +27,8 @@ interface SMSRequest {
   studentIds: string[]
   weekStart: string
   weekEnd: string
+  weekStartFormatted: string
+  weekEndFormatted: string
 }
 
 export async function POST(request: NextRequest) {
