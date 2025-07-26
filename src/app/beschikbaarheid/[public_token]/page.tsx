@@ -194,8 +194,8 @@ export default function BeschikbaarheidPage() {
             </div>
           </div>
           <p className="text-sm text-gray-600">
-            Vul hieronder je beschikbare tijden in voor de komende week. 
-            Je kunt meerdere tijdsblokken per dag toevoegen.
+            Vul per datum je beschikbaarheid in. 
+            Je kunt dit later altijd wijzigen door opnieuw op de link te klikken.
           </p>
         </div>
 

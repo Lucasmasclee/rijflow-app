@@ -267,10 +267,11 @@ Datums staan goed op basis van de gekozen week van de instructeur in formaat "17
 Proces 2: SMS Leerlingen (Leerling Flow)
 ✅1: Vanuit Proces 1 stap 11: Leerling krijgt een SMS met een persoonlijke link
 ✅2: Leerling klikt op de link en vult beschikbaarheid in
-Bericht voor leerlingen duidelijk maken: "Je instructeur kan zien wat je hier invult. Deze beschikbaarheid kan je later altijd bewerken door opnieuw op de link te klikken."
+✅Bericht voor leerlingen: "Je instructeur kan zien wat je hier invult. Deze beschikbaarheid kan je later altijd bewerken door opnieuw op de link te klikken."
 ✅3: Haal via Supabase API het student record op: js Copy Edit supabase.from('students').select('*').eq('public_token', token)
 ✅4: Valideer token: als geen match → toon 404 of foutmelding.
 ✅5: De Frontend-pagina op /beschikbaarheid/[public_token] heeft ALLEEN: Beschikbaarheid invullen op EXACT zelfde manier als schedule-settings pagina & Opslaan Knop
+Meerdere beschikbaarheden per dag. Mogen niet overlappen
 ✅6: Leerling klikt op "Opslaan" knop
 ✅7: Verstuur ingevulde beschikbaarheid via POST of PATCH request.
 ✅8: Werk in de student_availability tabel met de 'notes' kolom
@@ -279,38 +280,41 @@ Bericht voor leerlingen duidelijk maken: "Je instructeur kan zien wat je hier in
 ✅11: Gebruik foreign key van availability.student_id → students.id
 ✅12: Student_availability tabel is bewerkt -> Proces 1 Stap 15
 
-<!-- Query:
-sql
-Copy
-Edit
-SELECT s.name, a.week, a.beschikbaarheid
-FROM availability a
-JOIN students s ON s.id = a.student_id
-WHERE s.instructeur_id = auth.uid()
-ORDER BY a.week ASC
-Toon in dashboard: -->
-
-
 Proces 3: AI-Weekplanning
 1: Instructeur is op dashboard
 2: Instructeur klikt op "AI-Weekplanning" in dashboard
 3: Instructeur gaat naar AI-schedule pagina
-4: Op AI schedule pagina selecteert de instructeur de week voor AI-Weekplanning in eerste scherm 
-5: Op AI schedule pagina wordt beschikbaarheid van instructeur uit database gehaald en laten zien in tweede scherm
-6: Op AI schedule pagina wordt beschikbaarheid van leerlingen uit database gehaald en laten zien in derde scherm
-7: Op AI schedule pagina wordt AI-Weekplanning instellingen van instructeur uit database gehaald en laten zien in vierde scherm
-8: Als op de AI schedule pagina iets aangepast wordt, wordt dit direct geupdated in de database.
-9: Instructeur klikt in AI schedule pagina op "Start AI-Weekplanning" in vijfde scherm
-10: Er wordt een json bestand gemaakt in het exacte formaat van sample_input.json
-11: sample_input.json wordt geinitialiseerd met alle gegevens uit de database: Beschikbaarheid instructeur, Beschikbaarheid leerlingen, AI-Weekplanning instellingen van instructeur
-12: generate_week_planning.js wordt gerund.
-13: generate_week_planning.js gebruikt sample_input.json, en genereert vervolgens best_week_planning.json
-14: Frontend leest best_week_planning.json
-15: In AI-schedule pagina laat de UI het resultaat van best_week_planning.json zien: Elke les, totaal aantal lessen, en totale minuten tussen les. 
-16: Gebruiker kan per les selecteren of deze wordt toegevoegd
-17: Gebruiker klikt op "Voeg X lessen toe"
-18: Alle geselecteerde lessen worden toegevoegd aan het rooster van de instructeur.
-19: Optie om SMS te sturen naar elke ingeplande les
+4: AI schedule pagina scherm 1: Beschikbaarheid instructeur
+Als er al een entry is in instructor_availability voor de geselecteerde week, wordt deze gebruikt
+Als er nog geen entry is, een entry maken in instructor_availability met als waarde: standard_availability van instructor
+5: AI schedule pagina scherm 2 t/m [Aantal Leerlingen]: Beschikbaarheid leerlingen
+Als er al een entry is in student_availability voor een student met de geselecteerde week, wordt deze gebruikt
+Als er nog geen entry is in student_availability voor een student met de geselecteerde week, een entry maken met standard_availability van instructor
+6: AI schedule pagina [Aantal Leerlingen + 1]: AI schedule instellingen
+Alle volgende waarden uit instructor-ai-settings halen. 
+Blokuren aan/uit, Standaard = aan
+Pauze tussen lessen (Pauze tussen elke les behalve blokuur van dezelfde leerling), Standaard = 5
+Overige pauzes (Na elke maximaal 3 uur les), Standaard = 20
+Locaties koppelen, Standaard = Uit
+Voor later: Beginnen & eindigen in eigen woonplaats, Standaard = Uit
+7: Na het bewerken moeten de volgende ingevulde gegevens correct zijn in sample_input.json
+Beschikbaarheid Instructeur
+Beschikbaarheid leerlingen
+Blokuren aan/uit
+Pauze tussen lessen
+Overige pauzes
+Locaties koppelen
+8: Instructeur klikt in AI schedule pagina op "Start AI-Weekplanning" in vijfde scherm
+9: Output debuggen: Er wordt een correct json bestand van het resultaat gemaakt door generate_week_planning.js
+10: Deze output wordt overzichtelijk weergegeven:
+Bovenaan: "X lessen ingepland (Waarvan Y lessen blokuren)" & "Z totale minuten pauze". X=Aantal lessen (Blokuur = 2 lessen). Y=Totaal aantal lessen (Blokuur telt als 1)
+Elke les als een klein blokje met tekst "[Naam + Achternaam] Ma 21 juli 8:00 - 9:40"
+11: Instructeur selecteert per les of het wordt toegevoegd of niet
+12: Instructeur kan oneindig vaak instellingen aanpassen in vorige schermen, waarna er dus verschillende resultaten zouden moeten komen
+13: Gebruiker klikt op "Voeg X lessen toe"
+15: Alle geselecteerde lessen worden toegevoegd aan het rooster van de instructeur.
+16: Naast "voeg x lessen toe" staat een toggle: Stuur meldingen naar leerlingen met hun lessen, Standaard = aan
+17: Als optie hierboven aangeklikt is, een SMS per les sturen naar correcte leerling.
 
 
 

@@ -35,7 +35,6 @@
       "2025-07-26",
       "2025-07-27"
     ],
-    "maxLessenPerDag": 6,
     "blokuren": true,
     "pauzeTussenLessen": 10,
     "langePauzeDuur": 0,
