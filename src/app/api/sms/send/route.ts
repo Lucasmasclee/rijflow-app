@@ -1,0 +1,145 @@
+import { NextRequest, NextResponse } from 'next/server'
+import { supabase } from '@/lib/supabase'
+
+// Twilio client setup
+const accountSid = process.env.TWILIO_ACCOUNT_SID
+const authToken = process.env.TWILIO_AUTH_TOKEN
+const fromNumber = process.env.TWILIO_FROM_NUMBER
+
+interface SMSRequest {
+  studentIds: string[]
+  weekStart: string
+  weekEnd: string
+}
+
+export async function POST(request: NextRequest) {
+  try {
+    const { studentIds, weekStart, weekEnd }: SMSRequest = await request.json()
+
+    if (!accountSid || !authToken || !fromNumber) {
+      return NextResponse.json(
+        { error: 'Twilio configuration missing' },
+        { status: 500 }
+      )
+    }
+
+    // Get students data
+    const { data: students, error: studentsError } = await supabase
+      .from('students')
+      .select('id, first_name, last_name, phone, public_url')
+      .in('id', studentIds)
+
+    if (studentsError) {
+      console.error('Error fetching students:', studentsError)
+      return NextResponse.json(
+        { error: 'Failed to fetch students' },
+        { status: 500 }
+      )
+    }
+
+    const results = []
+    const weekText = `${weekStart} - ${weekEnd}`
+
+    for (const student of students || []) {
+      if (!student.phone) {
+        results.push({
+          studentId: student.id,
+          success: false,
+          error: 'No phone number'
+        })
+        continue
+      }
+
+      // Validate phone number (basic check)
+      const phoneRegex = /^(\+31|0)6\d{8}$/
+      if (!phoneRegex.test(student.phone.replace(/\s/g, ''))) {
+        results.push({
+          studentId: student.id,
+          success: false,
+          error: 'Invalid phone number format'
+        })
+        continue
+      }
+
+      // Format phone number for Twilio (convert to international format)
+      let formattedPhone = student.phone.replace(/\s/g, '')
+      if (formattedPhone.startsWith('0')) {
+        formattedPhone = '+31' + formattedPhone.substring(1)
+      } else if (!formattedPhone.startsWith('+')) {
+        formattedPhone = '+31' + formattedPhone
+      }
+
+      // Create personalized message
+      const studentName = student.last_name 
+        ? `${student.first_name} ${student.last_name}`
+        : student.first_name
+
+      const message = `Beste ${studentName}, vul je beschikbaarheid in voor ${weekText} met deze link: ${student.public_url}`
+
+      try {
+        // Send SMS via Twilio
+        const twilioResponse = await fetch(
+          `https://api.twilio.com/2010-04-01/Accounts/${accountSid}/Messages.json`,
+          {
+            method: 'POST',
+            headers: {
+              'Authorization': `Basic ${btoa(`${accountSid}:${authToken}`)}`,
+              'Content-Type': 'application/x-www-form-urlencoded',
+            },
+            body: new URLSearchParams({
+              From: fromNumber,
+              To: formattedPhone,
+              Body: message,
+            }),
+          }
+        )
+
+        const twilioResult = await twilioResponse.json()
+
+        if (twilioResponse.ok && twilioResult.sid) {
+          // Update sms_laatst_gestuurd timestamp
+          await supabase
+            .from('students')
+            .update({ sms_laatst_gestuurd: new Date().toISOString() })
+            .eq('id', student.id)
+
+          results.push({
+            studentId: student.id,
+            success: true,
+            messageSid: twilioResult.sid
+          })
+        } else {
+          results.push({
+            studentId: student.id,
+            success: false,
+            error: twilioResult.message || 'Twilio API error'
+          })
+        }
+      } catch (error) {
+        console.error('Error sending SMS to student:', student.id, error)
+        results.push({
+          studentId: student.id,
+          success: false,
+          error: 'Network error'
+        })
+      }
+    }
+
+    return NextResponse.json({
+      success: true,
+      results,
+      summary: {
+        total: results.length,
+        successful: results.filter(r => r.success).length,
+        failed: results.filter(r => !r.success).length
+      }
+    })
+
+  } catch (error) {
+    console.error('Error in SMS send route:', error)
+    return NextResponse.json(
+      { error: 'Internal server error' },
+      { status: 500 }
+    )
+  }
+} 

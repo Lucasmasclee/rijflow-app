@@ -31,6 +31,9 @@ export interface Student {
   user_id?: string
   default_lessons_per_week?: number
   default_lesson_duration_minutes?: number
+  public_token?: string
+  sms_laatst_gestuurd?: string
+  public_url?: string
   created_at: string
   updated_at: string
 }

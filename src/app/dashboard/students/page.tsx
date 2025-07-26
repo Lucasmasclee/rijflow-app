@@ -23,6 +23,9 @@ interface Student {
   invite_token?: string
   default_lessons_per_week?: number
   default_lesson_duration_minutes?: number
+  public_token?: string
+  sms_laatst_gestuurd?: string
+  public_url?: string
 }
 
 interface StudentWithStats extends Student {
@@ -45,6 +48,10 @@ export default function StudentsPage() {
   const [showSmsModal, setShowSmsModal] = useState(false)
   // State voor gekozen week
   const [selectedSmsWeek, setSelectedSmsWeek] = useState<Date | null>(null)
+  // State voor geselecteerde leerlingen
+  const [selectedStudents, setSelectedStudents] = useState<Set<string>>(new Set())
+  // State voor SMS verzenden
+  const [sendingSms, setSendingSms] = useState(false)
 
   // Helper: maandag van een datum
   const getMonday = (date: Date) => {
@@ -193,6 +200,82 @@ export default function StudentsPage() {
   const cancelDeleteStudent = () => {
     setDeleteModalStudentId(null)
     setDeleteModalStudentName('')
+  }
+
+  // Helper: check if SMS was sent less than 6 days ago
+  const isSmsRecentlySent = (smsDate: string | undefined) => {
+    if (!smsDate) return false
+    const smsTime = new Date(smsDate).getTime()
+    const sixDaysAgo = new Date().getTime() - (6 * 24 * 60 * 60 * 1000)
+    return smsTime > sixDaysAgo
+  }
+
+  // Helper: validate phone number
+  const isValidPhoneNumber = (phone: string) => {
+    const phoneRegex = /^(\+31|0)6\d{8}$/
+    return phoneRegex.test(phone.replace(/\s/g, ''))
+  }
+
+  // Toggle student selection for SMS
+  const toggleStudentSelection = (studentId: string) => {
+    setSelectedStudents(prev => {
+      const newSet = new Set(prev)
+      if (newSet.has(studentId)) {
+        newSet.delete(studentId)
+      } else {
+        newSet.add(studentId)
+      }
+      return newSet
+    })
+  }
+
+  // Send SMS to selected students
+  const sendSmsToStudents = async () => {
+    if (!selectedSmsWeek || selectedStudents.size === 0) return
+
+    try {
+      setSendingSms(true)
+
+      const weekStart = getMonday(selectedSmsWeek)
+      const weekEnd = new Date(weekStart)
+      weekEnd.setDate(weekStart.getDate() + 6)
+
+      const weekStartStr = weekStart.toISOString().split('T')[0]
+      const weekEndStr = weekEnd.toISOString().split('T')[0]
+
+      const response = await fetch('/api/sms/send', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          studentIds: Array.from(selectedStudents),
+          weekStart: weekStartStr,
+          weekEnd: weekEndStr
+        })
+      })
+
+      const result = await response.json()
+
+      if (result.success) {
+        toast.success(`SMS verzonden naar ${result.summary.successful} leerlingen`)
+        
+        // Refresh students to update sms_laatst_gestuurd
+        await fetchStudents()
+        
+        // Close modal and reset state
+        setShowSmsModal(false)
+        setSelectedSmsWeek(null)
+        setSelectedStudents(new Set())
+      } else {
+        toast.error('Fout bij het verzenden van SMS berichten')
+      }
+    } catch (error) {
+      console.error('Error sending SMS:', error)
+      toast.error('Er is een fout opgetreden bij het verzenden van SMS')
+    } finally {
+      setSendingSms(false)
+    }
   }
 
   useEffect(() => {
@@ -531,26 +614,84 @@ export default function StudentsPage() {
                     })}`
                   })()}
                 </p>
-                <div className="divide-y divide-gray-200">
-                  {students.map(student => (
-                    <div key={student.id} className="py-3 flex items-center justify-between">
-                      <div>
-                        <div className="font-medium text-gray-900">
-                          {student.first_name} {student.last_name}
+                
+                <div className="space-y-3 max-h-64 overflow-y-auto">
+                  {students.map(student => {
+                    const recentlySent = isSmsRecentlySent(student.sms_laatst_gestuurd)
+                    const hasValidPhone = student.phone && isValidPhoneNumber(student.phone)
+                    const isSelected = selectedStudents.has(student.id)
+                    const canSelect = hasValidPhone && !recentlySent
+
+                    return (
+                      <div key={student.id} className="flex items-center justify-between p-3 border border-gray-200 rounded-lg">
+                        <div className="flex-1">
+                          <div className="font-medium text-gray-900">
+                            {student.first_name} {student.last_name}
+                          </div>
+                          <div className="text-sm text-gray-600">
+                            {student.phone || <span className="italic text-red-500">Geen telefoonnummer</span>}
+                          </div>
+                          {recentlySent && (
+                            <div className="text-xs text-yellow-600 mt-1">
+                              SMS minder dan 6 dagen geleden gestuurd
+                            </div>
+                          )}
+                          {!hasValidPhone && student.phone && (
+                            <div className="text-xs text-red-600 mt-1">
+                              Ongeldig telefoonnummer formaat
+                            </div>
+                          )}
                         </div>
-                        <div className="text-sm text-gray-600">
-                          {student.phone || <span className="italic text-gray-400">Geen telefoonnummer</span>}
+                        <div className="flex items-center gap-2">
+                          {canSelect ? (
+                            <input
+                              type="checkbox"
+                              checked={isSelected}
+                              onChange={() => toggleStudentSelection(student.id)}
+                              className="h-4 w-4 text-blue-600 rounded border-gray-300"
+                            />
+                          ) : (
+                            <div className="text-xs text-gray-400 px-2 py-1 bg-gray-100 rounded">
+                              {recentlySent ? 'Recent gestuurd' : 'Geen telefoon'}
+                            </div>
+                          )}
                         </div>
                       </div>
-                    </div>
-                  ))}
+                    )
+                  })}
                 </div>
-                <div className="flex justify-end mt-6">
+
+                <div className="mt-4 text-sm text-gray-600">
+                  {selectedStudents.size > 0 ? (
+                    <p>{selectedStudents.size} leerling{selectedStudents.size !== 1 ? 'en' : ''} geselecteerd</p>
+                  ) : (
+                    <p>Selecteer leerlingen om SMS te sturen</p>
+                  )}
+                </div>
+
+                <div className="flex justify-between mt-6">
                   <button
                     className="btn btn-secondary"
-                    onClick={() => setSelectedSmsWeek(null)}
+                    onClick={() => {
+                      setSelectedSmsWeek(null)
+                      setSelectedStudents(new Set())
+                    }}
                   >
                     Terug naar weekselectie
+                  </button>
+                  <button
+                    onClick={sendSmsToStudents}
+                    disabled={selectedStudents.size === 0 || sendingSms}
+                    className="btn btn-primary disabled:bg-gray-400"
+                  >
+                    {sendingSms ? (
+                      <>
+                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                        Verzenden...
+                      </>
+                    ) : (
+                      `SMS Sturen (${selectedStudents.size})`
+                    )}
                   </button>
                 </div>
               </div>

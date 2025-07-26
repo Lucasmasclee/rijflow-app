@@ -79,9 +79,11 @@ export default function NewStudentPage() {
 
       console.log('Creating student with user ID:', user.id)
 
-      // Genereer unieke invite_token
+      // Genereer unieke invite_token en public_token
       const invite_token = uuidv4();
+      const public_token = uuidv4();
       console.log('Generated invite token:', invite_token)
+      console.log('Generated public token:', public_token)
       
       // Create new student object for database
       const newStudent = {
@@ -92,7 +94,9 @@ export default function NewStudentPage() {
         address: formData.address,
         notes: formData.notes,
         instructor_id: user.id,
-        invite_token
+        invite_token,
+        public_token,
+        public_url: `https://rijflow.nl/beschikbaarheid/${public_token}`
       }
 
       console.log('Attempting to insert student:', newStudent)
