@@ -31,13 +31,16 @@ Dit document legt uit hoe je een custom naam kunt instellen voor je Twilio SMS b
 
 ## 🔧 Implementatie
 
-### Stap 1: Environment Variable Toevoegen
+### Stap 1: Environment Variables Toevoegen
 
-Voeg de volgende variabele toe aan je `.env.local`:
+Voeg de volgende variabelen toe aan je `.env.local`:
 
 ```env
 # Custom sender name voor SMS berichten
 TWILIO_SENDER_NAME=RijFlow
+
+# Messaging Service SID (vind je in Twilio Console)
+TWILIO_MESSAGING_SERVICE_SID=MGxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
 ```
 
 **Mogelijke waarden:**
@@ -46,17 +49,22 @@ TWILIO_SENDER_NAME=RijFlow
 - `Rijles` - Korte, duidelijke naam
 - `[JouwRijschoolNaam]` - Je eigen rijschool naam
 
-### Stap 2: Twilio Console Instellingen
+### Stap 2: Messaging Service SID Ophalen
 
 1. **Log in** op je [Twilio Console](https://console.twilio.com/)
-2. **Ga naar** Messaging → Settings → Sender Pool
-3. **Klik op** "Add New Sender"
-4. **Kies** "Alphanumeric Sender ID"
-5. **Voer in** je gewenste sender naam (bijv. "RijFlow")
-6. **Selecteer** je land (Nederland)
-7. **Dien in** voor goedkeuring
+2. **Ga naar** Messaging → Services
+3. **Klik op** je "RijFlow" service
+4. **Kopieer** de Messaging Service SID (begint met "MG")
+5. **Voeg toe** aan je `.env.local` als `TWILIO_MESSAGING_SERVICE_SID`
 
-### Stap 3: Goedkeuring Proces
+### Stap 3: Sender Pool Instellingen
+
+1. **Ga naar** Messaging → Settings → Sender Pool
+2. **Controleer** of je "RijFlow" Alpha Sender ID er staat
+3. **Als niet goedgekeurd**: Wacht 24-48 uur op goedkeuring
+4. **Als goedgekeurd**: Je kunt direct SMS verzenden
+
+### Stap 4: Goedkeuring Proces
 
 **Voor Nederland:**
 - Alphanumeric sender IDs worden meestal binnen 24-48 uur goedgekeurd
@@ -119,12 +127,13 @@ Als de alphanumeric sender ID niet werkt, valt het systeem automatisch terug op 
 De volgende wijzigingen zijn doorgevoerd in `src/app/api/sms/send/route.ts`:
 
 ```typescript
-// Nieuwe environment variable
+// Nieuwe environment variables
+const messagingServiceSid = process.env.TWILIO_MESSAGING_SERVICE_SID
 const senderName = process.env.TWILIO_SENDER_NAME || 'RijFlow'
 
-// Gebruik senderName in plaats van fromNumber
+// Gebruik MessagingServiceSid in plaats van From
 body: new URLSearchParams({
-  From: senderName,  // Was: fromNumber
+  MessagingServiceSid: messagingServiceSid || '',
   To: formattedPhone,
   Body: message,
 }),
