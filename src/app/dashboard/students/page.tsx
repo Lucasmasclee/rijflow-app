@@ -626,10 +626,10 @@ export default function StudentsPage() {
                       <div key={student.id} className="flex items-center justify-between p-3 border border-gray-200 rounded-lg">
                         <div className="flex-1">
                           <div className="font-medium text-gray-900">
-                            {student.first_name} {student.last_name}
+                            {student.first_name} {student.last_name} | {student.phone}
                           </div>
                           <div className="text-sm text-gray-600">
-                            {student.phone || <span className="italic text-red-500">Geen telefoonnummer</span>}
+                            <span className="italic text-red-500">Geen telefoonnummer</span>
                           </div>
                           {recentlySent && (
                             <div className="text-xs text-yellow-600 mt-1">

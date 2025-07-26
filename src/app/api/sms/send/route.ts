@@ -70,16 +70,17 @@ export async function POST(request: NextRequest) {
 
     const results = []
     
-    // Format dates in Dutch format like in the UI
-    const formatDateForSMS = (dateString: string) => {
+    // Format dates exactly like in the UI
+    const formatDateForSMS = (dateString: string, isEndDate: boolean = false) => {
       const date = new Date(dateString)
       return date.toLocaleDateString('nl-NL', {
         day: '2-digit',
-        month: '2-digit'
-      }).replace('/', '-').replace('/', '-')
+        month: 'long',
+        ...(isEndDate && { year: 'numeric' })
+      })
     }
     
-    const weekText = `${formatDateForSMS(weekStart)} - ${formatDateForSMS(weekEnd)}`
+    const weekText = `${formatDateForSMS(weekStart)} - ${formatDateForSMS(weekEnd, true)}`
 
     for (const student of students || []) {
       if (!student.phone) {
