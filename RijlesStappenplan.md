@@ -277,7 +277,7 @@ Bericht voor leerlingen duidelijk maken: "Je instructeur kan zien wat je hier in
 ✅9: Exacte formaat beschikbaarheid = {"zondag": ["09:00", "17:00"], "dinsdag": ["09:00", "17:00"], "maandag": ["09:00", "17:00"], "vrijdag": ["09:00", "17:00"], ✅"woensdag": ["09:00", "17:00"], "donderdag": ["09:00", "17:00"]}
 ✅10: Voeg RLS toe: Alleen UPDATE/INSERT mogelijk als students.public_token = current_setting(...)
 ✅11: Gebruik foreign key van availability.student_id → students.id
-12: Student_availability tabel is bewerkt -> Proces 1 Stap 15
+✅12: Student_availability tabel is bewerkt -> Proces 1 Stap 15
 
 <!-- Query:
 sql
