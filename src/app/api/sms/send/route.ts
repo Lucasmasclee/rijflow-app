@@ -179,20 +179,43 @@ export async function POST(request: NextRequest) {
 
       // Generate week-specific availability link
       console.log(`Creating availability link for ${student.first_name} for week ${weekStart}`)
-      const { data: linkData, error: linkError } = await supabase
-        .rpc('create_availability_link', {
-          p_student_id: student.id,
-          p_week_start: weekStart
-        })
+      
+      let linkData: string | null = null;
+      try {
+        const { data, error: linkError } = await supabase
+          .rpc('create_availability_link', {
+            p_student_id: student.id,
+            p_week_start: weekStart
+          })
 
-      console.log(`Link creation result for ${student.first_name}:`, { linkData, linkError })
+        linkData = data;
+        console.log(`Link creation result for ${student.first_name}:`, { linkData, linkError })
 
-      if (linkError) {
-        console.error('Error creating availability link:', linkError)
+        if (linkError) {
+          console.error('Error creating availability link:', linkError)
+          results.push({
+            studentId: student.id,
+            success: false,
+            error: `Failed to create availability link: ${linkError.message}`
+          })
+          continue
+        }
+
+        if (!linkData) {
+          console.error('No link data returned for student:', student.first_name)
+          results.push({
+            studentId: student.id,
+            success: false,
+            error: 'No availability link generated'
+          })
+          continue
+        }
+      } catch (error) {
+        console.error('Exception creating availability link for student:', student.first_name, error)
         results.push({
           studentId: student.id,
           success: false,
-          error: 'Failed to create availability link'
+          error: `Exception creating availability link: ${error instanceof Error ? error.message : 'Unknown error'}`
         })
         continue
       }

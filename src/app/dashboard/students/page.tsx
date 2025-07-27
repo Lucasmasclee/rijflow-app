@@ -366,7 +366,7 @@ export default function StudentsPage() {
       <div className="container-mobile py-10">
         {/* SMS Leerlingen knop */}
         <div className="flex justify-end mb-6 gap-2">
-          <button
+          {/* <button
             className="btn btn-secondary"
             onClick={async () => {
               console.log('=== DEBUG AVAILABILITY LINKS ===')
@@ -397,7 +397,7 @@ export default function StudentsPage() {
             }}
           >
             Debug Links
-          </button>
+          </button> */}
           <button
             className="btn btn-secondary"
             onClick={() => setShowSmsModal(true)}
