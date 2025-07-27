@@ -43,6 +43,7 @@ export default function BeschikbaarheidPage() {
   const [saving, setSaving] = useState(false)
   const [availability, setAvailability] = useState<AvailabilityData>({})
   const [error, setError] = useState<string | null>(null)
+  const [weekInfo, setWeekInfo] = useState<{ weekStart: string; weekEnd: string } | null>(null)
 
   useEffect(() => {
     if (publicToken) {
@@ -54,32 +55,54 @@ export default function BeschikbaarheidPage() {
     try {
       setLoading(true)
       
-      const { data, error } = await supabase
-        .from('students')
-        .select('*')
-        .eq('public_token', publicToken)
+      // First, validate the availability link token
+      const { data: linkData, error: linkError } = await supabase
+        .from('availability_links')
+        .select(`
+          student_id,
+          week_start,
+          expires_at,
+          students!inner (
+            id,
+            first_name,
+            last_name
+          )
+        `)
+        .eq('token', publicToken)
+        .gt('expires_at', new Date().toISOString())
         .single()
 
-      if (error || !data) {
+      if (linkError || !linkData) {
         setError('Ongeldige of verlopen link')
         return
       }
 
-      setStudent(data)
+      // Set student data
+      setStudent({
+        id: linkData.students[0].id,
+        first_name: linkData.students[0].first_name,
+        last_name: linkData.students[0].last_name,
+        public_token: publicToken
+      })
 
-      // Calculate the current week start (Monday of current week)
-      const today = new Date()
-      const dayOfWeek = today.getDay() // 0 = Sunday, 1 = Monday, etc.
-      const daysToMonday = dayOfWeek === 0 ? 6 : dayOfWeek - 1 // Days to go back to Monday
-      const monday = new Date(today)
-      monday.setDate(today.getDate() - daysToMonday)
-      const weekStart = monday.toISOString().split('T')[0]
+      // Use the week_start from the link
+      const weekStart = linkData.week_start
+      
+      // Calculate week end (Sunday)
+      const weekEnd = new Date(weekStart)
+      weekEnd.setDate(weekEnd.getDate() + 6)
+      
+      // Set week info for display
+      setWeekInfo({
+        weekStart: weekStart,
+        weekEnd: weekEnd.toISOString().split('T')[0]
+      })
 
-      // Load existing availability for the current week
+      // Load existing availability for the specific week
       const { data: existingAvailability } = await supabase
         .from('student_availability')
         .select('availability_data')
-        .eq('student_id', data.id)
+        .eq('student_id', linkData.student_id)
         .eq('week_start', weekStart)
         .single()
 
@@ -135,20 +158,24 @@ export default function BeschikbaarheidPage() {
         return
       }
 
-      // Calculate the current week start (Monday of current week)
-      const today = new Date()
-      const dayOfWeek = today.getDay() // 0 = Sunday, 1 = Monday, etc.
-      const daysToMonday = dayOfWeek === 0 ? 6 : dayOfWeek - 1 // Days to go back to Monday
-      const monday = new Date(today)
-      monday.setDate(today.getDate() - daysToMonday)
-      const weekStart = monday.toISOString().split('T')[0]
+      // Get the week_start from the availability link
+      const { data: linkData, error: linkError } = await supabase
+        .from('availability_links')
+        .select('week_start')
+        .eq('token', publicToken)
+        .single()
 
-      // Use upsert with the correct week_start
+      if (linkError || !linkData) {
+        toast.error('Ongeldige link')
+        return
+      }
+
+      // Use upsert with the week_start from the link
       const { error } = await supabase
         .from('student_availability')
         .upsert({
           student_id: student.id,
-          week_start: weekStart,
+          week_start: linkData.week_start,
           availability_data: availability,
           updated_at: new Date().toISOString()
         }, {
@@ -214,7 +241,21 @@ export default function BeschikbaarheidPage() {
             </div>
           </div>
           <p className="text-sm text-gray-600">
-            Vul per datum je beschikbaarheid in. 
+            Vul per datum je beschikbaarheid in voor de week van{' '}
+            {weekInfo ? (
+              <>
+                {new Date(weekInfo.weekStart).toLocaleDateString('nl-NL', {
+                  day: '2-digit',
+                  month: 'long'
+                })} - {new Date(weekInfo.weekEnd).toLocaleDateString('nl-NL', {
+                  day: '2-digit',
+                  month: 'long',
+                  year: 'numeric'
+                })}
+              </>
+            ) : (
+              'deze week'
+            )}. 
             Je kunt dit later altijd wijzigen door opnieuw op de link te klikken.
           </p>
         </div>

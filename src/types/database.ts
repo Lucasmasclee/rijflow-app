@@ -169,4 +169,14 @@ export interface StandardAvailability {
   default_lesson_duration: number // Standaard lesduur in minuten
   created_at: string
   updated_at: string
+}
+
+// Interface voor week-specifieke beschikbaarheid links
+export interface AvailabilityLink {
+  id: string
+  student_id: string
+  week_start: string // YYYY-MM-DD format
+  token: string // unieke token voor de link
+  created_at: string
+  expires_at: string
 } 

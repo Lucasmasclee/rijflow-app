@@ -104,12 +104,33 @@ export async function POST(request: NextRequest) {
         formattedPhone = '+31' + formattedPhone
       }
 
+      // Generate week-specific availability link
+      const { data: linkData, error: linkError } = await supabase
+        .rpc('create_availability_link', {
+          p_student_id: student.id,
+          p_week_start: weekStart
+        })
+
+      if (linkError) {
+        console.error('Error creating availability link:', linkError)
+        results.push({
+          studentId: student.id,
+          success: false,
+          error: 'Failed to create availability link'
+        })
+        continue
+      }
+
+      // Create the full URL for the availability link
+      const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://rijflow.nl'
+      const availabilityUrl = `${baseUrl}/beschikbaarheid/${linkData}`
+
       // Create personalized message
       const studentName = student.last_name 
         ? `${student.first_name} ${student.last_name}`
         : student.first_name
 
-      const message = `Beste ${studentName}, vul je beschikbaarheid in voor ${weekText} met deze link: ${student.public_url}`
+      const message = `Beste ${studentName}, vul je beschikbaarheid in voor ${weekText} met deze link: ${availabilityUrl}`
 
       try {
         // Send SMS via Twilio
