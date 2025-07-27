@@ -55,23 +55,34 @@ export default function StudentsPage() {
 
   // Helper: maandag van een datum
   const getMonday = (date: Date) => {
-    const newDate = new Date(date)
-    const day = newDate.getDay()
+    // Gebruik UTC methoden om tijdzone problemen te voorkomen
+    const year = date.getUTCFullYear()
+    const month = date.getUTCMonth()
+    const day = date.getUTCDate()
+    
+    // Maak een nieuwe datum in UTC
+    const newDate = new Date(Date.UTC(year, month, day))
+    const dayOfWeek = newDate.getUTCDay()
+    
     // Sunday is 0, Monday is 1, etc.
     // We want Monday to be the first day of the week
     // If it's Sunday (day 0), we want the next Monday (add 1)
     // If it's Monday (day 1), we want this Monday (add 0)
     // If it's Tuesday (day 2), we want last Monday (subtract 1)
     // etc.
-    const daysToMonday = day === 0 ? 1 : day === 1 ? 0 : -(day - 1)
-    newDate.setDate(newDate.getDate() + daysToMonday)
-    newDate.setHours(0,0,0,0)
+    const daysToMonday = dayOfWeek === 0 ? 1 : dayOfWeek === 1 ? 0 : -(dayOfWeek - 1)
+    
+    // Voeg dagen toe in UTC
+    newDate.setUTCDate(newDate.getUTCDate() + daysToMonday)
+    newDate.setUTCHours(0, 0, 0, 0)
+    
     return newDate
   }
 
   // Helper: volgende 8 weken (vanaf volgende week)
   const getNext8Weeks = () => {
     const weeks = []
+    // Gebruik lokale datum om tijdzone problemen te voorkomen
     const today = new Date()
     const currentWeekMonday = getMonday(today)
     for (let i = 1; i <= 8; i++) {
