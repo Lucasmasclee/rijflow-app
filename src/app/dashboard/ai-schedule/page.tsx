@@ -67,6 +67,9 @@ function AISchedulePageContent() {
     { day: 'saturday', available: false, startTime: '09:00', endTime: '17:00', startHours: '09', startMinutes: '00', endHours: '17', endMinutes: '00' },
     { day: 'sunday', available: false, startTime: '09:00', endTime: '17:00', startHours: '09', startMinutes: '00', endHours: '17', endMinutes: '00' },
   ])
+  
+  // Track whether instructor availability comes from existing week data or standard availability
+  const [availabilitySource, setAvailabilitySource] = useState<'existing' | 'standard' | 'default'>('default')
 
   // Students data
   const [students, setStudents] = useState<StudentWithAvailability[]>([])
@@ -268,6 +271,11 @@ function AISchedulePageContent() {
       
       setAiData(data)
       
+      // Set the availability source information
+      if (result.availabilitySource) {
+        setAvailabilitySource(result.availabilitySource)
+      }
+      
       // Update instructor availability
       if (data.instructeur) {
         const newInstructorAvailability = DAY_ORDER.map(dayInfo => {
@@ -317,7 +325,13 @@ function AISchedulePageContent() {
       
       // Toon succesbericht als er een nieuwe beschikbaarheid is aangemaakt
       if (result.message && result.message.includes('New availability created with default values')) {
-        toast.success('Nieuwe beschikbaarheid aangemaakt met standaardwaarden')
+        if (result.availabilitySource === 'standard') {
+          toast.success('Standaard beschikbaarheid geladen voor deze week')
+        } else if (result.availabilitySource === 'default') {
+          toast.success('Standaard tijden geladen voor deze week')
+        } else {
+          toast.success('Beschikbaarheid geladen voor deze week')
+        }
       }
 
       // Zorg ervoor dat alle studenten availability records hebben
@@ -667,6 +681,39 @@ function AISchedulePageContent() {
     return steps.find(s => s.key === currentStep)?.name || ''
   }
 
+  const getAvailabilitySourceMessage = () => {
+    switch (availabilitySource) {
+      case 'existing':
+        return {
+          title: '✓ Bestaande beschikbaarheid geladen',
+          description: 'Er was al een beschikbaarheid ingesteld voor deze week. Je kunt deze aanpassen indien gewenst.',
+          color: 'green',
+          showSettingsLink: false
+        }
+      case 'standard':
+        return {
+          title: '📅 Standaard beschikbaarheid gebruikt',
+          description: 'Er was nog geen beschikbaarheid voor deze week. Je standaard beschikbaarheid is geladen. Pas deze aan voor deze specifieke week.',
+          color: 'yellow',
+          showSettingsLink: true
+        }
+      case 'default':
+        return {
+          title: '⚙️ Standaard tijden geladen',
+          description: 'Er was nog geen beschikbaarheid ingesteld. Standaard tijden (09:00-17:00) zijn geladen. Stel je beschikbaarheid in.',
+          color: 'gray',
+          showSettingsLink: true
+        }
+      default:
+        return {
+          title: 'Beschikbaarheid geladen',
+          description: 'Beschikbaarheid is geladen voor deze week.',
+          color: 'blue',
+          showSettingsLink: false
+        }
+    }
+  }
+
   const steps = [
     { key: 'week-selection', name: 'Week Selectie', icon: Calendar },
     { key: 'instructor', name: 'Instructeur', icon: Users },
@@ -774,6 +821,7 @@ function AISchedulePageContent() {
                       key={index}
                       onClick={() => {
                         setSelectedWeek(week)
+                        setAvailabilitySource('default') // Reset availability source
                         loadWeekData(week)
                       }}
                       className={`p-4 border rounded-lg text-left transition-colors ${
@@ -817,38 +865,91 @@ function AISchedulePageContent() {
                     </p>
                   </div>
                 )}
+                
+                {/* Availability source information */}
+                {loadingData ? (
+                  <div className="mb-4 p-3 bg-gray-50 border border-gray-200 rounded-lg">
+                    <div className="flex items-center gap-2">
+                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-gray-600"></div>
+                      <p className="text-sm text-gray-800">Beschikbaarheid laden...</p>
+                    </div>
+                  </div>
+                ) : (
+                  <div className={`mb-4 p-3 border rounded-lg ${
+                    availabilitySource === 'existing' 
+                      ? 'bg-green-50 border-green-200' 
+                      : availabilitySource === 'standard'
+                      ? 'bg-yellow-50 border-yellow-200'
+                      : 'bg-gray-50 border-gray-200'
+                  }`}>
+                    <p className={`text-sm ${
+                      availabilitySource === 'existing' 
+                        ? 'text-green-800' 
+                        : availabilitySource === 'standard'
+                        ? 'text-yellow-800'
+                        : 'text-gray-800'
+                    }`}>
+                      {(() => {
+                        const message = getAvailabilitySourceMessage()
+                        return (
+                          <>
+                            <strong>{message.title}</strong><br />
+                            {message.description}
+                            {message.showSettingsLink && (
+                              <>
+                                <br />
+                                <Link 
+                                  href="/dashboard/schedule-settings" 
+                                  className="text-blue-600 hover:text-blue-800 underline text-xs mt-1 inline-block"
+                                >
+                                  Bekijk/beheer standaard beschikbaarheid →
+                                </Link>
+                              </>
+                            )}
+                          </>
+                        )
+                      })()}
+                    </p>
+                  </div>
+                )}
               </div>
               
               <div className="card">
                 <div className="space-y-4">
-                  {instructorAvailability.map((day, index) => (
-                    <div key={day.day} className="flex items-center gap-4 p-4 border border-gray-200 rounded-lg">
-                      <div className="flex items-center gap-3">
-                        <input
-                          type="checkbox"
-                          checked={day.available}
-                          onChange={(e) => handleAvailabilityChange(index, e.target.checked)}
-                          className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
-                        />
-                        <span className="font-medium min-w-[80px]">{DAY_ORDER[index].name}</span>
-                      </div>
-                      
-                      {day.available && (
-                        <TimeInput
-                          startTime={day.startTime}
-                          endTime={day.endTime}
-                          onTimeChange={(startTime, endTime) => {
-                            const [startHours, startMinutes] = startTime.split(':')
-                            const [endHours, endMinutes] = endTime.split(':')
-                            updateTimeInputs(index, 'startHours', startHours)
-                            updateTimeInputs(index, 'startMinutes', startMinutes)
-                            updateTimeInputs(index, 'endHours', endHours)
-                            updateTimeInputs(index, 'endMinutes', endMinutes)
-                          }}
-                        />
-                      )}
+                  {loadingData ? (
+                    <div className="flex items-center justify-center py-8">
+                      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
                     </div>
-                  ))}
+                  ) : (
+                    instructorAvailability.map((day, index) => (
+                      <div key={day.day} className="flex items-center gap-4 p-4 border border-gray-200 rounded-lg">
+                        <div className="flex items-center gap-3">
+                          <input
+                            type="checkbox"
+                            checked={day.available}
+                            onChange={(e) => handleAvailabilityChange(index, e.target.checked)}
+                            className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                          />
+                          <span className="font-medium min-w-[80px]">{DAY_ORDER[index].name}</span>
+                        </div>
+                        
+                        {day.available && (
+                          <TimeInput
+                            startTime={day.startTime}
+                            endTime={day.endTime}
+                            onTimeChange={(startTime, endTime) => {
+                              const [startHours, startMinutes] = startTime.split(':')
+                              const [endHours, endMinutes] = endTime.split(':')
+                              updateTimeInputs(index, 'startHours', startHours)
+                              updateTimeInputs(index, 'startMinutes', startMinutes)
+                              updateTimeInputs(index, 'endHours', endHours)
+                              updateTimeInputs(index, 'endMinutes', endMinutes)
+                            }}
+                          />
+                        )}
+                      </div>
+                    ))
+                  )}
                 </div>
               </div>
             </div>

@@ -329,9 +329,18 @@ export async function POST(request: NextRequest) {
       studentsCount: aiData.leerlingen.length
     })
 
+    // Determine the source of instructor availability data
+    let availabilitySource: 'existing' | 'standard' | 'default' = 'default'
+    if (existingAvailability) {
+      availabilitySource = 'existing'
+    } else if (standardAvailability && !standardError && standardAvailability.availability_data) {
+      availabilitySource = 'standard'
+    }
+
     return NextResponse.json({
       success: true,
       data: aiData,
+      availabilitySource: availabilitySource,
       message: existingAvailability ? 'Editable input created successfully' : 'New availability created with default values and editable input loaded successfully'
     })
 
