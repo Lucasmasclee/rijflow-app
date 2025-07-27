@@ -27,11 +27,13 @@ interface SMSRequest {
   studentIds: string[]
   weekStart: string
   weekEnd: string
+  weekStartFormatted: string
+  weekEndFormatted: string
 }
 
 export async function POST(request: NextRequest) {
   try {
-    const { studentIds, weekStart, weekEnd }: SMSRequest = await request.json()
+    const { studentIds, weekStart, weekEnd, weekStartFormatted, weekEndFormatted }: SMSRequest = await request.json()
 
     if (!accountSid || !authToken) {
       return NextResponse.json(
@@ -70,20 +72,8 @@ export async function POST(request: NextRequest) {
 
     const results = []
     
-    // Format dates exactly like in the students page UI
-    // Use the same date calculation logic as the students page to avoid timezone issues
-    const formatDateForSMS = (dateString: string, isEndDate: boolean = false) => {
-      // Parse the date string and create a local date to avoid timezone issues
-      const [year, month, day] = dateString.split('-').map(Number)
-      const date = new Date(year, month - 1, day) // month is 0-indexed in Date constructor
-      return date.toLocaleDateString('nl-NL', {
-        day: '2-digit',
-        month: 'long',
-        ...(isEndDate && { year: 'numeric' })
-      })
-    }
-    
-    const weekText = `${formatDateForSMS(weekStart)} - ${formatDateForSMS(weekEnd, true)}`
+    // Use the exact formatted dates from the students page
+    const weekText = `${weekStartFormatted} - ${weekEndFormatted}`
 
     for (const student of students || []) {
       if (!student.phone) {

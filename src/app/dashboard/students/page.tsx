@@ -243,6 +243,17 @@ export default function StudentsPage() {
       const weekStartStr = weekStart.toISOString().split('T')[0]
       const weekEndStr = weekEnd.toISOString().split('T')[0]
 
+      // Format dates exactly like in the UI
+      const weekStartFormatted = weekStart.toLocaleDateString('nl-NL', {
+        day: '2-digit',
+        month: 'long'
+      })
+      const weekEndFormatted = weekEnd.toLocaleDateString('nl-NL', {
+        day: '2-digit',
+        month: 'long',
+        year: 'numeric'
+      })
+
       const response = await fetch('/api/sms/send', {
         method: 'POST',
         headers: {
@@ -251,7 +262,9 @@ export default function StudentsPage() {
         body: JSON.stringify({
           studentIds: Array.from(selectedStudents),
           weekStart: weekStartStr,
-          weekEnd: weekEndStr
+          weekEnd: weekEndStr,
+          weekStartFormatted: weekStartFormatted,
+          weekEndFormatted: weekEndFormatted
         })
       })
 
