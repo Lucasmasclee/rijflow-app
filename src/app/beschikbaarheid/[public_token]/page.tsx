@@ -54,6 +54,7 @@ export default function BeschikbaarheidPage() {
   const fetchStudent = async () => {
     try {
       setLoading(true)
+      console.log('Fetching student for token:', publicToken)
       
       // First, validate the availability link token
       const { data: linkData, error: linkError } = await supabase
@@ -61,27 +62,56 @@ export default function BeschikbaarheidPage() {
         .select(`
           student_id,
           week_start,
-          expires_at,
-          students!inner (
-            id,
-            first_name,
-            last_name
-          )
+          expires_at
         `)
         .eq('token', publicToken)
         .gt('expires_at', new Date().toISOString())
         .single()
 
-      if (linkError || !linkData) {
+      console.log('Link data result:', { linkData, linkError })
+
+      if (linkError) {
+        console.error('Link error:', linkError)
         setError('Ongeldige of verlopen link')
         return
       }
 
+      if (!linkData) {
+        console.error('No link data found for token:', publicToken)
+        setError('Ongeldige of verlopen link')
+        return
+      }
+
+      console.log('Link data found:', linkData)
+
+      // Fetch student data separately
+      const { data: studentData, error: studentError } = await supabase
+        .from('students')
+        .select('id, first_name, last_name')
+        .eq('id', linkData.student_id)
+        .single()
+
+      console.log('Student data result:', { studentData, studentError })
+
+      if (studentError) {
+        console.error('Student error:', studentError)
+        setError('Leerling niet gevonden')
+        return
+      }
+
+      if (!studentData) {
+        console.error('No student data found for ID:', linkData.student_id)
+        setError('Leerling niet gevonden')
+        return
+      }
+
+      console.log('Student data found:', studentData)
+
       // Set student data
       setStudent({
-        id: linkData.students[0].id,
-        first_name: linkData.students[0].first_name,
-        last_name: linkData.students[0].last_name,
+        id: studentData.id,
+        first_name: studentData.first_name,
+        last_name: studentData.last_name,
         public_token: publicToken
       })
 
@@ -98,16 +128,21 @@ export default function BeschikbaarheidPage() {
         weekEnd: weekEnd.toISOString().split('T')[0]
       })
 
+      console.log('Week info set:', { weekStart, weekEnd: weekEnd.toISOString().split('T')[0] })
+
       // Load existing availability for the specific week
-      const { data: existingAvailability } = await supabase
+      const { data: existingAvailability, error: availabilityError } = await supabase
         .from('student_availability')
         .select('availability_data')
         .eq('student_id', linkData.student_id)
         .eq('week_start', weekStart)
         .single()
 
+      console.log('Existing availability result:', { existingAvailability, availabilityError })
+
       if (existingAvailability?.availability_data) {
         setAvailability(existingAvailability.availability_data)
+        console.log('Loaded existing availability:', existingAvailability.availability_data)
       } else {
         // Initialize empty availability
         const emptyAvailability: AvailabilityData = {}
@@ -115,6 +150,7 @@ export default function BeschikbaarheidPage() {
           emptyAvailability[day.key] = []
         })
         setAvailability(emptyAvailability)
+        console.log('Initialized empty availability')
       }
     } catch (error) {
       console.error('Error fetching student:', error)

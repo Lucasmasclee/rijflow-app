@@ -24,8 +24,9 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url)
     const studentId = searchParams.get('studentId')
     const weekStart = searchParams.get('weekStart')
+    const token = searchParams.get('token') // New parameter for specific token check
 
-    console.log('Debug parameters:', { studentId, weekStart })
+    console.log('Debug parameters:', { studentId, weekStart, token })
 
     // Check if availability_links table exists
     const { data: tableCheck, error: tableError } = await supabase
@@ -50,6 +51,26 @@ export async function GET(request: NextRequest) {
       .order('week_start')
 
     console.log('All links fetch:', { linksCount: allLinks?.length || 0, linksError })
+
+    // If specific token provided, check that token
+    let specificTokenCheck = null
+    if (token) {
+      const { data: tokenData, error: tokenError } = await supabase
+        .from('availability_links')
+        .select(`
+          *,
+          students (
+            id,
+            first_name,
+            last_name
+          )
+        `)
+        .eq('token', token)
+        .single()
+
+      console.log('Specific token check:', { tokenData, tokenError })
+      specificTokenCheck = { tokenData, tokenError }
+    }
 
     // If specific student and week provided, check that combination
     let specificLink = null
@@ -129,6 +150,7 @@ export async function GET(request: NextRequest) {
       linksError: linksError?.message,
       functionTest,
       specificLink,
+      specificTokenCheck,
       next8Weeks,
       studentWeekStatus
     }
