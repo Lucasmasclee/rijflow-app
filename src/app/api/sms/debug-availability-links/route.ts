@@ -75,8 +75,8 @@ export async function GET(request: NextRequest) {
         })
       functionTest = { data: functionTestData, error: functionTestError }
       console.log('Function test:', functionTest)
-    } catch (error) {
-      functionTest = { error: error.message }
+    } catch (error: any) {
+      functionTest = { error: error?.message || 'Unknown error' }
       console.error('Function test error:', error)
     }
 
@@ -140,10 +140,10 @@ export async function GET(request: NextRequest) {
       debugInfo
     })
 
-  } catch (error) {
+  } catch (error: any) {
     console.error('Error in debug availability links route:', error)
     return NextResponse.json(
-      { error: 'Internal server error', details: error.message },
+      { error: 'Internal server error', details: error?.message || 'Unknown error' },
       { status: 500 }
     )
   }
