@@ -33,14 +33,27 @@ interface SMSRequest {
 
 export async function POST(request: NextRequest) {
   try {
+    console.log('=== SMS SEND ROUTE STARTED ===')
+    
     const { studentIds, weekStart, weekEnd, weekStartFormatted, weekEndFormatted }: SMSRequest = await request.json()
+    
+    console.log('Request data:', {
+      studentIds,
+      weekStart,
+      weekEnd,
+      weekStartFormatted,
+      weekEndFormatted
+    })
 
     if (!accountSid || !authToken) {
+      console.error('Twilio configuration missing:', { accountSid: !!accountSid, authToken: !!authToken })
       return NextResponse.json(
         { error: 'Twilio configuration missing' },
         { status: 500 }
       )
     }
+
+    console.log('Twilio config OK')
 
     // Create authenticated Supabase client
     const cookieStore = await cookies()
@@ -56,11 +69,39 @@ export async function POST(request: NextRequest) {
       }
     )
 
+    console.log('Supabase client created')
+
+    // DEBUG: Check if availability_links table exists
+    const { data: tableCheck, error: tableError } = await supabase
+      .from('availability_links')
+      .select('count')
+      .limit(1)
+    
+    console.log('Availability links table check:', { tableCheck, tableError })
+
+    // DEBUG: Check if create_availability_link function exists
+    try {
+      const { data: functionTest, error: functionError } = await supabase
+        .rpc('create_availability_link', {
+          p_student_id: '00000000-0000-0000-0000-000000000000', // dummy UUID
+          p_week_start: '2025-01-01'
+        })
+      console.log('create_availability_link function test:', { functionTest, functionError })
+    } catch (error) {
+      console.error('create_availability_link function error:', error)
+    }
+
     // Get students data
     const { data: students, error: studentsError } = await supabase
       .from('students')
       .select('id, first_name, last_name, phone, public_url')
       .in('id', studentIds)
+
+    console.log('Students fetch result:', { 
+      studentsCount: students?.length || 0, 
+      studentsError,
+      studentIds 
+    })
 
     if (studentsError) {
       console.error('Error fetching students:', studentsError)
@@ -70,13 +111,31 @@ export async function POST(request: NextRequest) {
       )
     }
 
+    if (!students || students.length === 0) {
+      console.error('No students found for IDs:', studentIds)
+      return NextResponse.json({
+        success: true,
+        results: [],
+        summary: {
+          total: 0,
+          successful: 0,
+          failed: 0
+        }
+      })
+    }
+
     const results = []
     
     // Use the formatted dates from the students page
     const weekText = `${weekStartFormatted} - ${weekEndFormatted}`
+    
+    console.log('Processing students for week:', weekText)
 
-    for (const student of students || []) {
+    for (const student of students) {
+      console.log(`Processing student: ${student.first_name} ${student.last_name} (${student.id})`)
+      
       if (!student.phone) {
+        console.log(`Student ${student.first_name} has no phone number`)
         results.push({
           studentId: student.id,
           success: false,
@@ -85,9 +144,12 @@ export async function POST(request: NextRequest) {
         continue
       }
 
+      console.log(`Student ${student.first_name} phone: ${student.phone}`)
+
       // Validate phone number (basic check)
       const phoneRegex = /^(\+31|0)6\d{8,9}$/
       if (!phoneRegex.test(student.phone.replace(/\s/g, ''))) {
+        console.log(`Student ${student.first_name} has invalid phone format: ${student.phone}`)
         results.push({
           studentId: student.id,
           success: false,
@@ -103,13 +165,27 @@ export async function POST(request: NextRequest) {
       } else if (!formattedPhone.startsWith('+')) {
         formattedPhone = '+31' + formattedPhone
       }
+      
+      console.log(`Student ${student.first_name} formatted phone: ${formattedPhone}`)
+
+      // DEBUG: Check existing availability links for this student
+      const { data: existingLinks, error: linksError } = await supabase
+        .from('availability_links')
+        .select('*')
+        .eq('student_id', student.id)
+        .eq('week_start', weekStart)
+      
+      console.log(`Existing links for ${student.first_name}:`, { existingLinks, linksError })
 
       // Generate week-specific availability link
+      console.log(`Creating availability link for ${student.first_name} for week ${weekStart}`)
       const { data: linkData, error: linkError } = await supabase
         .rpc('create_availability_link', {
           p_student_id: student.id,
           p_week_start: weekStart
         })
+
+      console.log(`Link creation result for ${student.first_name}:`, { linkData, linkError })
 
       if (linkError) {
         console.error('Error creating availability link:', linkError)
@@ -124,6 +200,8 @@ export async function POST(request: NextRequest) {
       // Create the full URL for the availability link
       const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://rijflow.nl'
       const availabilityUrl = `${baseUrl}/beschikbaarheid/${linkData}`
+      
+      console.log(`Availability URL for ${student.first_name}: ${availabilityUrl}`)
 
       // Create personalized message
       const studentName = student.last_name 
@@ -131,8 +209,12 @@ export async function POST(request: NextRequest) {
         : student.first_name
 
       const message = `Beste ${studentName}, vul je beschikbaarheid in voor ${weekText} met deze link: ${availabilityUrl}`
+      
+      console.log(`SMS message for ${student.first_name}: ${message}`)
 
       try {
+        console.log(`Sending SMS to ${student.first_name} via Twilio...`)
+        
         // Send SMS via Twilio
         const twilioResponse = await fetch(
           `https://api.twilio.com/2010-04-01/Accounts/${accountSid}/Messages.json`,
@@ -151,13 +233,25 @@ export async function POST(request: NextRequest) {
         )
 
         const twilioResult = await twilioResponse.json()
+        
+        console.log(`Twilio response for ${student.first_name}:`, { 
+          status: twilioResponse.status, 
+          ok: twilioResponse.ok, 
+          result: twilioResult 
+        })
 
         if (twilioResponse.ok && twilioResult.sid) {
+          console.log(`SMS sent successfully to ${student.first_name}`)
+          
           // Update sms_laatst_gestuurd timestamp
-          await supabase
+          const { error: updateError } = await supabase
             .from('students')
             .update({ sms_laatst_gestuurd: new Date().toISOString() })
             .eq('id', student.id)
+          
+          if (updateError) {
+            console.error(`Error updating sms_laatst_gestuurd for ${student.first_name}:`, updateError)
+          }
 
           results.push({
             studentId: student.id,
@@ -165,6 +259,7 @@ export async function POST(request: NextRequest) {
             messageSid: twilioResult.sid
           })
         } else {
+          console.error(`Twilio error for ${student.first_name}:`, twilioResult)
           results.push({
             studentId: student.id,
             success: false,
@@ -172,7 +267,7 @@ export async function POST(request: NextRequest) {
           })
         }
       } catch (error) {
-        console.error('Error sending SMS to student:', student.id, error)
+        console.error(`Network error sending SMS to ${student.first_name}:`, error)
         results.push({
           studentId: student.id,
           success: false,
@@ -181,14 +276,19 @@ export async function POST(request: NextRequest) {
       }
     }
 
+    const summary = {
+      total: results.length,
+      successful: results.filter(r => r.success).length,
+      failed: results.filter(r => !r.success).length
+    }
+    
+    console.log('=== SMS SEND ROUTE COMPLETED ===')
+    console.log('Final results:', { results, summary })
+
     return NextResponse.json({
       success: true,
       results,
-      summary: {
-        total: results.length,
-        successful: results.filter(r => r.success).length,
-        failed: results.filter(r => !r.success).length
-      }
+      summary
     })
 
   } catch (error) {

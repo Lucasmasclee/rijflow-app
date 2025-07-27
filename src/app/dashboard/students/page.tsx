@@ -231,7 +231,14 @@ export default function StudentsPage() {
 
   // Send SMS to selected students
   const sendSmsToStudents = async () => {
-    if (!selectedSmsWeek || selectedStudents.size === 0) return
+    console.log('=== SMS SEND FRONTEND STARTED ===')
+    console.log('Selected week:', selectedSmsWeek)
+    console.log('Selected students:', Array.from(selectedStudents))
+    
+    if (!selectedSmsWeek || selectedStudents.size === 0) {
+      console.log('Missing data:', { selectedSmsWeek, selectedStudentsSize: selectedStudents.size })
+      return
+    }
 
     try {
       setSendingSms(true)
@@ -255,23 +262,32 @@ export default function StudentsPage() {
         year: 'numeric'
       })
 
+      const requestData = {
+        studentIds: Array.from(selectedStudents),
+        weekStart: weekStartStr,
+        weekEnd: weekEndStr,
+        weekStartFormatted: weekStartFormatted,
+        weekEndFormatted: weekEndFormatted
+      }
+
+      console.log('Sending request to /api/sms/send with data:', requestData)
+
       const response = await fetch('/api/sms/send', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({
-          studentIds: Array.from(selectedStudents),
-          weekStart: weekStartStr,
-          weekEnd: weekEndStr,
-          weekStartFormatted: weekStartFormatted,
-          weekEndFormatted: weekEndFormatted
-        })
+        body: JSON.stringify(requestData)
       })
 
+      console.log('Response status:', response.status)
+      console.log('Response ok:', response.ok)
+
       const result = await response.json()
+      console.log('Response result:', result)
 
       if (result.success) {
+        console.log('SMS send successful, summary:', result.summary)
         toast.success(`SMS verzonden naar ${result.summary.successful} leerlingen`)
         
         // Refresh students to update sms_laatst_gestuurd
@@ -282,6 +298,7 @@ export default function StudentsPage() {
         setSelectedSmsWeek(null)
         setSelectedStudents(new Set())
       } else {
+        console.error('SMS send failed:', result)
         toast.error('Fout bij het verzenden van SMS berichten')
       }
     } catch (error) {
@@ -289,6 +306,7 @@ export default function StudentsPage() {
       toast.error('Er is een fout opgetreden bij het verzenden van SMS')
     } finally {
       setSendingSms(false)
+      console.log('=== SMS SEND FRONTEND COMPLETED ===')
     }
   }
 
@@ -347,7 +365,39 @@ export default function StudentsPage() {
 
       <div className="container-mobile py-10">
         {/* SMS Leerlingen knop */}
-        <div className="flex justify-end mb-6">
+        <div className="flex justify-end mb-6 gap-2">
+          <button
+            className="btn btn-secondary"
+            onClick={async () => {
+              console.log('=== DEBUG AVAILABILITY LINKS ===')
+              try {
+                const response = await fetch('/api/sms/debug-availability-links')
+                const result = await response.json()
+                console.log('Debug result:', result)
+                
+                if (result.success) {
+                  const { debugInfo } = result
+                  console.log('Table exists:', debugInfo.tableExists)
+                  console.log('Students count:', debugInfo.studentsCount)
+                  console.log('Links count:', debugInfo.linksCount)
+                  console.log('Function test:', debugInfo.functionTest)
+                  console.log('Student week status:', debugInfo.studentWeekStatus)
+                  
+                  // Show summary in toast
+                  const missingLinks = debugInfo.studentWeekStatus?.filter((s: any) => s.totalLinks < 8).length || 0
+                  toast.success(`Debug: ${debugInfo.studentsCount} leerlingen, ${debugInfo.linksCount} links, ${missingLinks} leerlingen missen links`)
+                } else {
+                  console.error('Debug failed:', result)
+                  toast.error('Debug failed: ' + (result.error || 'Unknown error'))
+                }
+              } catch (error: any) {
+                console.error('Debug error:', error)
+                toast.error('Debug error: ' + (error?.message || 'Unknown error'))
+              }
+            }}
+          >
+            Debug Links
+          </button>
           <button
             className="btn btn-secondary"
             onClick={() => setShowSmsModal(true)}
