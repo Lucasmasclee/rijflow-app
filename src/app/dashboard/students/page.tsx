@@ -57,8 +57,14 @@ export default function StudentsPage() {
   const getMonday = (date: Date) => {
     const newDate = new Date(date)
     const day = newDate.getDay()
-    const diff = newDate.getDate() - day + (day === 0 ? -6 : 1)
-    newDate.setDate(diff)
+    // Sunday is 0, Monday is 1, etc.
+    // We want Monday to be the first day of the week
+    // If it's Sunday (day 0), we want the next Monday (add 1)
+    // If it's Monday (day 1), we want this Monday (add 0)
+    // If it's Tuesday (day 2), we want last Monday (subtract 1)
+    // etc.
+    const daysToMonday = day === 0 ? 1 : day === 1 ? 0 : -(day - 1)
+    newDate.setDate(newDate.getDate() + daysToMonday)
     newDate.setHours(0,0,0,0)
     return newDate
   }

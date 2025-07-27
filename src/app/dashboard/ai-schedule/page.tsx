@@ -84,13 +84,13 @@ function AISchedulePageContent() {
   const getMonday = (date: Date) => {
     const newDate = new Date(date)
     const day = newDate.getDay() // 0 = zondag, 1 = maandag, ..., 6 = zaterdag
-    // Bereken hoeveel dagen we terug moeten naar maandag
-    // Als het zondag is (day = 0), dan moeten we 6 dagen terug
-    // Als het maandag is (day = 1), dan hoeven we 0 dagen terug
-    // Als het dinsdag is (day = 2), dan moeten we 1 dag terug
+    // We willen maandag als dag 1 van de week
+    // Als het zondag is (day = 0), dan willen we de volgende maandag (+1 dag)
+    // Als het maandag is (day = 1), dan willen we deze maandag (+0 dagen)
+    // Als het dinsdag is (day = 2), dan willen we de vorige maandag (-1 dag)
     // etc.
-    const daysToSubtract = day === 0 ? 6 : day - 1
-    newDate.setDate(newDate.getDate() - daysToSubtract)
+    const daysToMonday = day === 0 ? 1 : day === 1 ? 0 : -(day - 1)
+    newDate.setDate(newDate.getDate() + daysToMonday)
     return newDate
   }
 

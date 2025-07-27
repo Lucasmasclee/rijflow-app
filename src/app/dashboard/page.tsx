@@ -423,7 +423,13 @@ function InstructorDashboard() {
     const days = []
     const today = new Date()
     const startOfWeek = new Date(today)
-    startOfWeek.setDate(today.getDate() - today.getDay() + 1) // Monday
+    // Calculate Monday as the first day of the week
+    // If it's Sunday (day 0), we want next Monday (+1 day)
+    // If it's Monday (day 1), we want this Monday (+0 days)
+    // If it's Tuesday (day 2), we want last Monday (-1 day)
+    // etc.
+    const daysToMonday = today.getDay() === 0 ? 1 : today.getDay() === 1 ? 0 : -(today.getDay() - 1)
+    startOfWeek.setDate(today.getDate() + daysToMonday) // Monday
 
     for (let i = 0; i < 7; i++) {
       const day = new Date(startOfWeek)

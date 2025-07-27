@@ -24,28 +24,28 @@ END $$;
 -- Gebruik maandag als startdag van de week
 WITH week_starts AS (
   SELECT 
-    (CURRENT_DATE + INTERVAL '1 week')::date - EXTRACT(DOW FROM (CURRENT_DATE + INTERVAL '1 week')::date)::int + 1 as week_start
+    (CURRENT_DATE + INTERVAL '1 week')::date + (1 - EXTRACT(DOW FROM (CURRENT_DATE + INTERVAL '1 week')::date)::int) as week_start
   UNION ALL
   SELECT 
-    (CURRENT_DATE + INTERVAL '2 weeks')::date - EXTRACT(DOW FROM (CURRENT_DATE + INTERVAL '2 weeks')::date)::int + 1
+    (CURRENT_DATE + INTERVAL '2 weeks')::date + (1 - EXTRACT(DOW FROM (CURRENT_DATE + INTERVAL '2 weeks')::date)::int)
   UNION ALL
   SELECT 
-    (CURRENT_DATE + INTERVAL '3 weeks')::date - EXTRACT(DOW FROM (CURRENT_DATE + INTERVAL '3 weeks')::date)::int + 1
+    (CURRENT_DATE + INTERVAL '3 weeks')::date + (1 - EXTRACT(DOW FROM (CURRENT_DATE + INTERVAL '3 weeks')::date)::int)
   UNION ALL
   SELECT 
-    (CURRENT_DATE + INTERVAL '4 weeks')::date - EXTRACT(DOW FROM (CURRENT_DATE + INTERVAL '4 weeks')::date)::int + 1
+    (CURRENT_DATE + INTERVAL '4 weeks')::date + (1 - EXTRACT(DOW FROM (CURRENT_DATE + INTERVAL '4 weeks')::date)::int)
   UNION ALL
   SELECT 
-    (CURRENT_DATE + INTERVAL '5 weeks')::date - EXTRACT(DOW FROM (CURRENT_DATE + INTERVAL '5 weeks')::date)::int + 1
+    (CURRENT_DATE + INTERVAL '5 weeks')::date + (1 - EXTRACT(DOW FROM (CURRENT_DATE + INTERVAL '5 weeks')::date)::int)
   UNION ALL
   SELECT 
-    (CURRENT_DATE + INTERVAL '6 weeks')::date - EXTRACT(DOW FROM (CURRENT_DATE + INTERVAL '6 weeks')::date)::int + 1
+    (CURRENT_DATE + INTERVAL '6 weeks')::date + (1 - EXTRACT(DOW FROM (CURRENT_DATE + INTERVAL '6 weeks')::date)::int)
   UNION ALL
   SELECT 
-    (CURRENT_DATE + INTERVAL '7 weeks')::date - EXTRACT(DOW FROM (CURRENT_DATE + INTERVAL '7 weeks')::date)::int + 1
+    (CURRENT_DATE + INTERVAL '7 weeks')::date + (1 - EXTRACT(DOW FROM (CURRENT_DATE + INTERVAL '7 weeks')::date)::int)
   UNION ALL
   SELECT 
-    (CURRENT_DATE + INTERVAL '8 weeks')::date - EXTRACT(DOW FROM (CURRENT_DATE + INTERVAL '8 weeks')::date)::int + 1
+    (CURRENT_DATE + INTERVAL '8 weeks')::date + (1 - EXTRACT(DOW FROM (CURRENT_DATE + INTERVAL '8 weeks')::date)::int)
 ),
 all_students AS (
   SELECT DISTINCT s.id as student_id, s.first_name, s.last_name

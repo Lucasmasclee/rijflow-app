@@ -22,7 +22,13 @@ function formatTime(minutes: number): string {
 function getNextWeekDates(): string[] {
   const today = new Date()
   const nextMonday = new Date(today)
-  nextMonday.setDate(today.getDate() + (8 - today.getDay()) % 7) // Next Monday
+  // Calculate next Monday as the first day of the week
+  // If it's Sunday (day 0), we want next Monday (+1 day)
+  // If it's Monday (day 1), we want next Monday (+7 days)
+  // If it's Tuesday (day 2), we want next Monday (+6 days)
+  // etc.
+  const daysToNextMonday = today.getDay() === 0 ? 1 : 8 - today.getDay()
+  nextMonday.setDate(today.getDate() + daysToNextMonday) // Next Monday
   
   const weekDates = []
   for (let i = 0; i < 7; i++) {
