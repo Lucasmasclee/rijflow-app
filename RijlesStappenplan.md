@@ -255,7 +255,7 @@ Proces 1: SMS Leerlingen (Instructeur Flow)
 ✅8: Instructeur klikt op Week waarvoor beschikbaarheid moet worden verzameld (8 weken in toekomst)
 Weken in formaat "17 juli - 23 juli" met "[Maandag vd Week - Zondag vd Week]"
 ✅9: Instructeur selecteert voor elke leerling wel/niet te sturen met een toggle. 
-Toggle staat automatisch uit voor leerlingen waarnaar de SMS minder dan 6 dagen geleden gestuurd is, dit kan worden bepaald door de SMS_laatst_gestuurd kolom van de students tabel.
+<!-- Toggle staat automatisch uit voor leerlingen waarnaar de SMS minder dan 6 dagen geleden gestuurd is, dit kan worden bepaald door de SMS_laatst_gestuurd kolom van de students tabel. -->
 ✅10: Laten zien voor welke leerlingen telefoonnummer niet valide is
 ✅11: Instructeur klikt op "Sturen"
 ✅12: Gebruik Twilio API in je backend of edge function om de SMS te sturen. De nodige keys en tokens staan al in .env.local
@@ -263,6 +263,7 @@ Toggle staat automatisch uit voor leerlingen waarnaar de SMS minder dan 6 dagen 
 ✅14: Twilio API: Voor elke leerling bericht personaliseren: "Beste [LeerlingNaam], Vul je beschikbaarheid in voor [Week...] met deze link: [PersoonlijkeLink].
 Datums staan goed op basis van de gekozen week van de instructeur in formaat "17 juli - 23 juli"
 15: Vanuit Proces 2 Stap 12: Instructeur moet deze beschikbaarheid kunnen ophalen en te zien krijgen in ai-schedule pagina op het scherm leerling beschikbaarheid
+Student moet link kunnen hergebruiken (Er staat een unique constraint op student_availability, en er wordt altijd een rij toegevoegd ipv geupdated)
 
 Proces 2: SMS Leerlingen (Leerling Flow)
 ✅1: Vanuit Proces 1 stap 11: Leerling krijgt een SMS met een persoonlijke link
