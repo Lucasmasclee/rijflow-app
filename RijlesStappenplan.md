@@ -261,7 +261,7 @@ Toggle staat automatisch uit voor leerlingen waarnaar de SMS minder dan 6 dagen 
 ✅12: Gebruik Twilio API in je backend of edge function om de SMS te sturen. De nodige keys en tokens staan al in .env.local
 ✅13: Vanuit Proces 2 Stap 3: Persoonlijke link per leerling ophalen uit database: 
 ✅14: Twilio API: Voor elke leerling bericht personaliseren: "Beste [LeerlingNaam], Vul je beschikbaarheid in voor [Week...] met deze link: [PersoonlijkeLink].
-Datums staan goed op basis van de gekozen week van de instructeur in formaat "17 juli - 23 juli"
+✅Datums staan goed op basis van de gekozen week van de instructeur in formaat "17 juli - 23 juli"
 15: Vanuit Proces 2 Stap 12: Instructeur moet deze beschikbaarheid kunnen ophalen en te zien krijgen in ai-schedule pagina op het scherm leerling beschikbaarheid
 
 Proces 2: SMS Leerlingen (Leerling Flow)
@@ -279,6 +279,7 @@ Meerdere beschikbaarheden per dag. Mogen niet overlappen
 ✅10: Voeg RLS toe: Alleen UPDATE/INSERT mogelijk als students.public_token = current_setting(...)
 ✅11: Gebruik foreign key van availability.student_id → students.id
 ✅12: Student_availability tabel is bewerkt -> Proces 1 Stap 15
+Rijflow.nl werkt niet ??
 
 Proces 3: AI-Weekplanning
 1: Instructeur is op dashboard

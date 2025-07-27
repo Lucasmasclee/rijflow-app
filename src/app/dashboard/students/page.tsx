@@ -626,6 +626,7 @@ export default function StudentsPage() {
                       day: '2-digit', month: 'long', year: 'numeric'
                     })}`
                   })()}
+                  Let op: Leerlingen kunnen deze link hergebruiken. Stuur niet meerdere berichten voor dezelfde week.
                 </p>
                 
                 <div className="space-y-3 max-h-64 overflow-y-auto">
