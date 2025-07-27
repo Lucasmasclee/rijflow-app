@@ -39,7 +39,7 @@ export async function GET(request: NextRequest) {
     const { data: students, error: studentsError } = await supabase
       .from('students')
       .select('id, first_name, last_name, phone')
-      .order('first_name', 'last_name')
+      .order('first_name', { ascending: true })
 
     console.log('Students fetch:', { studentsCount: students?.length || 0, studentsError })
 
