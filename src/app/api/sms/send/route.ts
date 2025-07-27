@@ -27,11 +27,13 @@ interface SMSRequest {
   studentIds: string[]
   weekStart: string
   weekEnd: string
+  weekStartFormatted: string
+  weekEndFormatted: string
 }
 
 export async function POST(request: NextRequest) {
   try {
-    const { studentIds, weekStart, weekEnd }: SMSRequest = await request.json()
+    const { studentIds, weekStart, weekEnd, weekStartFormatted, weekEndFormatted }: SMSRequest = await request.json()
 
     if (!accountSid || !authToken) {
       return NextResponse.json(
@@ -69,7 +71,9 @@ export async function POST(request: NextRequest) {
     }
 
     const results = []
-    const weekText = `${weekStart} - ${weekEnd}`
+    
+    // Use the formatted dates from the students page
+    const weekText = `${weekStartFormatted} - ${weekEndFormatted}`
 
     for (const student of students || []) {
       if (!student.phone) {
