@@ -235,12 +235,12 @@ Klik op “Toevoegen” en controleer of lessen in weekplanning verschijnen -->
 
 
 
-Todolist / Glitches:
-- Proces 1: Optie om elke week automatisch SMS naar elke leerling te sturen
-- Optie om ergens in de app de ingevulde beschikbaarheden te zien van leerlingen (Een andere plek dan AI Weekplanning)
-- In AI-Schedule pagina alles automatisch opslaan ipv een knop gebruiken
-- Beschikbaarheid leerling wordt niet automatisch gecreeerd als die nog niet bestaat voor de geselecteerde wek
-- In dashboard/lessons wordt geklikt op "AI Weekplanning" -> Er worden een BEWERKBAAR json bestand geladen/gemaakt in het EXACTE formaat van sample_input.json -> Dit bewerkbare bestand wordt geinitialiseerd met alle data vanuit de database -> In de ai-schedule pagina kan alle data die gebruikt wordt voor de ai planning worden aangepast. Let op: Deze data wordt tijdens het bewerken alleen maar geupdated naar de database -> Zodra er wordt geklikt op "Start Test Planning" wordt dit bewerkbare json bestand opnieuw geinitialiseerd met de gegevens van de database -> generate_week_planning.js leest de bewerkbare kopie van sample_input.json -> generate_week_planning.js maakt best_week_planning.json -> UI laat resultaat zien.
+
+Mee bezig: 
+SMS beschikbaarheid link houdt geen rekening met de week waarvoor beschikbaarheid moet worden ingevuld. 
+Krijg nu de melding "SMS verstuurd naar 0 leerlingen"
+Waarschijnlijk staat er in supabase iets niet goed
+
 
 
 Hele werking:
@@ -253,7 +253,7 @@ Proces 1: SMS Leerlingen (Instructeur Flow)
 ✅6: Instructeur is in leerlingoverzicht
 ✅7: Instructeur klikt op "SMS Leerlingen"
 ✅8: Instructeur klikt op Week waarvoor beschikbaarheid moet worden verzameld (8 weken in toekomst)
-Weken in formaat "17 juli - 23 juli" met "[Maandag vd Week - Zondag vd Week]"
+✅Weken in formaat "17 juli - 23 juli" met "[Maandag vd Week - Zondag vd Week]"
 ✅9: Instructeur selecteert voor elke leerling wel/niet te sturen met een toggle. 
 <!-- Toggle staat automatisch uit voor leerlingen waarnaar de SMS minder dan 6 dagen geleden gestuurd is, dit kan worden bepaald door de SMS_laatst_gestuurd kolom van de students tabel. -->
 ✅10: Laten zien voor welke leerlingen telefoonnummer niet valide is
@@ -261,7 +261,7 @@ Weken in formaat "17 juli - 23 juli" met "[Maandag vd Week - Zondag vd Week]"
 ✅12: Gebruik Twilio API in je backend of edge function om de SMS te sturen. De nodige keys en tokens staan al in .env.local
 ✅13: Vanuit Proces 2 Stap 3: Persoonlijke link per leerling ophalen uit database: 
 ✅14: Twilio API: Voor elke leerling bericht personaliseren: "Beste [LeerlingNaam], Vul je beschikbaarheid in voor [Week...] met deze link: [PersoonlijkeLink].
-Datums staan goed op basis van de gekozen week van de instructeur in formaat "17 juli - 23 juli"
+✅Datums staan goed op basis van de gekozen week van de instructeur in formaat "17 juli - 23 juli"
 15: Vanuit Proces 2 Stap 12: Instructeur moet deze beschikbaarheid kunnen ophalen en te zien krijgen in ai-schedule pagina op het scherm leerling beschikbaarheid
 Student moet link kunnen hergebruiken (Er staat een unique constraint op student_availability, en er wordt altijd een rij toegevoegd ipv geupdated)
 
