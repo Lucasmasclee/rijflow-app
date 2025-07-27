@@ -67,11 +67,20 @@ export default function BeschikbaarheidPage() {
 
       setStudent(data)
 
-      // Load existing availability if any
+      // Calculate the current week start (Monday of current week)
+      const today = new Date()
+      const dayOfWeek = today.getDay() // 0 = Sunday, 1 = Monday, etc.
+      const daysToMonday = dayOfWeek === 0 ? 6 : dayOfWeek - 1 // Days to go back to Monday
+      const monday = new Date(today)
+      monday.setDate(today.getDate() - daysToMonday)
+      const weekStart = monday.toISOString().split('T')[0]
+
+      // Load existing availability for the current week
       const { data: existingAvailability } = await supabase
         .from('student_availability')
         .select('availability_data')
         .eq('student_id', data.id)
+        .eq('week_start', weekStart)
         .single()
 
       if (existingAvailability?.availability_data) {
@@ -126,13 +135,24 @@ export default function BeschikbaarheidPage() {
         return
       }
 
-      // Upsert availability data
+      // Calculate the current week start (Monday of current week)
+      const today = new Date()
+      const dayOfWeek = today.getDay() // 0 = Sunday, 1 = Monday, etc.
+      const daysToMonday = dayOfWeek === 0 ? 6 : dayOfWeek - 1 // Days to go back to Monday
+      const monday = new Date(today)
+      monday.setDate(today.getDate() - daysToMonday)
+      const weekStart = monday.toISOString().split('T')[0]
+
+      // Use upsert with the correct week_start
       const { error } = await supabase
         .from('student_availability')
         .upsert({
           student_id: student.id,
-          week_start: new Date().toISOString().split('T')[0], // Today's date as week start
-          availability_data: availability
+          week_start: weekStart,
+          availability_data: availability,
+          updated_at: new Date().toISOString()
+        }, {
+          onConflict: 'student_id,week_start'
         })
 
       if (error) {
