@@ -282,8 +282,8 @@ Meerdere beschikbaarheden per dag. Mogen niet overlappen
 Rijflow.nl werkt niet ??
 
 Proces 3: AI-Weekplanning
-1: Instructeur is op dashboard
-2: Instructeur klikt op "AI-Weekplanning" in dashboard
+1: Instructeur is op lessons pagina
+2: Instructeur klikt op "AI-Weekplanning" in lessons pagina
 3: Instructeur gaat naar AI-schedule pagina
 4: AI schedule pagina scherm 1: Beschikbaarheid instructeur
 Als er al een entry is in instructor_availability voor de geselecteerde week, wordt deze gebruikt

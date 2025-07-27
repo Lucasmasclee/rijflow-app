@@ -21,7 +21,7 @@ const DAY_ORDER = [
   { day: 'sunday', name: 'Zondag', shortName: 'Zo', dutchName: 'zondag' },
 ]
 
-type Step = 'week-selection' | 'instructor' | 'students' | 'settings' | 'test-planning'
+type Step = 'week-selection' | 'instructor' | 'student-availability' | 'settings' | 'test-planning'
 
 interface StudentWithAvailability extends Student {
   availability_data: Record<string, string[]>
@@ -70,6 +70,7 @@ function AISchedulePageContent() {
 
   // Students data
   const [students, setStudents] = useState<StudentWithAvailability[]>([])
+  const [currentStudentIndex, setCurrentStudentIndex] = useState(0)
 
   // Settings
   const [settings, setSettings] = useState({
@@ -584,11 +585,24 @@ function AISchedulePageContent() {
     } else if (currentStep === 'instructor') {
       // Sla instructeur beschikbaarheid op voordat we naar de volgende stap gaan
       await saveAvailabilityData()
-      setCurrentStep('students')
-    } else if (currentStep === 'students') {
-      // Sla student beschikbaarheid op voordat we naar de volgende stap gaan
+      
+      // Ga naar student availability stap
+      if (students.length > 0) {
+        setCurrentStep('student-availability')
+        setCurrentStudentIndex(0)
+      } else {
+        setCurrentStep('settings')
+      }
+    } else if (currentStep === 'student-availability') {
+      // Sla huidige student beschikbaarheid op
       await saveAvailabilityData()
-      setCurrentStep('settings')
+      
+      // Ga naar volgende student of naar settings
+      if (currentStudentIndex < students.length - 1) {
+        setCurrentStudentIndex(currentStudentIndex + 1)
+      } else {
+        setCurrentStep('settings')
+      }
     } else if (currentStep === 'settings') {
       // Sla instellingen op voordat we naar de volgende stap gaan
       await saveAvailabilityData()
@@ -599,10 +613,19 @@ function AISchedulePageContent() {
   const handlePrevious = () => {
     if (currentStep === 'instructor') {
       setCurrentStep('week-selection')
-    } else if (currentStep === 'students') {
-      setCurrentStep('instructor')
+    } else if (currentStep === 'student-availability') {
+      if (currentStudentIndex > 0) {
+        setCurrentStudentIndex(currentStudentIndex - 1)
+      } else {
+        setCurrentStep('instructor')
+      }
     } else if (currentStep === 'settings') {
-      setCurrentStep('students')
+      if (students.length > 0) {
+        setCurrentStep('student-availability')
+        setCurrentStudentIndex(students.length - 1)
+      } else {
+        setCurrentStep('instructor')
+      }
     } else if (currentStep === 'test-planning') {
       setCurrentStep('settings')
     }
@@ -636,10 +659,18 @@ function AISchedulePageContent() {
     }
   }
 
+  const getCurrentStepName = () => {
+    if (currentStep === 'student-availability') {
+      const student = students[currentStudentIndex]
+      return `Leerling ${currentStudentIndex + 1} van ${students.length}: ${student?.first_name} ${student?.last_name}`
+    }
+    return steps.find(s => s.key === currentStep)?.name || ''
+  }
+
   const steps = [
     { key: 'week-selection', name: 'Week Selectie', icon: Calendar },
     { key: 'instructor', name: 'Instructeur', icon: Users },
-    { key: 'students', name: 'Leerlingen', icon: Users },
+    { key: 'student-availability', name: 'Leerlingen', icon: Users },
     { key: 'settings', name: 'Instellingen', icon: Settings },
     { key: 'test-planning', name: 'Test Planning', icon: Brain }
   ]
@@ -823,14 +854,21 @@ function AISchedulePageContent() {
             </div>
           )}
 
-          {/* Students */}
-          {currentStep === 'students' && (
+          {/* Student Availability */}
+          {currentStep === 'student-availability' && (
             <div className="space-y-6">
               <div>
-                <h3 className="text-lg font-semibold mb-4">Leerling Beschikbaarheid</h3>
+                <h3 className="text-lg font-semibold mb-4">
+                  Leerling Beschikbaarheid - {students[currentStudentIndex]?.first_name} {students[currentStudentIndex]?.last_name}
+                </h3>
                 <p className="text-gray-600 mb-6">
-                  Stel de beschikbaarheid in voor elke leerling
+                  Stel de beschikbaarheid in voor {students[currentStudentIndex]?.first_name} {students[currentStudentIndex]?.last_name}
                 </p>
+                <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                  <p className="text-sm text-blue-800">
+                    <strong>Leerling {currentStudentIndex + 1} van {students.length}</strong>
+                  </p>
+                </div>
               </div>
               
               {loadingData ? (
@@ -838,59 +876,52 @@ function AISchedulePageContent() {
                   <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
                 </div>
               ) : (
-                <div className="space-y-6">
-                  {students.map((student, studentIndex) => (
-                    <div key={student.id} className="card">
-                      <h4 className="font-semibold mb-4">
-                        {student.first_name} {student.last_name}
-                      </h4>
+                <div className="card">
+                  <div className="space-y-4">
+                    {DAY_ORDER.map((dayInfo, dayIndex) => {
+                      const student = students[currentStudentIndex]
+                      const dayData = student?.availability_data?.[dayInfo.dutchName]
+                      const isAvailable = !!dayData
                       
-                      <div className="space-y-4">
-                        {DAY_ORDER.map((dayInfo, dayIndex) => {
-                          const dayData = student.availability_data?.[dayInfo.dutchName]
-                          const isAvailable = !!dayData
+                      return (
+                        <div key={dayInfo.day} className="flex items-center gap-4 p-3 border border-gray-200 rounded-lg">
+                          <div className="flex items-center gap-3">
+                            <input
+                              type="checkbox"
+                              checked={isAvailable}
+                              onChange={(e) => handleStudentAvailabilityChange(currentStudentIndex, dayIndex, e.target.checked)}
+                              className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                            />
+                            <span className="font-medium min-w-[80px]">{dayInfo.name}</span>
+                          </div>
                           
-                          return (
-                            <div key={dayInfo.day} className="flex items-center gap-4 p-3 border border-gray-200 rounded-lg">
-                              <div className="flex items-center gap-3">
+                          {isAvailable && (
+                            <div className="flex items-center gap-2">
+                              <div className="flex items-center gap-1">
                                 <input
-                                  type="checkbox"
-                                  checked={isAvailable}
-                                  onChange={(e) => handleStudentAvailabilityChange(studentIndex, dayIndex, e.target.checked)}
-                                  className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                                  type="text"
+                                  value={dayData?.[0] || '09:00'}
+                                  onChange={(e) => handleStudentTimeChange(currentStudentIndex, dayIndex, 'start', e.target.value)}
+                                  className="w-16 h-8 text-center border border-gray-300 rounded text-sm"
+                                  placeholder="09:00"
                                 />
-                                <span className="font-medium min-w-[80px]">{dayInfo.name}</span>
                               </div>
-                              
-                              {isAvailable && (
-                                <div className="flex items-center gap-2">
-                                  <div className="flex items-center gap-1">
-                                    <input
-                                      type="text"
-                                      value={dayData?.[0] || '09:00'}
-                                      onChange={(e) => handleStudentTimeChange(studentIndex, dayIndex, 'start', e.target.value)}
-                                      className="w-16 h-8 text-center border border-gray-300 rounded text-sm"
-                                      placeholder="09:00"
-                                    />
-                                  </div>
-                                  <span>-</span>
-                                  <div className="flex items-center gap-1">
-                                    <input
-                                      type="text"
-                                      value={dayData?.[1] || '17:00'}
-                                      onChange={(e) => handleStudentTimeChange(studentIndex, dayIndex, 'end', e.target.value)}
-                                      className="w-16 h-8 text-center border border-gray-300 rounded text-sm"
-                                      placeholder="17:00"
-                                    />
-                                  </div>
-                                </div>
-                              )}
+                              <span>-</span>
+                              <div className="flex items-center gap-1">
+                                <input
+                                  type="text"
+                                  value={dayData?.[1] || '17:00'}
+                                  onChange={(e) => handleStudentTimeChange(currentStudentIndex, dayIndex, 'end', e.target.value)}
+                                  className="w-16 h-8 text-center border border-gray-300 rounded text-sm"
+                                  placeholder="17:00"
+                                />
+                              </div>
                             </div>
-                          )
-                        })}
-                      </div>
-                    </div>
-                  ))}
+                          )}
+                        </div>
+                      )
+                    })}
+                  </div>
                 </div>
               )}
             </div>
@@ -1044,7 +1075,7 @@ function AISchedulePageContent() {
                 disabled={!canGoNext() || currentStep === 'test-planning'}
                 className="btn btn-primary disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
               >
-                Volgende
+                {currentStep === 'student-availability' && currentStudentIndex < students.length - 1 ? 'Volgende Leerling' : 'Volgende'}
                 <ArrowRight className="h-4 w-4" />
               </button>
             </div>
