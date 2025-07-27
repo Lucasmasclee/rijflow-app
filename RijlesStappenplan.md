@@ -263,7 +263,7 @@ Proces 1: SMS Leerlingen (Instructeur Flow)
 ✅14: Twilio API: Voor elke leerling bericht personaliseren: "Beste [LeerlingNaam], Vul je beschikbaarheid in voor [Week...] met deze link: [PersoonlijkeLink].
 ✅Datums staan goed op basis van de gekozen week van de instructeur in formaat "17 juli - 23 juli"
 15: Vanuit Proces 2 Stap 12: Instructeur moet deze beschikbaarheid kunnen ophalen en te zien krijgen in ai-schedule pagina op het scherm leerling beschikbaarheid
-Student moet link kunnen hergebruiken (Er staat een unique constraint op student_availability, en er wordt altijd een rij toegevoegd ipv geupdated)
+✅Een link per student per week
 
 Proces 2: SMS Leerlingen (Leerling Flow)
 ✅1: Vanuit Proces 1 stap 11: Leerling krijgt een SMS met een persoonlijke link
