@@ -186,15 +186,15 @@ export default function BeschikbaarheidPage() {
             <Calendar className="h-8 w-8 text-blue-600" />
             <div>
               <h1 className="text-2xl font-bold text-gray-900">
-                Beschikbaarheid invullen
+                Maandag vd week - Zondag vd week
               </h1>
               <p className="text-gray-600">
-                Welkom {student.first_name} {student.last_name}
+                Welkom {student.first_name}
               </p>
             </div>
           </div>
           <p className="text-sm text-gray-600">
-            Vul per datum je beschikbaarheid in. 
+            Vul hieronderper datum je beschikbaarheid in. 
             Je kunt dit later altijd wijzigen door opnieuw op de link te klikken.
           </p>
         </div>

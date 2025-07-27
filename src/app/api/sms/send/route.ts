@@ -27,8 +27,6 @@ interface SMSRequest {
   studentIds: string[]
   weekStart: string
   weekEnd: string
-  weekStartFormatted: string
-  weekEndFormatted: string
 }
 
 export async function POST(request: NextRequest) {
@@ -72,9 +70,12 @@ export async function POST(request: NextRequest) {
 
     const results = []
     
-    // Format dates exactly like in the UI
+    // Format dates exactly like in the students page UI
+    // Use the same date calculation logic as the students page to avoid timezone issues
     const formatDateForSMS = (dateString: string, isEndDate: boolean = false) => {
-      const date = new Date(dateString)
+      // Parse the date string and create a local date to avoid timezone issues
+      const [year, month, day] = dateString.split('-').map(Number)
+      const date = new Date(year, month - 1, day) // month is 0-indexed in Date constructor
       return date.toLocaleDateString('nl-NL', {
         day: '2-digit',
         month: 'long',
