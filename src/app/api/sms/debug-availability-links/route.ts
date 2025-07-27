@@ -75,8 +75,9 @@ export async function GET(request: NextRequest) {
         })
       functionTest = { data: functionTestData, error: functionTestError }
       console.log('Function test:', functionTest)
-    } catch (error: any) {
-      functionTest = { error: error?.message || 'Unknown error' }
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error'
+      functionTest = { error: errorMessage }
       console.error('Function test error:', error)
     }
 
@@ -101,7 +102,7 @@ export async function GET(request: NextRequest) {
     if (students && allLinks) {
       for (const student of students) {
         const studentLinks = allLinks.filter(link => link.student_id === student.id)
-        const weekStatus = {}
+        const weekStatus: Record<string, boolean> = {}
         
         for (const week of next8Weeks) {
           weekStatus[week] = studentLinks.some(link => link.week_start === week)
@@ -140,10 +141,11 @@ export async function GET(request: NextRequest) {
       debugInfo
     })
 
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Error in debug availability links route:', error)
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error'
     return NextResponse.json(
-      { error: 'Internal server error', details: error?.message || 'Unknown error' },
+      { error: 'Internal server error', details: errorMessage },
       { status: 500 }
     )
   }
