@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { supabase } from '@/lib/supabase'
+import { createClient } from '@supabase/supabase-js'
 
 export async function POST(request: NextRequest) {
   try {
@@ -23,8 +23,20 @@ export async function POST(request: NextRequest) {
 
     const token = authHeader.replace('Bearer ', '')
     
+    // Create Supabase client with the token (same pattern as lessons/bulk/route.ts)
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
+    const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+    
+    const supabase = createClient(supabaseUrl, supabaseAnonKey, {
+      global: {
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
+      }
+    })
+    
     // Verify the token and get user info
-    const { data: { user }, error: authError } = await supabase.auth.getUser(token)
+    const { data: { user }, error: authError } = await supabase.auth.getUser()
     
     if (authError || !user) {
       console.error('Auth error:', authError)
@@ -61,7 +73,7 @@ export async function POST(request: NextRequest) {
     const { data: existingAvailability, error: existingError } = await supabase
       .from('student_availability')
       .select('student_id')
-      .in('student_id', students.map(s => s.id))
+      .in('student_id', students.map((s: any) => s.id))
       .eq('week_start', weekStart)
 
     if (existingError) {
@@ -73,10 +85,10 @@ export async function POST(request: NextRequest) {
     }
 
     // Find students that don't have availability records for this week
-    const existingStudentIds = existingAvailability?.map(sa => sa.student_id) || []
+    const existingStudentIds = existingAvailability?.map((sa: any) => sa.student_id) || []
     const missingStudentIds = students
-      .map(s => s.id)
-      .filter(id => !existingStudentIds.includes(id))
+      .map((s: any) => s.id)
+      .filter((id: any) => !existingStudentIds.includes(id))
 
     console.log('Missing student availability records for students:', missingStudentIds)
 
@@ -88,7 +100,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Create availability records for missing students
-    const recordsToCreate = missingStudentIds.map(studentId => ({
+    const recordsToCreate = missingStudentIds.map((studentId: any) => ({
       student_id: studentId,
       week_start: weekStart,
       availability_data: {} // Empty availability data, will be filled by user
