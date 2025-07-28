@@ -134,6 +134,11 @@ export async function POST(request: NextRequest) {
       }
       console.log('Attempting to insert data:', JSON.stringify(insertData, null, 2))
 
+      // Debug: Log the data we're trying to insert
+      console.log('Attempting to insert data:', JSON.stringify(insertData, null, 2))
+      console.log('Current user ID:', instructorId)
+      console.log('User authenticated:', !!user)
+
       const { error: insertError } = await supabase
         .from('instructor_availability')
         .insert(insertData)
@@ -146,6 +151,25 @@ export async function POST(request: NextRequest) {
           details: insertError.details,
           hint: insertError.hint
         })
+        
+        // Check if it's an RLS policy error
+        if (insertError.message.includes('row-level security policy')) {
+          console.error('RLS Policy Error detected. This might be due to:')
+          console.error('1. Missing or incorrect RLS policy')
+          console.error('2. User not properly authenticated')
+          console.error('3. User ID mismatch')
+          
+          return NextResponse.json(
+            { 
+              error: 'RLS Policy Error: ' + insertError.message,
+              details: 'This is likely a Row Level Security policy issue. Please check the database policies.',
+              user_id: instructorId,
+              authenticated: !!user
+            },
+            { status: 403 }
+          )
+        }
+        
         return NextResponse.json(
           { error: 'Failed to create new availability: ' + insertError.message },
           { status: 500 }
