@@ -752,7 +752,7 @@ function AISchedulePageContent() {
     try {
       const weekStart = formatDateToISO(selectedWeek)
       
-      const response = await fetch('/api/ai-schedule/generate-sample-input', {
+      const response = await fetch('/api/ai-schedule/generate-planning', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -766,19 +766,19 @@ function AISchedulePageContent() {
       const result = await response.json()
 
       if (!response.ok) {
-        throw new Error(result.error || 'Failed to generate sample input')
+        throw new Error(result.error || 'Failed to generate planning')
       }
 
       setSampleInputResult(result.data)
-      toast.success('Sample input bestand gegenereerd')
+      toast.success('Week planning gegenereerd')
       
       // Print the result to console for debugging
-      console.log('Generated sample_input.json:')
+      console.log('Generated planning:')
       console.log(JSON.stringify(result.data, null, 2))
       
     } catch (error) {
-      console.error('Error generating sample input:', error)
-      toast.error('Fout bij genereren van sample input bestand')
+      console.error('Error generating planning:', error)
+      toast.error('Fout bij genereren van week planning')
     } finally {
       setIsGeneratingSampleInput(false)
     }
