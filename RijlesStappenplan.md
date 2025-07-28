@@ -292,6 +292,7 @@ Proces 3: AI-Weekplanning
 5: AI schedule pagina scherm 2 t/m [Aantal Leerlingen]: Beschikbaarheid leerlingen
 Als er al een entry is in student_availability voor een student met de geselecteerde week, wordt deze gebruikt
 Als er nog geen entry is in student_availability voor een student met de geselecteerde week, een entry maken met standard_availability van instructor
+Lessen per week en minuten per les staan standaard goed.
 6: AI schedule pagina [Aantal Leerlingen + 1]: AI schedule instellingen
 Alle volgende waarden uit instructor-ai-settings halen. 
 Blokuren aan/uit, Standaard = aan

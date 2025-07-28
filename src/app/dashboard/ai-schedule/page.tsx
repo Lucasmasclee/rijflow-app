@@ -297,6 +297,140 @@ function AISchedulePageContent() {
     }
   }
 
+  const saveInstructorAvailability = async () => {
+    if (!user || !selectedWeek) return
+    
+    try {
+      const weekStartString = formatDateToISO(selectedWeek)
+      
+      console.log('Saving instructor availability for week:', weekStartString)
+      
+      // Convert instructor availability to JSON format
+      const instructorAvailabilityData: Record<string, string[]> = {}
+      instructorAvailability.forEach(day => {
+        if (day.available) {
+          const dayInfo = DAY_ORDER.find(d => d.day === day.day)
+          if (dayInfo) {
+            instructorAvailabilityData[dayInfo.dutchName] = [day.startTime, day.endTime]
+          }
+        }
+      })
+      
+      // Get the current session to include auth token
+      const { data: { session } } = await supabase.auth.getSession()
+      
+      if (!session?.access_token) {
+        toast.error('Niet ingelogd. Log opnieuw in.')
+        return
+      }
+
+      const requestBody = {
+        weekStart: weekStartString,
+        instructorAvailability: {
+          availability_data: instructorAvailabilityData,
+          settings: settings
+        }
+      }
+
+      console.log('Sending request to update-availability for instructor:', requestBody)
+
+      const response = await fetch('/api/ai-schedule/update-availability', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${session.access_token}`
+        },
+        body: JSON.stringify(requestBody)
+      })
+
+      if (!response.ok) {
+        const error = await response.json()
+        console.error('Error response from update-availability:', error)
+        toast.error('Fout bij opslaan instructeur beschikbaarheid: ' + (error.error || 'Onbekende fout'))
+        return
+      }
+
+      const result = await response.json()
+      console.log('Success response from update-availability:', result)
+      toast.success('Instructeur beschikbaarheid succesvol opgeslagen')
+      
+    } catch (error) {
+      console.error('Error saving instructor availability:', error)
+      toast.error('Fout bij opslaan van instructeur beschikbaarheid')
+    }
+  }
+
+  const saveStudentData = async () => {
+    if (!user || !selectedWeek) return
+    
+    try {
+      const weekStartString = formatDateToISO(selectedWeek)
+      
+      console.log('Saving student data for week:', weekStartString)
+      console.log('Number of students:', students.length)
+      
+      // Get the current session to include auth token
+      const { data: { session } } = await supabase.auth.getSession()
+      
+      if (!session?.access_token) {
+        toast.error('Niet ingelogd. Log opnieuw in.')
+        return
+      }
+
+      const requestBody = {
+        weekStart: weekStartString,
+        studentAvailability: students.map(student => ({
+          id: student.id,
+          availability_data: student.availability_data || {}
+        }))
+      }
+
+      // Update student settings in the database
+      for (const student of students) {
+        const { error: updateError } = await supabase
+          .from('students')
+          .update({
+            default_lessons_per_week: student.default_lessons_per_week || 2,
+            default_lesson_duration_minutes: student.default_lesson_duration_minutes || 60
+          })
+          .eq('id', student.id)
+
+        if (updateError) {
+          console.error('Error updating student settings for student:', student.id, updateError)
+          // Continue with other students even if one fails
+        } else {
+          console.log('Successfully updated settings for student:', student.id)
+        }
+      }
+
+      console.log('Sending request to update-availability for students:', requestBody)
+
+      const response = await fetch('/api/ai-schedule/update-availability', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${session.access_token}`
+        },
+        body: JSON.stringify(requestBody)
+      })
+
+      if (!response.ok) {
+        const error = await response.json()
+        console.error('Error response from update-availability:', error)
+        toast.error('Fout bij opslaan leerling data: ' + (error.error || 'Onbekende fout'))
+        return
+      }
+
+      const result = await response.json()
+      console.log('Success response from update-availability:', result)
+      toast.success('Leerling data succesvol opgeslagen')
+      
+    } catch (error) {
+      console.error('Error saving student data:', error)
+      toast.error('Fout bij opslaan van leerling data')
+    }
+  }
+
   const saveAvailabilityData = async () => {
     if (!user || !selectedWeek) return
     
@@ -855,7 +989,7 @@ function AISchedulePageContent() {
               <div>
                 <h3 className="text-lg font-semibold mb-4">Leerling Beschikbaarheid</h3>
                 <p className="text-gray-600 mb-6">
-                  Stel de beschikbaarheid en instellingen in voor elke leerling voor de week van {getSelectedWeekInfo()?.start} tot {getSelectedWeekInfo()?.end}:
+                  Controleer de instellingen en beschikbaarheid van elke leerling voor de week van {getSelectedWeekInfo()?.start} tot {getSelectedWeekInfo()?.end}:
                 </p>
               </div>
 
@@ -1034,18 +1168,42 @@ function AISchedulePageContent() {
                   Vorige
                 </button>
 
-                <button
-                  onClick={handleNext}
-                  disabled={!canGoNext()}
-                  className={`flex items-center gap-2 px-6 py-2 rounded-lg transition-colors ${
-                    canGoNext()
-                      ? 'bg-blue-600 text-white hover:bg-blue-700'
-                      : 'bg-gray-200 text-gray-400 cursor-not-allowed'
-                  }`}
-                >
-                  {currentStep === 'test-planning' ? 'Genereer Planning' : 'Volgende'}
-                  <ArrowRight className="h-4 w-4" />
-                </button>
+                <div className="flex items-center gap-3">
+                  {/* Save button for instructor step */}
+                  {currentStep === 'instructor' && (
+                    <button
+                      onClick={saveInstructorAvailability}
+                      className="flex items-center gap-2 px-4 py-2 rounded-lg border border-green-600 text-green-600 hover:bg-green-50 transition-colors"
+                    >
+                      <Check className="h-4 w-4" />
+                      Opslaan
+                    </button>
+                  )}
+
+                  {/* Save button for students step */}
+                  {currentStep === 'students' && (
+                    <button
+                      onClick={saveStudentData}
+                      className="flex items-center gap-2 px-4 py-2 rounded-lg border border-green-600 text-green-600 hover:bg-green-50 transition-colors"
+                    >
+                      <Check className="h-4 w-4" />
+                      Opslaan
+                    </button>
+                  )}
+
+                  <button
+                    onClick={handleNext}
+                    disabled={!canGoNext()}
+                    className={`flex items-center gap-2 px-6 py-2 rounded-lg transition-colors ${
+                      canGoNext()
+                        ? 'bg-blue-600 text-white hover:bg-blue-700'
+                        : 'bg-gray-200 text-gray-400 cursor-not-allowed'
+                    }`}
+                  >
+                    {currentStep === 'test-planning' ? 'Genereer Planning' : 'Volgende'}
+                    <ArrowRight className="h-4 w-4" />
+                  </button>
+                </div>
               </div>
             </div>
           </div>
