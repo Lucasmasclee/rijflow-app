@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { supabase } from '@/lib/supabase'
+import { createClient } from '@supabase/supabase-js'
 
 export async function POST(request: NextRequest) {
   try {
@@ -23,8 +23,20 @@ export async function POST(request: NextRequest) {
 
     const token = authHeader.replace('Bearer ', '')
     
+    // Create Supabase client with the token (same pattern as lessons/bulk/route.ts)
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
+    const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+    
+    const supabase = createClient(supabaseUrl, supabaseAnonKey, {
+      global: {
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
+      }
+    })
+    
     // Verify the token and get user info
-    const { data: { user }, error: authError } = await supabase.auth.getUser(token)
+    const { data: { user }, error: authError } = await supabase.auth.getUser()
     
     if (authError || !user) {
       console.error('Auth error:', authError)
@@ -36,37 +48,12 @@ export async function POST(request: NextRequest) {
 
     const instructorId = user.id
 
-    // Collect debugging info
-    const debugInfo: any = {
-      authUserId: user.id,
-      authUserEmail: user.email,
-      instructorId: instructorId,
-      weekStart: weekStart
-    }
-
     console.log('=== DEBUGGING AUTH/INSTRUCTOR ID ===')
     console.log('Auth user ID:', user.id)
     console.log('Auth user email:', user.email)
     console.log('Instructor ID being used:', instructorId)
     console.log('Week start:', weekStart)
     console.log('=====================================')
-
-    // Test database authentication
-    const { data: authTest, error: authTestError } = await supabase
-      .from('instructor_availability')
-      .select('id')
-      .limit(1)
-    
-    const canAccessTable = !authTestError
-    debugInfo.canAccessTable = canAccessTable
-    debugInfo.databaseAuthError = authTestError
-    
-    console.log('=== DATABASE AUTH TEST ===')
-    console.log('Can access instructor_availability table:', canAccessTable)
-    if (authTestError) {
-      console.log('Database auth error:', authTestError)
-    }
-    console.log('==========================')
 
     console.log('Loading editable input for instructor:', instructorId, 'week:', weekStart)
 
@@ -173,17 +160,9 @@ export async function POST(request: NextRequest) {
         console.log('===============================================')
         console.error('Error creating instructor_availability:', error)
         
-        // Add debugging info to error response
-        debugInfo.error = {
-          message: error.message,
-          details: error.details,
-          hint: error.hint
-        }
-        
         return NextResponse.json(
           { 
-            error: 'Failed to create instructor availability: ' + error.message,
-            debug: debugInfo
+            error: 'Failed to create instructor availability: ' + error.message
           },
           { status: 500 }
         )
