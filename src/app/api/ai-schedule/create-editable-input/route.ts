@@ -85,15 +85,43 @@ export async function POST(request: NextRequest) {
         message = 'New availability created from standard availability'
       }
 
+
+
+
+
+
+
+
+
       // Create new instructor_availability record
       const { error: createError } = await supabase
         .from('instructor_availability')
-        .insert({
+        .upsert({
           instructor_id: instructorId,
           week_start: weekStart,
           availability_data: availabilityData,
           settings: settings
         })
+
+        // const { error } = await supabase
+        // .from('standard_availability')
+        // .upsert({
+        //   instructor_id: user.id,
+        //   availability_data: availabilityData,
+        //   default_lesson_duration: defaultLessonDuration
+        // }, { 
+        //   onConflict: 'instructor_id',
+        //   ignoreDuplicates: false 
+        // })
+
+
+
+
+
+
+
+
+
 
       if (createError) {
         console.log(instructorId)
