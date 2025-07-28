@@ -80,6 +80,13 @@ function AISchedulePageContent() {
     locatiesKoppelen: true
   })
 
+  // AI Settings state
+  const [aiSettings, setAiSettings] = useState({
+    pauzeTussenLessen: 5,
+    langePauzeDuur: 0,
+    blokuren: true
+  })
+
   // Helper functions
   const getMonday = (date: Date) => {
     const newDate = new Date(date)
@@ -665,6 +672,83 @@ function AISchedulePageContent() {
     }
   }
 
+  // Load AI settings from database
+  const loadAISettings = async () => {
+    if (!user) return
+    
+    try {
+      const { data: { session } } = await supabase.auth.getSession()
+      
+      if (!session?.access_token) {
+        console.error('No session token available for loading AI settings')
+        return
+      }
+
+      const response = await fetch('/api/ai-schedule/update-settings', {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${session.access_token}`
+        }
+      })
+
+      if (!response.ok) {
+        console.error('Error loading AI settings:', await response.json())
+        return
+      }
+
+      const result = await response.json()
+      if (result.success && result.data) {
+        setAiSettings({
+          pauzeTussenLessen: result.data.pauze_tussen_lessen || 5,
+          langePauzeDuur: result.data.lange_pauze_duur || 0,
+          blokuren: result.data.blokuren !== undefined ? result.data.blokuren : true
+        })
+      }
+    } catch (error) {
+      console.error('Error loading AI settings:', error)
+    }
+  }
+
+  // Save AI settings to database
+  const saveAISettings = async () => {
+    if (!user) return
+    
+    try {
+      const { data: { session } } = await supabase.auth.getSession()
+      
+      if (!session?.access_token) {
+        toast.error('Niet ingelogd. Log opnieuw in.')
+        return
+      }
+
+      const response = await fetch('/api/ai-schedule/update-settings', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${session.access_token}`
+        },
+        body: JSON.stringify({
+          pauzeTussenLessen: aiSettings.pauzeTussenLessen,
+          langePauzeDuur: aiSettings.langePauzeDuur,
+          blokuren: aiSettings.blokuren
+        })
+      })
+
+      if (!response.ok) {
+        const error = await response.json()
+        toast.error('Fout bij opslaan AI instellingen: ' + (error.error || 'Onbekende fout'))
+        return
+      }
+
+      const result = await response.json()
+      toast.success('AI instellingen succesvol opgeslagen')
+      
+    } catch (error) {
+      console.error('Error saving AI settings:', error)
+      toast.error('Fout bij opslaan van AI instellingen')
+    }
+  }
+
   // Initialize
   useEffect(() => {
     if (!loading && !user) {
@@ -675,6 +759,7 @@ function AISchedulePageContent() {
   useEffect(() => {
     if (user && !loading) {
       setAvailableWeeks(generateAvailableWeeks())
+      loadAISettings()
     }
   }, [user, loading])
 
@@ -707,7 +792,7 @@ function AISchedulePageContent() {
       setCurrentStep('settings')
     } else if (currentStep === 'settings') {
       // Sla instellingen op voordat we naar de volgende stap gaan
-      await saveAvailabilityData()
+      await saveAISettings()
       setCurrentStep('test-planning')
     }
   }
@@ -1145,6 +1230,99 @@ function AISchedulePageContent() {
           )}
 
           {/* Settings */}
+          {currentStep === 'settings' && (
+            <div className="space-y-6">
+              <div>
+                <h3 className="text-lg font-semibold mb-4">AI-Weekplanning Instellingen</h3>
+                <p className="text-gray-600 mb-6">
+                  Configureer de AI-Weekplanning instellingen voor optimale lesrooster generatie:
+                </p>
+              </div>
+
+              <div className="space-y-6">
+                {/* Pauze na elke les */}
+                <div className="bg-white border border-gray-200 rounded-lg p-6">
+                  <div className="flex items-center justify-between mb-4">
+                    <label className="text-lg font-medium text-gray-900">
+                      Pauze na elke les
+                    </label>
+                  </div>
+                  <div className="flex items-center gap-4">
+                    <input
+                      type="number"
+                      min="0"
+                      max="60"
+                      value={aiSettings.pauzeTussenLessen}
+                      onChange={(e) => setAiSettings({
+                        ...aiSettings,
+                        pauzeTussenLessen: parseInt(e.target.value) || 0
+                      })}
+                      className="w-20 h-10 text-center border border-gray-300 rounded focus:ring-blue-500 focus:border-blue-500"
+                    />
+                    <span className="text-sm text-gray-600">minuten</span>
+                  </div>
+                  <p className="text-sm text-gray-500 mt-2">
+                    Tijd tussen lessen voor instructeur en leerling
+                  </p>
+                </div>
+
+                {/* Lange pauze duur */}
+                <div className="bg-white border border-gray-200 rounded-lg p-6">
+                  <div className="flex items-center justify-between mb-4">
+                    <label className="text-lg font-medium text-gray-900">
+                      Lange pauze duur
+                    </label>
+                  </div>
+                  <div className="flex items-center gap-4">
+                    <input
+                      type="number"
+                      min="0"
+                      max="120"
+                      value={aiSettings.langePauzeDuur}
+                      onChange={(e) => setAiSettings({
+                        ...aiSettings,
+                        langePauzeDuur: parseInt(e.target.value) || 0
+                      })}
+                      className="w-20 h-10 text-center border border-gray-300 rounded focus:ring-blue-500 focus:border-blue-500"
+                    />
+                    <span className="text-sm text-gray-600">minuten</span>
+                  </div>
+                  <p className="text-sm text-gray-500 mt-2">
+                    Duur van lange pauzes (0 = geen lange pauzes)
+                  </p>
+                </div>
+
+                {/* Blokuren */}
+                <div className="bg-white border border-gray-200 rounded-lg p-6">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <label className="text-lg font-medium text-gray-900">
+                        Blokuren
+                      </label>
+                      <p className="text-sm text-gray-500 mt-1">
+                        Plan lessen in blokken van 2 uur voor efficiëntere planning
+                      </p>
+                    </div>
+                    <div className="flex items-center">
+                      <input
+                        type="checkbox"
+                        id="blokuren"
+                        checked={aiSettings.blokuren}
+                        onChange={(e) => setAiSettings({
+                          ...aiSettings,
+                          blokuren: e.target.checked
+                        })}
+                        className="w-5 h-5 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                      />
+                      <label htmlFor="blokuren" className="ml-3 text-sm text-gray-700">
+                        {aiSettings.blokuren ? 'Aan' : 'Uit'}
+                      </label>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
 
           {/* Test Planning */}
           
@@ -1184,6 +1362,17 @@ function AISchedulePageContent() {
                   {currentStep === 'students' && (
                     <button
                       onClick={saveStudentData}
+                      className="flex items-center gap-2 px-4 py-2 rounded-lg border border-green-600 text-green-600 hover:bg-green-50 transition-colors"
+                    >
+                      <Check className="h-4 w-4" />
+                      Opslaan
+                    </button>
+                  )}
+
+                  {/* Save button for settings step */}
+                  {currentStep === 'settings' && (
+                    <button
+                      onClick={saveAISettings}
                       className="flex items-center gap-2 px-4 py-2 rounded-lg border border-green-600 text-green-600 hover:bg-green-50 transition-colors"
                     >
                       <Check className="h-4 w-4" />
