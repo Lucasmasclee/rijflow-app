@@ -677,33 +677,32 @@ function AISchedulePageContent() {
     if (!user) return
     
     try {
-      const { data: { session } } = await supabase.auth.getSession()
+      // Get AI settings directly from instructor_ai_settings table
+      const { data, error } = await supabase
+        .from('instructor_ai_settings')
+        .select('*')
+        .eq('instructor_id', user.id)
+        .single()
+
+      if (error && error.code !== 'PGRST116') { // PGRST116 = no rows returned
+        console.error('Error loading AI settings:', error)
+        return
+      }
+
+      // Set default values if no record exists
+      const defaultSettings = {
+        pauze_tussen_lessen: 5,
+        lange_pauze_duur: 0,
+        blokuren: true
+      }
+
+      const settings = data || defaultSettings
       
-      if (!session?.access_token) {
-        console.error('No session token available for loading AI settings')
-        return
-      }
-
-      const response = await fetch('/api/ai-schedule/update-settings', {
-        method: 'GET',
-        headers: {
-          'Authorization': `Bearer ${session.access_token}`
-        }
+      setAiSettings({
+        pauzeTussenLessen: settings.pauze_tussen_lessen || 5,
+        langePauzeDuur: settings.lange_pauze_duur || 0,
+        blokuren: settings.blokuren !== undefined ? settings.blokuren : true
       })
-
-      if (!response.ok) {
-        console.error('Error loading AI settings:', await response.json())
-        return
-      }
-
-      const result = await response.json()
-      if (result.success && result.data) {
-        setAiSettings({
-          pauzeTussenLessen: result.data.pauze_tussen_lessen || 5,
-          langePauzeDuur: result.data.lange_pauze_duur || 0,
-          blokuren: result.data.blokuren !== undefined ? result.data.blokuren : true
-        })
-      }
     } catch (error) {
       console.error('Error loading AI settings:', error)
     }
@@ -714,33 +713,26 @@ function AISchedulePageContent() {
     if (!user) return
     
     try {
-      const { data: { session } } = await supabase.auth.getSession()
-      
-      if (!session?.access_token) {
-        toast.error('Niet ingelogd. Log opnieuw in.')
-        return
-      }
-
-      const response = await fetch('/api/ai-schedule/update-settings', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${session.access_token}`
-        },
-        body: JSON.stringify({
-          pauzeTussenLessen: aiSettings.pauzeTussenLessen,
-          langePauzeDuur: aiSettings.langePauzeDuur,
+      // Update or insert AI settings directly in instructor_ai_settings table
+      const { data, error } = await supabase
+        .from('instructor_ai_settings')
+        .upsert({
+          instructor_id: user.id,
+          pauze_tussen_lessen: aiSettings.pauzeTussenLessen,
+          lange_pauze_duur: aiSettings.langePauzeDuur,
           blokuren: aiSettings.blokuren
+        }, {
+          onConflict: 'instructor_id',
+          ignoreDuplicates: false
         })
-      })
+        .select()
 
-      if (!response.ok) {
-        const error = await response.json()
-        toast.error('Fout bij opslaan AI instellingen: ' + (error.error || 'Onbekende fout'))
+      if (error) {
+        console.error('Error saving AI settings:', error)
+        toast.error('Fout bij opslaan AI instellingen: ' + error.message)
         return
       }
 
-      const result = await response.json()
       toast.success('AI instellingen succesvol opgeslagen')
       
     } catch (error) {
