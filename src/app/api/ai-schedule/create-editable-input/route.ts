@@ -94,7 +94,7 @@ export async function POST(request: NextRequest) {
 
 
       // Create new instructor_availability record
-      const { error: createError } = await supabase
+      const { error } = await supabase
         .from('instructor_availability')
         .upsert({
           instructor_id: instructorId,
@@ -123,11 +123,11 @@ export async function POST(request: NextRequest) {
 
 
 
-      if (createError) {
+      if (error) {
         console.log(instructorId)
-        console.error('Error creating instructor_availability:', createError)
+        console.error('Error creating instructor_availability:', error)
         return NextResponse.json(
-          { error: 'Failed to create instructor availability: ' + createError.message },
+          { error: 'Failed to create instructor availability: ' + error.message },
           { status: 500 }
         )
       }
