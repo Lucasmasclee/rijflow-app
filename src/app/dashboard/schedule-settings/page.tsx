@@ -224,7 +224,7 @@ export default function ScheduleSettingsPage() {
       // Reset saved state after 1 second and redirect to dashboard
       setTimeout(() => {
         setSaved(false)
-        router.push('/dashboard')
+        // router.push('/dashboard')
       }, 1000)
     } catch (error) {
       console.error('Error saving availability:', error)
