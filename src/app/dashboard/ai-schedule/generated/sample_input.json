@@ -1,0 +1,11 @@
+{
+  "instructeur": {
+    "beschikbareUren": {},
+    "datums": [],
+    "blokuren": true,
+    "pauzeTussenLessen": 10,
+    "langePauzeDuur": 0,
+    "locatiesKoppelen": true
+  },
+  "leerlingen": []
+} 

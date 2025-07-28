@@ -21,7 +21,7 @@ const DAY_ORDER = [
   { day: 'sunday', name: 'Zondag', shortName: 'Zo', dutchName: 'zondag' },
 ]
 
-type Step = 'week-selection' | 'instructor' | 'students' | 'settings' | 'test-planning'
+type Step = 'week-selection' | 'instructor' | 'students' | 'settings' | 'test-planning' | 'generate-planning'
 
 interface StudentWithAvailability extends Student {
   availability_data: Record<string, string[]>
@@ -56,6 +56,8 @@ function AISchedulePageContent() {
   const [aiData, setAiData] = useState<AIWeekplanningData | null>(null)
   const [isRunningTestPlanning, setIsRunningTestPlanning] = useState(false)
   const [testPlanningResult, setTestPlanningResult] = useState<any>(null)
+  const [isGeneratingSampleInput, setIsGeneratingSampleInput] = useState(false)
+  const [sampleInputResult, setSampleInputResult] = useState<any>(null)
 
   // Instructor availability
   const [instructorAvailability, setInstructorAvailability] = useState<DayAvailability[]>([
@@ -741,6 +743,47 @@ function AISchedulePageContent() {
     }
   }
 
+  const generateSampleInput = async () => {
+    if (!user || !selectedWeek) return
+
+    setIsGeneratingSampleInput(true)
+    setSampleInputResult(null)
+
+    try {
+      const weekStart = formatDateToISO(selectedWeek)
+      
+      const response = await fetch('/api/ai-schedule/generate-sample-input', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          weekStart,
+          instructorId: user.id
+        })
+      })
+
+      const result = await response.json()
+
+      if (!response.ok) {
+        throw new Error(result.error || 'Failed to generate sample input')
+      }
+
+      setSampleInputResult(result.data)
+      toast.success('Sample input bestand gegenereerd')
+      
+      // Print the result to console for debugging
+      console.log('Generated sample_input.json:')
+      console.log(JSON.stringify(result.data, null, 2))
+      
+    } catch (error) {
+      console.error('Error generating sample input:', error)
+      toast.error('Fout bij genereren van sample input bestand')
+    } finally {
+      setIsGeneratingSampleInput(false)
+    }
+  }
+
   // Initialize
   useEffect(() => {
     if (!loading && !user) {
@@ -786,6 +829,8 @@ function AISchedulePageContent() {
       // Sla instellingen op voordat we naar de volgende stap gaan
       await saveAISettings()
       setCurrentStep('test-planning')
+    } else if (currentStep === 'test-planning') {
+      setCurrentStep('generate-planning')
     }
   }
 
@@ -798,12 +843,17 @@ function AISchedulePageContent() {
       setCurrentStep('students')
     } else if (currentStep === 'test-planning') {
       setCurrentStep('settings')
+    } else if (currentStep === 'generate-planning') {
+      setCurrentStep('test-planning')
     }
   }
 
   const canGoNext = () => {
     if (currentStep === 'week-selection') {
       return selectedWeek !== null
+    }
+    if (currentStep === 'generate-planning') {
+      return false // Last step, no next
     }
     return true
   }
@@ -834,7 +884,8 @@ function AISchedulePageContent() {
     { key: 'instructor', name: 'Instructeur', icon: Users },
     { key: 'students', name: 'Leerlingen', icon: Users },
     { key: 'settings', name: 'Instellingen', icon: Settings },
-    { key: 'test-planning', name: 'Test Planning', icon: Brain }
+    { key: 'test-planning', name: 'Test Planning', icon: Brain },
+    { key: 'generate-planning', name: 'Genereer Planning', icon: Brain }
   ]
 
   if (loading || !mounted) {
@@ -1317,8 +1368,111 @@ function AISchedulePageContent() {
           )}
 
           {/* Test Planning */}
-          
-              
+          {currentStep === 'test-planning' && (
+            <div className="space-y-6">
+              <div>
+                <h3 className="text-lg font-semibold mb-4">Test Planning</h3>
+                <p className="text-gray-600 mb-6">
+                  Test de AI planning functionaliteit voor de week van {getSelectedWeekInfo()?.start} tot {getSelectedWeekInfo()?.end}:
+                </p>
+              </div>
+
+              <div className="bg-white border border-gray-200 rounded-lg p-6">
+                <div className="flex items-center justify-between mb-4">
+                  <div>
+                    <h4 className="text-lg font-medium text-gray-900">Test Planning Uitvoeren</h4>
+                    <p className="text-sm text-gray-500 mt-1">
+                      Voer een test planning uit om de functionaliteit te controleren
+                    </p>
+                  </div>
+                  <button
+                    onClick={handleStartTestPlanning}
+                    disabled={isRunningTestPlanning}
+                    className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-colors ${
+                      isRunningTestPlanning
+                        ? 'bg-gray-200 text-gray-400 cursor-not-allowed'
+                        : 'bg-blue-600 text-white hover:bg-blue-700'
+                    }`}
+                  >
+                    {isRunningTestPlanning ? (
+                      <>
+                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                        Bezig...
+                      </>
+                    ) : (
+                      <>
+                        <Brain className="h-4 w-4" />
+                        Start Test
+                      </>
+                    )}
+                  </button>
+                </div>
+
+                {testPlanningResult && (
+                  <div className="mt-6 p-4 bg-gray-50 rounded-lg">
+                    <h5 className="font-medium text-gray-900 mb-2">Test Resultaat:</h5>
+                    <pre className="text-sm text-gray-600 overflow-auto">
+                      {JSON.stringify(testPlanningResult, null, 2)}
+                    </pre>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+
+          {/* Generate Planning */}
+          {currentStep === 'generate-planning' && (
+            <div className="space-y-6">
+              <div>
+                <h3 className="text-lg font-semibold mb-4">Genereer Weekplanning</h3>
+                <p className="text-gray-600 mb-6">
+                  Genereer een sample_input.json bestand voor de week van {getSelectedWeekInfo()?.start} tot {getSelectedWeekInfo()?.end}:
+                </p>
+              </div>
+
+              <div className="bg-white border border-gray-200 rounded-lg p-6">
+                <div className="flex items-center justify-between mb-4">
+                  <div>
+                    <h4 className="text-lg font-medium text-gray-900">Sample Input Bestand</h4>
+                    <p className="text-sm text-gray-500 mt-1">
+                      Genereer een sample_input.json bestand met alle benodigde data voor de AI planning
+                    </p>
+                  </div>
+                  <button
+                    onClick={generateSampleInput}
+                    disabled={isGeneratingSampleInput}
+                    className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-colors ${
+                      isGeneratingSampleInput
+                        ? 'bg-gray-200 text-gray-400 cursor-not-allowed'
+                        : 'bg-green-600 text-white hover:bg-green-700'
+                    }`}
+                  >
+                    {isGeneratingSampleInput ? (
+                      <>
+                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                        Bezig...
+                      </>
+                    ) : (
+                      <>
+                        <Brain className="h-4 w-4" />
+                        Genereer Weekplanning
+                      </>
+                    )}
+                  </button>
+                </div>
+
+                {sampleInputResult && (
+                  <div className="mt-6 p-4 bg-gray-50 rounded-lg">
+                    <h5 className="font-medium text-gray-900 mb-2">Gegenereerd Sample Input Bestand:</h5>
+                    <pre className="text-sm text-gray-600 overflow-auto max-h-96">
+                      {JSON.stringify(sampleInputResult, null, 2)}
+                    </pre>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+
           {/* Show results */}
 
           {/* Navigation Buttons */}
@@ -1381,7 +1535,7 @@ function AISchedulePageContent() {
                         : 'bg-gray-200 text-gray-400 cursor-not-allowed'
                     }`}
                   >
-                    {currentStep === 'test-planning' ? 'Genereer Planning' : 'Volgende'}
+                    {currentStep === 'test-planning' ? 'Volgende' : currentStep === 'generate-planning' ? 'Voltooid' : 'Volgende'}
                     <ArrowRight className="h-4 w-4" />
                   </button>
                 </div>
