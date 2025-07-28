@@ -192,21 +192,21 @@ export default function LessonsPage() {
   useEffect(() => {
     if (user && !loading) {
       fetchLessons()
-      fetchDefaultLessonDuration()
+      // fetchDefaultLessonDuration()
     }
   }, [user, loading, currentDate, viewMode])
 
   // Fetch default lesson duration for the instructor
-  const fetchDefaultLessonDuration = async () => {
-    if (!user) return
+  // const fetchDefaultLessonDuration = async () => {
+  //   if (!user) return
     
-    try {
-      const duration = await getDefaultLessonDuration(user.id)
-      setDefaultLessonDuration(duration)
-    } catch (error) {
-      console.error('Error fetching default lesson duration:', error)
-    }
-  }
+  //   try {
+  //     const duration = await getDefaultLessonDuration(user.id)
+  //     setDefaultLessonDuration(duration)
+  //   } catch (error) {
+  //     console.error('Error fetching default lesson duration:', error)
+  //   }
+  // }
 
 
 

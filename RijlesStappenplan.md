@@ -282,12 +282,13 @@ Meerdere beschikbaarheden per dag. Mogen niet overlappen
 ✅12: Student_availability tabel is bewerkt -> Proces 1 Stap 15
 
 Proces 3: AI-Weekplanning
-1: Instructeur is op dashboard
-2: Instructeur klikt op "AI-Weekplanning" in dashboard
-3: Instructeur gaat naar AI-schedule pagina
+✅1: Instructeur is op dashboard
+✅2: Instructeur klikt op "AI-Weekplanning" in dashboard
+✅3: Instructeur gaat naar AI-schedule pagina
 4: AI schedule pagina scherm 1: Beschikbaarheid instructeur
 Als er al een entry is in instructor_availability voor de geselecteerde week, wordt deze gebruikt
 Als er nog geen entry is, een entry maken in instructor_availability met als waarde: standard_availability van instructor
+Hiervoor moet standard_availability ook werken (er zijn nu errors)
 5: AI schedule pagina scherm 2 t/m [Aantal Leerlingen]: Beschikbaarheid leerlingen
 Als er al een entry is in student_availability voor een student met de geselecteerde week, wordt deze gebruikt
 Als er nog geen entry is in student_availability voor een student met de geselecteerde week, een entry maken met standard_availability van instructor
