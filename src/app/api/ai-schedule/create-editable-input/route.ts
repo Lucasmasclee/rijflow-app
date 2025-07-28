@@ -36,6 +36,26 @@ export async function POST(request: NextRequest) {
 
     const instructorId = user.id
 
+    console.log('=== DEBUGGING AUTH/INSTRUCTOR ID ===')
+    console.log('Auth user ID:', user.id)
+    console.log('Auth user email:', user.email)
+    console.log('Instructor ID being used:', instructorId)
+    console.log('Week start:', weekStart)
+    console.log('=====================================')
+
+    // Test database authentication
+    const { data: authTest, error: authTestError } = await supabase
+      .from('instructor_availability')
+      .select('count(*)')
+      .limit(1)
+    
+    console.log('=== DATABASE AUTH TEST ===')
+    console.log('Can access instructor_availability table:', !authTestError)
+    if (authTestError) {
+      console.log('Database auth error:', authTestError)
+    }
+    console.log('==========================')
+
     console.log('Loading editable input for instructor:', instructorId, 'week:', weekStart)
 
     // First, check if instructor_availability exists for this week
@@ -94,6 +114,14 @@ export async function POST(request: NextRequest) {
 
 
       // Create new instructor_availability record
+      console.log('=== CREATING INSTRUCTOR_AVAILABILITY ===')
+      console.log('Attempting to create record with:')
+      console.log('- instructor_id:', instructorId)
+      console.log('- week_start:', weekStart)
+      console.log('- availability_data:', JSON.stringify(availabilityData))
+      console.log('- settings:', JSON.stringify(settings))
+      console.log('==========================================')
+
       const { error } = await supabase
         .from('instructor_availability')
         .upsert({
@@ -124,7 +152,13 @@ export async function POST(request: NextRequest) {
 
 
       if (error) {
-        console.log(instructorId)
+        console.log('=== ERROR CREATING INSTRUCTOR_AVAILABILITY ===')
+        console.log('Instructor ID that caused error:', instructorId)
+        console.log('Full error object:', error)
+        console.log('Error message:', error.message)
+        console.log('Error details:', error.details)
+        console.log('Error hint:', error.hint)
+        console.log('===============================================')
         console.error('Error creating instructor_availability:', error)
         return NextResponse.json(
           { error: 'Failed to create instructor availability: ' + error.message },
