@@ -182,43 +182,7 @@ function AISchedulePageContent() {
     updateTimeInputs(dayIndex, field, validatedValue)
   }
 
-  // Student availability handlers
-  const handleStudentAvailabilityChange = (studentIndex: number, dayIndex: number, available: boolean) => {
-    const newStudents = [...students]
-    const student = newStudents[studentIndex]
-    
-    if (!student.availability_data) {
-      student.availability_data = {}
-    }
-    
-    const dayInfo = DAY_ORDER[dayIndex]
-    if (available) {
-      student.availability_data[dayInfo.dutchName] = ['09:00', '17:00']
-    } else {
-      delete student.availability_data[dayInfo.dutchName]
-    }
-    
-    setStudents(newStudents)
-  }
-
-  const handleStudentTimeChange = (studentIndex: number, dayIndex: number, field: 'start' | 'end', value: string) => {
-    const newStudents = [...students]
-    const student = newStudents[studentIndex]
-    const dayInfo = DAY_ORDER[dayIndex]
-    
-    if (!student.availability_data) {
-      student.availability_data = {}
-    }
-    
-    if (!student.availability_data[dayInfo.dutchName]) {
-      student.availability_data[dayInfo.dutchName] = ['09:00', '17:00']
-    }
-    
-    const timeIndex = field === 'start' ? 0 : 1
-    student.availability_data[dayInfo.dutchName][timeIndex] = value
-    
-    setStudents(newStudents)
-  }
+  // Student availability handlers are now handled inline in the JSX
 
   // Data loading
   const loadWeekData = async (weekStart: Date) => {
@@ -371,6 +335,24 @@ function AISchedulePageContent() {
           id: student.id,
           availability_data: student.availability_data || {}
         }))
+      }
+
+      // Also update student settings in the database
+      for (const student of students) {
+        const { error: updateError } = await supabase
+          .from('students')
+          .update({
+            default_lessons_per_week: student.default_lessons_per_week || 2,
+            default_lesson_duration_minutes: student.default_lesson_duration_minutes || 60
+          })
+          .eq('id', student.id)
+
+        if (updateError) {
+          console.error('Error updating student settings for student:', student.id, updateError)
+          // Continue with other students even if one fails
+        } else {
+          console.log('Successfully updated settings for student:', student.id)
+        }
       }
 
       console.log('Request body details:')
@@ -868,7 +850,165 @@ function AISchedulePageContent() {
           )}
 
           {/* Students */}
-          
+          {currentStep === 'students' && (
+            <div className="space-y-6">
+              <div>
+                <h3 className="text-lg font-semibold mb-4">Leerling Beschikbaarheid</h3>
+                <p className="text-gray-600 mb-6">
+                  Stel de beschikbaarheid en instellingen in voor elke leerling voor de week van {getSelectedWeekInfo()?.start} tot {getSelectedWeekInfo()?.end}:
+                </p>
+              </div>
+
+              {loadingData ? (
+                <div className="flex items-center justify-center py-8">
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+                </div>
+              ) : (
+                <div className="space-y-6">
+                  {students.map((student, studentIndex) => (
+                    <div key={student.id} className="bg-white border border-gray-200 rounded-lg p-6">
+                      {/* Student Header */}
+                      <div className="mb-4">
+                        <h4 className="text-lg font-semibold text-gray-900 mb-2">
+                          {student.last_name ? `${student.first_name} ${student.last_name}` : student.first_name}
+                        </h4>
+                        
+                        {/* Lessons per week and minutes per lesson */}
+                        <div className="flex items-center gap-4 mb-4">
+                          <div className="flex items-center gap-2">
+                            <input
+                              type="number"
+                              min="1"
+                              max="7"
+                              value={student.default_lessons_per_week || 2}
+                              onChange={(e) => {
+                                const newStudents = [...students]
+                                newStudents[studentIndex] = {
+                                  ...newStudents[studentIndex],
+                                  default_lessons_per_week: parseInt(e.target.value) || 2
+                                }
+                                setStudents(newStudents)
+                              }}
+                              className="w-16 h-10 text-center border border-gray-300 rounded focus:ring-blue-500 focus:border-blue-500"
+                            />
+                            <span className="text-sm text-gray-600">Lessen per week van</span>
+                            <input
+                              type="number"
+                              min="30"
+                              max="120"
+                              step="15"
+                              value={student.default_lesson_duration_minutes || 60}
+                              onChange={(e) => {
+                                const newStudents = [...students]
+                                newStudents[studentIndex] = {
+                                  ...newStudents[studentIndex],
+                                  default_lesson_duration_minutes: parseInt(e.target.value) || 60
+                                }
+                                setStudents(newStudents)
+                              }}
+                              className="w-20 h-10 text-center border border-gray-300 rounded focus:ring-blue-500 focus:border-blue-500"
+                            />
+                            <span className="text-sm text-gray-600">minuten per les</span>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Student Availability */}
+                      <div className="space-y-3">
+                        {DAY_ORDER.map((dayInfo, dayIndex) => {
+                          const dayKey = dayInfo.dutchName
+                          const dayAvailability = student.availability_data?.[dayKey] || []
+                          const isAvailable = dayAvailability.length >= 2
+                          const startTime = isAvailable ? dayAvailability[0] : '09:00'
+                          const endTime = isAvailable ? dayAvailability[1] : '17:00'
+
+                          return (
+                            <div key={dayInfo.day} className="border border-gray-200 rounded-lg p-3">
+                              <div className="flex items-center justify-between mb-3">
+                                <div className="flex items-center gap-3">
+                                  <input
+                                    type="checkbox"
+                                    id={`student-${student.id}-${dayInfo.day}`}
+                                    checked={isAvailable}
+                                    onChange={(e) => {
+                                      const newStudents = [...students]
+                                      const currentAvailability = newStudents[studentIndex].availability_data || {}
+                                      
+                                      if (e.target.checked) {
+                                        currentAvailability[dayKey] = [startTime, endTime]
+                                      } else {
+                                        delete currentAvailability[dayKey]
+                                      }
+                                      
+                                      newStudents[studentIndex] = {
+                                        ...newStudents[studentIndex],
+                                        availability_data: currentAvailability
+                                      }
+                                      setStudents(newStudents)
+                                    }}
+                                    className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                                  />
+                                  <label htmlFor={`student-${student.id}-${dayInfo.day}`} className="font-medium text-gray-900">
+                                    {dayInfo.name}
+                                  </label>
+                                </div>
+                              </div>
+
+                              {isAvailable && (
+                                <div className="grid grid-cols-2 gap-4">
+                                  <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                                      Starttijd
+                                    </label>
+                                    <input
+                                      type="time"
+                                      value={startTime}
+                                      onChange={(e) => {
+                                        const newStudents = [...students]
+                                        const currentAvailability = newStudents[studentIndex].availability_data || {}
+                                        currentAvailability[dayKey] = [e.target.value, endTime]
+                                        newStudents[studentIndex] = {
+                                          ...newStudents[studentIndex],
+                                          availability_data: currentAvailability
+                                        }
+                                        setStudents(newStudents)
+                                      }}
+                                      className="w-full h-10 border border-gray-300 rounded focus:ring-blue-500 focus:border-blue-500"
+                                    />
+                                  </div>
+
+                                  <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                                      Eindtijd
+                                    </label>
+                                    <input
+                                      type="time"
+                                      value={endTime}
+                                      onChange={(e) => {
+                                        const newStudents = [...students]
+                                        const currentAvailability = newStudents[studentIndex].availability_data || {}
+                                        currentAvailability[dayKey] = [startTime, e.target.value]
+                                        newStudents[studentIndex] = {
+                                          ...newStudents[studentIndex],
+                                          availability_data: currentAvailability
+                                        }
+                                        setStudents(newStudents)
+                                      }}
+                                      className="w-full h-10 border border-gray-300 rounded focus:ring-blue-500 focus:border-blue-500"
+                                    />
+                                  </div>
+                                </div>
+                              )}
+                            </div>
+                          )
+                        })}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
 
           {/* Settings */}
 
