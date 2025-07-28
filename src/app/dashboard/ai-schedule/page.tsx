@@ -777,276 +777,137 @@ function AISchedulePageContent() {
               <div>
                 <h3 className="text-lg font-semibold mb-4">Instructeur Beschikbaarheid</h3>
                 <p className="text-gray-600 mb-6">
-                  Stel je beschikbare tijden in voor de geselecteerde week
+                  Stel je beschikbaarheid in voor de week van {getSelectedWeekInfo()?.start} tot {getSelectedWeekInfo()?.end}:
                 </p>
-                {getSelectedWeekInfo() && (
-                  <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
-                    <p className="text-sm text-blue-800">
-                      <strong>Geselecteerde week:</strong> {getSelectedWeekInfo()?.start} - {getSelectedWeekInfo()?.end}
-                    </p>
-                  </div>
-                )}
               </div>
-              
-              <div className="card">
+
+              {loadingData ? (
+                <div className="flex items-center justify-center py-8">
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+                </div>
+              ) : (
                 <div className="space-y-4">
                   {instructorAvailability.map((day, index) => (
-                    <div key={day.day} className="flex items-center gap-4 p-4 border border-gray-200 rounded-lg">
-                      <div className="flex items-center gap-3">
-                        <input
-                          type="checkbox"
-                          checked={day.available}
-                          onChange={(e) => handleAvailabilityChange(index, e.target.checked)}
-                          className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
-                        />
-                        <span className="font-medium min-w-[80px]">{DAY_ORDER[index].name}</span>
+                    <div key={day.day} className="bg-white border border-gray-200 rounded-lg p-4">
+                      <div className="flex items-center justify-between mb-3">
+                        <div className="flex items-center gap-3">
+                          <input
+                            type="checkbox"
+                            id={`available-${day.day}`}
+                            checked={day.available}
+                            onChange={(e) => handleAvailabilityChange(index, e.target.checked)}
+                            className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                          />
+                          <label htmlFor={`available-${day.day}`} className="font-medium text-gray-900">
+                            {DAY_ORDER[index].name}
+                          </label>
+                        </div>
                       </div>
-                      
+
                       {day.available && (
-                        <TimeInput
-                          startTime={day.startTime}
-                          endTime={day.endTime}
-                          onTimeChange={(startTime, endTime) => {
-                            const [startHours, startMinutes] = startTime.split(':')
-                            const [endHours, endMinutes] = endTime.split(':')
-                            updateTimeInputs(index, 'startHours', startHours)
-                            updateTimeInputs(index, 'startMinutes', startMinutes)
-                            updateTimeInputs(index, 'endHours', endHours)
-                            updateTimeInputs(index, 'endMinutes', endMinutes)
-                          }}
-                        />
+                        <div className="grid grid-cols-2 gap-4">
+                          <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">
+                              Starttijd
+                            </label>
+                            <div className="flex gap-2">
+                              <input
+                                type="text"
+                                value={day.startHours}
+                                onChange={(e) => handleTimeChange(index, 'startHours', e.target.value)}
+                                onBlur={(e) => handleTimeBlur(index, 'startHours', e.target.value)}
+                                className="w-12 h-10 text-center border border-gray-300 rounded focus:ring-blue-500 focus:border-blue-500"
+                                placeholder="09"
+                                maxLength={2}
+                              />
+                              <span className="flex items-center text-gray-500">:</span>
+                              <input
+                                type="text"
+                                value={day.startMinutes}
+                                onChange={(e) => handleTimeChange(index, 'startMinutes', e.target.value)}
+                                onBlur={(e) => handleTimeBlur(index, 'startMinutes', e.target.value)}
+                                className="w-12 h-10 text-center border border-gray-300 rounded focus:ring-blue-500 focus:border-blue-500"
+                                placeholder="00"
+                                maxLength={2}
+                              />
+                            </div>
+                          </div>
+
+                          <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">
+                              Eindtijd
+                            </label>
+                            <div className="flex gap-2">
+                              <input
+                                type="text"
+                                value={day.endHours}
+                                onChange={(e) => handleTimeChange(index, 'endHours', e.target.value)}
+                                onBlur={(e) => handleTimeBlur(index, 'endHours', e.target.value)}
+                                className="w-12 h-10 text-center border border-gray-300 rounded focus:ring-blue-500 focus:border-blue-500"
+                                placeholder="17"
+                                maxLength={2}
+                              />
+                              <span className="flex items-center text-gray-500">:</span>
+                              <input
+                                type="text"
+                                value={day.endMinutes}
+                                onChange={(e) => handleTimeChange(index, 'endMinutes', e.target.value)}
+                                onBlur={(e) => handleTimeBlur(index, 'endMinutes', e.target.value)}
+                                className="w-12 h-10 text-center border border-gray-300 rounded focus:ring-blue-500 focus:border-blue-500"
+                                placeholder="00"
+                                maxLength={2}
+                              />
+                            </div>
+                          </div>
+                        </div>
                       )}
                     </div>
                   ))}
                 </div>
-              </div>
+              )}
             </div>
           )}
 
           {/* Students */}
-          {currentStep === 'students' && (
-            <div className="space-y-6">
-              <div>
-                <h3 className="text-lg font-semibold mb-4">Leerling Beschikbaarheid</h3>
-                <p className="text-gray-600 mb-6">
-                  Stel de beschikbaarheid in voor elke leerling
-                </p>
-              </div>
-              
-              {loadingData ? (
-                <div className="flex items-center justify-center py-12">
-                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-                </div>
-              ) : (
-                <div className="space-y-6">
-                  {students.map((student, studentIndex) => (
-                    <div key={student.id} className="card">
-                      <h4 className="font-semibold mb-4">
-                        {student.first_name} {student.last_name}
-                      </h4>
-                      
-                      <div className="space-y-4">
-                        {DAY_ORDER.map((dayInfo, dayIndex) => {
-                          const dayData = student.availability_data?.[dayInfo.dutchName]
-                          const isAvailable = !!dayData
-                          
-                          return (
-                            <div key={dayInfo.day} className="flex items-center gap-4 p-3 border border-gray-200 rounded-lg">
-                              <div className="flex items-center gap-3">
-                                <input
-                                  type="checkbox"
-                                  checked={isAvailable}
-                                  onChange={(e) => handleStudentAvailabilityChange(studentIndex, dayIndex, e.target.checked)}
-                                  className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
-                                />
-                                <span className="font-medium min-w-[80px]">{dayInfo.name}</span>
-                              </div>
-                              
-                              {isAvailable && (
-                                <div className="flex items-center gap-2">
-                                  <div className="flex items-center gap-1">
-                                    <input
-                                      type="text"
-                                      value={dayData?.[0] || '09:00'}
-                                      onChange={(e) => handleStudentTimeChange(studentIndex, dayIndex, 'start', e.target.value)}
-                                      className="w-16 h-8 text-center border border-gray-300 rounded text-sm"
-                                      placeholder="09:00"
-                                    />
-                                  </div>
-                                  <span>-</span>
-                                  <div className="flex items-center gap-1">
-                                    <input
-                                      type="text"
-                                      value={dayData?.[1] || '17:00'}
-                                      onChange={(e) => handleStudentTimeChange(studentIndex, dayIndex, 'end', e.target.value)}
-                                      className="w-16 h-8 text-center border border-gray-300 rounded text-sm"
-                                      placeholder="17:00"
-                                    />
-                                  </div>
-                                </div>
-                              )}
-                            </div>
-                          )
-                        })}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
-          )}
+          
 
           {/* Settings */}
-          {currentStep === 'settings' && (
-            <div className="space-y-6">
-              <div>
-                <h3 className="text-lg font-semibold mb-4">AI Instellingen</h3>
-                <p className="text-gray-600 mb-6">
-                  Configureer de AI instellingen voor de weekplanning
-                </p>
-              </div>
-              
-              <div className="card space-y-4">
-                <div className="flex items-center justify-between">
-                  <label className="font-medium">Maximale lessen per dag</label>
-                  <input
-                    type="number"
-                    value={settings.maxLessenPerDag}
-                    onChange={(e) => setSettings({...settings, maxLessenPerDag: parseInt(e.target.value) || 6})}
-                    className="w-20 h-8 text-center border border-gray-300 rounded"
-                    min="1"
-                    max="10"
-                  />
-                </div>
-                
-                <div className="flex items-center justify-between">
-                  <label className="font-medium">Pauze tussen lessen (minuten)</label>
-                  <input
-                    type="number"
-                    value={settings.pauzeTussenLessen}
-                    onChange={(e) => setSettings({...settings, pauzeTussenLessen: parseInt(e.target.value) || 10})}
-                    className="w-20 h-8 text-center border border-gray-300 rounded"
-                    min="0"
-                    max="60"
-                  />
-                </div>
-                
-                <div className="flex items-center justify-between">
-                  <label className="font-medium">Lange pauze duur (minuten)</label>
-                  <input
-                    type="number"
-                    value={settings.langePauzeDuur}
-                    onChange={(e) => setSettings({...settings, langePauzeDuur: parseInt(e.target.value) || 0})}
-                    className="w-20 h-8 text-center border border-gray-300 rounded"
-                    min="0"
-                    max="120"
-                  />
-                </div>
-                
-                <div className="flex items-center justify-between">
-                  <label className="font-medium">Blokuren</label>
-                  <input
-                    type="checkbox"
-                    checked={settings.blokuren}
-                    onChange={(e) => setSettings({...settings, blokuren: e.target.checked})}
-                    className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
-                  />
-                </div>
-                
-                <div className="flex items-center justify-between">
-                  <label className="font-medium">Locaties koppelen</label>
-                  <input
-                    type="checkbox"
-                    checked={settings.locatiesKoppelen}
-                    onChange={(e) => setSettings({...settings, locatiesKoppelen: e.target.checked})}
-                    className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
-                  />
-                </div>
-              </div>
-            </div>
-          )}
 
           {/* Test Planning */}
-          {currentStep === 'test-planning' && (
-            <div className="space-y-6">
-              <div>
-                <h3 className="text-lg font-semibold mb-4">Test Planning</h3>
-                <p className="text-gray-600 mb-6">
-                  Start de test planning om de gegenereerde weekplanning te bekijken
-                </p>
-              </div>
+          
               
-              <div className="card">
-                <div className="text-center py-8">
-                  <Brain className="h-12 w-12 text-blue-600 mx-auto mb-4" />
-                  <h4 className="text-lg font-medium text-gray-900 mb-2">
-                    Start Test Planning
-                  </h4>
-                  <p className="text-gray-600 mb-6">
-                    De AI zal een optimaal rooster maken op basis van je instellingen en beschikbaarheid.
-                  </p>
-                  <button
-                    onClick={handleStartTestPlanning}
-                    disabled={isRunningTestPlanning}
-                    className="btn btn-primary flex items-center gap-2 mx-auto disabled:opacity-50"
-                  >
-                    {isRunningTestPlanning ? (
-                      <>
-                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                        Planning genereren...
-                      </>
-                    ) : (
-                      <>
-                        <Brain className="h-4 w-4" />
-                        Start Planning
-                      </>
-                    )}
-                  </button>
-                </div>
-              </div>
-              
-              {/* Show results */}
-              {testPlanningResult && (
-                <div className="card">
-                  <h4 className="font-semibold mb-4">Resultaat</h4>
-                  <pre className="bg-gray-100 p-4 rounded text-sm overflow-auto">
-                    {JSON.stringify(testPlanningResult, null, 2)}
-                  </pre>
-                </div>
-              )}
-            </div>
-          )}
+          {/* Show results */}
 
-          {/* Navigation */}
-          <div className="flex items-center justify-between mt-8">
-            <button
-              onClick={handlePrevious}
-              disabled={currentStep === 'week-selection'}
-              className="btn btn-secondary disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
-            >
-              <ArrowLeft className="h-4 w-4" />
-              Vorige
-            </button>
-            
-            <div className="flex items-center gap-2">
-              {currentStep !== 'week-selection' && (
+          {/* Navigation Buttons */}
+          <div className="bg-white border-t border-gray-200">
+            <div className="container-mobile py-4">
+              <div className="flex items-center justify-between">
                 <button
-                  onClick={saveAvailabilityData}
-                  className="btn btn-secondary flex items-center gap-2"
+                  onClick={handlePrevious}
+                  disabled={currentStep === 'week-selection'}
+                  className={`flex items-center gap-2 px-4 py-2 rounded-lg border transition-colors ${
+                    currentStep === 'week-selection'
+                      ? 'border-gray-200 text-gray-400 cursor-not-allowed'
+                      : 'border-gray-300 text-gray-700 hover:bg-gray-50'
+                  }`}
                 >
-                  <Settings className="h-4 w-4" />
-                  Opslaan
+                  <ArrowLeft className="h-4 w-4" />
+                  Vorige
                 </button>
-              )}
-              
-              <button
-                onClick={handleNext}
-                disabled={!canGoNext() || currentStep === 'test-planning'}
-                className="btn btn-primary disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
-              >
-                Volgende
-                <ArrowRight className="h-4 w-4" />
-              </button>
+
+                <button
+                  onClick={handleNext}
+                  disabled={!canGoNext()}
+                  className={`flex items-center gap-2 px-6 py-2 rounded-lg transition-colors ${
+                    canGoNext()
+                      ? 'bg-blue-600 text-white hover:bg-blue-700'
+                      : 'bg-gray-200 text-gray-400 cursor-not-allowed'
+                  }`}
+                >
+                  {currentStep === 'test-planning' ? 'Genereer Planning' : 'Volgende'}
+                  <ArrowRight className="h-4 w-4" />
+                </button>
+              </div>
             </div>
           </div>
         </div>

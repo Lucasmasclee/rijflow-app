@@ -42,11 +42,6 @@ export async function POST(request: NextRequest) {
       .select('id, first_name, last_name')
       .eq('instructor_id', instructorId)
 
-    console.log('Found students for instructor:', students?.map(s => ({
-      id: s.id,
-      name: `${s.first_name} ${s.last_name}`
-    })))
-
     if (studentsError) {
       console.error('Error fetching students:', studentsError)
       return NextResponse.json(
@@ -57,109 +52,56 @@ export async function POST(request: NextRequest) {
 
     if (!students || students.length === 0) {
       return NextResponse.json({
-        message: 'No students found for this instructor',
-        students: [],
-        studentAvailability: [],
-        missingStudents: []
+        debugInfo: {
+          totalStudents: 0,
+          missingStudents: 0,
+          missingStudentsDetails: [],
+          message: 'No students found for this instructor'
+        }
       })
     }
 
-    // Get existing student availability records
-    console.log('Searching for student availability with week_start:', weekStart, 'type:', typeof weekStart)
-    console.log('Student IDs to search for:', students.map(s => s.id))
-    
-    // First, let's check if there are ANY records for this week (regardless of student_id)
-    const { data: anyRecordsForWeek, error: anyRecordsError } = await supabase
+    // Get existing student availability records for this week
+    const { data: existingAvailability, error: existingError } = await supabase
       .from('student_availability')
-      .select('id, student_id, week_start, availability_data')
-      .eq('week_start', weekStart)
-    
-    console.log('ANY records for week', weekStart, ':', anyRecordsForWeek?.length || 0)
-    if (anyRecordsForWeek && anyRecordsForWeek.length > 0) {
-      console.log('Available student_ids in database:', anyRecordsForWeek.map(r => r.student_id))
-    }
-    
-    const { data: studentAvailability, error: availabilityError } = await supabase
-      .from('student_availability')
-      .select('student_id, availability_data, week_start')
+      .select('student_id')
       .in('student_id', students.map(s => s.id))
       .eq('week_start', weekStart)
 
-    if (availabilityError) {
-      console.error('Error fetching student availability:', availabilityError)
+    if (existingError) {
+      console.error('Error fetching existing student availability:', existingError)
       return NextResponse.json(
-        { error: 'Failed to fetch student availability: ' + availabilityError.message },
+        { error: 'Failed to fetch existing student availability: ' + existingError.message },
         { status: 500 }
       )
     }
 
-    // Find missing students
-    const existingStudentIds = studentAvailability?.map(sa => sa.student_id) || []
-    const missingStudents = students.filter(s => !existingStudentIds.includes(s.id))
-
-    // Get ALL student availability records for this instructor (for debugging)
-    const { data: allStudentAvailability, error: allAvailabilityError } = await supabase
-      .from('student_availability')
-      .select('student_id, week_start, availability_data')
-      .in('student_id', students.map(s => s.id))
-      .order('week_start', { ascending: true })
-
-    if (allAvailabilityError) {
-      console.error('Error fetching all student availability:', allAvailabilityError)
-    }
-
-    // Also check if there are ANY student_availability records for this week (regardless of student_id)
-    const { data: anyAvailabilityForWeek, error: anyAvailabilityError } = await supabase
-      .from('student_availability')
-      .select('student_id, week_start, availability_data')
-      .eq('week_start', weekStart)
-
-    if (anyAvailabilityError) {
-      console.error('Error fetching any availability for week:', anyAvailabilityError)
-    } else {
-      console.log('ANY availability records for week', weekStart, ':', anyAvailabilityForWeek?.length || 0)
-      console.log('Records:', anyAvailabilityForWeek)
-    }
+    // Find students that don't have availability records for this week
+    const existingStudentIds = existingAvailability?.map(sa => sa.student_id) || []
+    const missingStudents = students.filter(student => !existingStudentIds.includes(student.id))
 
     const debugInfo = {
-      weekStart,
-      instructorId,
       totalStudents: students.length,
-      studentsWithAvailability: existingStudentIds.length,
       missingStudents: missingStudents.length,
-      students: students.map(s => ({
-        id: s.id,
-        name: `${s.first_name} ${s.last_name}`,
-        hasAvailability: existingStudentIds.includes(s.id)
-      })),
-      studentAvailability: studentAvailability || [],
       missingStudentsDetails: missingStudents.map(s => ({
         id: s.id,
-        name: `${s.first_name} ${s.last_name}`
+        name: `${s.first_name} ${s.last_name || ''}`.trim()
       })),
-      // Add more debug information
-      searchQuery: {
-        weekStart,
-        weekStartType: typeof weekStart,
-        studentIds: students.map(s => s.id)
-      },
-      allStudentAvailability: studentAvailability || [],
-      allStudentAvailabilityRecords: allStudentAvailability || [],
-      anyAvailabilityForWeek: anyAvailabilityForWeek || [],
-      anyRecordsForWeek: anyRecordsForWeek || []
+      existingRecords: existingStudentIds.length,
+      weekStart: weekStart,
+      instructorId: instructorId
     }
 
     console.log('Debug info:', debugInfo)
 
     return NextResponse.json({
-      success: true,
-      debugInfo
+      debugInfo: debugInfo
     })
 
   } catch (error) {
     console.error('Error in debug-student-availability:', error)
     return NextResponse.json(
-      { error: 'Internal server error' },
+      { error: 'Internal server error: ' + (error instanceof Error ? error.message : 'Unknown error') },
       { status: 500 }
     )
   }
