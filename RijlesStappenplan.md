@@ -293,13 +293,13 @@ Proces 3: AI-Weekplanning
 ✅Als er al een entry is in student_availability voor een student met de geselecteerde week, wordt deze gebruikt
 ✅Als er nog geen entry is in student_availability voor een student met de geselecteerde week, een entry maken met standard_availability van instructor
 ✅Lessen per week en minuten per les staan standaard goed.
-6: AI schedule pagina [Aantal Leerlingen + 1]: AI schedule instellingen
-Alle volgende waarden uit instructor-ai-settings halen. 
-Blokuren aan/uit, Standaard = aan
-Pauze tussen lessen (Pauze tussen elke les behalve blokuur van dezelfde leerling), Standaard = 5
-Overige pauzes (Na elke maximaal 3 uur les), Standaard = 20
-Locaties koppelen, Standaard = Uit
-Voor later: Beginnen & eindigen in eigen woonplaats, Standaard = Uit
+✅6: AI schedule pagina [Aantal Leerlingen + 1]: AI schedule instellingen
+✅Alle volgende waarden uit instructor-ai-settings halen. 
+✅Blokuren aan/uit, Standaard = aan
+✅Pauze tussen lessen (Pauze tussen elke les behalve blokuur van dezelfde leerling), Standaard = 5
+✅Overige pauzes (Na elke maximaal 3 uur les), Standaard = 20
+<!-- Voor later: Locaties koppelen, Standaard = Uit -->
+<!-- Voor later: Beginnen & eindigen in eigen woonplaats, Standaard = Uit -->
 7: Na het bewerken moeten de volgende ingevulde gegevens correct zijn in sample_input.json
 Beschikbaarheid Instructeur
 Beschikbaarheid leerlingen
