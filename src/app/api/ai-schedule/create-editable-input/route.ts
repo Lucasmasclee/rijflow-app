@@ -36,6 +36,14 @@ export async function POST(request: NextRequest) {
 
     const instructorId = user.id
 
+    // Collect debugging info
+    const debugInfo: any = {
+      authUserId: user.id,
+      authUserEmail: user.email,
+      instructorId: instructorId,
+      weekStart: weekStart
+    }
+
     console.log('=== DEBUGGING AUTH/INSTRUCTOR ID ===')
     console.log('Auth user ID:', user.id)
     console.log('Auth user email:', user.email)
@@ -46,11 +54,15 @@ export async function POST(request: NextRequest) {
     // Test database authentication
     const { data: authTest, error: authTestError } = await supabase
       .from('instructor_availability')
-      .select('count(*)')
+      .select('id')
       .limit(1)
     
+    const canAccessTable = !authTestError
+    debugInfo.canAccessTable = canAccessTable
+    debugInfo.databaseAuthError = authTestError
+    
     console.log('=== DATABASE AUTH TEST ===')
-    console.log('Can access instructor_availability table:', !authTestError)
+    console.log('Can access instructor_availability table:', canAccessTable)
     if (authTestError) {
       console.log('Database auth error:', authTestError)
     }
@@ -160,8 +172,19 @@ export async function POST(request: NextRequest) {
         console.log('Error hint:', error.hint)
         console.log('===============================================')
         console.error('Error creating instructor_availability:', error)
+        
+        // Add debugging info to error response
+        debugInfo.error = {
+          message: error.message,
+          details: error.details,
+          hint: error.hint
+        }
+        
         return NextResponse.json(
-          { error: 'Failed to create instructor availability: ' + error.message },
+          { 
+            error: 'Failed to create instructor availability: ' + error.message,
+            debug: debugInfo
+          },
           { status: 500 }
         )
       }
