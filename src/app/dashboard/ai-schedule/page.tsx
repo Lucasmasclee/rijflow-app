@@ -743,7 +743,6 @@ function AISchedulePageContent() {
                       key={index}
                       onClick={() => {
                         setSelectedWeek(week)
-                        loadWeekData(week)
                       }}
                       className={`p-4 border rounded-lg text-left transition-colors ${
                         selectedWeek?.getTime() === week.getTime()

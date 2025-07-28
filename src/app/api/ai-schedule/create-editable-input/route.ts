@@ -96,6 +96,7 @@ export async function POST(request: NextRequest) {
         })
 
       if (createError) {
+        console.log(instructorId)
         console.error('Error creating instructor_availability:', createError)
         return NextResponse.json(
           { error: 'Failed to create instructor availability: ' + createError.message },
