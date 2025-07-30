@@ -648,7 +648,7 @@ function create_output_json(best_result: any, best_week_index: number, best_star
     const date_to_day: any = {};
     for (let i = 0; i < standard_week_order.length; i++) {
         // We'll use the dates from the best_result lessons
-        const unique_dates = [...new Set(best_result.lessons.map((l: any) => l.date))];
+        const unique_dates = [...new Set(best_result.lessons.map((l: any) => l.date))] as string[];
         if (i < unique_dates.length) {
             date_to_day[unique_dates[i]] = standard_week_order[i];
         }
