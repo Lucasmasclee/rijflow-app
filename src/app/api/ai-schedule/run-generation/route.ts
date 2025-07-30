@@ -596,11 +596,11 @@ function generate_week_planning(sampleInput: any, random_week_index: number, sta
     }
     
     for (const [day, day_lessons] of Object.entries(lessons_by_day)) {
-        day_lessons.sort((a: any, b: any) => a.startTime.localeCompare(b.startTime));
+        (day_lessons as any[]).sort((a: any, b: any) => a.startTime.localeCompare(b.startTime));
         
-        for (let i = 0; i < day_lessons.length - 1; i++) {
-            const current_lesson_end = parse_time(day_lessons[i].endTime);
-            const next_lesson_start = parse_time(day_lessons[i + 1].startTime);
+        for (let i = 0; i < (day_lessons as any[]).length - 1; i++) {
+            const current_lesson_end = parse_time((day_lessons as any[])[i].endTime);
+            const next_lesson_start = parse_time((day_lessons as any[])[i + 1].startTime);
             const gap_minutes = next_lesson_start - current_lesson_end;
             total_time_between_lessons += gap_minutes;
         }
@@ -685,10 +685,10 @@ function create_output_json(best_result: any, best_week_index: number, best_star
     }
     
     for (const [day, day_lessons] of Object.entries(lessons_by_day)) {
-        day_lessons.sort((a: any, b: any) => a.startTime.localeCompare(b.startTime));
-        for (let i = 0; i < day_lessons.length - 1; i++) {
-            const current_lesson_end = parse_time(day_lessons[i].endTime);
-            const next_lesson_start = parse_time(day_lessons[i + 1].startTime);
+        (day_lessons as any[]).sort((a: any, b: any) => a.startTime.localeCompare(b.startTime));
+        for (let i = 0; i < (day_lessons as any[]).length - 1; i++) {
+            const current_lesson_end = parse_time((day_lessons as any[])[i].endTime);
+            const next_lesson_start = parse_time((day_lessons as any[])[i + 1].startTime);
             const gap_minutes = next_lesson_start - current_lesson_end;
             total_time_between_lessons += gap_minutes;
         }

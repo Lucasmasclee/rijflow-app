@@ -301,8 +301,8 @@ Proces 3: AI-Weekplanning
 <!-- Voor later: Locaties koppelen, Standaard = Uit -->
 <!-- Voor later: Beginnen & eindigen in eigen woonplaats, Standaard = Uit -->
 7: Na het bewerken moeten de volgende ingevulde gegevens correct zijn in sample_input.json
-Beschikbaarheid Instructeur
-Beschikbaarheid leerlingen
+✅Beschikbaarheid Instructeur
+✅Beschikbaarheid leerlingen
 Blokuren aan/uit
 Pauze tussen lessen
 Overige pauzes
@@ -398,10 +398,7 @@ Tijden na 12 uur worden automatisch vervangen ('18' --> '06')
 
 
 Voor later / Verbeteringen / Ideeën:
-- Week selecteren waarvoor je een AI weekplanning wilt maken
 - Vragen kunnen stellen aan chatgpt: 'Kan Piet al achteruit inparkeren?' of 'Wanneer is het examen van Peter?'. Chatgpt prompt sturen met alle data van de rijschool. Misschien deze functie combineren met zoekopdrachten dus 'Alle lessen van Pieter'
-- Nieuwe navigatie waarbij de volgende onderdelen altijd direct bereikbaar zijn: Dagplanning, Weekplanning, Leerling overzicht
-- Badges per leerling voor: Theorie gehaald, examen ingepland (met optie voor datum erbij) (Dit zou aan algemene notities moeten worden toegevoegd)
 - Todolist in dashboard (Zoals bijvoorbeeld: factuur sturen naar Leerling X)
 - Automatisch naar huidige les scrollen (En uitklappen)
 - In dagoverzicht tussen elke 2 lessen de reistijd weergeven
@@ -416,7 +413,8 @@ Voor later / Verbeteringen / Ideeën:
 
 _________________________________________________________________________________________________________________________________________________________________________
 
-
+Demo Youtube Video
+Doel: Zoveel mogelijk instructeurs de app laten downloaden 
 
 
 
