@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
+import path from 'path'
 
 function getSupabaseClient() {
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
@@ -174,7 +175,8 @@ export async function POST(request: NextRequest) {
     
     try {
       // Import the planning generation function directly
-      const { generate_planning_from_data } = require('../../../../scripts/generate_week_planning.js')
+      const scriptPath = path.resolve(process.cwd(), 'scripts', 'generate_week_planning.js')
+      const { generate_planning_from_data } = require(scriptPath)
       
       // Generate the planning
       const planningResult = generate_planning_from_data(sampleInput)
