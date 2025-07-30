@@ -747,7 +747,7 @@ function AISchedulePageContent() {
     try {
       const weekStart = formatDateToISO(selectedWeek)
       
-      const response = await fetch('/api/ai-schedule/create-input-file', {
+      const response = await fetch('/api/ai-schedule/generate-planning', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -761,7 +761,7 @@ function AISchedulePageContent() {
       const result = await response.json()
 
       if (!response.ok) {
-        throw new Error(result.error || 'Failed to create input file')
+        throw new Error(result.error || 'Failed to generate planning')
       }
 
       // Print the input file data to console for debugging
@@ -771,11 +771,11 @@ function AISchedulePageContent() {
       console.log(JSON.stringify(result.data, null, 2))
       console.log('=== END INPUT FILE ===')
       
-      toast.success('Input bestand aangemaakt en in console getoond')
+      toast.success('Planning gegenereerd en in console getoond')
       
     } catch (error) {
-      console.error('Error creating input file:', error)
-      toast.error('Fout bij aanmaken van input bestand')
+      console.error('Error generating planning:', error)
+      toast.error('Fout bij genereren van planning')
     }
   }
 
@@ -1372,9 +1372,9 @@ function AISchedulePageContent() {
               <div className="bg-white border border-gray-200 rounded-lg p-6">
                 <div className="flex items-center justify-between mb-4">
                   <div>
-                    <h4 className="text-lg font-medium text-gray-900">Input Bestand Aanmaken</h4>
+                    <h4 className="text-lg font-medium text-gray-900">AI Weekplanning Genereren</h4>
                     <p className="text-sm text-gray-500 mt-1">
-                      Maak een JSON input bestand aan met alle data uit de database en toon het in de console
+                      Genereer een geoptimaliseerde weekplanning met AI en toon het resultaat in de console
                     </p>
                   </div>
                   <button
@@ -1389,10 +1389,10 @@ function AISchedulePageContent() {
                 <div className="mt-4 p-4 bg-blue-50 rounded-lg">
                   <h5 className="font-medium text-blue-900 mb-2">Instructies:</h5>
                   <ul className="text-sm text-blue-700 space-y-1">
-                    <li>• Klik op "Start AI-Weekplanning" om het input bestand aan te maken</li>
-                    <li>• Het JSON bestand wordt opgeslagen in de generated/ directory</li>
-                    <li>• Het volledige JSON bestand wordt getoond in de browser console</li>
-                    <li>• Open de browser console (F12) om het bestand te bekijken</li>
+                    <li>• Klik op "Start AI-Weekplanning" om de planning te genereren</li>
+                    <li>• De AI analyseert alle beschikbaarheid en genereert een optimale planning</li>
+                    <li>• Het input bestand en output resultaat worden getoond in de browser console</li>
+                    <li>• Open de browser console (F12) om de resultaten te bekijken</li>
                   </ul>
                 </div>
               </div>

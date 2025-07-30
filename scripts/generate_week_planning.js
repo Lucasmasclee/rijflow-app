@@ -166,11 +166,18 @@ function can_schedule_normal_hour(student_id, day, used_time_slots, instructor) 
     return false;
 } 
 
-function generate_week_planning(random_week_index, start_vanaf_begin, print_details = true) {
+function generate_week_planning(random_week_index, start_vanaf_begin, print_details = true, input_data = null) {
     // Generate optimized week planning maximizing number of lessons
     
-    // Load input data
-    const data = JSON.parse(fs.readFileSync(inputFile, 'utf8'));
+    // Use provided input data or load from file
+    let data;
+    if (input_data) {
+        data = input_data;
+    } else {
+        // Load input data from file (fallback for command line usage)
+        const inputFile = process.argv[2] || 'sample_input.json';
+        data = JSON.parse(fs.readFileSync(inputFile, 'utf8'));
+    }
     
     const instructor = data.instructeur;
     const students = data.leerlingen;
@@ -742,13 +749,19 @@ function generate_week_planning(random_week_index, start_vanaf_begin, print_deta
     return [response, total_planned_lessons, total_time_between_lessons, start_vanaf_begin];
 } 
 
-function create_output_json(best_result, best_week_index, best_start_vanaf_begin, filename = "best_week_planning.json") {
-    // Create a JSON file in the exact format of sample_output.json from the best week planning results.
+function create_output_json(best_result, best_week_index, best_start_vanaf_begin, input_data = null) {
+    // Create a JSON output in the exact format of sample_output.json from the best week planning results.
     
-    // Load input data to get student information
-    const input_data = JSON.parse(fs.readFileSync('sample_input.json', 'utf8'));
-    
-    const students = input_data.leerlingen;
+    // Use provided input data or load from file
+    let students;
+    if (input_data) {
+        students = input_data.leerlingen;
+    } else {
+        // Load input data to get student information (fallback for command line usage)
+        const inputFile = process.argv[2] || 'sample_input.json';
+        const input_data = JSON.parse(fs.readFileSync(inputFile, 'utf8'));
+        students = input_data.leerlingen;
+    }
     
     // Create student lookup dictionary
     const student_lookup = {};
@@ -778,9 +791,20 @@ function create_output_json(best_result, best_week_index, best_start_vanaf_begin
     
     // Create a mapping from dates to day names for sorting
     const date_to_day = {};
-    for (let i = 0; i < standard_week_order.length; i++) {
-        if (i < input_data.instructeur.datums.length) {
-            date_to_day[input_data.instructeur.datums[i]] = standard_week_order[i];
+    if (input_data) {
+        for (let i = 0; i < standard_week_order.length; i++) {
+            if (i < input_data.instructeur.datums.length) {
+                date_to_day[input_data.instructeur.datums[i]] = standard_week_order[i];
+            }
+        }
+    } else {
+        // Fallback for command line usage
+        const inputFile = process.argv[2] || 'sample_input.json';
+        const fallback_input_data = JSON.parse(fs.readFileSync(inputFile, 'utf8'));
+        for (let i = 0; i < standard_week_order.length; i++) {
+            if (i < fallback_input_data.instructeur.datums.length) {
+                date_to_day[fallback_input_data.instructeur.datums[i]] = standard_week_order[i];
+            }
         }
     }
     
@@ -833,125 +857,182 @@ function create_output_json(best_result, best_week_index, best_start_vanaf_begin
         leerlingen_zonder_les: students_without_lessons,
         schedule_details: {
             lessen: formatted_lessons.length,
-            totale_minuten_tussen_lessen: total_time_between_lessons
+            totale_minuten_tussen_lesson: total_time_between_lessons
         }
     };
     
-    // Output alleen JSON naar stdout
-    process.stdout.write(JSON.stringify(output_data, null, 2));
+    // Add 5 console.log statements for the output
+    console.log('=== AI WEEK PLANNING OUTPUT FILE ===')
+    console.log('Total lessons planned:', formatted_lessons.length)
+    console.log('Students without lessons:', Object.keys(students_without_lessons).length)
+    console.log('Total time between lessons:', total_time_between_lessons, 'minutes')
+    console.log('Output data:')
+    console.log(JSON.stringify(output_data, null, 2))
+    console.log('=== END OUTPUT FILE ===')
+    
+    return output_data;
 }
 
-// Main execution
-// Verwijder alle console.log statements behalve de JSON output
-// console.log("=== VERGELIJKING VAN 20 VERSCHILLENDE DAG VOLGORDES ===");
-// console.log();
+// Main execution function that can be called with input data
+function generate_planning_from_data(input_data) {
+    // Initialize day variations
+    day_variations = [
+        ['maandag', 'dinsdag', 'woensdag', 'donderdag', 'vrijdag', 'zaterdag', 'zondag'],
+        ['dinsdag', 'woensdag', 'donderdag', 'vrijdag', 'zaterdag', 'zondag', 'maandag'],
+        ['woensdag', 'donderdag', 'vrijdag', 'zaterdag', 'zondag', 'maandag', 'dinsdag'],
+        ['donderdag', 'vrijdag', 'zaterdag', 'zondag', 'maandag', 'dinsdag', 'woensdag'],
+        ['vrijdag', 'zaterdag', 'zondag', 'maandag', 'dinsdag', 'woensdag', 'donderdag'],
+        ['zaterdag', 'zondag', 'maandag', 'dinsdag', 'woensdag', 'donderdag', 'vrijdag'],
+        ['zondag', 'maandag', 'dinsdag', 'woensdag', 'donderdag', 'vrijdag', 'zaterdag'],
+    ];
 
-day_variations = [
-    ['maandag', 'dinsdag', 'woensdag', 'donderdag', 'vrijdag', 'zaterdag', 'zondag'],
-    ['dinsdag', 'woensdag', 'donderdag', 'vrijdag', 'zaterdag', 'zondag', 'maandag'],
-    ['woensdag', 'donderdag', 'vrijdag', 'zaterdag', 'zondag', 'maandag', 'dinsdag'],
-    ['donderdag', 'vrijdag', 'zaterdag', 'zondag', 'maandag', 'dinsdag', 'woensdag'],
-    ['vrijdag', 'zaterdag', 'zondag', 'maandag', 'dinsdag', 'woensdag', 'donderdag'],
-    ['zaterdag', 'zondag', 'maandag', 'dinsdag', 'woensdag', 'donderdag', 'vrijdag'],
-    ['zondag', 'maandag', 'dinsdag', 'woensdag', 'donderdag', 'vrijdag', 'zaterdag'],
-];
-
-// Get input file from command line argument or use default
-const inputFile = process.argv[2] || 'sample_input.json';
-
-const days = ['maandag', 'dinsdag', 'woensdag', 'donderdag', 'vrijdag', 'zaterdag', 'zondag'];
-const list_available_days_integers = [];
-// Read on which days the instructor is available
-for (let i = 0; i < 7; i++) {
-    // read json file 
-    const data = JSON.parse(fs.readFileSync(inputFile, 'utf8'));
-    if (days[i] in data.instructeur.beschikbareUren) {
-        if (data.instructeur.beschikbareUren[days[i]].length > 0) {
-            list_available_days_integers.push(i);
+    const days = ['maandag', 'dinsdag', 'woensdag', 'donderdag', 'vrijdag', 'zaterdag', 'zondag'];
+    const list_available_days_integers = [];
+    
+    // Read on which days the instructor is available
+    for (let i = 0; i < 7; i++) {
+        if (days[i] in input_data.instructeur.beschikbareUren) {
+            if (input_data.instructeur.beschikbareUren[days[i]].length > 0) {
+                list_available_days_integers.push(i);
+            }
         }
     }
-}
 
-// Verwijder alle console.log statements behalve de JSON output
-const total_combinations = factorial(list_available_days_integers.length);
-// Verwijder alle console.log statements behalve de JSON output
-const available_days = list_available_days_integers.length;
-// Add every single combination of days
-for (let combination_index = 0; combination_index < Math.min(100, total_combinations); combination_index++) {
-    const remaining_days = ['maandag', 'dinsdag', 'woensdag', 'donderdag', 'vrijdag', 'zaterdag', 'zondag'];
-    const new_combination = [];
-    for (let day_index = 0; day_index < 7; day_index++) {
-        const selected_day = remaining_days[Math.floor(Math.random() * remaining_days.length)];
-        new_combination.push(selected_day);
-        remaining_days.splice(remaining_days.indexOf(selected_day), 1);
-    }
-    day_variations.push(new_combination);
-    // Verwijder alle console.log statements behalve de JSON output
-}
-
-const results = [];
-let highest_score = 0;
-let best_week_index = 0;
-let best_rest_time = Infinity; // Initialize with infinity for tiebreaker
-let best_start_vanaf_begin = false;
-
-for (let i = 0; i < day_variations.length; i++) {
-    // Verwijder alle console.log statements behalve de JSON output
-    // Get the first 5 days from each variation (work week)
-    const day_order = day_variations[i];
-    // Verwijder alle console.log statements behalve de JSON output
-    // console.log();
-    const random_start_vanaf_begin = [true, false][Math.floor(Math.random() * 2)];
-
-    const [result, score, total_time_between_lessons, start_vanaf_begin] = generate_week_planning(i, random_start_vanaf_begin, false);
-    results.push([i, score, total_time_between_lessons, result]);
+    const total_combinations = factorial(list_available_days_integers.length);
+    const available_days = list_available_days_integers.length;
     
-    // Update best option: prioritize number of lessons, then use rest time as tiebreaker
-    if (score > highest_score || (score === highest_score && total_time_between_lessons < best_rest_time)) {
-        highest_score = score;
-        best_week_index = i;
-        best_rest_time = total_time_between_lessons;
-        best_start_vanaf_begin = start_vanaf_begin;
+    // Add every single combination of days
+    for (let combination_index = 0; combination_index < Math.min(100, total_combinations); combination_index++) {
+        const remaining_days = ['maandag', 'dinsdag', 'woensdag', 'donderdag', 'vrijdag', 'zaterdag', 'zondag'];
+        const new_combination = [];
+        for (let day_index = 0; day_index < 7; day_index++) {
+            const selected_day = remaining_days[Math.floor(Math.random() * remaining_days.length)];
+            new_combination.push(selected_day);
+            remaining_days.splice(remaining_days.indexOf(selected_day), 1);
+        }
+        day_variations.push(new_combination);
+    }
+
+    const results = [];
+    let highest_score = 0;
+    let best_week_index = 0;
+    let best_rest_time = Infinity; // Initialize with infinity for tiebreaker
+    let best_start_vanaf_begin = false;
+
+    for (let i = 0; i < day_variations.length; i++) {
+        const day_order = day_variations[i];
+        const random_start_vanaf_begin = [true, false][Math.floor(Math.random() * 2)];
+
+        const [result, score, total_time_between_lessons, start_vanaf_begin] = generate_week_planning(i, random_start_vanaf_begin, false, input_data);
+        results.push([i, score, total_time_between_lessons, result]);
+        
+        // Update best option: prioritize number of lessons, then use rest time as tiebreaker
+        if (score > highest_score || (score === highest_score && total_time_between_lessons < best_rest_time)) {
+            highest_score = score;
+            best_week_index = i;
+            best_rest_time = total_time_between_lessons;
+            best_start_vanaf_begin = start_vanaf_begin;
+        }
+    }
+
+    // Re-run the best option with details
+    const [best_result, best_score, final_best_rest_time, final_best_start_vanaf_begin] = generate_week_planning(best_week_index, best_start_vanaf_begin, true, input_data);
+
+    // Create JSON output
+    return create_output_json(best_result, best_week_index, best_start_vanaf_begin, input_data);
+}
+
+// Check if this script is being run directly (command line usage)
+if (require.main === module) {
+    // Check if input data is provided via stdin
+    let inputData = null;
+    
+    // Try to read from stdin if available
+    if (!process.stdin.isTTY) {
+        let stdinData = '';
+        process.stdin.setEncoding('utf8');
+        process.stdin.on('data', (chunk) => {
+            stdinData += chunk;
+        });
+        process.stdin.on('end', () => {
+            try {
+                inputData = JSON.parse(stdinData);
+                // Run the planning generation with the provided data
+                const result = generate_planning_from_data(inputData);
+                // The result is already logged by create_output_json
+            } catch (error) {
+                console.error('Error parsing stdin data:', error);
+                process.exit(1);
+            }
+        });
+        return;
     }
     
-    // Verwijder alle console.log statements behalve de JSON output
+    // Original command line functionality (fallback)
+    // Get input file from command line argument or use default
+    const inputFile = process.argv[2] || 'sample_input.json';
+
+    const days = ['maandag', 'dinsdag', 'woensdag', 'donderdag', 'vrijdag', 'zaterdag', 'zondag'];
+    const list_available_days_integers = [];
+    // Read on which days the instructor is available
+    for (let i = 0; i < 7; i++) {
+        // read json file 
+        const data = JSON.parse(fs.readFileSync(inputFile, 'utf8'));
+        if (days[i] in data.instructeur.beschikbareUren) {
+            if (data.instructeur.beschikbareUren[days[i]].length > 0) {
+                list_available_days_integers.push(i);
+            }
+        }
+    }
+
+    const total_combinations = factorial(list_available_days_integers.length);
+    const available_days = list_available_days_integers.length;
+    // Add every single combination of days
+    for (let combination_index = 0; combination_index < Math.min(100, total_combinations); combination_index++) {
+        const remaining_days = ['maandag', 'dinsdag', 'woensdag', 'donderdag', 'vrijdag', 'zaterdag', 'zondag'];
+        const new_combination = [];
+        for (let day_index = 0; day_index < 7; day_index++) {
+            const selected_day = remaining_days[Math.floor(Math.random() * remaining_days.length)];
+            new_combination.push(selected_day);
+            remaining_days.splice(remaining_days.indexOf(selected_day), 1);
+        }
+        day_variations.push(new_combination);
+    }
+
+    const results = [];
+    let highest_score = 0;
+    let best_week_index = 0;
+    let best_rest_time = Infinity; // Initialize with infinity for tiebreaker
+    let best_start_vanaf_begin = false;
+
+    for (let i = 0; i < day_variations.length; i++) {
+        const day_order = day_variations[i];
+        const random_start_vanaf_begin = [true, false][Math.floor(Math.random() * 2)];
+
+        const [result, score, total_time_between_lessons, start_vanaf_begin] = generate_week_planning(i, random_start_vanaf_begin, false);
+        results.push([i, score, total_time_between_lessons, result]);
+        
+        // Update best option: prioritize number of lessons, then use rest time as tiebreaker
+        if (score > highest_score || (score === highest_score && total_time_between_lessons < best_rest_time)) {
+            highest_score = score;
+            best_week_index = i;
+            best_rest_time = total_time_between_lessons;
+            best_start_vanaf_begin = start_vanaf_begin;
+        }
+    }
+
+    // Re-run the best option with details
+    const [best_result, best_score, final_best_rest_time, final_best_start_vanaf_begin] = generate_week_planning(best_week_index, best_start_vanaf_begin, true);
+
+    // Create JSON output file
+    create_output_json(best_result, best_week_index, best_start_vanaf_begin);
 }
-
-// Verwijder alle console.log statements behalve de JSON output
-// console.log("=== SAMENVATTING VAN ALLE OPTIES ===");
-// console.log();
-
-for (const [i, score, total_time_between_lessons, result] of results) {
-    const day_order = day_variations[i];
-    // Verwijder alle console.log statements behalve de JSON output
-}
-
-// Verwijder alle console.log statements behalve de JSON output
-// console.log();
-// Verwijder alle console.log statements behalve de JSON output
-// console.log(`BESTE OPTIE: Optie ${best_week_index+1} met ${highest_score} lessen en ${best_rest_time} minuten rust`);
-// console.log();
-// Verwijder alle console.log statements behalve de JSON output
-// console.log("=== DETAILS VAN BESTE OPTIE ===");
-// console.log();
-
-// Show details of the best option
-// Verwijder alle console.log statements behalve de JSON output
-// console.log(`Optie ${best_week_index+1} details:`);
-// console.log(`Dag volgorde: ${day_variations[best_week_index]}`);
-// console.log(`Start vanaf begin: ${best_start_vanaf_begin}`);
-// console.log();
-
-// Re-run the best option with details
-const [best_result, best_score, final_best_rest_time, final_best_start_vanaf_begin] = generate_week_planning(best_week_index, best_start_vanaf_begin, true);
-
-// Create JSON output file
-// Verwijder alle console.log statements behalve de JSON output
-// console.log("\n=== JSON BESTAND AANMAKEN ===");
-create_output_json(best_result, best_week_index, best_start_vanaf_begin);
 
 // Helper function for factorial
 function factorial(n) {
     if (n <= 1) return 1;
     return n * factorial(n - 1);
-} 
+}
+
+// Export the main function for use in other modules
+module.exports = { generate_planning_from_data }; 
