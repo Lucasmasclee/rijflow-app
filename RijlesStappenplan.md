@@ -312,6 +312,7 @@ Proces 3: AI-Weekplanning
 10: Deze output wordt overzichtelijk weergegeven:
 Bovenaan: "X lessen ingepland (Waarvan Y lessen blokuren)" & "Z totale minuten pauze". X=Aantal lessen (Blokuur = 2 lessen). Y=Totaal aantal lessen (Blokuur telt als 1)
 Elke les als een klein blokje met tekst "[Naam + Achternaam] Ma 21 juli 8:00 - 9:40"
+Bij elke les neerzetten of het een blokuur is of niet
 11: Instructeur selecteert per les of het wordt toegevoegd of niet
 12: Instructeur kan oneindig vaak instellingen aanpassen in vorige schermen, waarna er dus verschillende resultaten zouden moeten komen
 13: Gebruiker klikt op "Voeg X lessen toe"
