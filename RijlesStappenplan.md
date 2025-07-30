@@ -300,14 +300,14 @@ Proces 3: AI-Weekplanning
 ✅Overige pauzes (Na elke maximaal 3 uur les), Standaard = 20
 <!-- Voor later: Locaties koppelen, Standaard = Uit -->
 <!-- Voor later: Beginnen & eindigen in eigen woonplaats, Standaard = Uit -->
-7: Na het bewerken moeten de volgende ingevulde gegevens correct zijn in sample_input.json
+✅7: Na het bewerken moeten de volgende ingevulde gegevens correct zijn in sample_input.json
 ✅Beschikbaarheid Instructeur
 ✅Beschikbaarheid leerlingen
-Blokuren aan/uit
-Pauze tussen lessen
-Overige pauzes
-Locaties koppelen
-8: Instructeur klikt in AI schedule pagina op "Start AI-Weekplanning" in vijfde scherm
+✅Blokuren aan/uit
+✅Pauze tussen lessen
+✅Overige pauzes
+✅Locaties koppelen
+✅8: Instructeur klikt in AI schedule pagina op "Start AI-Weekplanning" in vijfde scherm
 9: Output debuggen: Er wordt een correct json bestand van het resultaat gemaakt door generate_week_planning.js
 10: Deze output wordt overzichtelijk weergegeven:
 Bovenaan: "X lessen ingepland (Waarvan Y lessen blokuren)" & "Z totale minuten pauze". X=Aantal lessen (Blokuur = 2 lessen). Y=Totaal aantal lessen (Blokuur telt als 1)
