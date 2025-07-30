@@ -174,7 +174,7 @@ export async function POST(request: NextRequest) {
     
     try {
       // Import the planning generation function directly
-      const { generate_planning_from_data } = require('../../../scripts/generate_week_planning.js')
+      const { generate_planning_from_data } = require('../../../../scripts/generate_week_planning.js')
       
       // Generate the planning
       const planningResult = generate_planning_from_data(sampleInput)
