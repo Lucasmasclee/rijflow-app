@@ -21,7 +21,7 @@ const DAY_ORDER = [
   { day: 'sunday', name: 'Zondag', shortName: 'Zo', dutchName: 'zondag' },
 ]
 
-type Step = 'week-selection' | 'instructor' | 'students' | 'settings' | 'test-planning' | 'generate-planning'
+type Step = 'week-selection' | 'instructor' | 'students' | 'settings' | 'generate-planning'
 
 interface StudentWithAvailability extends Student {
   availability_data: Record<string, string[]>
@@ -54,8 +54,6 @@ function AISchedulePageContent() {
 
   // AI data
   const [aiData, setAiData] = useState<AIWeekplanningData | null>(null)
-  const [isRunningTestPlanning, setIsRunningTestPlanning] = useState(false)
-  const [testPlanningResult, setTestPlanningResult] = useState<any>(null)
   const [isGeneratingSampleInput, setIsGeneratingSampleInput] = useState(false)
   const [sampleInputResult, setSampleInputResult] = useState<any>(null)
 
@@ -631,48 +629,7 @@ function AISchedulePageContent() {
     }
   }
 
-  const handleStartTestPlanning = async () => {
-    if (!aiData) {
-      toast.error('Geen data beschikbaar voor test planning')
-      return
-    }
 
-    setIsRunningTestPlanning(true)
-    try {
-      // First save current data
-      await saveAvailabilityData()
-      
-      // Then reload data to ensure we have the latest
-      await loadWeekData(selectedWeek!)
-      
-      // Run test planning
-      const response = await fetch('/api/ai-schedule/run-generation', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          data: aiData
-        })
-      })
-
-      if (!response.ok) {
-        const error = await response.json()
-        toast.error('Fout bij uitvoeren van planning: ' + (error.error || 'Onbekende fout'))
-        return
-      }
-
-      const result = await response.json()
-      setTestPlanningResult(result.data)
-      toast.success('Weekplanning succesvol gegenereerd')
-      
-    } catch (error) {
-      console.error('Error running test planning:', error)
-      toast.error('Fout bij uitvoeren van test planning')
-    } finally {
-      setIsRunningTestPlanning(false)
-    }
-  }
 
   // Load AI settings from database
   const loadAISettings = async () => {
@@ -866,8 +823,6 @@ function AISchedulePageContent() {
     } else if (currentStep === 'settings') {
       // Sla instellingen op voordat we naar de volgende stap gaan
       await saveAISettings()
-      setCurrentStep('test-planning')
-    } else if (currentStep === 'test-planning') {
       setCurrentStep('generate-planning')
     }
   }
@@ -879,10 +834,8 @@ function AISchedulePageContent() {
       setCurrentStep('instructor')
     } else if (currentStep === 'settings') {
       setCurrentStep('students')
-    } else if (currentStep === 'test-planning') {
-      setCurrentStep('settings')
     } else if (currentStep === 'generate-planning') {
-      setCurrentStep('test-planning')
+      setCurrentStep('settings')
     }
   }
 
@@ -922,7 +875,6 @@ function AISchedulePageContent() {
     { key: 'instructor', name: 'Instructeur', icon: Users },
     { key: 'students', name: 'Leerlingen', icon: Users },
     { key: 'settings', name: 'Instellingen', icon: Settings },
-    { key: 'test-planning', name: 'Test Planning', icon: Brain },
     { key: 'generate-planning', name: 'Genereer Planning', icon: Brain }
   ]
 
@@ -1405,58 +1357,7 @@ function AISchedulePageContent() {
             </div>
           )}
 
-          {/* Test Planning */}
-          {currentStep === 'test-planning' && (
-            <div className="space-y-6">
-              <div>
-                <h3 className="text-lg font-semibold mb-4">Test Planning</h3>
-                <p className="text-gray-600 mb-6">
-                  Test de AI planning functionaliteit voor de week van {getSelectedWeekInfo()?.start} tot {getSelectedWeekInfo()?.end}:
-                </p>
-              </div>
 
-              <div className="bg-white border border-gray-200 rounded-lg p-6">
-                <div className="flex items-center justify-between mb-4">
-                  <div>
-                    <h4 className="text-lg font-medium text-gray-900">Test Planning Uitvoeren</h4>
-                    <p className="text-sm text-gray-500 mt-1">
-                      Voer een test planning uit om de functionaliteit te controleren
-                    </p>
-                  </div>
-                  <button
-                    onClick={handleStartTestPlanning}
-                    disabled={isRunningTestPlanning}
-                    className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-colors ${
-                      isRunningTestPlanning
-                        ? 'bg-gray-200 text-gray-400 cursor-not-allowed'
-                        : 'bg-blue-600 text-white hover:bg-blue-700'
-                    }`}
-                  >
-                    {isRunningTestPlanning ? (
-                      <>
-                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                        Bezig...
-                      </>
-                    ) : (
-                      <>
-                        <Brain className="h-4 w-4" />
-                        Start Test
-                      </>
-                    )}
-                  </button>
-                </div>
-
-                {testPlanningResult && (
-                  <div className="mt-6 p-4 bg-gray-50 rounded-lg">
-                    <h5 className="font-medium text-gray-900 mb-2">Test Resultaat:</h5>
-                    <pre className="text-sm text-gray-600 overflow-auto">
-                      {JSON.stringify(testPlanningResult, null, 2)}
-                    </pre>
-                  </div>
-                )}
-              </div>
-            </div>
-          )}
 
           {/* Generate Planning */}
           {currentStep === 'generate-planning' && (
@@ -1601,7 +1502,7 @@ function AISchedulePageContent() {
                         : 'bg-gray-200 text-gray-400 cursor-not-allowed'
                     }`}
                   >
-                    {currentStep === 'test-planning' ? 'Volgende' : currentStep === 'generate-planning' ? 'Voltooid' : 'Volgende'}
+                    {currentStep === 'generate-planning' ? 'Voltooid' : 'Volgende'}
                     <ArrowRight className="h-4 w-4" />
                   </button>
                 </div>
