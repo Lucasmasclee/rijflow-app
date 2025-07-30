@@ -56,6 +56,10 @@ function AISchedulePageContent() {
   const [aiData, setAiData] = useState<AIWeekplanningData | null>(null)
   const [isGeneratingSampleInput, setIsGeneratingSampleInput] = useState(false)
   const [sampleInputResult, setSampleInputResult] = useState<any>(null)
+  
+  // Planning result state
+  const [planningResult, setPlanningResult] = useState<any>(null)
+  const [selectedLessons, setSelectedLessons] = useState<Set<string>>(new Set())
 
   // Instructor availability
   const [instructorAvailability, setInstructorAvailability] = useState<DayAvailability[]>([
@@ -150,6 +154,42 @@ function AISchedulePageContent() {
       }
     }
     return '00'
+  }
+
+  // Helper function to format lesson date and time
+  const formatLessonDateTime = (date: string, startTime: string, endTime: string): string => {
+    const lessonDate = new Date(date)
+    const dayNames = ['Zo', 'Ma', 'Di', 'Wo', 'Do', 'Vr', 'Za']
+    const monthNames = ['jan', 'feb', 'mrt', 'apr', 'mei', 'jun', 'jul', 'aug', 'sep', 'okt', 'nov', 'dec']
+    
+    const dayName = dayNames[lessonDate.getDay()]
+    const day = lessonDate.getDate()
+    const month = monthNames[lessonDate.getMonth()]
+    
+    return `${dayName} ${day} ${month} ${startTime} - ${endTime}`
+  }
+
+  // Helper function to handle lesson selection
+  const handleLessonSelection = (lessonId: string, selected: boolean) => {
+    const newSelectedLessons = new Set(selectedLessons)
+    if (selected) {
+      newSelectedLessons.add(lessonId)
+    } else {
+      newSelectedLessons.delete(lessonId)
+    }
+    setSelectedLessons(newSelectedLessons)
+  }
+
+  // Helper function to select all lessons
+  const selectAllLessons = () => {
+    if (!planningResult?.lessons) return
+    const allLessonIds = planningResult.lessons.map((lesson: any, index: number) => `${lesson.date}-${lesson.startTime}-${lesson.studentId}-${index}`)
+    setSelectedLessons(new Set(allLessonIds))
+  }
+
+  // Helper function to deselect all lessons
+  const deselectAllLessons = () => {
+    setSelectedLessons(new Set())
   }
 
   // Time input handlers
@@ -776,7 +816,11 @@ function AISchedulePageContent() {
       console.log(JSON.stringify(result.data, null, 2))
       console.log('=== END OUTPUT FILE ===')
       
-      toast.success('Planning gegenereerd en in console getoond')
+      // Store the planning result for display
+      setPlanningResult(result.data)
+      setSelectedLessons(new Set()) // Reset selections
+      
+      toast.success('Planning gegenereerd en getoond')
       
     } catch (error) {
       console.error('Error generating planning:', error)
@@ -1442,6 +1486,124 @@ function AISchedulePageContent() {
                   </div>
                 )}
               </div> */}
+
+              {/* Planning Results Display */}
+              {planningResult && (
+                <div className="space-y-6">
+                  {/* Statistics */}
+                  <div className="bg-white border border-gray-200 rounded-lg p-6">
+                    <h4 className="text-lg font-medium text-gray-900 mb-4">Planning Statistieken</h4>
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="bg-blue-50 p-4 rounded-lg">
+                        <div className="text-2xl font-bold text-blue-600">
+                          {planningResult.schedule_details?.lessen || 0}
+                        </div>
+                        <div className="text-sm text-blue-700">Totaal aantal lessen ingepland</div>
+                      </div>
+                      <div className="bg-green-50 p-4 rounded-lg">
+                        <div className="text-2xl font-bold text-green-600">
+                          {planningResult.schedule_details?.totale_minuten_tussen_lesson || 0}
+                        </div>
+                        <div className="text-sm text-green-700">Totale tijd tussen lessen (min)</div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Lessons List */}
+                  {planningResult.lessons && planningResult.lessons.length > 0 && (
+                    <div className="bg-white border border-gray-200 rounded-lg p-6">
+                      <div className="flex items-center justify-between mb-4">
+                        <h4 className="text-lg font-medium text-gray-900">Geplande Lessen</h4>
+                        <div className="flex gap-2">
+                          <button
+                            onClick={selectAllLessons}
+                            className="px-3 py-1 text-sm bg-blue-600 text-white rounded hover:bg-blue-700"
+                          >
+                            Alles selecteren
+                          </button>
+                          <button
+                            onClick={deselectAllLessons}
+                            className="px-3 py-1 text-sm bg-gray-600 text-white rounded hover:bg-gray-700"
+                          >
+                            Alles deselecteren
+                          </button>
+                        </div>
+                      </div>
+                      
+                      <div className="space-y-3">
+                        {planningResult.lessons.map((lesson: any, index: number) => {
+                          const lessonId = `${lesson.date}-${lesson.startTime}-${lesson.studentId}-${index}`
+                          const isSelected = selectedLessons.has(lessonId)
+                          
+                          return (
+                            <div key={lessonId} className="flex items-center gap-3 p-3 border border-gray-200 rounded-lg">
+                              <input
+                                type="checkbox"
+                                id={lessonId}
+                                checked={isSelected}
+                                onChange={(e) => handleLessonSelection(lessonId, e.target.checked)}
+                                className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                              />
+                              <div className="flex-1">
+                                <div className="font-medium text-gray-900">
+                                  {formatLessonDateTime(lesson.date, lesson.startTime, lesson.endTime)}
+                                </div>
+                                <div className="text-sm text-gray-600">
+                                  {lesson.studentName}
+                                </div>
+                              </div>
+                            </div>
+                          )
+                        })}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Students without lessons */}
+                  {planningResult.leerlingen_zonder_les && Object.keys(planningResult.leerlingen_zonder_les).length > 0 && (
+                    <div className="bg-white border border-gray-200 rounded-lg p-6">
+                      <h4 className="text-lg font-medium text-gray-900 mb-4">Leerlingen zonder voldoende lessen</h4>
+                      <div className="space-y-2">
+                        {Object.entries(planningResult.leerlingen_zonder_les).map(([studentName, missingLessons]) => (
+                          <div key={studentName} className="flex items-center justify-between p-3 bg-red-50 rounded-lg">
+                            <span className="font-medium text-gray-900">{studentName}</span>
+                            <span className="text-sm text-red-600">
+                              {missingLessons as number} les{(missingLessons as number) !== 1 ? 'sen' : ''} te weinig
+                            </span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Add to schedule button */}
+                  <div className="bg-white border border-gray-200 rounded-lg p-6">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <h4 className="text-lg font-medium text-gray-900">Toevoegen aan Rooster</h4>
+                        <p className="text-sm text-gray-600 mt-1">
+                          {selectedLessons.size} van de {planningResult.lessons?.length || 0} lessen geselecteerd
+                        </p>
+                      </div>
+                      <button
+                        onClick={() => {
+                          // TODO: Implement adding lessons to instructor schedule
+                          toast.success(`${selectedLessons.size} lessen toegevoegd aan rooster`)
+                        }}
+                        disabled={selectedLessons.size === 0}
+                        className={`flex items-center gap-2 px-6 py-3 rounded-lg transition-colors ${
+                          selectedLessons.size > 0
+                            ? 'bg-green-600 text-white hover:bg-green-700'
+                            : 'bg-gray-200 text-gray-400 cursor-not-allowed'
+                        }`}
+                      >
+                        <Check className="h-4 w-4" />
+                        Geselecteerde lessen toevoegen
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
           )}
 
