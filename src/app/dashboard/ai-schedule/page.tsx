@@ -784,6 +784,44 @@ function AISchedulePageContent() {
     }
   }
 
+  const createInputFile = async () => {
+    if (!user || !selectedWeek) return
+
+    try {
+      const weekStart = formatDateToISO(selectedWeek)
+      
+      const response = await fetch('/api/ai-schedule/create-input-file', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          weekStart,
+          instructorId: user.id
+        })
+      })
+
+      const result = await response.json()
+
+      if (!response.ok) {
+        throw new Error(result.error || 'Failed to create input file')
+      }
+
+      // Print the input file data to console for debugging
+      console.log('=== AI WEEK PLANNING INPUT FILE ===')
+      console.log('Filename:', result.filename)
+      console.log('Input data:')
+      console.log(JSON.stringify(result.data, null, 2))
+      console.log('=== END INPUT FILE ===')
+      
+      toast.success('Input bestand aangemaakt en in console getoond')
+      
+    } catch (error) {
+      console.error('Error creating input file:', error)
+      toast.error('Fout bij aanmaken van input bestand')
+    }
+  }
+
   // Initialize
   useEffect(() => {
     if (!loading && !user) {
@@ -1424,18 +1462,46 @@ function AISchedulePageContent() {
           {currentStep === 'generate-planning' && (
             <div className="space-y-6">
               <div>
-                <h3 className="text-lg font-semibold mb-4">Genereer Weekplanning</h3>
+                <h3 className="text-lg font-semibold mb-4">Start AI-Weekplanning</h3>
                 <p className="text-gray-600 mb-6">
-                  Genereer een sample_input.json bestand voor de week van {getSelectedWeekInfo()?.start} tot {getSelectedWeekInfo()?.end}:
+                  Maak een input bestand aan en start de AI weekplanning voor de week van {getSelectedWeekInfo()?.start} tot {getSelectedWeekInfo()?.end}:
                 </p>
               </div>
 
               <div className="bg-white border border-gray-200 rounded-lg p-6">
                 <div className="flex items-center justify-between mb-4">
                   <div>
-                    <h4 className="text-lg font-medium text-gray-900">Sample Input Bestand</h4>
+                    <h4 className="text-lg font-medium text-gray-900">Input Bestand Aanmaken</h4>
                     <p className="text-sm text-gray-500 mt-1">
-                      Genereer een sample_input.json bestand met alle benodigde data voor de AI planning
+                      Maak een JSON input bestand aan met alle data uit de database en toon het in de console
+                    </p>
+                  </div>
+                  <button
+                    onClick={createInputFile}
+                    className="flex items-center gap-2 px-4 py-2 rounded-lg bg-blue-600 text-white hover:bg-blue-700 transition-colors"
+                  >
+                    <Brain className="h-4 w-4" />
+                    Start AI-Weekplanning
+                  </button>
+                </div>
+
+                <div className="mt-4 p-4 bg-blue-50 rounded-lg">
+                  <h5 className="font-medium text-blue-900 mb-2">Instructies:</h5>
+                  <ul className="text-sm text-blue-700 space-y-1">
+                    <li>• Klik op "Start AI-Weekplanning" om het input bestand aan te maken</li>
+                    <li>• Het JSON bestand wordt opgeslagen in de generated/ directory</li>
+                    <li>• Het volledige JSON bestand wordt getoond in de browser console</li>
+                    <li>• Open de browser console (F12) om het bestand te bekijken</li>
+                  </ul>
+                </div>
+              </div>
+
+              <div className="bg-white border border-gray-200 rounded-lg p-6">
+                <div className="flex items-center justify-between mb-4">
+                  <div>
+                    <h4 className="text-lg font-medium text-gray-900">Test Planning</h4>
+                    <p className="text-sm text-gray-500 mt-1">
+                      Test de planning functionaliteit (oude methode)
                     </p>
                   </div>
                   <button
@@ -1455,7 +1521,7 @@ function AISchedulePageContent() {
                     ) : (
                       <>
                         <Brain className="h-4 w-4" />
-                        Genereer Weekplanning
+                        Test Planning
                       </>
                     )}
                   </button>
@@ -1463,7 +1529,7 @@ function AISchedulePageContent() {
 
                 {sampleInputResult && (
                   <div className="mt-6 p-4 bg-gray-50 rounded-lg">
-                    <h5 className="font-medium text-gray-900 mb-2">Gegenereerd Sample Input Bestand:</h5>
+                    <h5 className="font-medium text-gray-900 mb-2">Test Resultaat:</h5>
                     <pre className="text-sm text-gray-600 overflow-auto max-h-96">
                       {JSON.stringify(sampleInputResult, null, 2)}
                     </pre>
