@@ -308,7 +308,7 @@ Proces 3: AI-Weekplanning
 ✅Overige pauzes
 ✅Locaties koppelen
 ✅8: Instructeur klikt in AI schedule pagina op "Start AI-Weekplanning" in vijfde scherm
-9: Output debuggen: Er wordt een correct json bestand van het resultaat gemaakt door generate_week_planning.js
+✅9: Output debuggen: Er wordt een correct json bestand van het resultaat gemaakt door generate_week_planning.js
 10: Deze output wordt overzichtelijk weergegeven:
 Bovenaan: "X lessen ingepland (Waarvan Y lessen blokuren)" & "Z totale minuten pauze". X=Aantal lessen (Blokuur = 2 lessen). Y=Totaal aantal lessen (Blokuur telt als 1)
 Elke les als een klein blokje met tekst "[Naam + Achternaam] Ma 21 juli 8:00 - 9:40"
