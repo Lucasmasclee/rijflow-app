@@ -3,14 +3,16 @@ import { createClient } from '@supabase/supabase-js'
 import fs from 'fs'
 import path from 'path'
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
-const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY
+function getSupabaseClient() {
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
+  const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY
 
-if (!supabaseUrl || !supabaseServiceKey) {
-  throw new Error('Missing Supabase environment variables')
+  if (!supabaseUrl || !supabaseServiceKey) {
+    throw new Error('Missing Supabase environment variables')
+  }
+
+  return createClient(supabaseUrl, supabaseServiceKey)
 }
-
-const supabase = createClient(supabaseUrl, supabaseServiceKey)
 
 export async function POST(request: NextRequest) {
   try {
@@ -22,6 +24,8 @@ export async function POST(request: NextRequest) {
         { status: 400 }
       )
     }
+
+    const supabase = getSupabaseClient()
 
     // Get instructor availability for the specific week
     const { data: instructorAvailability, error: instructorError } = await supabase
