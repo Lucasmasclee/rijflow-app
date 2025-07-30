@@ -1,57 +1,65 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { supabase } from '@/lib/supabase'
+import { createClient } from '@supabase/supabase-js'
 
-export async function GET(request: NextRequest) {
+function getSupabaseClient() {
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
+  const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY
+
+  if (!supabaseUrl || !supabaseServiceKey) {
+    throw new Error('Missing Supabase environment variables')
+  }
+
+  return createClient(supabaseUrl, supabaseServiceKey)
+}
+
+export async function GET() {
   try {
-    // Test database connection
-    const { data: testData, error: testError } = await supabase
-      .from('students')
-      .select('count')
-      .limit(1)
-
-    if (testError) {
+    console.log('Testing connection...')
+    
+    // Check environment variables
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
+    const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY
+    
+    console.log('Environment variables check:')
+    console.log('SUPABASE_URL exists:', !!supabaseUrl)
+    console.log('SUPABASE_SERVICE_KEY exists:', !!supabaseServiceKey)
+    
+    if (!supabaseUrl || !supabaseServiceKey) {
       return NextResponse.json({
-        success: false,
-        error: 'Database connection failed',
-        details: testError.message
+        error: 'Missing environment variables',
+        supabaseUrl: !!supabaseUrl,
+        supabaseServiceKey: !!supabaseServiceKey
       }, { status: 500 })
     }
 
-    // Test file system access
-    const fs = require('fs')
-    const path = require('path')
-    const scriptsPath = path.join(process.cwd(), 'scripts')
+    // Test Supabase connection
+    const supabase = getSupabaseClient()
+    console.log('Supabase client created successfully')
     
-    let fileSystemStatus = 'unknown'
-    try {
-      if (fs.existsSync(scriptsPath)) {
-        fileSystemStatus = 'scripts directory exists'
-        
-        // Try to read sample_input.json
-        const sampleInputPath = path.join(scriptsPath, 'sample_input.json')
-        if (fs.existsSync(sampleInputPath)) {
-          fileSystemStatus = 'sample_input.json exists and readable'
-        } else {
-          fileSystemStatus = 'sample_input.json not found'
-        }
-      } else {
-        fileSystemStatus = 'scripts directory not found'
-      }
-    } catch (fsError) {
-      fileSystemStatus = `file system error: ${fsError instanceof Error ? fsError.message : 'Unknown error'}`
+    // Test a simple query
+    const { data, error } = await supabase
+      .from('instructors')
+      .select('id, first_name')
+      .limit(1)
+    
+    if (error) {
+      console.error('Supabase query error:', error)
+      return NextResponse.json({
+        error: 'Database connection failed',
+        details: error.message
+      }, { status: 500 })
     }
-
+    
+    console.log('Database connection successful')
     return NextResponse.json({
       success: true,
-      database: 'connected',
-      fileSystem: fileSystemStatus,
-      timestamp: new Date().toISOString()
+      message: 'Connection test successful',
+      data: data
     })
-
+    
   } catch (error) {
     console.error('Test connection error:', error)
     return NextResponse.json({
-      success: false,
       error: 'Test failed',
       details: error instanceof Error ? error.message : 'Unknown error'
     }, { status: 500 })

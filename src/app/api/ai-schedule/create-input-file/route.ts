@@ -16,9 +16,13 @@ function getSupabaseClient() {
 
 export async function POST(request: NextRequest) {
   try {
+    console.log('Starting create-input-file API call')
+    
     const { weekStart, instructorId } = await request.json()
+    console.log('Received data:', { weekStart, instructorId })
 
     if (!weekStart || !instructorId) {
+      console.error('Missing required parameters')
       return NextResponse.json(
         { error: 'weekStart and instructorId are required' },
         { status: 400 }
@@ -26,8 +30,10 @@ export async function POST(request: NextRequest) {
     }
 
     const supabase = getSupabaseClient()
+    console.log('Supabase client initialized')
 
     // Get instructor availability for the specific week
+    console.log('Fetching instructor availability...')
     const { data: instructorAvailability, error: instructorError } = await supabase
       .from('instructor_availability')
       .select('*')
@@ -43,7 +49,10 @@ export async function POST(request: NextRequest) {
       )
     }
 
+    console.log('Instructor availability:', instructorAvailability)
+
     // Get AI settings for the instructor
+    console.log('Fetching AI settings...')
     const { data: aiSettings, error: aiSettingsError } = await supabase
       .from('instructor_ai_settings')
       .select('*')
@@ -58,7 +67,10 @@ export async function POST(request: NextRequest) {
       )
     }
 
+    console.log('AI settings:', aiSettings)
+
     // Get all students for this instructor
+    console.log('Fetching students...')
     const { data: students, error: studentsError } = await supabase
       .from('students')
       .select('*')
@@ -72,7 +84,10 @@ export async function POST(request: NextRequest) {
       )
     }
 
+    console.log('Students found:', students?.length || 0)
+
     // Get student availability for the specific week
+    console.log('Fetching student availability...')
     const { data: studentAvailability, error: studentAvailabilityError } = await supabase
       .from('student_availability')
       .select('*')
@@ -86,6 +101,8 @@ export async function POST(request: NextRequest) {
       )
     }
 
+    console.log('Student availability found:', studentAvailability?.length || 0)
+
     // Generate week dates (Monday to Sunday)
     const weekStartDate = new Date(weekStart)
     const weekDates = []
@@ -94,6 +111,8 @@ export async function POST(request: NextRequest) {
       date.setDate(weekStartDate.getDate() + i)
       weekDates.push(date.toISOString().split('T')[0])
     }
+
+    console.log('Week dates generated:', weekDates)
 
     // Build instructor availability data
     const beschikbareUren: Record<string, string[]> = {}
@@ -107,12 +126,14 @@ export async function POST(request: NextRequest) {
       }
     }
 
+    console.log('Instructor availability built:', beschikbareUren)
+
     // Build students data
     const leerlingen = []
     
-    for (const student of students) {
+    for (const student of students || []) {
       // Find student availability for this week
-      const studentAvail = studentAvailability.find(sa => sa.student_id === student.id)
+      const studentAvail = studentAvailability?.find(sa => sa.student_id === student.id)
       
       const beschikbaarheid: Record<string, string[]> = {}
       
@@ -133,6 +154,8 @@ export async function POST(request: NextRequest) {
       })
     }
 
+    console.log('Students data built:', leerlingen.length, 'students')
+
     // Create the sample input structure (exact same format as sample_input.json)
     const sampleInput = {
       instructeur: {
@@ -146,34 +169,23 @@ export async function POST(request: NextRequest) {
       leerlingen
     }
 
-    // Create a unique filename with timestamp
-    const timestamp = new Date().toISOString().replace(/[:.]/g, '-')
-    const filename = `week_planning_input_${timestamp}.json`
-    const filePath = path.join(process.cwd(), 'src', 'app', 'dashboard', 'ai-schedule', 'generated', filename)
+    console.log('Sample input structure created')
 
-    // Write the file
-    try {
-      fs.writeFileSync(filePath, JSON.stringify(sampleInput, null, 2))
-      console.log(`Input file created: ${filename}`)
-    } catch (writeError) {
-      console.error('Error writing file:', writeError)
-      return NextResponse.json(
-        { error: 'Failed to create input file' },
-        { status: 500 }
-      )
-    }
-
+    // TEMPORARILY SKIP FILE WRITING TO TEST DATA RETRIEVAL
+    console.log('Skipping file writing for now - returning data directly')
+    
+    console.log('API call completed successfully')
     return NextResponse.json({
       success: true,
       data: sampleInput,
-      filename: filename,
-      message: 'Input file created successfully'
+      filename: 'test_file.json', // Temporary filename
+      message: 'Input data retrieved successfully (file writing skipped)'
     })
 
   } catch (error) {
     console.error('Error creating input file:', error)
     return NextResponse.json(
-      { error: 'Internal server error' },
+      { error: 'Internal server error', details: error instanceof Error ? error.message : 'Unknown error' },
       { status: 500 }
     )
   }
