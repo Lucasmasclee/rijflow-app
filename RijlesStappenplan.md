@@ -299,7 +299,7 @@ Proces 3: AI-Weekplanning
 ✅Pauze tussen lessen (Pauze tussen elke les behalve blokuur van dezelfde leerling), Standaard = 5
 ✅Overige pauzes (Na elke maximaal 3 uur les), Standaard = 20
 <!-- Voor later: Locaties koppelen, Standaard = Uit -->
-<!-- Voor later: Beginnen & eindigen in eigen woonplaats, Standaard = Uit -->
+<!-- Voor later: Beginnen & eindigen in eigen woonplaats, Standaard = Uit. -->
 ✅7: Na het bewerken moeten de volgende ingevulde gegevens correct zijn in sample_input.json
 ✅Beschikbaarheid Instructeur
 ✅Beschikbaarheid leerlingen
