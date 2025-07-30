@@ -192,6 +192,69 @@ function AISchedulePageContent() {
     setSelectedLessons(new Set())
   }
 
+  // Helper function to add selected lessons to schedule
+  const addSelectedLessonsToSchedule = async () => {
+    if (!user || !planningResult?.lessons || selectedLessons.size === 0) {
+      toast.error('Geen lessen geselecteerd om toe te voegen')
+      return
+    }
+
+    try {
+      // Get the current session to include auth token
+      const { data: { session } } = await supabase.auth.getSession()
+      
+      if (!session?.access_token) {
+        toast.error('Niet ingelogd. Log opnieuw in.')
+        return
+      }
+
+      // Filter the selected lessons from the planning result
+      const selectedLessonsData = planningResult.lessons.filter((lesson: any, index: number) => {
+        const lessonId = `${lesson.date}-${lesson.startTime}-${lesson.studentId}-${index}`
+        return selectedLessons.has(lessonId)
+      })
+
+      // Transform lessons to match AIScheduleLesson format
+      const lessonsToAdd = selectedLessonsData.map((lesson: any) => ({
+        date: lesson.date,
+        startTime: lesson.startTime,
+        endTime: lesson.endTime,
+        studentId: lesson.studentId,
+        studentName: lesson.studentName,
+        notes: lesson.notes || ''
+      }))
+
+      const response = await fetch('/api/lessons/bulk', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${session.access_token}`
+        },
+        body: JSON.stringify({
+          lessons: lessonsToAdd,
+          instructorId: user.id
+        })
+      })
+
+      if (!response.ok) {
+        const error = await response.json()
+        const errorMessage = error.error || 'Onbekende fout'
+        toast.error(`Fout bij toevoegen van lessen: ${errorMessage}`)
+        return
+      }
+
+      const result = await response.json()
+      toast.success(`${selectedLessons.size} lessen succesvol toegevoegd aan rooster`)
+      
+      // Clear selections after successful addition
+      setSelectedLessons(new Set())
+      
+    } catch (error) {
+      console.error('Error adding lessons to schedule:', error)
+      toast.error('Fout bij toevoegen van lessen aan rooster')
+    }
+  }
+
   // Time input handlers
   const updateTimeInputs = (dayIndex: number, field: string, value: string) => {
     const day = instructorAvailability[dayIndex]
@@ -1435,7 +1498,7 @@ function AISchedulePageContent() {
                   </button>
                 </div>
 
-                <div className="mt-4 p-4 bg-blue-50 rounded-lg">
+                {/* <div className="mt-4 p-4 bg-blue-50 rounded-lg">
                   <h5 className="font-medium text-blue-900 mb-2">Instructies:</h5>
                   <ul className="text-sm text-blue-700 space-y-1">
                     <li>• Klik op "Start AI-Weekplanning" om de planning te genereren</li>
@@ -1443,7 +1506,7 @@ function AISchedulePageContent() {
                     <li>• Het input bestand en output resultaat worden getoond in de browser console</li>
                     <li>• Open de browser console (F12) om de resultaten te bekijken</li>
                   </ul>
-                </div>
+                </div> */}
               </div>
 
               {/* <div className="bg-white border border-gray-200 rounded-lg p-6">
@@ -1586,10 +1649,7 @@ function AISchedulePageContent() {
                         </p>
                       </div>
                       <button
-                        onClick={() => {
-                          // TODO: Implement adding lessons to instructor schedule
-                          toast.success(`${selectedLessons.size} lessen toegevoegd aan rooster`)
-                        }}
+                        onClick={addSelectedLessonsToSchedule}
                         disabled={selectedLessons.size === 0}
                         className={`flex items-center gap-2 px-6 py-3 rounded-lg transition-colors ${
                           selectedLessons.size > 0
