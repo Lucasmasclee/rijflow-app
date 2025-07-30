@@ -766,10 +766,15 @@ function AISchedulePageContent() {
 
       // Print the input file data to console for debugging
       console.log('=== AI WEEK PLANNING INPUT FILE ===')
-      console.log('Filename:', result.filename)
       console.log('Input data:')
-      console.log(JSON.stringify(result.data, null, 2))
+      console.log(JSON.stringify(result.inputData, null, 2))
       console.log('=== END INPUT FILE ===')
+      
+      // Print the output file data to console for debugging
+      console.log('=== AI WEEK PLANNING OUTPUT FILE ===')
+      console.log('Output data:')
+      console.log(JSON.stringify(result.data, null, 2))
+      console.log('=== END OUTPUT FILE ===')
       
       toast.success('Planning gegenereerd en in console getoond')
       
@@ -1397,7 +1402,7 @@ function AISchedulePageContent() {
                 </div>
               </div>
 
-              <div className="bg-white border border-gray-200 rounded-lg p-6">
+              {/* <div className="bg-white border border-gray-200 rounded-lg p-6">
                 <div className="flex items-center justify-between mb-4">
                   <div>
                     <h4 className="text-lg font-medium text-gray-900">Test Planning</h4>
@@ -1436,7 +1441,7 @@ function AISchedulePageContent() {
                     </pre>
                   </div>
                 )}
-              </div>
+              </div> */}
             </div>
           )}
 
