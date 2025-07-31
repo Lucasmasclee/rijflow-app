@@ -293,6 +293,12 @@ function AISchedulePageContent() {
               if (failedSms > 0) {
                 toast.error(`${failedSms} SMS berichten konden niet worden verzonden`)
               }
+              
+              // Check if any reminders were scheduled
+              const scheduledReminders = smsResult.results?.filter((r: any) => r.type === 'reminder' && r.success && r.scheduledFor) || []
+              if (scheduledReminders.length > 0) {
+                toast.success(`${scheduledReminders.length} herinneringen gepland voor 24 uur van tevoren`)
+              }
             } else {
               toast.error('Fout bij verzenden van SMS berichten')
             }

@@ -307,11 +307,10 @@ export async function POST(request: NextRequest) {
         const lessonDateTime = new Date(`${lessonWithStudent.date}T${lessonWithStudent.start_time}`)
         const reminderDateTime = new Date(lessonDateTime.getTime() - (24 * 60 * 60 * 1000)) // 24 hours before
 
-        // For now, we'll send the reminder immediately but log the intended timing
-        // In a production environment, you'd want to use a proper scheduling system
         console.log(`Reminder should be sent at: ${reminderDateTime.toISOString()}`)
 
         try {
+          // Use Twilio's scheduling API to send the message at the specified time
           const twilioResponse = await fetch(
             `https://api.twilio.com/2010-04-01/Accounts/${accountSid}/Messages.json`,
             {
@@ -324,6 +323,7 @@ export async function POST(request: NextRequest) {
                 MessagingServiceSid: messagingServiceSid || '',
                 To: formattedPhone,
                 Body: reminderMessage,
+                SendAt: reminderDateTime.toISOString(), // Schedule the message
               }),
             }
           )
@@ -337,23 +337,14 @@ export async function POST(request: NextRequest) {
           })
 
           if (twilioResponse.ok && twilioResult.sid) {
-            console.log(`Reminder SMS sent successfully to ${lessonWithStudent.student?.first_name}`)
+            console.log(`Reminder SMS scheduled successfully to ${lessonWithStudent.student?.first_name} for ${reminderDateTime.toISOString()}`)
             
-            // Update sms_laatst_gestuurd timestamp
-            const { error: updateError } = await supabase
-              .from('students')
-              .update({ sms_laatst_gestuurd: new Date().toISOString() })
-              .eq('id', lessonWithStudent.student?.id)
-            
-            if (updateError) {
-              console.error(`Error updating sms_laatst_gestuurd for ${lessonWithStudent.student?.first_name}:`, updateError)
-            }
-
             results.push({
               lessonId: lessonWithStudent.id,
               success: true,
               type: 'reminder',
-              messageSid: twilioResult.sid
+              messageSid: twilioResult.sid,
+              scheduledFor: reminderDateTime.toISOString()
             })
           } else {
             console.error(`Twilio reminder error for ${lessonWithStudent.student?.first_name}:`, twilioResult)
@@ -365,7 +356,7 @@ export async function POST(request: NextRequest) {
             })
           }
         } catch (error) {
-          console.error(`Network error sending reminder SMS to ${lessonWithStudent.student?.first_name}:`, error)
+          console.error(`Network error scheduling reminder SMS to ${lessonWithStudent.student?.first_name}:`, error)
           results.push({
             lessonId: lessonWithStudent.id,
             success: false,
