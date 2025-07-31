@@ -175,9 +175,9 @@ Proces 3: AI-Weekplanning
 ✅12: Instructeur kan oneindig vaak instellingen aanpassen in vorige schermen, waarna er dus verschillende resultaten zouden moeten komen
 ✅13: Gebruiker klikt op "Voeg X lessen toe"
 ✅15: Alle geselecteerde lessen worden toegevoegd aan het rooster van de instructeur.
-16: Naast "voeg x lessen toe" staat een toggle: Stuur meldingen naar leerlingen met hun lessen, Standaard = aan
-17: Als optie hierboven aangeklikt is, een SMS per les sturen naar correcte leerling.
-
+✅16: Naast "voeg x lessen toe" staat een toggle: Stuur meldingen naar leerlingen met hun lessen, Standaard = aan
+✅17: Als optie hierboven aangeklikt is, een SMS per les sturen naar correcte leerling.
+Optie voor: Stuur herinnering 24 uur van tevoren
 
 
 ALLE PAGINA'S MET ALLE FUNCTIES
