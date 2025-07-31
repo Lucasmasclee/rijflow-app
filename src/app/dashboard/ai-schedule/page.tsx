@@ -1327,13 +1327,13 @@ function AISchedulePageContent() {
                               type="number"
                               min="30"
                               max="120"
-                              step="15"
-                              value={student.default_lesson_duration_minutes || 60}
+                              step="5"
+                              value={student.default_lesson_duration_minutes || 50}
                               onChange={(e) => {
                                 const newStudents = [...students]
                                 newStudents[studentIndex] = {
                                   ...newStudents[studentIndex],
-                                  default_lesson_duration_minutes: parseInt(e.target.value) || 60
+                                  default_lesson_duration_minutes: parseInt(e.target.value) || 50
                                 }
                                 setStudents(newStudents)
                               }}
