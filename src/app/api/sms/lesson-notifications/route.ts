@@ -189,7 +189,7 @@ export async function POST(request: NextRequest) {
       console.log(`Student ${lessonWithStudent.student?.first_name} phone: ${lessonWithStudent.student.phone}`)
 
       // Validate phone number (basic check)
-      const phoneRegex = /^(\+31|0)6\d{8,9}$/
+      const phoneRegex = /^(\+31|0|31)6\d{8,9}$/
       if (!phoneRegex.test(lessonWithStudent.student.phone.replace(/\s/g, ''))) {
         console.log(`Student ${lessonWithStudent.student?.first_name} has invalid phone format: ${lessonWithStudent.student.phone}`)
         results.push({
@@ -204,6 +204,8 @@ export async function POST(request: NextRequest) {
       let formattedPhone = lessonWithStudent.student.phone.replace(/\s/g, '')
       if (formattedPhone.startsWith('0')) {
         formattedPhone = '+31' + formattedPhone.substring(1)
+      } else if (formattedPhone.startsWith('31')) {
+        formattedPhone = '+' + formattedPhone
       } else if (!formattedPhone.startsWith('+')) {
         formattedPhone = '+31' + formattedPhone
       }
@@ -324,6 +326,7 @@ export async function POST(request: NextRequest) {
                 To: formattedPhone,
                 Body: reminderMessage,
                 SendAt: reminderDateTime.toISOString(), // Schedule the message
+                ScheduleType: 'fixed' // Required for scheduled messages
               }),
             }
           )
