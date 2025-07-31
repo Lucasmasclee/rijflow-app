@@ -51,6 +51,13 @@ export async function POST(request: NextRequest) {
       sendReminder
     })
 
+    // Debug: Log the lesson IDs in detail
+    console.log('=== SMS API DEBUG ===')
+    console.log('Received lesson IDs:', lessonIds)
+    console.log('Lesson IDs type:', typeof lessonIds)
+    console.log('Lesson IDs length:', lessonIds?.length || 0)
+    console.log('First few lesson IDs:', lessonIds?.slice(0, 3))
+
     if (!accountSid || !authToken) {
       console.error('Twilio configuration missing:', { accountSid: !!accountSid, authToken: !!authToken })
       return NextResponse.json(
@@ -61,21 +68,58 @@ export async function POST(request: NextRequest) {
 
     console.log('Twilio config OK')
 
-    // Create authenticated Supabase client
-    const cookieStore = await cookies()
-    const supabase = createServerClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-      {
-        cookies: {
-          get(name: string) {
-            return cookieStore.get(name)?.value
+    // Get the authorization header from the request
+    const authHeader = request.headers.get('authorization')
+    console.log('Auth header present:', !!authHeader)
+    
+    let supabase
+    
+    if (authHeader && authHeader.startsWith('Bearer ')) {
+      // Use the provided JWT token for authentication
+      const token = authHeader.replace('Bearer ', '')
+      console.log('Using provided JWT token for authentication')
+      
+      const { createClient } = await import('@supabase/supabase-js')
+      supabase = createClient(
+        process.env.NEXT_PUBLIC_SUPABASE_URL!,
+        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+        {
+          global: {
+            headers: {
+              Authorization: `Bearer ${token}`
+            }
+          }
+        }
+      )
+    } else {
+      // Fallback to cookie-based authentication
+      console.log('No auth header provided, using cookie-based authentication')
+      const cookieStore = await cookies()
+      const { createServerClient } = await import('@supabase/ssr')
+      supabase = createServerClient(
+        process.env.NEXT_PUBLIC_SUPABASE_URL!,
+        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+        {
+          cookies: {
+            get(name: string) {
+              return cookieStore.get(name)?.value
+            },
           },
-        },
-      }
-    )
+        }
+      )
+    }
 
     console.log('Supabase client created')
+
+    // Debug: Verify authentication by getting the current user
+    const { data: { user }, error: userError } = await supabase.auth.getUser()
+    console.log('Current user from token:', user ? { id: user.id, email: user.email } : 'No user')
+    console.log('User error:', userError)
+
+    // Debug: Log the query we're about to make
+    console.log('=== DATABASE QUERY DEBUG ===')
+    console.log('Querying lessons with IDs:', lessonIds)
+    console.log('Query filter:', { id: { in: lessonIds } })
 
     // Get lessons with student information
     const { data: lessons, error: lessonsError } = await supabase
@@ -94,6 +138,13 @@ export async function POST(request: NextRequest) {
       lessonsError,
       lessonIds 
     })
+    
+    // Debug: Log the actual lessons found
+    if (lessons && lessons.length > 0) {
+      console.log('Found lessons:', lessons.map((l: any) => ({ id: l.id, date: l.date, student: l.student?.first_name })))
+    } else {
+      console.log('No lessons found in database')
+    }
 
     if (lessonsError) {
       console.error('Error fetching lessons:', lessonsError)

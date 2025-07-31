@@ -259,11 +259,18 @@ function AISchedulePageContent() {
           // Get the lesson IDs from the result
           const lessonIds = result.lessons?.map((lesson: any) => lesson.id) || []
           
+          // Debug: Log the lesson IDs being sent to SMS API
+          console.log('=== SMS DEBUG ===')
+          console.log('Result from bulk lessons API:', result)
+          console.log('Lesson IDs being sent to SMS API:', lessonIds)
+          console.log('Number of lessons in result:', result.lessons?.length || 0)
+          
           if (lessonIds.length > 0) {
             const smsResponse = await fetch('/api/sms/lesson-notifications', {
               method: 'POST',
               headers: {
                 'Content-Type': 'application/json',
+                'Authorization': `Bearer ${session.access_token}`
               },
               body: JSON.stringify({
                 lessonIds,
@@ -289,6 +296,8 @@ function AISchedulePageContent() {
             } else {
               toast.error('Fout bij verzenden van SMS berichten')
             }
+          } else {
+            console.log('No lesson IDs found in result, skipping SMS notifications')
           }
         } catch (error) {
           console.error('Error sending SMS notifications:', error)
