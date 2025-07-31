@@ -177,7 +177,7 @@ Proces 3: AI-Weekplanning
 ✅15: Alle geselecteerde lessen worden toegevoegd aan het rooster van de instructeur.
 ✅16: Naast "voeg x lessen toe" staat een toggle: Stuur meldingen naar leerlingen met hun lessen, Standaard = aan
 ✅17: Als optie hierboven aangeklikt is, een SMS per les sturen naar correcte leerling.
-Optie voor: Stuur herinnering 24 uur van tevoren
+✅Optie voor: Stuur herinnering 24 uur van tevoren
 
 
 ALLE PAGINA'S MET ALLE FUNCTIES
@@ -229,7 +229,7 @@ Rooster Instellingen
 _________________________________________________________________________________________________________________________________________________________________________
 
 Todolist: 
-4 taken voor AI Weekplanning
+✅4 taken voor AI Weekplanning
 Testscenario waarbij sample_input gemaakt wordt (Dus leerlingen toevoegen, sms sturen, beschikbaarheid invullen, ai-weekplanning, lessen toevoegen etc..)
 Langs elke pagina gaan en UI elementen goedzetten
 Landingspagina updaten met de 2 nieuwe belangrijke functies, misschien een youtube video van een demo toevoegen? 
@@ -242,4 +242,4 @@ ________________________________________________________________________________
 Verbeteringen:
 - Instructeurs kunnen niet teveel SMS sturen
 - Bij een les aanmaken / bewerken 2 toggles maken voor "stuur melding" en "stuur melding 24 uur van tevoren"
-- Optie om via whatsapp te sturen ipv SMS
+- Optie om meldingen via whatsapp te sturen ipv SMS
