@@ -230,12 +230,13 @@ ________________________________________________________________________________
 
 Todolist: 
 ✅4 taken voor AI Weekplanning
-Voor functionaliteit: Testscenario waarbij sample_input gemaakt wordt (Dus leerlingen toevoegen, sms sturen, beschikbaarheid invullen, ai-weekplanning, etc..)
+✅Voor functionaliteit: Testscenario waarbij sample_input gemaakt wordt (Dus leerlingen toevoegen, sms sturen, beschikbaarheid invullen, ai-weekplanning, etc..)
 Langs elke pagina gaan en UI elementen goedzetten
 Landingspagina updaten met de 2 nieuwe belangrijke functies, misschien een youtube video van een demo toevoegen? 
 Screenshots appstore
 Betalingen opzetten
 Marketen (Hoe?)
+Iemand anders de hele app laten testen om glitches / fouten eruit te halen
 
 _________________________________________________________________________________________________________________________________________________________________________
 
@@ -245,6 +246,8 @@ Glitches:
 - Als een leerling beschikbaarheid invult is de minimale tijd 8:00 --> Moet 6:00 zijn
 - Als een leerling beschikbaarheid invult: Datum bij elke dag neerzetten 
 - Ai-schedule -> beschikbaarheid leerlingen inputfields -> lessen per week en minuten per les hebben autocorrectie
+- Ai-schedule -> Voor elke leerling neerzetten 2/2 lessen✅ of 3/4 lessen❌ ingepland
+- Als een account niet meer bestaat en de app wordt geopend staat er 404: Not_found
 
 Verbeteringen:
 - Instructeurs kunnen niet teveel SMS sturen
