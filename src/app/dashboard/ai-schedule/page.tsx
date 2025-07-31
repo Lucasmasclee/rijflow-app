@@ -1,7 +1,7 @@
 'use client'
 
 import Link from 'next/link'
-import { ArrowLeft, ArrowRight, Users, Calendar, Settings, Brain, Check, X, Clock, MapPin } from 'lucide-react'
+import { ArrowLeft, ArrowRight, Users, Calendar, Settings, Brain, Check, X, Clock, MapPin, MessageSquare } from 'lucide-react'
 import { useEffect, useState, Suspense, useRef } from 'react'
 import { useAuth } from '@/contexts/AuthContext'
 import { supabase } from '@/lib/supabase'
@@ -60,6 +60,11 @@ function AISchedulePageContent() {
   // Planning result state
   const [planningResult, setPlanningResult] = useState<any>(null)
   const [selectedLessons, setSelectedLessons] = useState<Set<string>>(new Set())
+
+  // SMS notification state
+  const [sendImmediateSms, setSendImmediateSms] = useState(false)
+  const [sendReminderSms, setSendReminderSms] = useState(false)
+  const [sendingSms, setSendingSms] = useState(false)
 
   // Instructor availability
   const [instructorAvailability, setInstructorAvailability] = useState<DayAvailability[]>([
@@ -245,6 +250,53 @@ function AISchedulePageContent() {
 
       const result = await response.json()
       toast.success(`${selectedLessons.size} lessen succesvol toegevoegd aan rooster`)
+      
+      // Send SMS notifications if requested
+      if (sendImmediateSms || sendReminderSms) {
+        try {
+          setSendingSms(true)
+          
+          // Get the lesson IDs from the result
+          const lessonIds = result.lessons?.map((lesson: any) => lesson.id) || []
+          
+          if (lessonIds.length > 0) {
+            const smsResponse = await fetch('/api/sms/lesson-notifications', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+              },
+              body: JSON.stringify({
+                lessonIds,
+                sendImmediate: sendImmediateSms,
+                sendReminder: sendReminderSms
+              })
+            })
+
+            const smsResult = await smsResponse.json()
+            
+            if (smsResult.success) {
+              const totalSms = smsResult.summary.total
+              const successfulSms = smsResult.summary.successful
+              const failedSms = smsResult.summary.failed
+              
+              if (successfulSms > 0) {
+                toast.success(`${successfulSms} SMS berichten succesvol verzonden`)
+              }
+              
+              if (failedSms > 0) {
+                toast.error(`${failedSms} SMS berichten konden niet worden verzonden`)
+              }
+            } else {
+              toast.error('Fout bij verzenden van SMS berichten')
+            }
+          }
+        } catch (error) {
+          console.error('Error sending SMS notifications:', error)
+          toast.error('Fout bij verzenden van SMS berichten')
+        } finally {
+          setSendingSms(false)
+        }
+      }
       
       // Clear selections after successful addition
       setSelectedLessons(new Set())
@@ -1639,6 +1691,53 @@ function AISchedulePageContent() {
                     </div>
                   )}
 
+                  {/* SMS Notification Settings */}
+                  <div className="bg-white border border-gray-200 rounded-lg p-6 mb-4">
+                    <div className="flex items-center gap-2 mb-4">
+                      <MessageSquare className="h-5 w-5 text-blue-600" />
+                      <h4 className="text-lg font-medium text-gray-900">SMS Notificaties</h4>
+                    </div>
+                    <div className="space-y-4">
+                      {/* Immediate SMS Toggle */}
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center space-x-3">
+                          <input
+                            type="checkbox"
+                            id="sendImmediateSms"
+                            checked={sendImmediateSms}
+                            onChange={(e) => setSendImmediateSms(e.target.checked)}
+                            className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                          />
+                          <label htmlFor="sendImmediateSms" className="text-sm font-medium text-gray-700">
+                            SMS Leerlingen over hun ingeplande les
+                          </label>
+                        </div>
+                        <div className="text-xs text-gray-500">
+                          Stuur direct een SMS naar leerlingen
+                        </div>
+                      </div>
+
+                      {/* Reminder SMS Toggle */}
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center space-x-3">
+                          <input
+                            type="checkbox"
+                            id="sendReminderSms"
+                            checked={sendReminderSms}
+                            onChange={(e) => setSendReminderSms(e.target.checked)}
+                            className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                          />
+                          <label htmlFor="sendReminderSms" className="text-sm font-medium text-gray-700">
+                            Stuur herinnering 24 uur van tevoren
+                          </label>
+                        </div>
+                        <div className="text-xs text-gray-500">
+                          Stuur herinnering 24 uur voor de les
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
                   {/* Add to schedule button */}
                   <div className="bg-white border border-gray-200 rounded-lg p-6">
                     <div className="flex items-center justify-between">
@@ -1650,15 +1749,24 @@ function AISchedulePageContent() {
                       </div>
                       <button
                         onClick={addSelectedLessonsToSchedule}
-                        disabled={selectedLessons.size === 0}
+                        disabled={selectedLessons.size === 0 || sendingSms}
                         className={`flex items-center gap-2 px-6 py-3 rounded-lg transition-colors ${
-                          selectedLessons.size > 0
+                          selectedLessons.size > 0 && !sendingSms
                             ? 'bg-green-600 text-white hover:bg-green-700'
                             : 'bg-gray-200 text-gray-400 cursor-not-allowed'
                         }`}
                       >
-                        <Check className="h-4 w-4" />
-                        Geselecteerde lessen toevoegen
+                        {sendingSms ? (
+                          <>
+                            <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                            SMS verzenden...
+                          </>
+                        ) : (
+                          <>
+                            <Check className="h-4 w-4" />
+                            Geselecteerde lessen toevoegen
+                          </>
+                        )}
                       </button>
                     </div>
                   </div>
