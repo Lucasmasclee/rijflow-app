@@ -2,18 +2,18 @@ import Stripe from 'stripe'
 
 // Initialize Stripe server-side
 export const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-  apiVersion: '2024-12-18.acacia',
+  apiVersion: '2025-07-30.basil',
 })
 
 // Initialize Stripe client-side
 export const getStripe = () => {
-  if (typeof window !== 'undefined') {
-    return require('@stripe/stripe-js').loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!)
-  }
-  return null
+  if (typeof window === 'undefined') return null
+  
+  const { loadStripe } = require('@stripe/stripe-js')
+  return loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!)
 }
 
-// Product and price IDs from Stripe
+// Stripe product and price configurations
 export const STRIPE_PRODUCTS = {
   MONTHLY: {
     priceId: process.env.STRIPE_MONTHLY_PRICE_ID!,
@@ -30,28 +30,24 @@ export const STRIPE_PRODUCTS = {
   }
 }
 
-// Trial period in days
+// Trial period configuration
 export const TRIAL_PERIOD_DAYS = 60
 
-// Helper function to check if user has active subscription
-export const hasActiveSubscription = (subscriptionStatus?: string) => {
-  return subscriptionStatus === 'active' || subscriptionStatus === 'trial'
+// Helper functions for subscription status
+export const hasActiveSubscription = (subscriptionStatus?: string): boolean => {
+  return subscriptionStatus === 'active' || subscriptionStatus === 'trialing'
 }
 
-// Helper function to check if trial is expired
-export const isTrialExpired = (trialEndsAt?: string) => {
+export const isTrialExpired = (trialEndsAt?: string): boolean => {
   if (!trialEndsAt) return false
   return new Date(trialEndsAt) < new Date()
 }
 
-// Helper function to get days remaining in trial
-export const getTrialDaysRemaining = (trialEndsAt?: string) => {
-  if (!trialEndsAt) return TRIAL_PERIOD_DAYS
-  
+export const getTrialDaysRemaining = (trialEndsAt?: string): number => {
+  if (!trialEndsAt) return 0
   const trialEnd = new Date(trialEndsAt)
   const now = new Date()
   const diffTime = trialEnd.getTime() - now.getTime()
   const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24))
-  
   return Math.max(0, diffDays)
 } 

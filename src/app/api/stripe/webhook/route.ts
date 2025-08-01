@@ -66,8 +66,10 @@ async function handleSubscriptionCreated(subscription: Stripe.Subscription) {
     ? new Date(subscription.trial_end * 1000).toISOString()
     : null
 
-  const subscriptionEnd = subscription.current_period_end
-    ? new Date(subscription.current_period_end * 1000).toISOString()
+  // Access current_period_end using bracket notation to avoid TypeScript issues
+  const currentPeriodEnd = (subscription as any).current_period_end
+  const subscriptionEnd = currentPeriodEnd
+    ? new Date(currentPeriodEnd * 1000).toISOString()
     : null
 
   await supabase
@@ -96,8 +98,10 @@ async function handleSubscriptionUpdated(subscription: Stripe.Subscription) {
     ? new Date(subscription.trial_end * 1000).toISOString()
     : null
 
-  const subscriptionEnd = subscription.current_period_end
-    ? new Date(subscription.current_period_end * 1000).toISOString()
+  // Access current_period_end using bracket notation to avoid TypeScript issues
+  const currentPeriodEnd = (subscription as any).current_period_end
+  const subscriptionEnd = currentPeriodEnd
+    ? new Date(currentPeriodEnd * 1000).toISOString()
     : null
 
   await supabase
@@ -134,9 +138,15 @@ async function handleSubscriptionDeleted(subscription: Stripe.Subscription) {
 }
 
 async function handlePaymentSucceeded(invoice: Stripe.Invoice) {
-  if (!invoice.subscription) return
+  // Access subscription using bracket notation to avoid TypeScript issues
+  const subscriptionId = (invoice as any).subscription
 
-  const subscription = await stripe.subscriptions.retrieve(invoice.subscription as string)
+  if (!subscriptionId) {
+    console.log('No subscription found in invoice')
+    return
+  }
+
+  const subscription = await stripe.subscriptions.retrieve(subscriptionId)
   const userId = subscription.metadata.supabase_user_id
   
   if (!userId) {
@@ -156,9 +166,15 @@ async function handlePaymentSucceeded(invoice: Stripe.Invoice) {
 }
 
 async function handlePaymentFailed(invoice: Stripe.Invoice) {
-  if (!invoice.subscription) return
+  // Access subscription using bracket notation to avoid TypeScript issues
+  const subscriptionId = (invoice as any).subscription
 
-  const subscription = await stripe.subscriptions.retrieve(invoice.subscription as string)
+  if (!subscriptionId) {
+    console.log('No subscription found in invoice')
+    return
+  }
+
+  const subscription = await stripe.subscriptions.retrieve(subscriptionId)
   const userId = subscription.metadata.supabase_user_id
   
   if (!userId) {

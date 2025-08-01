@@ -2,7 +2,7 @@
 
 import { useAuth } from '@/contexts/AuthContext'
 import { useRouter, useSearchParams } from 'next/navigation'
-import { useEffect, useState } from 'react'
+import { useEffect, useState, Suspense } from 'react'
 import { 
   Car,
   LogOut,
@@ -34,7 +34,7 @@ interface InstructorData {
   subscription_ends_at?: string
 }
 
-export default function AbonnementPage() {
+function AbonnementContent() {
   const { user, signOut, loading } = useAuth()
   const router = useRouter()
   const searchParams = useSearchParams()
@@ -119,24 +119,24 @@ export default function AbonnementPage() {
         }),
       })
 
-      const { sessionId, error } = await response.json()
-
-      if (error) {
-        toast.error('Er is iets misgegaan bij het aanmaken van de betaling')
-        return
+      if (!response.ok) {
+        throw new Error('Failed to create checkout session')
       }
 
-      // Redirect to Stripe Checkout
+      const { sessionId } = await response.json()
+      
       const stripe = await loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!)
-      if (stripe) {
-        const { error } = await stripe.redirectToCheckout({ sessionId })
-        if (error) {
-          toast.error('Er is iets misgegaan bij het doorsturen naar de betaling')
-        }
+      if (!stripe) {
+        throw new Error('Stripe failed to load')
+      }
+
+      const { error } = await stripe.redirectToCheckout({ sessionId })
+      if (error) {
+        throw error
       }
     } catch (error) {
       console.error('Error creating checkout session:', error)
-      toast.error('Er is iets misgegaan bij het aanmaken van de betaling')
+      toast.error('Er is een fout opgetreden bij het starten van de betaling')
     } finally {
       setProcessingPayment(false)
     }
@@ -158,17 +158,15 @@ export default function AbonnementPage() {
         }),
       })
 
-      const { success, error } = await response.json()
-
-      if (success) {
-        toast.success('Abonnement succesvol opgezegd')
-        fetchInstructorData() // Refresh data
-      } else {
-        toast.error(error || 'Er is iets misgegaan bij het opzeggen van het abonnement')
+      if (!response.ok) {
+        throw new Error('Failed to cancel subscription')
       }
+
+      toast.success('Abonnement wordt geannuleerd aan het einde van de huidige periode')
+      fetchInstructorData() // Refresh data
     } catch (error) {
       console.error('Error canceling subscription:', error)
-      toast.error('Er is iets misgegaan bij het opzeggen van het abonnement')
+      toast.error('Er is een fout opgetreden bij het annuleren van het abonnement')
     } finally {
       setCancelingSubscription(false)
     }
@@ -176,42 +174,53 @@ export default function AbonnementPage() {
 
   const getSubscriptionStatusText = () => {
     if (!instructorData) return 'Laden...'
-
-    const status = instructorData.subscription_status
-    const trialDays = getTrialDaysRemaining(instructorData.trial_ends_at)
-    const isExpired = isTrialExpired(instructorData.trial_ends_at)
-
-    if (status === 'trial' && !isExpired) {
-      return `Gratis proefperiode (${trialDays} dagen over)`
-    } else if (status === 'active') {
-      return 'Actief abonnement'
-    } else if (status === 'past_due') {
-      return 'Betaling achterstallig'
-    } else if (status === 'canceled') {
-      return 'Abonnement opgezegd'
-    } else if (isExpired) {
-      return 'Proefperiode verlopen'
-    } else {
-      return 'Geen actief abonnement'
+    
+    switch (instructorData.subscription_status) {
+      case 'trial':
+        return 'Proefperiode'
+      case 'active':
+        return 'Actief'
+      case 'past_due':
+        return 'Betaling achterstallig'
+      case 'canceled':
+        return 'Geannuleerd'
+      case 'incomplete':
+        return 'Onvolledig'
+      case 'incomplete_expired':
+        return 'Onvolledig verlopen'
+      case 'unpaid':
+        return 'Onbetaald'
+      default:
+        return 'Onbekend'
     }
   }
 
   const getSubscriptionStatusColor = () => {
     if (!instructorData) return 'text-gray-500'
-
-    const status = instructorData.subscription_status
-    const isExpired = isTrialExpired(instructorData.trial_ends_at)
-
-    if (status === 'trial' && !isExpired) return 'text-green-600'
-    if (status === 'active') return 'text-green-600'
-    if (status === 'past_due') return 'text-red-600'
-    if (status === 'canceled' || isExpired) return 'text-red-600'
-    return 'text-gray-500'
+    
+    switch (instructorData.subscription_status) {
+      case 'trial':
+        return 'text-blue-600'
+      case 'active':
+        return 'text-green-600'
+      case 'past_due':
+        return 'text-red-600'
+      case 'canceled':
+        return 'text-gray-600'
+      case 'incomplete':
+        return 'text-yellow-600'
+      case 'incomplete_expired':
+        return 'text-red-600'
+      case 'unpaid':
+        return 'text-red-600'
+      default:
+        return 'text-gray-500'
+    }
   }
 
   if (loading || loadingData) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center safe-area-top">
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
           <p className="mt-4 text-gray-600">Laden...</p>
@@ -226,198 +235,226 @@ export default function AbonnementPage() {
 
   const hasActive = hasActiveSubscription(instructorData?.subscription_status)
   const isExpired = isTrialExpired(instructorData?.trial_ends_at)
+  const trialDaysRemaining = getTrialDaysRemaining(instructorData?.trial_ends_at)
 
   return (
-    <div className="min-h-screen bg-gray-50 pb-20">
-      {/* Mobile Navigation */}
-      <nav className="bg-white shadow-sm border-b safe-area-top">
-        <div className="container-mobile">
-          <div className="flex justify-between items-center h-16">
-            <div className="flex items-center">
-              <Link href="/dashboard" className="flex items-center gap-2 text-gray-600 hover:text-gray-900">
-                <ArrowLeft className="h-5 w-5" />
-                <span>Terug</span>
+    <div className="min-h-screen bg-gray-50">
+      {/* Header */}
+      <div className="bg-white shadow-sm border-b">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex justify-between items-center py-4">
+            <div className="flex items-center space-x-4">
+              <Link
+                href="/dashboard"
+                className="flex items-center text-gray-600 hover:text-gray-900"
+              >
+                <ArrowLeft className="h-5 w-5 mr-2" />
+                Terug naar Dashboard
               </Link>
             </div>
             
-            <div className="flex items-center">
-              <Car className="h-8 w-8 text-blue-600" />
-              <span className="ml-2 text-xl font-bold text-gray-900">RijFlow</span>
+            <div className="flex items-center space-x-4">
+              <div className="text-sm text-gray-600">
+                {user.email}
+              </div>
+              <button
+                onClick={handleSignOut}
+                className="flex items-center text-gray-600 hover:text-gray-900"
+              >
+                <LogOut className="h-4 w-4 mr-2" />
+                Uitloggen
+              </button>
             </div>
-
-            <button
-              onClick={handleSignOut}
-              className="flex items-center gap-2 text-gray-600 hover:text-gray-900 px-3 py-2 rounded-md text-sm font-medium"
-            >
-              <LogOut className="h-4 w-4" />
-              <span className="hidden sm:inline">Uitloggen</span>
-            </button>
           </div>
         </div>
-      </nav>
+      </div>
 
-      <div className="container-mobile py-6">
+      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Page Header */}
-        <div className="mb-6">
-          <h1 className="text-2xl md:text-3xl font-bold text-gray-900 mb-2">
-            Account & Abonnement
-          </h1>
-          <p className="text-gray-600">
-            Beheer je account en abonnement
+        <div className="mb-8">
+          <h1 className="text-3xl font-bold text-gray-900">Account & Abonnement</h1>
+          <p className="mt-2 text-gray-600">
+            Beheer je abonnement en account instellingen
           </p>
         </div>
 
-        {/* Account Information */}
-        <div className="card mb-6">
-          <h3 className="text-lg font-semibold mb-4">Account Informatie</h3>
-          <div className="space-y-3">
+        {/* Current Status */}
+        <div className="bg-white rounded-lg shadow-sm border p-6 mb-8">
+          <h2 className="text-xl font-semibold text-gray-900 mb-4">Huidige Status</h2>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
-              <label className="text-sm font-medium text-gray-700">Email</label>
+              <h3 className="text-sm font-medium text-gray-500 mb-2">Email</h3>
               <p className="text-gray-900">{user.email}</p>
             </div>
+            
             <div>
-              <label className="text-sm font-medium text-gray-700">Rol</label>
-              <p className="text-gray-900 capitalize">
-                {user.user_metadata?.role || 'instructor'}
-              </p>
+              <h3 className="text-sm font-medium text-gray-500 mb-2">Rol</h3>
+              <p className="text-gray-900 capitalize">{user.user_metadata?.role || 'Onbekend'}</p>
             </div>
+            
             <div>
-              <label className="text-sm font-medium text-gray-700">Abonnement Status</label>
+              <h3 className="text-sm font-medium text-gray-500 mb-2">Abonnement Status</h3>
               <p className={`font-medium ${getSubscriptionStatusColor()}`}>
                 {getSubscriptionStatusText()}
               </p>
             </div>
+            
+            {instructorData?.trial_ends_at && (
+              <div>
+                <h3 className="text-sm font-medium text-gray-500 mb-2">Proefperiode</h3>
+                <p className="text-gray-900">
+                  {isExpired 
+                    ? 'Verlopen' 
+                    : `${trialDaysRemaining} dagen over`
+                  }
+                </p>
+              </div>
+            )}
           </div>
-        </div>
 
-        {/* Current Subscription Info */}
-        {instructorData && (
-          <div className="card mb-6">
-            <h3 className="text-lg font-semibold mb-4">Huidig Abonnement</h3>
-            <div className="space-y-3">
-              {instructorData.trial_ends_at && (
-                <div className="flex items-center gap-2">
-                  <Clock className="h-4 w-4 text-blue-600" />
-                  <span className="text-sm text-gray-600">
-                    Proefperiode eindigt: {new Date(instructorData.trial_ends_at).toLocaleDateString('nl-NL')}
-                  </span>
+          {/* Warning for expired trial */}
+          {isExpired && !hasActive && (
+            <div className="mt-4 p-4 bg-red-50 border border-red-200 rounded-lg">
+              <div className="flex items-start gap-2">
+                <AlertCircle className="h-5 w-5 text-red-600 mt-0.5" />
+                <div>
+                  <h4 className="font-medium text-red-800">Proefperiode verlopen</h4>
+                  <p className="text-sm text-red-700 mt-1">
+                    Je proefperiode is verlopen. Kies een abonnement om door te gaan.
+                  </p>
                 </div>
-              )}
-              {instructorData.subscription_ends_at && instructorData.subscription_status !== 'trial' && (
-                <div className="flex items-center gap-2">
-                  <Calendar className="h-4 w-4 text-blue-600" />
-                  <span className="text-sm text-gray-600">
-                    Abonnement eindigt: {new Date(instructorData.subscription_ends_at).toLocaleDateString('nl-NL')}
-                  </span>
-                </div>
-              )}
-              {instructorData.subscription_id && (
-                <div className="flex items-center gap-2">
-                  <CreditCard className="h-4 w-4 text-blue-600" />
-                  <span className="text-sm text-gray-600">
-                    Abonnement ID: {instructorData.subscription_id}
-                  </span>
-                </div>
-              )}
+              </div>
             </div>
-          </div>
-        )}
+          )}
+        </div>
 
         {/* Subscription Plans */}
         {!hasActive && (
-          <div className="card mb-6">
-            <h3 className="text-lg font-semibold mb-4">Kies een Abonnement</h3>
-            <p className="text-gray-600 mb-4">
-              {isExpired 
-                ? 'Je proefperiode is verlopen. Kies een abonnement om door te gaan.'
-                : 'Start met een 60-dagen gratis proefperiode, geen betalingsgegevens vereist.'
-              }
-            </p>
+          <div className="bg-white rounded-lg shadow-sm border p-6 mb-8">
+            <h2 className="text-xl font-semibold text-gray-900 mb-6">Kies een Abonnement</h2>
             
-            <div className="space-y-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {/* Monthly Plan */}
-              <div className="border border-gray-200 rounded-lg p-4">
-                <div className="flex justify-between items-start mb-2">
-                  <div>
-                    <h4 className="font-semibold text-lg">{STRIPE_PRODUCTS.MONTHLY.name}</h4>
-                    <p className="text-gray-600 text-sm">Maandelijks gefactureerd</p>
-                  </div>
-                  <div className="text-right">
-                    <div className="text-2xl font-bold">€{STRIPE_PRODUCTS.MONTHLY.price}</div>
-                    <div className="text-sm text-gray-500">per maand</div>
+              <div className="border border-gray-200 rounded-lg p-6 hover:border-blue-300 transition-colors">
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="text-lg font-semibold text-gray-900">Maandelijks</h3>
+                  <div className="flex items-center gap-1">
+                    <Star className="h-4 w-4 text-yellow-500" />
+                    <span className="text-sm text-gray-600">Populair</span>
                   </div>
                 </div>
-                <ul className="space-y-2 mb-4">
-                  <li className="flex items-center gap-2 text-sm">
-                    <Check className="h-4 w-4 text-green-600" />
-                    <span>60 dagen gratis proefperiode</span>
+                
+                <div className="mb-4">
+                  <div className="flex items-baseline">
+                    <span className="text-3xl font-bold text-gray-900">€{STRIPE_PRODUCTS.MONTHLY.price}</span>
+                    <span className="text-gray-600 ml-1">/maand</span>
+                  </div>
+                </div>
+                
+                <ul className="space-y-2 mb-6">
+                  <li className="flex items-center gap-2">
+                    <Check className="h-4 w-4 text-green-500" />
+                    <span className="text-sm text-gray-600">Volledige functionaliteit</span>
                   </li>
-                  <li className="flex items-center gap-2 text-sm">
-                    <Check className="h-4 w-4 text-green-600" />
-                    <span>Onbeperkt aantal leerlingen</span>
+                  <li className="flex items-center gap-2">
+                    <Check className="h-4 w-4 text-green-500" />
+                    <span className="text-sm text-gray-600">Onbeperkte leerlingen</span>
                   </li>
-                  <li className="flex items-center gap-2 text-sm">
-                    <Check className="h-4 w-4 text-green-600" />
-                    <span>AI weekplanning</span>
+                  <li className="flex items-center gap-2">
+                    <Check className="h-4 w-4 text-green-500" />
+                    <span className="text-sm text-gray-600">AI planning</span>
                   </li>
-                  <li className="flex items-center gap-2 text-sm">
-                    <Check className="h-4 w-4 text-green-600" />
-                    <span>SMS notificaties</span>
+                  <li className="flex items-center gap-2">
+                    <Check className="h-4 w-4 text-green-500" />
+                    <span className="text-sm text-gray-600">SMS notificaties</span>
                   </li>
                 </ul>
+                
                 <button
                   onClick={() => handleSubscribe(STRIPE_PRODUCTS.MONTHLY.priceId)}
                   disabled={processingPayment}
-                  className="btn btn-primary w-full"
+                  className="w-full bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                 >
-                  {processingPayment ? 'Verwerken...' : 'Kies Maandelijks'}
+                  {processingPayment ? (
+                    <>
+                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                      Verwerken...
+                    </>
+                  ) : (
+                    <>
+                      <CreditCard className="h-4 w-4" />
+                      Maandelijks Abonnement
+                    </>
+                  )}
                 </button>
               </div>
 
               {/* Yearly Plan */}
-              <div className="border border-blue-200 rounded-lg p-4 bg-blue-50">
-                <div className="flex justify-between items-start mb-2">
-                  <div>
-                    <div className="flex items-center gap-2">
-                      <h4 className="font-semibold text-lg">{STRIPE_PRODUCTS.YEARLY.name}</h4>
-                      <span className="bg-blue-600 text-white text-xs px-2 py-1 rounded">25% KORTING</span>
-                    </div>
-                    <p className="text-gray-600 text-sm">Jaarlijks gefactureerd</p>
-                  </div>
-                  <div className="text-right">
-                    <div className="text-2xl font-bold">€{STRIPE_PRODUCTS.YEARLY.price}</div>
-                    <div className="text-sm text-gray-500">per maand</div>
-                    <div className="text-xs text-gray-400">€{STRIPE_PRODUCTS.YEARLY.totalYearly}/jaar</div>
+              <div className="border border-gray-200 rounded-lg p-6 hover:border-blue-300 transition-colors relative">
+                <div className="absolute -top-3 left-1/2 transform -translate-x-1/2">
+                  <span className="bg-green-500 text-white text-xs px-3 py-1 rounded-full">
+                    Bespaar €120/jaar
+                  </span>
+                </div>
+                
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="text-lg font-semibold text-gray-900">Jaarlijks</h3>
+                  <div className="flex items-center gap-1">
+                    <Calendar className="h-4 w-4 text-green-500" />
+                    <span className="text-sm text-green-600">Voordelig</span>
                   </div>
                 </div>
-                <ul className="space-y-2 mb-4">
-                  <li className="flex items-center gap-2 text-sm">
-                    <Check className="h-4 w-4 text-green-600" />
-                    <span>60 dagen gratis proefperiode</span>
+                
+                <div className="mb-4">
+                  <div className="flex items-baseline">
+                    <span className="text-3xl font-bold text-gray-900">€{STRIPE_PRODUCTS.YEARLY.price}</span>
+                    <span className="text-gray-600 ml-1">/maand</span>
+                  </div>
+                  <p className="text-sm text-gray-500 mt-1">
+                    €{STRIPE_PRODUCTS.YEARLY.totalYearly}/jaar (€120 besparing)
+                  </p>
+                </div>
+                
+                <ul className="space-y-2 mb-6">
+                  <li className="flex items-center gap-2">
+                    <Check className="h-4 w-4 text-green-500" />
+                    <span className="text-sm text-gray-600">Volledige functionaliteit</span>
                   </li>
-                  <li className="flex items-center gap-2 text-sm">
-                    <Check className="h-4 w-4 text-green-600" />
-                    <span>Onbeperkt aantal leerlingen</span>
+                  <li className="flex items-center gap-2">
+                    <Check className="h-4 w-4 text-green-500" />
+                    <span className="text-sm text-gray-600">Onbeperkte leerlingen</span>
                   </li>
-                  <li className="flex items-center gap-2 text-sm">
-                    <Check className="h-4 w-4 text-green-600" />
-                    <span>AI weekplanning</span>
+                  <li className="flex items-center gap-2">
+                    <Check className="h-4 w-4 text-green-500" />
+                    <span className="text-sm text-gray-600">AI planning</span>
                   </li>
-                  <li className="flex items-center gap-2 text-sm">
-                    <Check className="h-4 w-4 text-green-600" />
-                    <span>SMS notificaties</span>
+                  <li className="flex items-center gap-2">
+                    <Check className="h-4 w-4 text-green-500" />
+                    <span className="text-sm text-gray-600">SMS notificaties</span>
                   </li>
-                  <li className="flex items-center gap-2 text-sm">
-                    <Check className="h-4 w-4 text-green-600" />
-                    <span>25% korting t.o.v. maandelijks</span>
+                  <li className="flex items-center gap-2">
+                    <Check className="h-4 w-4 text-green-500" />
+                    <span className="text-sm text-gray-600">Prioriteit support</span>
                   </li>
                 </ul>
+                
                 <button
                   onClick={() => handleSubscribe(STRIPE_PRODUCTS.YEARLY.priceId)}
                   disabled={processingPayment}
-                  className="btn btn-primary w-full"
+                  className="w-full bg-green-600 text-white py-2 px-4 rounded-lg hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                 >
-                  {processingPayment ? 'Verwerken...' : 'Kies Jaarlijks'}
+                  {processingPayment ? (
+                    <>
+                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                      Verwerken...
+                    </>
+                  ) : (
+                    <>
+                      <Calendar className="h-4 w-4" />
+                      Jaarlijks Abonnement
+                    </>
+                  )}
                 </button>
               </div>
             </div>
@@ -426,49 +463,67 @@ export default function AbonnementPage() {
 
         {/* Manage Current Subscription */}
         {hasActive && instructorData?.subscription_id && (
-          <div className="card">
-            <h3 className="text-lg font-semibold mb-4">Beheer Abonnement</h3>
-            <div className="space-y-4">
-              <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
-                <div className="flex items-start gap-2">
-                  <AlertCircle className="h-5 w-5 text-yellow-600 mt-0.5" />
-                  <div>
-                    <h4 className="font-medium text-yellow-800">Abonnement beheren</h4>
-                    <p className="text-sm text-yellow-700 mt-1">
-                      Om je abonnement te wijzigen of op te zeggen, ga naar je Stripe dashboard of neem contact op met support.
-                    </p>
-                  </div>
+          <div className="bg-white rounded-lg shadow-sm border p-6">
+            <h2 className="text-xl font-semibold text-gray-900 mb-4">Beheer Abonnement</h2>
+            
+            <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-6">
+              <div className="flex items-start gap-2">
+                <AlertCircle className="h-5 w-5 text-yellow-600 mt-0.5" />
+                <div>
+                  <h4 className="font-medium text-yellow-800">Abonnement wijzigen</h4>
+                  <p className="text-sm text-yellow-700 mt-1">
+                    Om je abonnement te wijzigen, annuleer eerst je huidige abonnement en kies daarna een nieuw plan.
+                  </p>
                 </div>
+              </div>
+            </div>
+            
+            <div className="flex items-center justify-between">
+              <div>
+                <h3 className="font-medium text-gray-900">Huidig Abonnement</h3>
+                <p className="text-sm text-gray-600 mt-1">
+                  Status: <span className={`font-medium ${getSubscriptionStatusColor()}`}>
+                    {getSubscriptionStatusText()}
+                  </span>
+                </p>
               </div>
               
               <button
                 onClick={handleCancelSubscription}
                 disabled={cancelingSubscription}
-                className="btn btn-secondary w-full"
+                className="bg-red-600 text-white py-2 px-4 rounded-lg hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
               >
-                {cancelingSubscription ? 'Opzeggen...' : 'Abonnement opzeggen'}
+                {cancelingSubscription ? (
+                  <>
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                    Annuleren...
+                  </>
+                ) : (
+                  <>
+                    <X className="h-4 w-4" />
+                    Abonnement Annuleren
+                  </>
+                )}
               </button>
-            </div>
-          </div>
-        )}
-
-        {/* Trial Expired Warning */}
-        {isExpired && !hasActive && (
-          <div className="card">
-            <div className="bg-red-50 border border-red-200 rounded-lg p-4">
-              <div className="flex items-start gap-2">
-                <AlertCircle className="h-5 w-5 text-red-600 mt-0.5" />
-                <div>
-                  <h4 className="font-medium text-red-800">Proefperiode verlopen</h4>
-                  <p className="text-sm text-red-700 mt-1">
-                    Je 60-dagen gratis proefperiode is verlopen. Kies een abonnement om door te gaan met het gebruik van RijFlow.
-                  </p>
-                </div>
-              </div>
             </div>
           </div>
         )}
       </div>
     </div>
+  )
+}
+
+export default function AbonnementPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
+          <p className="mt-4 text-gray-600">Laden...</p>
+        </div>
+      </div>
+    }>
+      <AbonnementContent />
+    </Suspense>
   )
 } 
