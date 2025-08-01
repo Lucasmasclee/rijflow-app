@@ -110,6 +110,28 @@ function AISchedulePageContent() {
     return newDate
   }
 
+  // Helper function to get the date for a specific day of the week
+  const getDayDate = (dayIndex: number, weekStart: Date): string => {
+    const dayDate = new Date(weekStart)
+    dayDate.setDate(weekStart.getDate() + dayIndex)
+    
+    const day = dayDate.getDate()
+    const monthNames = ['jan', 'feb', 'mrt', 'apr', 'mei', 'jun', 'jul', 'aug', 'sep', 'okt', 'nov', 'dec']
+    const month = monthNames[dayDate.getMonth()]
+    
+    return `${day} ${month}`
+  }
+
+  // Helper function to get formatted day label with date
+  const getDayLabelWithDate = (dayIndex: number, weekStart: Date | null): string => {
+    if (!weekStart) {
+      return DAY_ORDER[dayIndex].name
+    }
+    
+    const date = getDayDate(dayIndex, weekStart)
+    return `${DAY_ORDER[dayIndex].shortName} ${date}`
+  }
+
   const formatDateToISO = (date: Date) => {
     // Zorg ervoor dat we de maandag van de geselecteerde week krijgen
     const mondayOfWeek = getMonday(date)
@@ -1211,7 +1233,7 @@ function AISchedulePageContent() {
                             className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
                           />
                           <label htmlFor={`available-${day.day}`} className="font-medium text-gray-900">
-                            {DAY_ORDER[index].name}
+                            {getDayLabelWithDate(index, selectedWeek)}
                           </label>
                         </div>
                       </div>
@@ -1416,7 +1438,7 @@ function AISchedulePageContent() {
                                     className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
                                   />
                                   <label htmlFor={`student-${student.id}-${dayInfo.day}`} className="font-medium text-gray-900">
-                                    {dayInfo.name}
+                                    {getDayLabelWithDate(dayIndex, selectedWeek)}
                                   </label>
                                 </div>
                               </div>

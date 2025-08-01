@@ -18,13 +18,13 @@ interface AvailabilityData {
 }
 
 const daysOfWeek = [
-  { key: 'maandag', label: 'Maandag' },
-  { key: 'dinsdag', label: 'Dinsdag' },
-  { key: 'woensdag', label: 'Woensdag' },
-  { key: 'donderdag', label: 'Donderdag' },
-  { key: 'vrijdag', label: 'Vrijdag' },
-  { key: 'zaterdag', label: 'Zaterdag' },
-  { key: 'zondag', label: 'Zondag' }
+  { key: 'maandag', label: 'Maandag', shortName: 'Ma' },
+  { key: 'dinsdag', label: 'Dinsdag', shortName: 'Di' },
+  { key: 'woensdag', label: 'Woensdag', shortName: 'Wo' },
+  { key: 'donderdag', label: 'Donderdag', shortName: 'Do' },
+  { key: 'vrijdag', label: 'Vrijdag', shortName: 'Vr' },
+  { key: 'zaterdag', label: 'Zaterdag', shortName: 'Za' },
+  { key: 'zondag', label: 'Zondag', shortName: 'Zo' }
 ]
 
 const timeSlots = [
@@ -44,6 +44,29 @@ export default function BeschikbaarheidPage() {
   const [availability, setAvailability] = useState<AvailabilityData>({})
   const [error, setError] = useState<string | null>(null)
   const [weekInfo, setWeekInfo] = useState<{ weekStart: string; weekEnd: string } | null>(null)
+
+  // Helper function to get the date for a specific day of the week
+  const getDayDate = (dayIndex: number, weekStart: string): string => {
+    const weekStartDate = new Date(weekStart)
+    const dayDate = new Date(weekStartDate)
+    dayDate.setDate(weekStartDate.getDate() + dayIndex)
+    
+    const day = dayDate.getDate()
+    const monthNames = ['jan', 'feb', 'mrt', 'apr', 'mei', 'jun', 'jul', 'aug', 'sep', 'okt', 'nov', 'dec']
+    const month = monthNames[dayDate.getMonth()]
+    
+    return `${day} ${month}`
+  }
+
+  // Helper function to get formatted day label with date
+  const getDayLabelWithDate = (dayIndex: number, weekStart: string | null): string => {
+    if (!weekStart) {
+      return daysOfWeek[dayIndex].label
+    }
+    
+    const date = getDayDate(dayIndex, weekStart)
+    return `${daysOfWeek[dayIndex].shortName} ${date}`
+  }
 
   useEffect(() => {
     if (publicToken) {
@@ -302,7 +325,7 @@ export default function BeschikbaarheidPage() {
             {daysOfWeek.map((day) => (
               <div key={day.key} className="border-b border-gray-200 pb-6 last:border-b-0">
                 <div className="flex items-center justify-between mb-4">
-                  <h3 className="text-lg font-medium text-gray-900">{day.label}</h3>
+                                     <h3 className="text-lg font-medium text-gray-900">{getDayLabelWithDate(daysOfWeek.indexOf(day), weekInfo?.weekStart || null)}</h3>
                   <button
                     onClick={() => addTimeSlot(day.key)}
                     className="text-sm text-blue-600 hover:text-blue-700 font-medium"
