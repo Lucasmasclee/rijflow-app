@@ -450,12 +450,12 @@ export default function BeschikbaarheidPage() {
                   <div className="text-center py-8 text-gray-500">
                     <Clock className="h-8 w-8 mx-auto mb-2 text-gray-300" />
                     <p>Nog geen tijden ingevuld</p>
-                    <button
+                    {/* <button
                       onClick={() => addTimeSlot(day.key)}
                       className="mt-2 text-blue-600 hover:text-blue-700 text-sm font-medium"
                     >
                       Tijdsblok toevoegen
-                    </button>
+                    </button> */}
                   </div>
                 )}
               </div>

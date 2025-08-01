@@ -25,7 +25,7 @@ export default function TimeInput({
     endMinutes: '00'
   })
 
-  // Initialize from props
+  // Initialize from props only once when component mounts
   useEffect(() => {
     if (startTime) {
       const [hours, minutes] = startTime.split(':')
@@ -43,7 +43,7 @@ export default function TimeInput({
         endMinutes: minutes || '00'
       }))
     }
-  }, [startTime, endTime])
+  }, []) // Empty dependency array - only run once on mount
 
   // Helper functions for time input handling
   const updateTimeInputs = (field: string, value: string) => {
