@@ -1222,25 +1222,43 @@ function AISchedulePageContent() {
                             <label className="block text-sm font-medium text-gray-700 mb-1">
                               Starttijd
                             </label>
-                            <div className="flex gap-2">
+                            <div className="flex items-center space-x-2">
                               <input
                                 type="text"
+                                inputMode="numeric"
+                                pattern="[0-9]*"
                                 value={day.startHours}
-                                onChange={(e) => handleTimeChange(index, 'startHours', e.target.value)}
-                                onBlur={(e) => handleTimeBlur(index, 'startHours', e.target.value)}
-                                className="w-12 h-10 text-center border border-gray-300 rounded focus:ring-blue-500 focus:border-blue-500"
-                                placeholder="09"
-                                maxLength={2}
+                                onChange={(e) => {
+                                  const value = e.target.value
+                                  if (value === '' || /^\d{0,2}$/.test(value)) {
+                                    handleTimeChange(index, 'startHours', value)
+                                  }
+                                }}
+                                onBlur={(e) => {
+                                  const formattedValue = formatTimeOnBlur(e.target.value, 23)
+                                  handleTimeBlur(index, 'startHours', formattedValue)
+                                }}
+                                className="w-16 p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-center"
+                                placeholder="HH"
                               />
-                              <span className="flex items-center text-gray-500">:</span>
+                              <span className="text-gray-500 font-medium">:</span>
                               <input
                                 type="text"
+                                inputMode="numeric"
+                                pattern="[0-9]*"
                                 value={day.startMinutes}
-                                onChange={(e) => handleTimeChange(index, 'startMinutes', e.target.value)}
-                                onBlur={(e) => handleTimeBlur(index, 'startMinutes', e.target.value)}
-                                className="w-12 h-10 text-center border border-gray-300 rounded focus:ring-blue-500 focus:border-blue-500"
-                                placeholder="00"
-                                maxLength={2}
+                                onChange={(e) => {
+                                  const value = e.target.value
+                                  if (value === '' || /^\d{0,2}$/.test(value)) {
+                                    handleTimeChange(index, 'startMinutes', value)
+                                  }
+                                }}
+                                onBlur={(e) => {
+                                  const formattedValue = formatTimeOnBlur(e.target.value, 59)
+                                  handleTimeBlur(index, 'startMinutes', formattedValue)
+                                }}
+                                className="w-16 p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-center"
+                                placeholder="MM"
                               />
                             </div>
                           </div>
@@ -1249,25 +1267,43 @@ function AISchedulePageContent() {
                             <label className="block text-sm font-medium text-gray-700 mb-1">
                               Eindtijd
                             </label>
-                            <div className="flex gap-2">
+                            <div className="flex items-center space-x-2">
                               <input
                                 type="text"
+                                inputMode="numeric"
+                                pattern="[0-9]*"
                                 value={day.endHours}
-                                onChange={(e) => handleTimeChange(index, 'endHours', e.target.value)}
-                                onBlur={(e) => handleTimeBlur(index, 'endHours', e.target.value)}
-                                className="w-12 h-10 text-center border border-gray-300 rounded focus:ring-blue-500 focus:border-blue-500"
-                                placeholder="17"
-                                maxLength={2}
+                                onChange={(e) => {
+                                  const value = e.target.value
+                                  if (value === '' || /^\d{0,2}$/.test(value)) {
+                                    handleTimeChange(index, 'endHours', value)
+                                  }
+                                }}
+                                onBlur={(e) => {
+                                  const formattedValue = formatTimeOnBlur(e.target.value, 23)
+                                  handleTimeBlur(index, 'endHours', formattedValue)
+                                }}
+                                className="w-16 p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-center"
+                                placeholder="HH"
                               />
-                              <span className="flex items-center text-gray-500">:</span>
+                              <span className="text-gray-500 font-medium">:</span>
                               <input
                                 type="text"
+                                inputMode="numeric"
+                                pattern="[0-9]*"
                                 value={day.endMinutes}
-                                onChange={(e) => handleTimeChange(index, 'endMinutes', e.target.value)}
-                                onBlur={(e) => handleTimeBlur(index, 'endMinutes', e.target.value)}
-                                className="w-12 h-10 text-center border border-gray-300 rounded focus:ring-blue-500 focus:border-blue-500"
-                                placeholder="00"
-                                maxLength={2}
+                                onChange={(e) => {
+                                  const value = e.target.value
+                                  if (value === '' || /^\d{0,2}$/.test(value)) {
+                                    handleTimeChange(index, 'endMinutes', value)
+                                  }
+                                }}
+                                onBlur={(e) => {
+                                  const formattedValue = formatTimeOnBlur(e.target.value, 59)
+                                  handleTimeBlur(index, 'endMinutes', formattedValue)
+                                }}
+                                className="w-16 p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-center"
+                                placeholder="MM"
                               />
                             </div>
                           </div>
@@ -1391,42 +1427,154 @@ function AISchedulePageContent() {
                                     <label className="block text-sm font-medium text-gray-700 mb-1">
                                       Starttijd
                                     </label>
-                                    <input
-                                      type="time"
-                                      value={startTime}
-                                      onChange={(e) => {
-                                        const newStudents = [...students]
-                                        const currentAvailability = newStudents[studentIndex].availability_data || {}
-                                        currentAvailability[dayKey] = [e.target.value, endTime]
-                                        newStudents[studentIndex] = {
-                                          ...newStudents[studentIndex],
-                                          availability_data: currentAvailability
-                                        }
-                                        setStudents(newStudents)
-                                      }}
-                                      className="w-full h-10 border border-gray-300 rounded focus:ring-blue-500 focus:border-blue-500"
-                                    />
+                                    <div className="flex items-center space-x-2">
+                                      <input
+                                        type="text"
+                                        inputMode="numeric"
+                                        pattern="[0-9]*"
+                                        value={startTime.split(':')[0]}
+                                        onChange={(e) => {
+                                          const value = e.target.value
+                                          if (value === '' || /^\d{0,2}$/.test(value)) {
+                                            const newStudents = [...students]
+                                            const currentAvailability = newStudents[studentIndex].availability_data || {}
+                                            const minutes = startTime.split(':')[1] || '00'
+                                            currentAvailability[dayKey] = [`${value}:${minutes}`, endTime]
+                                            newStudents[studentIndex] = {
+                                              ...newStudents[studentIndex],
+                                              availability_data: currentAvailability
+                                            }
+                                            setStudents(newStudents)
+                                          }
+                                        }}
+                                        onBlur={(e) => {
+                                          const formattedValue = formatTimeOnBlur(e.target.value, 23)
+                                          const newStudents = [...students]
+                                          const currentAvailability = newStudents[studentIndex].availability_data || {}
+                                          const minutes = startTime.split(':')[1] || '00'
+                                          currentAvailability[dayKey] = [`${formattedValue}:${minutes}`, endTime]
+                                          newStudents[studentIndex] = {
+                                            ...newStudents[studentIndex],
+                                            availability_data: currentAvailability
+                                          }
+                                          setStudents(newStudents)
+                                        }}
+                                        className="w-16 p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-center"
+                                        placeholder="HH"
+                                      />
+                                      <span className="text-gray-500 font-medium">:</span>
+                                      <input
+                                        type="text"
+                                        inputMode="numeric"
+                                        pattern="[0-9]*"
+                                        value={startTime.split(':')[1]}
+                                        onChange={(e) => {
+                                          const value = e.target.value
+                                          if (value === '' || /^\d{0,2}$/.test(value)) {
+                                            const newStudents = [...students]
+                                            const currentAvailability = newStudents[studentIndex].availability_data || {}
+                                            const hours = startTime.split(':')[0] || '09'
+                                            currentAvailability[dayKey] = [`${hours}:${value}`, endTime]
+                                            newStudents[studentIndex] = {
+                                              ...newStudents[studentIndex],
+                                              availability_data: currentAvailability
+                                            }
+                                            setStudents(newStudents)
+                                          }
+                                        }}
+                                        onBlur={(e) => {
+                                          const formattedValue = formatTimeOnBlur(e.target.value, 59)
+                                          const newStudents = [...students]
+                                          const currentAvailability = newStudents[studentIndex].availability_data || {}
+                                          const hours = startTime.split(':')[0] || '09'
+                                          currentAvailability[dayKey] = [`${hours}:${formattedValue}`, endTime]
+                                          newStudents[studentIndex] = {
+                                            ...newStudents[studentIndex],
+                                            availability_data: currentAvailability
+                                          }
+                                          setStudents(newStudents)
+                                        }}
+                                        className="w-16 p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-center"
+                                        placeholder="MM"
+                                      />
+                                    </div>
                                   </div>
 
                                   <div>
                                     <label className="block text-sm font-medium text-gray-700 mb-1">
                                       Eindtijd
                                     </label>
-                                    <input
-                                      type="time"
-                                      value={endTime}
-                                      onChange={(e) => {
-                                        const newStudents = [...students]
-                                        const currentAvailability = newStudents[studentIndex].availability_data || {}
-                                        currentAvailability[dayKey] = [startTime, e.target.value]
-                                        newStudents[studentIndex] = {
-                                          ...newStudents[studentIndex],
-                                          availability_data: currentAvailability
-                                        }
-                                        setStudents(newStudents)
-                                      }}
-                                      className="w-full h-10 border border-gray-300 rounded focus:ring-blue-500 focus:border-blue-500"
-                                    />
+                                    <div className="flex items-center space-x-2">
+                                      <input
+                                        type="text"
+                                        inputMode="numeric"
+                                        pattern="[0-9]*"
+                                        value={endTime.split(':')[0]}
+                                        onChange={(e) => {
+                                          const value = e.target.value
+                                          if (value === '' || /^\d{0,2}$/.test(value)) {
+                                            const newStudents = [...students]
+                                            const currentAvailability = newStudents[studentIndex].availability_data || {}
+                                            const minutes = endTime.split(':')[1] || '00'
+                                            currentAvailability[dayKey] = [startTime, `${value}:${minutes}`]
+                                            newStudents[studentIndex] = {
+                                              ...newStudents[studentIndex],
+                                              availability_data: currentAvailability
+                                            }
+                                            setStudents(newStudents)
+                                          }
+                                        }}
+                                        onBlur={(e) => {
+                                          const formattedValue = formatTimeOnBlur(e.target.value, 23)
+                                          const newStudents = [...students]
+                                          const currentAvailability = newStudents[studentIndex].availability_data || {}
+                                          const minutes = endTime.split(':')[1] || '00'
+                                          currentAvailability[dayKey] = [startTime, `${formattedValue}:${minutes}`]
+                                          newStudents[studentIndex] = {
+                                            ...newStudents[studentIndex],
+                                            availability_data: currentAvailability
+                                          }
+                                          setStudents(newStudents)
+                                        }}
+                                        className="w-16 p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-center"
+                                        placeholder="HH"
+                                      />
+                                      <span className="text-gray-500 font-medium">:</span>
+                                      <input
+                                        type="text"
+                                        inputMode="numeric"
+                                        pattern="[0-9]*"
+                                        value={endTime.split(':')[1]}
+                                        onChange={(e) => {
+                                          const value = e.target.value
+                                          if (value === '' || /^\d{0,2}$/.test(value)) {
+                                            const newStudents = [...students]
+                                            const currentAvailability = newStudents[studentIndex].availability_data || {}
+                                            const hours = endTime.split(':')[0] || '17'
+                                            currentAvailability[dayKey] = [startTime, `${hours}:${value}`]
+                                            newStudents[studentIndex] = {
+                                              ...newStudents[studentIndex],
+                                              availability_data: currentAvailability
+                                            }
+                                            setStudents(newStudents)
+                                          }
+                                        }}
+                                        onBlur={(e) => {
+                                          const formattedValue = formatTimeOnBlur(e.target.value, 59)
+                                          const newStudents = [...students]
+                                          const currentAvailability = newStudents[studentIndex].availability_data || {}
+                                          const hours = endTime.split(':')[0] || '17'
+                                          currentAvailability[dayKey] = [startTime, `${hours}:${formattedValue}`]
+                                          newStudents[studentIndex] = {
+                                            ...newStudents[studentIndex],
+                                            availability_data: currentAvailability
+                                          }
+                                          setStudents(newStudents)
+                                        }}
+                                        className="w-16 p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-center"
+                                        placeholder="MM"
+                                      />
+                                    </div>
                                   </div>
                                 </div>
                               )}

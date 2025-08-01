@@ -581,23 +581,121 @@ export default function DayOverviewPage({ params }: { params: Promise<{ date: st
                   <label className="block text-sm font-medium text-gray-700 mb-1">
                     Starttijd *
                   </label>
-                  <input
-                    type="time"
-                    value={lessonForm.startTime}
-                    onChange={(e) => setLessonForm(prev => ({ ...prev, startTime: e.target.value }))}
-                    className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  />
+                  <div className="flex items-center space-x-2">
+                    <input
+                      type="text"
+                      inputMode="numeric"
+                      pattern="[0-9]*"
+                      value={lessonForm.startTime.split(':')[0]}
+                      onChange={(e) => {
+                        const value = e.target.value
+                        if (value === '' || /^\d{0,2}$/.test(value)) {
+                          const minutes = lessonForm.startTime.split(':')[1] || '00'
+                          setLessonForm(prev => ({ ...prev, startTime: `${value}:${minutes}` }))
+                        }
+                      }}
+                      onBlur={(e) => {
+                        let numValue = parseInt(e.target.value, 10)
+                        if (isNaN(numValue) || numValue < 0) {
+                          numValue = 0
+                        } else if (numValue > 23) {
+                          numValue = 23
+                        }
+                        const formattedValue = numValue.toString().padStart(2, '0')
+                        const minutes = lessonForm.startTime.split(':')[1] || '00'
+                        setLessonForm(prev => ({ ...prev, startTime: `${formattedValue}:${minutes}` }))
+                      }}
+                      className="w-16 p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-center"
+                      placeholder="HH"
+                    />
+                    <span className="text-gray-500 font-medium">:</span>
+                    <input
+                      type="text"
+                      inputMode="numeric"
+                      pattern="[0-9]*"
+                      value={lessonForm.startTime.split(':')[1]}
+                      onChange={(e) => {
+                        const value = e.target.value
+                        if (value === '' || /^\d{0,2}$/.test(value)) {
+                          const hours = lessonForm.startTime.split(':')[0] || '09'
+                          setLessonForm(prev => ({ ...prev, startTime: `${hours}:${value}` }))
+                        }
+                      }}
+                      onBlur={(e) => {
+                        let numValue = parseInt(e.target.value, 10)
+                        if (isNaN(numValue) || numValue < 0) {
+                          numValue = 0
+                        } else if (numValue > 59) {
+                          numValue = 59
+                        }
+                        const formattedValue = numValue.toString().padStart(2, '0')
+                        const hours = lessonForm.startTime.split(':')[0] || '09'
+                        setLessonForm(prev => ({ ...prev, startTime: `${hours}:${formattedValue}` }))
+                      }}
+                      className="w-16 p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-center"
+                      placeholder="MM"
+                    />
+                  </div>
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
                     Eindtijd *
                   </label>
-                  <input
-                    type="time"
-                    value={lessonForm.endTime}
-                    onChange={(e) => setLessonForm(prev => ({ ...prev, endTime: e.target.value }))}
-                    className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  />
+                  <div className="flex items-center space-x-2">
+                    <input
+                      type="text"
+                      inputMode="numeric"
+                      pattern="[0-9]*"
+                      value={lessonForm.endTime.split(':')[0]}
+                      onChange={(e) => {
+                        const value = e.target.value
+                        if (value === '' || /^\d{0,2}$/.test(value)) {
+                          const minutes = lessonForm.endTime.split(':')[1] || '00'
+                          setLessonForm(prev => ({ ...prev, endTime: `${value}:${minutes}` }))
+                        }
+                      }}
+                      onBlur={(e) => {
+                        let numValue = parseInt(e.target.value, 10)
+                        if (isNaN(numValue) || numValue < 0) {
+                          numValue = 0
+                        } else if (numValue > 23) {
+                          numValue = 23
+                        }
+                        const formattedValue = numValue.toString().padStart(2, '0')
+                        const minutes = lessonForm.endTime.split(':')[1] || '00'
+                        setLessonForm(prev => ({ ...prev, endTime: `${formattedValue}:${minutes}` }))
+                      }}
+                      className="w-16 p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-center"
+                      placeholder="HH"
+                    />
+                    <span className="text-gray-500 font-medium">:</span>
+                    <input
+                      type="text"
+                      inputMode="numeric"
+                      pattern="[0-9]*"
+                      value={lessonForm.endTime.split(':')[1]}
+                      onChange={(e) => {
+                        const value = e.target.value
+                        if (value === '' || /^\d{0,2}$/.test(value)) {
+                          const hours = lessonForm.endTime.split(':')[0] || '17'
+                          setLessonForm(prev => ({ ...prev, endTime: `${hours}:${value}` }))
+                        }
+                      }}
+                      onBlur={(e) => {
+                        let numValue = parseInt(e.target.value, 10)
+                        if (isNaN(numValue) || numValue < 0) {
+                          numValue = 0
+                        } else if (numValue > 59) {
+                          numValue = 59
+                        }
+                        const formattedValue = numValue.toString().padStart(2, '0')
+                        const hours = lessonForm.endTime.split(':')[0] || '17'
+                        setLessonForm(prev => ({ ...prev, endTime: `${hours}:${formattedValue}` }))
+                      }}
+                      className="w-16 p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-center"
+                      placeholder="MM"
+                    />
+                  </div>
                 </div>
               </div>
               

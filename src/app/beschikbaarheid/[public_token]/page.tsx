@@ -317,25 +317,125 @@ export default function BeschikbaarheidPage() {
                       <div key={index} className="flex items-center gap-3">
                         <div className="flex items-center gap-2">
                           <Clock className="h-4 w-4 text-gray-400" />
-                          <select
-                            value={availability[day.key]?.[index * 2] || ''}
-                            onChange={(e) => handleTimeChange(day.key, index * 2, e.target.value)}
-                            className="border border-gray-300 rounded-md px-3 py-2 text-sm"
-                          >
-                            {timeSlots.map(time => (
-                              <option key={time} value={time}>{time}</option>
-                            ))}
-                          </select>
+                          <div className="flex items-center space-x-2">
+                            <input
+                              type="text"
+                              inputMode="numeric"
+                              pattern="[0-9]*"
+                              value={availability[day.key]?.[index * 2]?.split(':')[0] || ''}
+                              onChange={(e) => {
+                                const value = e.target.value
+                                if (value === '' || /^\d{0,2}$/.test(value)) {
+                                  const currentTime = availability[day.key]?.[index * 2] || '09:00'
+                                  const minutes = currentTime.split(':')[1] || '00'
+                                  handleTimeChange(day.key, index * 2, `${value}:${minutes}`)
+                                }
+                              }}
+                              onBlur={(e) => {
+                                let numValue = parseInt(e.target.value, 10)
+                                if (isNaN(numValue) || numValue < 0) {
+                                  numValue = 0
+                                } else if (numValue > 23) {
+                                  numValue = 23
+                                }
+                                const formattedValue = numValue.toString().padStart(2, '0')
+                                const currentTime = availability[day.key]?.[index * 2] || '09:00'
+                                const minutes = currentTime.split(':')[1] || '00'
+                                handleTimeChange(day.key, index * 2, `${formattedValue}:${minutes}`)
+                              }}
+                              className="w-16 p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-center"
+                              placeholder="HH"
+                            />
+                            <span className="text-gray-500 font-medium">:</span>
+                            <input
+                              type="text"
+                              inputMode="numeric"
+                              pattern="[0-9]*"
+                              value={availability[day.key]?.[index * 2]?.split(':')[1] || ''}
+                              onChange={(e) => {
+                                const value = e.target.value
+                                if (value === '' || /^\d{0,2}$/.test(value)) {
+                                  const currentTime = availability[day.key]?.[index * 2] || '09:00'
+                                  const hours = currentTime.split(':')[0] || '09'
+                                  handleTimeChange(day.key, index * 2, `${hours}:${value}`)
+                                }
+                              }}
+                              onBlur={(e) => {
+                                let numValue = parseInt(e.target.value, 10)
+                                if (isNaN(numValue) || numValue < 0) {
+                                  numValue = 0
+                                } else if (numValue > 59) {
+                                  numValue = 59
+                                }
+                                const formattedValue = numValue.toString().padStart(2, '0')
+                                const currentTime = availability[day.key]?.[index * 2] || '09:00'
+                                const hours = currentTime.split(':')[0] || '09'
+                                handleTimeChange(day.key, index * 2, `${hours}:${formattedValue}`)
+                              }}
+                              className="w-16 p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-center"
+                              placeholder="MM"
+                            />
+                          </div>
                           <span className="text-gray-500">tot</span>
-                          <select
-                            value={availability[day.key]?.[index * 2 + 1] || ''}
-                            onChange={(e) => handleTimeChange(day.key, index * 2 + 1, e.target.value)}
-                            className="border border-gray-300 rounded-md px-3 py-2 text-sm"
-                          >
-                            {timeSlots.map(time => (
-                              <option key={time} value={time}>{time}</option>
-                            ))}
-                          </select>
+                          <div className="flex items-center space-x-2">
+                            <input
+                              type="text"
+                              inputMode="numeric"
+                              pattern="[0-9]*"
+                              value={availability[day.key]?.[index * 2 + 1]?.split(':')[0] || ''}
+                              onChange={(e) => {
+                                const value = e.target.value
+                                if (value === '' || /^\d{0,2}$/.test(value)) {
+                                  const currentTime = availability[day.key]?.[index * 2 + 1] || '17:00'
+                                  const minutes = currentTime.split(':')[1] || '00'
+                                  handleTimeChange(day.key, index * 2 + 1, `${value}:${minutes}`)
+                                }
+                              }}
+                              onBlur={(e) => {
+                                let numValue = parseInt(e.target.value, 10)
+                                if (isNaN(numValue) || numValue < 0) {
+                                  numValue = 0
+                                } else if (numValue > 23) {
+                                  numValue = 23
+                                }
+                                const formattedValue = numValue.toString().padStart(2, '0')
+                                const currentTime = availability[day.key]?.[index * 2 + 1] || '17:00'
+                                const minutes = currentTime.split(':')[1] || '00'
+                                handleTimeChange(day.key, index * 2 + 1, `${formattedValue}:${minutes}`)
+                              }}
+                              className="w-16 p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-center"
+                              placeholder="HH"
+                            />
+                            <span className="text-gray-500 font-medium">:</span>
+                            <input
+                              type="text"
+                              inputMode="numeric"
+                              pattern="[0-9]*"
+                              value={availability[day.key]?.[index * 2 + 1]?.split(':')[1] || ''}
+                              onChange={(e) => {
+                                const value = e.target.value
+                                if (value === '' || /^\d{0,2}$/.test(value)) {
+                                  const currentTime = availability[day.key]?.[index * 2 + 1] || '17:00'
+                                  const hours = currentTime.split(':')[0] || '17'
+                                  handleTimeChange(day.key, index * 2 + 1, `${hours}:${value}`)
+                                }
+                              }}
+                              onBlur={(e) => {
+                                let numValue = parseInt(e.target.value, 10)
+                                if (isNaN(numValue) || numValue < 0) {
+                                  numValue = 0
+                                } else if (numValue > 59) {
+                                  numValue = 59
+                                }
+                                const formattedValue = numValue.toString().padStart(2, '0')
+                                const currentTime = availability[day.key]?.[index * 2 + 1] || '17:00'
+                                const hours = currentTime.split(':')[0] || '17'
+                                handleTimeChange(day.key, index * 2 + 1, `${hours}:${formattedValue}`)
+                              }}
+                              className="w-16 p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-center"
+                              placeholder="MM"
+                            />
+                          </div>
                         </div>
                         <button
                           onClick={() => removeTimeSlot(day.key, index)}
