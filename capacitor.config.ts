@@ -5,7 +5,7 @@ const config: CapacitorConfig = {
   appName: 'RijFlow',
   webDir: '.next',
   server: {
-    url: 'https://rijflow-app.vercel.app',
+    url: 'https://rijflow.nl',
     cleartext: true
   },
   ios: {

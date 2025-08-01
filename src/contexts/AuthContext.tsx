@@ -129,7 +129,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     // Determine the redirect URL - use current origin if available, otherwise use production URL
     const redirectUrl = typeof window !== 'undefined' 
       ? `${window.location.origin}/auth/signin`
-      : 'https://rijflow-app.vercel.app/auth/signin'
+      : 'https://rijflow.nl/auth/signin'
     
     // Prepare user metadata
     const userMetadata: any = { role }
