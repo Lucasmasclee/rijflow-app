@@ -1931,16 +1931,20 @@ function AISchedulePageContent() {
                     </div>
                   )}
 
-                  {/* Students without lessons */}
-                  {planningResult.leerlingen_zonder_les && Object.keys(planningResult.leerlingen_zonder_les).length > 0 && (
+                  {/* Students with lessons status */}
+                  {planningResult.leerlingen_met_lessen && Object.keys(planningResult.leerlingen_met_lessen).length > 0 && (
                     <div className="bg-white border border-gray-200 rounded-lg p-6">
-                      <h4 className="text-lg font-medium text-gray-900 mb-4">Leerlingen zonder voldoende lessen</h4>
+                      <h4 className="text-lg font-medium text-gray-900 mb-4">Leerlingen lesstatus</h4>
                       <div className="space-y-2">
-                        {Object.entries(planningResult.leerlingen_zonder_les).map(([studentName, missingLessons]) => (
-                          <div key={studentName} className="flex items-center justify-between p-3 bg-red-50 rounded-lg">
+                        {Object.entries(planningResult.leerlingen_met_lessen).map(([studentName, studentData]) => (
+                          <div key={studentName} className={`flex items-center justify-between p-3 rounded-lg ${
+                            (studentData as any).status === "✅" ? "bg-green-50" : "bg-red-50"
+                          }`}>
                             <span className="font-medium text-gray-900">{studentName}</span>
-                            <span className="text-sm text-red-600">
-                              {missingLessons as number} les{(missingLessons as number) !== 1 ? 'sen' : ''} te weinig
+                            <span className={`text-sm font-medium ${
+                              (studentData as any).status === "✅" ? "text-green-600" : "text-red-600"
+                            }`}>
+                              {(studentData as any).planned}/{(studentData as any).requested} lessen {(studentData as any).status}
                             </span>
                           </div>
                         ))}
