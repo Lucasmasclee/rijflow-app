@@ -1366,15 +1366,50 @@ function AISchedulePageContent() {
                         <div className="flex items-center gap-4 mb-4">
                           <div className="flex items-center gap-2">
                             <input
-                              type="number"
-                              min="1"
-                              max="7"
+                              type="text"
+                              inputMode="numeric"
+                              pattern="[0-9]*"
                               value={student.default_lessons_per_week || 2}
                               onChange={(e) => {
+                                const value = e.target.value
+                                // Allow empty input for normal typing
+                                if (value === '') {
+                                  const newStudents = [...students]
+                                  newStudents[studentIndex] = {
+                                    ...newStudents[studentIndex],
+                                    default_lessons_per_week: 0
+                                  }
+                                  setStudents(newStudents)
+                                  return
+                                }
+                                
+                                // Only allow numbers
+                                if (!/^\d*$/.test(value)) return
+                                
+                                const numValue = parseInt(value, 10)
+                                if (isNaN(numValue)) return
+                                
                                 const newStudents = [...students]
                                 newStudents[studentIndex] = {
                                   ...newStudents[studentIndex],
-                                  default_lessons_per_week: parseInt(e.target.value) || 2
+                                  default_lessons_per_week: numValue
+                                }
+                                setStudents(newStudents)
+                              }}
+                              onBlur={(e) => {
+                                const value = e.target.value
+                                let numValue = parseInt(value, 10)
+                                
+                                if (isNaN(numValue) || numValue < 1) {
+                                  numValue = 1
+                                } else if (numValue > 7) {
+                                  numValue = 7
+                                }
+                                
+                                const newStudents = [...students]
+                                newStudents[studentIndex] = {
+                                  ...newStudents[studentIndex],
+                                  default_lessons_per_week: numValue
                                 }
                                 setStudents(newStudents)
                               }}
@@ -1382,16 +1417,53 @@ function AISchedulePageContent() {
                             />
                             <span className="text-sm text-gray-600">Lessen per week van</span>
                             <input
-                              type="number"
-                              min="30"
-                              max="120"
-                              step="5"
+                              type="text"
+                              inputMode="numeric"
+                              pattern="[0-9]*"
                               value={student.default_lesson_duration_minutes || 50}
                               onChange={(e) => {
+                                const value = e.target.value
+                                // Allow empty input for normal typing
+                                if (value === '') {
+                                  const newStudents = [...students]
+                                  newStudents[studentIndex] = {
+                                    ...newStudents[studentIndex],
+                                    default_lesson_duration_minutes: 0
+                                  }
+                                  setStudents(newStudents)
+                                  return
+                                }
+                                
+                                // Only allow numbers
+                                if (!/^\d*$/.test(value)) return
+                                
+                                const numValue = parseInt(value, 10)
+                                if (isNaN(numValue)) return
+                                
                                 const newStudents = [...students]
                                 newStudents[studentIndex] = {
                                   ...newStudents[studentIndex],
-                                  default_lesson_duration_minutes: parseInt(e.target.value) || 50
+                                  default_lesson_duration_minutes: numValue
+                                }
+                                setStudents(newStudents)
+                              }}
+                              onBlur={(e) => {
+                                const value = e.target.value
+                                let numValue = parseInt(value, 10)
+                                
+                                if (isNaN(numValue) || numValue < 30) {
+                                  numValue = 30
+                                } else if (numValue > 120) {
+                                  numValue = 120
+                                }
+                                
+                                // Round to nearest 5
+                                numValue = Math.round(numValue / 5) * 5
+                                
+                                const newStudents = [...students]
+                                newStudents[studentIndex] = {
+                                  ...newStudents[studentIndex],
+                                  default_lesson_duration_minutes: numValue
                                 }
                                 setStudents(newStudents)
                               }}
