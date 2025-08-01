@@ -242,11 +242,11 @@ Android app icon
 _________________________________________________________________________________________________________________________________________________________________________
 
 Glitches:
-- Schedule Settings worden niet direct opgeslagen
+✅✅✅- Schedule Settings worden niet direct opgeslagen
 - "selecteer alles" knop bij 'SMS leerlingen voor beschikbaarheid' functie
-- Als een leerling beschikbaarheid invult is de minimale tijd 8:00 --> Moet 6:00 zijn
-- Als een leerling beschikbaarheid invult: Datum bij elke dag neerzetten 
-- In ai-schedule: Datums neerzetten bij beschikbaarheid instructeur en leerlingen
+✅✅✅- Als een leerling beschikbaarheid invult is de minimale tijd 8:00 --> Moet 6:00 zijn
+✅✅✅- Als een leerling beschikbaarheid invult: Datum bij elke dag neerzetten 
+✅✅✅- In ai-schedule: Datums neerzetten bij beschikbaarheid instructeur en leerlingen
 - Ai-schedule -> beschikbaarheid leerlingen inputfields -> lessen per week en minuten per les hebben autocorrectie
 - Ai-schedule -> Voor elke leerling neerzetten 2/2 lessen✅ of 3/4 lessen❌ ingepland
 ✅✅✅- Als een account niet meer bestaat en de app wordt geopend staat er 404: Not_found

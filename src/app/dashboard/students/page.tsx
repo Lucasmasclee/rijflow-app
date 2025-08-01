@@ -696,6 +696,24 @@ export default function StudentsPage() {
                   })()}
                 </p>
                 
+                {/* Selecteer alle knop */}
+                <div className="mb-3">
+                  <button
+                    onClick={() => {
+                      const eligibleStudents = students.filter(student => {
+                        const recentlySent = isSmsRecentlySent(student.sms_laatst_gestuurd)
+                        const hasValidPhone = student.phone && isValidPhoneNumber(student.phone)
+                        return hasValidPhone && !recentlySent
+                      })
+                      const eligibleStudentIds = eligibleStudents.map(student => student.id)
+                      setSelectedStudents(new Set(eligibleStudentIds))
+                    }}
+                    className="text-sm text-blue-600 hover:text-blue-700 font-medium"
+                  >
+                    Selecteer alle
+                  </button>
+                </div>
+
                 <div className="space-y-3 max-h-64 overflow-y-auto">
                   {students.map(student => {
                     const recentlySent = isSmsRecentlySent(student.sms_laatst_gestuurd)
