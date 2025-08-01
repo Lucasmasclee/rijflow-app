@@ -729,20 +729,12 @@ function generate_week_planning(random_week_index, start_vanaf_begin, print_deta
     // Print summary
     // Verwijder alle console.log statements behalve de JSON output
     // Check and print students who didn't get their desired number of lessons
-    const students_with_lessons = [];
+    const students_with_missing_lessons = [];
     for (const student of students) {
-        const plannedlessonsstring = student.naam + ": " + student_lessons[student.id] + "/" + student.lessenPerWeek + " lessen" + (student_lessons[student.id] < student.lessenPerWeek ? "❌": "✅")
-        students_with_lessons.push(plannedlessonsstring)
-    }
-    
-    if (print_details) {
-        if (students_with_lessons.length > 0) {
-            console.log(`\nLeerlingen die niet het gewenste aantal lessen hebben gekregen:`);
-            for (const plannedlessonsstring of students_with_lessons) {
-                console.log(`  - ${plannedlessonsstring}`);
-            }
-        } else {
-            console.log(`\nAlle leerlingen hebben het gewenste aantal lessen gekregen!`);
+        if (student_lessons[student.id] < student.lessenPerWeek) {
+            const missing_lessons = student.lessenPerWeek - student_lessons[student.id];
+            students_with_missing_lessons.push([student.naam, missing_lessons]);
+            warnings.push(`Student ${student.naam} heeft nog ${missing_lessons} les(sen) nodig`);
         }
     }
     
@@ -826,19 +818,12 @@ function create_output_json(best_result, best_week_index, best_start_vanaf_begin
     
     // Calculate students without lessons
     const students_without_lessons = {};
-    const students_with_lessons = {};
     for (const student of students) {
         const student_lessons_count = formatted_lessons.filter(l => l.studentId === student.id).length;
         const missing_lessons = student.lessenPerWeek - student_lessons_count;
         if (missing_lessons > 0) {
             students_without_lessons[student.naam] = missing_lessons;
         }
-        // Add all students with their lesson status
-        students_with_lessons[student.naam] = {
-            planned: student_lessons_count,
-            requested: student.lessenPerWeek,
-            status: student_lessons_count >= student.lessenPerWeek ? "✅" : "❌"
-        };
     }
     
     // Calculate total time between lessons (excluding pause lessons)
@@ -870,7 +855,6 @@ function create_output_json(best_result, best_week_index, best_start_vanaf_begin
     const output_data = {
         lessons: formatted_lessons,
         leerlingen_zonder_les: students_without_lessons,
-        leerlingen_met_lessen: students_with_lessons,
         schedule_details: {
             lessen: formatted_lessons.length,
             totale_minuten_tussen_lesson: total_time_between_lessons

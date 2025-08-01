@@ -729,20 +729,12 @@ function generate_week_planning(random_week_index, start_vanaf_begin, print_deta
     // Print summary
     // Verwijder alle console.log statements behalve de JSON output
     // Check and print students who didn't get their desired number of lessons
-    const students_with_lessons = [];
+    const students_with_missing_lessons = [];
     for (const student of students) {
-        const plannedlessonsstring = student.naam + ": " + student_lessons[student.id] + "/" + student.lessenPerWeek + " lessen" + (student_lessons[student.id] < student.lessenPerWeek ? "❌": "✅")
-        students_with_lessons.push(plannedlessonsstring)
-    }
-    
-    if (print_details) {
-        if (students_with_lessons.length > 0) {
-            console.log(`\nLeerlingen die niet het gewenste aantal lessen hebben gekregen:`);
-            for (const plannedlessonsstring of students_with_lessons) {
-                console.log(`  - ${plannedlessonsstring}`);
-            }
-        } else {
-            console.log(`\nAlle leerlingen hebben het gewenste aantal lessen gekregen!`);
+        if (student_lessons[student.id] < student.lessenPerWeek) {
+            const missing_lessons = student.lessenPerWeek - student_lessons[student.id];
+            students_with_missing_lessons.push([student.naam, missing_lessons]);
+            warnings.push(`Student ${student.naam} heeft nog ${missing_lessons} les(sen) nodig`);
         }
     }
     
