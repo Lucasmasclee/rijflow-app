@@ -11,9 +11,21 @@ export async function middleware(req: NextRequest) {
     data: { session },
   } = await supabase.auth.getSession()
 
-  // If no session, redirect to signin
+  const pathname = req.nextUrl.pathname
+
+  // If no session and trying to access protected routes, redirect to signin
   if (!session) {
-    return NextResponse.redirect(new URL('/auth/signin', req.url))
+    // Only redirect if trying to access dashboard routes (not auth routes)
+    if (pathname.startsWith('/dashboard')) {
+      return NextResponse.redirect(new URL('/auth/signin', req.url))
+    }
+    // Allow access to auth pages even without session
+    return res
+  }
+
+  // If user is authenticated and trying to access auth pages, redirect to dashboard
+  if (session && (pathname.startsWith('/auth/signin') || pathname.startsWith('/auth/signup'))) {
+    return NextResponse.redirect(new URL('/dashboard', req.url))
   }
 
   // Check if user is instructor and has active subscription for protected routes
@@ -30,10 +42,11 @@ export async function middleware(req: NextRequest) {
   ]
 
   const isProtectedRoute = protectedRoutes.some(route => 
-    req.nextUrl.pathname.startsWith(route)
+    pathname.startsWith(route)
   )
 
-  if (isInstructor && isProtectedRoute) {
+  // Only check subscription for instructors on protected routes (not on subscription page)
+  if (isInstructor && isProtectedRoute && !pathname.startsWith('/dashboard/abonnement')) {
     // Get instructor data to check subscription status
     const { data: instructor } = await supabase
       .from('instructors')
