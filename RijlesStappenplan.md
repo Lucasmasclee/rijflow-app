@@ -243,7 +243,7 @@ ________________________________________________________________________________
 
 Glitches:
 ✅✅✅- Schedule Settings worden niet direct opgeslagen
-- "selecteer alles" knop bij 'SMS leerlingen voor beschikbaarheid' functie
+✅✅✅- "selecteer alles" knop bij 'SMS leerlingen voor beschikbaarheid' functie
 ✅✅✅- Als een leerling beschikbaarheid invult is de minimale tijd 8:00 --> Moet 6:00 zijn
 ✅✅✅- Als een leerling beschikbaarheid invult: Datum bij elke dag neerzetten 
 ✅✅✅- In ai-schedule: Datums neerzetten bij beschikbaarheid instructeur en leerlingen

@@ -1369,7 +1369,7 @@ function AISchedulePageContent() {
                               type="text"
                               inputMode="numeric"
                               pattern="[0-9]*"
-                              value={student.default_lessons_per_week || 2}
+                              value={student.default_lessons_per_week || ''}
                               onChange={(e) => {
                                 const value = e.target.value
                                 // Allow empty input for normal typing
@@ -1420,7 +1420,7 @@ function AISchedulePageContent() {
                               type="text"
                               inputMode="numeric"
                               pattern="[0-9]*"
-                              value={student.default_lesson_duration_minutes || 50}
+                              value={student.default_lesson_duration_minutes || ''}
                               onChange={(e) => {
                                 const value = e.target.value
                                 // Allow empty input for normal typing
