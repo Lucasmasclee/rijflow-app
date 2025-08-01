@@ -247,7 +247,6 @@ Glitches:
 - Als een leerling beschikbaarheid invult is de minimale tijd 8:00 --> Moet 6:00 zijn
 - Als een leerling beschikbaarheid invult: Datum bij elke dag neerzetten 
 - Ai-schedule -> beschikbaarheid leerlingen inputfields -> lessen per week en minuten per les hebben autocorrectie
-- Ai-schedule -> beschikbaarheid inputfields hebben 05:00 ipv 17:00
 - Ai-schedule -> Voor elke leerling neerzetten 2/2 lessen✅ of 3/4 lessen❌ ingepland
 ✅✅✅- Als een account niet meer bestaat en de app wordt geopend staat er 404: Not_found
 
@@ -255,5 +254,3 @@ Verbeteringen:
 - Instructeurs kunnen niet teveel SMS sturen
 - Bij een les aanmaken / bewerken: Knop voor "Stuur melding", en toggle voor "Stuur herinnering 24 uur van tevoren"
 - Optie om meldingen via whatsapp te sturen ipv SMS
-- Leeg weekplanning functie
-- Leeg dagplanning functie
