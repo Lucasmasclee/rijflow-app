@@ -13,6 +13,12 @@ export interface Instructeur {
   location?: string
   kvk_number?: string
   logo_url?: string
+  // Subscription fields
+  subscription_status?: 'trial' | 'active' | 'past_due' | 'canceled' | 'incomplete' | 'incomplete_expired' | 'unpaid'
+  subscription_id?: string
+  stripe_customer_id?: string
+  trial_ends_at?: string
+  subscription_ends_at?: string
   created_at: string
   updated_at: string
 }

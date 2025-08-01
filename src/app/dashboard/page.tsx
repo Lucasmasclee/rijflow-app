@@ -3,6 +3,7 @@
 import { useAuth } from '@/contexts/AuthContext'
 import { useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
+import { useSubscription } from '@/hooks/useSubscription'
 import { 
   Calendar, 
   Users, 
@@ -23,7 +24,8 @@ import {
   ChevronUp,
   User,
   Home,
-  Menu
+  Menu,
+  AlertCircle
 } from 'lucide-react'
 import Link from 'next/link'
 import { supabase } from '@/lib/supabase'
@@ -36,6 +38,7 @@ export const dynamic = 'force-dynamic'
 export default function DashboardPage() {
   const { user, signOut, loading } = useAuth()
   const router = useRouter()
+  const { hasActiveSubscription, isTrialExpired, trialDaysRemaining } = useSubscription()
   const [userRole, setUserRole] = useState<'instructor' | 'student' | null>(null)
   const [schoolName, setSchoolName] = useState('Mijn Rijschool')
   const [isEditingSchoolName, setIsEditingSchoolName] = useState(false)
@@ -228,6 +231,30 @@ export default function DashboardPage() {
       </nav>
 
       <div className="container-mobile py-6">
+        {/* Subscription Banner */}
+        {userRole === 'instructor' && !hasActiveSubscription && (
+          <div className="mb-4 bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+            <div className="flex items-start gap-2">
+              <AlertCircle className="h-5 w-5 text-yellow-600 mt-0.5" />
+              <div>
+                <h4 className="font-medium text-yellow-800">Proefperiode</h4>
+                <p className="text-sm text-yellow-700 mt-1">
+                  {isTrialExpired 
+                    ? 'Je proefperiode is verlopen. Kies een abonnement om door te gaan.'
+                    : `Je hebt nog ${trialDaysRemaining} dagen in je gratis proefperiode.`
+                  }
+                </p>
+                <Link 
+                  href="/dashboard/abonnement" 
+                  className="inline-block mt-2 text-sm font-medium text-yellow-800 hover:text-yellow-900 underline"
+                >
+                  Abonnement beheren →
+                </Link>
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* Welcome Section */}
         <div className="mb-6">
           <div className="flex items-center gap-3">

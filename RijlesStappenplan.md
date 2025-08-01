@@ -267,13 +267,11 @@ PRIJSMODEL
 - Jaarlijks abonnement = €29,99 per maand voor jaarlijks (25% korting)
 
 TodoList voor automatische betaling:
-- Startdatum kolom toevoegen in supabase (Welke tabel?)
-- Kolom 'heeft_abonnement' toevoegen in supabase? 
 - Met Twilio API emails sturen voor dag 46, 53 en 60 (Herinnering om te upgraden)
 - Abonnement pagina toevoegen aan de website (Persoonlijke abonnement pagina, gebruiker moet hiervoor ingelogd zijn)
 - Abonnement pagina: Maandelijks abonnement
 - Abonnement pagina: Jaarlijks abonnement
 - Abonnement pagina Abonnement opzeggen
-- Als betaald is, wordt de kolom 'heeft_abonnement' in supabase geupdated naar false
-- Als abonnement wordt opgezegd, wordt 'heeft_abonnement' in supabase geupdated naar false
+- Als betaald is moet toegang verleend worden aan de gebruiker
+- Als abonnement wordt opgezegd moet toegang geblokkeerd worden
 - Toegang blokkeren als: 'startdatum' is meer dan 60 dagen geleden && 'heeft_abonnement' = false
