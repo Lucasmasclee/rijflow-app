@@ -45,6 +45,7 @@ export default function ScheduleSettingsPage() {
   const [saved, setSaved] = useState(false)
   const [loadingAvailability, setLoadingAvailability] = useState(true)
   const [saving, setSaving] = useState(false)
+  const timeInputRefs = useRef<{ [key: string]: (() => void) | null }>({})
 
   // Initialize default availability for an instructor
   const initializeDefaultAvailability = async () => {
@@ -191,6 +192,11 @@ export default function ScheduleSettingsPage() {
     
     try {
       setSaving(true)
+      
+      // Sync all time inputs before saving
+      Object.values(timeInputRefs.current).forEach(syncFn => {
+        if (syncFn) syncFn()
+      })
       
       // Convert UI format to database format
       const availabilityData: Record<string, string[]> = {}
@@ -396,6 +402,9 @@ export default function ScheduleSettingsPage() {
                         endTime={day.endTime}
                         onTimeChange={(startTime, endTime) => updateDayTime(day.day, startTime, endTime)}
                         className="flex-1"
+                        onSync={(syncFn) => {
+                          timeInputRefs.current[day.day] = syncFn
+                        }}
                       />
                     </div>
                   )}

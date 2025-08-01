@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 
 interface TimeInputProps {
   startTime: string
@@ -8,6 +8,7 @@ interface TimeInputProps {
   onTimeChange: (startTime: string, endTime: string) => void
   disabled?: boolean
   className?: string
+  onSync?: (syncFn: () => void) => void
 }
 
 export default function TimeInput({ 
@@ -15,7 +16,8 @@ export default function TimeInput({
   endTime, 
   onTimeChange, 
   disabled = false,
-  className = ''
+  className = '',
+  onSync
 }: TimeInputProps) {
   // Raw input values (what user is typing)
   const [startHoursRaw, setStartHoursRaw] = useState('09')
@@ -28,6 +30,20 @@ export default function TimeInput({
   const [startMinutes, setStartMinutes] = useState('00')
   const [endHours, setEndHours] = useState('17')
   const [endMinutes, setEndMinutes] = useState('00')
+
+  // Function to sync current values to parent
+  const syncCurrentValues = () => {
+    const newStartTime = `${startHoursRaw}:${startMinutesRaw}`
+    const newEndTime = `${endHoursRaw}:${endMinutesRaw}`
+    onTimeChange(newStartTime, newEndTime)
+  }
+
+  // Expose sync function to parent
+  useEffect(() => {
+    if (onSync) {
+      onSync(syncCurrentValues)
+    }
+  }, [startHoursRaw, startMinutesRaw, endHoursRaw, endMinutesRaw])
 
   // Initialize from props
   useEffect(() => {
