@@ -273,6 +273,13 @@ export default function DashboardPage() {
                     <Edit2 className="h-5 w-5" />
                   </button>
                 )}
+                <Link
+                  href="/dashboard/abonnement"
+                  className="btn btn-secondary flex items-center gap-2 text-sm"
+                >
+                  <User className="h-4 w-4" />
+                  Account
+                </Link>
               </div>
             )}
           </div>

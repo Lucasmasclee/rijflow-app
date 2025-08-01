@@ -236,6 +236,7 @@ Landingspagina updaten met de 2 nieuwe belangrijke functies, misschien een youtu
 ✅Screenshots appstore
 Betalingen opzetten
 Marketen (Hoe?)
+Voor marketen: Naar het cbr gaan en flyers uitdelen ????
 Iemand anders de hele app laten testen om glitches / fouten eruit te halen
 Android app icon
 
@@ -256,3 +257,23 @@ Verbeteringen:
 - Bij een les aanmaken / bewerken: Knop voor "Stuur melding", en toggle voor "Stuur herinnering 24 uur van tevoren"
 - Optie om meldingen via whatsapp te sturen ipv SMS
 ✅✅✅- In ai-schedule moet "volgende" knop ook de wijzigingen opslaan (Dit gebeurt misschien al?) 
+- Todolist in dashboard ??
+
+
+
+PRIJSMODEL
+- 60 dagen gratis (Betaalgegevens niet vereist)
+- Maandelijks abonnement = €39,99 per maand
+- Jaarlijks abonnement = €29,99 per maand voor jaarlijks (25% korting)
+
+TodoList voor automatische betaling:
+- Startdatum kolom toevoegen in supabase (Welke tabel?)
+- Kolom 'heeft_abonnement' toevoegen in supabase? 
+- Met Twilio API emails sturen voor dag 46, 53 en 60 (Herinnering om te upgraden)
+- Abonnement pagina toevoegen aan de website (Persoonlijke abonnement pagina, gebruiker moet hiervoor ingelogd zijn)
+- Abonnement pagina: Maandelijks abonnement
+- Abonnement pagina: Jaarlijks abonnement
+- Abonnement pagina Abonnement opzeggen
+- Als betaald is, wordt de kolom 'heeft_abonnement' in supabase geupdated naar false
+- Als abonnement wordt opgezegd, wordt 'heeft_abonnement' in supabase geupdated naar false
+- Toegang blokkeren als: 'startdatum' is meer dan 60 dagen geleden && 'heeft_abonnement' = false
