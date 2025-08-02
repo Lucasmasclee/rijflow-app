@@ -8,7 +8,9 @@ import Link from 'next/link'
 import toast from 'react-hot-toast'
 import ClientOnly from '@/components/ClientOnly'
 import PasswordInput from '@/components/PasswordInput'
-import { supabase } from '@/lib/supabase'
+import { createSupabaseClient } from '@/lib/supabase'
+
+const supabase = createSupabaseClient()
 
 // Force dynamic rendering to prevent static generation issues
 export const dynamic = 'force-dynamic'

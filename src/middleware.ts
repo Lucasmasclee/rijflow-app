@@ -6,13 +6,18 @@ export async function middleware(req: NextRequest) {
   const res = NextResponse.next()
   const supabase = createMiddlewareClient({ req, res })
 
+  console.log('Middleware running for:', req.nextUrl.pathname)
+
   // Check if user is authenticated
   const {
     data: { user },
   } = await supabase.auth.getUser()
 
+  console.log('User in middleware:', user?.id, user?.email)
+
   // If user is not authenticated and trying to access protected routes
   if (!user && req.nextUrl.pathname.startsWith('/dashboard')) {
+    console.log('No user found, redirecting to signin')
     return NextResponse.redirect(new URL('/auth/signin', req.url))
   }
 
@@ -58,6 +63,7 @@ export async function middleware(req: NextRequest) {
       }
 
       console.log('Successfully created instructor with trial subscription for user:', user.id)
+      instructor = newInstructor // Set instructor to the newly created one
       
       // Successfully created trial subscription, check if new instructor needs to go to schedule-settings
       if (user.user_metadata?.role === 'instructor') {
@@ -76,7 +82,7 @@ export async function middleware(req: NextRequest) {
       return res
     }
 
-    // Check if user has active subscription or is in trial
+        // Check if user has active subscription or is in trial
     const hasActiveSubscription = instructor && (
       instructor.subscription_status === 'active' ||
       instructor.subscription_status === 'trialing' ||
@@ -85,14 +91,21 @@ export async function middleware(req: NextRequest) {
        new Date(instructor.trial_ends_at) > new Date())
     )
 
+    console.log('Instructor subscription status:', instructor?.subscription_status)
+    console.log('Has active subscription:', hasActiveSubscription)
+    console.log('Current path:', req.nextUrl.pathname)
+
     // Allow access to subscription page and schedule-settings even without active subscription
     const isSubscriptionPage = req.nextUrl.pathname === '/dashboard/abonnement'
     const isAllowedWithoutSubscription = isSubscriptionPage || isScheduleSettingsPage
 
     // If no active subscription and not on allowed pages, redirect to subscription page
     if (!hasActiveSubscription && !isAllowedWithoutSubscription) {
+      console.log('No active subscription, redirecting to abonnement page')
       return NextResponse.redirect(new URL('/dashboard/abonnement', req.url))
     }
+
+    console.log('Access granted to:', req.nextUrl.pathname)
   }
 
   return res
