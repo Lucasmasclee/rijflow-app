@@ -28,6 +28,43 @@ export async function middleware(req: NextRequest) {
       .eq('user_id', user.id)
       .single()
 
+    // If no subscription exists, create a trial subscription for existing users
+    if (!subscription) {
+      const trialEndDate = new Date()
+      trialEndDate.setDate(trialEndDate.getDate() + 60) // 60 days trial
+
+      const { data: newSubscription, error: createError } = await supabase
+        .from('subscriptions')
+        .insert({
+          user_id: user.id,
+          subscription_status: 'trial',
+          subscription_tier: 'free',
+          trial_ends_at: trialEndDate.toISOString(),
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+        })
+        .select()
+        .single()
+
+      if (!createError) {
+        // Successfully created trial subscription, check if new instructor needs to go to schedule-settings
+        if (user.user_metadata?.role === 'instructor') {
+          const { data: availabilityData, error: availabilityError } = await supabase
+            .from('standard_availability')
+            .select('id')
+            .eq('instructor_id', user.id)
+            .single()
+
+          if (availabilityError && availabilityError.code === 'PGRST116') {
+            // New instructor - redirect to schedule-settings
+            return NextResponse.redirect(new URL('/dashboard/schedule-settings', req.url))
+          }
+        }
+        // Allow access to dashboard
+        return res
+      }
+    }
+
     // Check if user has active subscription or is in trial
     const hasActiveSubscription = subscription && (
       subscription.subscription_status === 'active' ||

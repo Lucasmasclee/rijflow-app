@@ -30,27 +30,8 @@ export default function SignInPage() {
       await signIn(formData.email, formData.password)
       toast.success('Succesvol ingelogd!')
       
-      // Check if user is a new instructor and redirect accordingly
-      const { data: { user } } = await supabase.auth.getUser()
-      if (user?.user_metadata?.role === 'instructor') {
-        // Check if instructor has standard availability set up
-        const { data: availabilityData, error: availabilityError } = await supabase
-          .from('standard_availability')
-          .select('id')
-          .eq('instructor_id', user.id)
-          .single()
-
-        if (availabilityError && availabilityError.code === 'PGRST116') {
-          // New instructor - redirect to schedule-settings
-          router.push('/dashboard/schedule-settings')
-        } else {
-          // Existing instructor - redirect to dashboard
-          router.push('/dashboard')
-        }
-      } else {
-        // Non-instructor user - redirect to dashboard
-        router.push('/dashboard')
-      }
+      // Simple redirect to dashboard - let middleware handle subscription creation and routing
+      router.push('/dashboard')
     } catch (error: any) {
       toast.error(error.message || 'Inloggen mislukt. Controleer je gegevens.')
     } finally {
