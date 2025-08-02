@@ -21,32 +21,35 @@ export async function middleware(req: NextRequest) {
     // Allow access to schedule-settings for new instructors
     const isScheduleSettingsPage = req.nextUrl.pathname === '/dashboard/schedule-settings'
     
-    // Get user's subscription
-    const { data: subscription } = await supabase
-      .from('subscriptions')
+    // Get user's instructor record with subscription data
+    const { data: instructor } = await supabase
+      .from('instructors')
       .select('*')
-      .eq('user_id', user.id)
+      .eq('id', user.id)
       .single()
 
-    // If no subscription exists, create a trial subscription for existing users
-    if (!subscription) {
-      console.log('No subscription found for user:', user.id, '- creating trial subscription')
+    // If no instructor record exists, create one with trial subscription
+    if (!instructor) {
+      console.log('No instructor record found for user:', user.id, '- creating instructor with trial subscription')
       
       const trialEndDate = new Date()
       trialEndDate.setDate(trialEndDate.getDate() + 60) // 60 days trial
 
-      const { data: newSubscription, error: createError } = await supabase
-        .from('subscriptions')
+      const { data: newInstructor, error: createError } = await supabase
+        .from('instructors')
         .insert({
-          user_id: user.id,
-          // Other fields will use database defaults
+          id: user.id,
+          email: user.email || '',
+          rijschoolnaam: 'Mijn Rijschool',
+          subscription_status: 'trial',
+          trial_ends_at: trialEndDate.toISOString(),
         })
         .select()
         .single()
 
       if (createError) {
-        console.error('Error creating trial subscription in middleware:', createError)
-        // If we can't create subscription, still allow access to subscription page
+        console.error('Error creating instructor with trial subscription in middleware:', createError)
+        // If we can't create instructor record, still allow access to subscription page
         if (req.nextUrl.pathname === '/dashboard/abonnement') {
           return res
         }
@@ -54,7 +57,7 @@ export async function middleware(req: NextRequest) {
         return NextResponse.redirect(new URL('/dashboard/abonnement', req.url))
       }
 
-      console.log('Successfully created trial subscription for user:', user.id)
+      console.log('Successfully created instructor with trial subscription for user:', user.id)
       
       // Successfully created trial subscription, check if new instructor needs to go to schedule-settings
       if (user.user_metadata?.role === 'instructor') {
@@ -74,12 +77,12 @@ export async function middleware(req: NextRequest) {
     }
 
     // Check if user has active subscription or is in trial
-    const hasActiveSubscription = subscription && (
-      subscription.subscription_status === 'active' ||
-      subscription.subscription_status === 'trialing' ||
-      (subscription.subscription_status === 'trial' && 
-       subscription.trial_ends_at && 
-       new Date(subscription.trial_ends_at) > new Date())
+    const hasActiveSubscription = instructor && (
+      instructor.subscription_status === 'active' ||
+      instructor.subscription_status === 'trialing' ||
+      (instructor.subscription_status === 'trial' && 
+       instructor.trial_ends_at && 
+       new Date(instructor.trial_ends_at) > new Date())
     )
 
     // Allow access to subscription page and schedule-settings even without active subscription

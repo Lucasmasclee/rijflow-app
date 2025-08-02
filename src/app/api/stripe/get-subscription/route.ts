@@ -13,47 +13,53 @@ export async function GET(request: NextRequest) {
       )
     }
 
-    // Get user's subscription
-    const { data: subscription, error: subError } = await supabase
-      .from('subscriptions')
+    // Get user's instructor record with subscription data
+    const { data: instructor, error: instructorError } = await supabase
+      .from('instructors')
       .select('*')
-      .eq('user_id', user.user.id)
+      .eq('id', user.user.id)
       .single()
 
-    if (subError && subError.code !== 'PGRST116') {
+    if (instructorError && instructorError.code !== 'PGRST116') {
       // PGRST116 is "not found" error, which is expected for new users
-      console.error('Error fetching subscription:', subError)
+      console.error('Error fetching instructor:', instructorError)
       return NextResponse.json(
-        { error: 'Failed to fetch subscription' },
+        { error: 'Failed to fetch instructor' },
         { status: 500 }
       )
     }
 
-    // If no subscription exists, create a trial subscription (uses database defaults)
-    if (!subscription) {
-      const { data: newSubscription, error: createError } = await supabase
-        .from('subscriptions')
+    // If no instructor record exists, create one with trial subscription
+    if (!instructor) {
+      const trialEndDate = new Date()
+      trialEndDate.setDate(trialEndDate.getDate() + 60) // 60 days trial
+
+      const { data: newInstructor, error: createError } = await supabase
+        .from('instructors')
         .insert({
-          user_id: user.user.id,
-          // Other fields will use database defaults
+          id: user.user.id,
+          email: user.user.email || '',
+          rijschoolnaam: 'Mijn Rijschool',
+          subscription_status: 'trial',
+          trial_ends_at: trialEndDate.toISOString(),
         })
         .select()
         .single()
 
       if (createError) {
-        console.error('Error creating trial subscription:', createError)
+        console.error('Error creating instructor with trial subscription:', createError)
         return NextResponse.json(
-          { error: 'Failed to create trial subscription' },
+          { error: 'Failed to create instructor with trial subscription' },
           { status: 500 }
         )
       }
 
-      // Calculate trial days left from the created subscription
-      const trialEnd = new Date(newSubscription.trial_ends_at)
+      // Calculate trial days left from the created instructor
+      const trialEnd = new Date(newInstructor.trial_ends_at)
       const trialDaysLeft = Math.ceil((trialEnd.getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24))
 
       return NextResponse.json({
-        subscription: newSubscription,
+        subscription: newInstructor,
         isActive: true,
         isInTrial: true,
         trialDaysLeft,
@@ -61,17 +67,17 @@ export async function GET(request: NextRequest) {
     }
 
     // Check if subscription is active
-    const isActive = hasActiveSubscription(subscription)
-    const isInTrial = subscription.subscription_status === 'trial' && isInTrialPeriod(subscription.trial_ends_at)
+    const isActive = hasActiveSubscription(instructor)
+    const isInTrial = instructor.subscription_status === 'trial' && isInTrialPeriod(instructor.trial_ends_at)
 
     let trialDaysLeft = null
-    if (isInTrial && subscription.trial_ends_at) {
-      const trialEnd = new Date(subscription.trial_ends_at)
+    if (isInTrial && instructor.trial_ends_at) {
+      const trialEnd = new Date(instructor.trial_ends_at)
       trialDaysLeft = Math.ceil((trialEnd.getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24))
     }
 
     return NextResponse.json({
-      subscription,
+      subscription: instructor,
       isActive,
       isInTrial,
       trialDaysLeft,

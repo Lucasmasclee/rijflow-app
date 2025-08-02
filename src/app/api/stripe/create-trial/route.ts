@@ -12,41 +12,47 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Check if subscription already exists
-    const { data: existingSubscription, error: checkError } = await supabase
-      .from('subscriptions')
+    // Check if instructor record already exists
+    const { data: existingInstructor, error: checkError } = await supabase
+      .from('instructors')
       .select('*')
-      .eq('user_id', user.user.id)
+      .eq('id', user.user.id)
       .single()
 
-    if (existingSubscription) {
+    if (existingInstructor) {
       return NextResponse.json({
-        message: 'Subscription already exists',
-        subscription: existingSubscription
+        message: 'Instructor record already exists',
+        subscription: existingInstructor
       })
     }
 
-    // Create trial subscription (uses database defaults)
-    const { data: newSubscription, error: createError } = await supabase
-      .from('subscriptions')
+    // Create instructor record with trial subscription
+    const trialEndDate = new Date()
+    trialEndDate.setDate(trialEndDate.getDate() + 60) // 60 days trial
+
+    const { data: newInstructor, error: createError } = await supabase
+      .from('instructors')
       .insert({
-        user_id: user.user.id,
-        // Other fields will use database defaults
+        id: user.user.id,
+        email: user.user.email || '',
+        rijschoolnaam: 'Mijn Rijschool',
+        subscription_status: 'trial',
+        trial_ends_at: trialEndDate.toISOString(),
       })
       .select()
       .single()
 
     if (createError) {
-      console.error('Error creating trial subscription:', createError)
+      console.error('Error creating instructor with trial subscription:', createError)
       return NextResponse.json(
-        { error: 'Failed to create trial subscription: ' + createError.message },
+        { error: 'Failed to create instructor with trial subscription: ' + createError.message },
         { status: 500 }
       )
     }
 
     return NextResponse.json({
-      message: 'Trial subscription created successfully',
-      subscription: newSubscription
+      message: 'Instructor record with trial subscription created successfully',
+      subscription: newInstructor
     })
 
   } catch (error) {

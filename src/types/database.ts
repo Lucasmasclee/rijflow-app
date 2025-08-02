@@ -13,6 +13,12 @@ export interface Instructeur {
   location?: string
   kvk_number?: string
   logo_url?: string
+  // Subscription fields
+  subscription_status?: 'trial' | 'active' | 'past_due' | 'canceled' | 'incomplete' | 'incomplete_expired' | 'trialing' | 'unpaid'
+  subscription_id?: string
+  stripe_customer_id?: string
+  trial_ends_at?: string
+  subscription_ends_at?: string
   created_at: string
   updated_at: string
 }
@@ -186,15 +192,14 @@ export interface Subscription {
   id: string
   user_id: string
   stripe_customer_id?: string
-  stripe_subscription_id?: string
+  subscription_id?: string // Changed from stripe_subscription_id
   subscription_status: 'trial' | 'active' | 'past_due' | 'canceled' | 'incomplete' | 'incomplete_expired' | 'trialing' | 'unpaid'
-  subscription_tier: 'free' | 'monthly' | 'yearly'
+  subscription_tier?: 'free' | 'monthly' | 'yearly' // Made optional since it might not exist
   trial_ends_at?: string
-  current_period_start?: string
-  current_period_end?: string
+  subscription_ends_at?: string // Changed from current_period_end
   cancel_at_period_end?: boolean
-  created_at: string
-  updated_at: string
+  created_at?: string
+  updated_at?: string
 }
 
 export interface StripeEvent {
