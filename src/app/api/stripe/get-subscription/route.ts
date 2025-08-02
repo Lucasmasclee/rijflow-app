@@ -29,20 +29,13 @@ export async function GET(request: NextRequest) {
       )
     }
 
-    // If no subscription exists, create a trial subscription
+    // If no subscription exists, create a trial subscription (uses database defaults)
     if (!subscription) {
-      const trialEndDate = new Date()
-      trialEndDate.setDate(trialEndDate.getDate() + 60) // 60 days trial
-
       const { data: newSubscription, error: createError } = await supabase
         .from('subscriptions')
         .insert({
           user_id: user.user.id,
-          subscription_status: 'trial',
-          subscription_tier: 'free',
-          trial_ends_at: trialEndDate.toISOString(),
-          created_at: new Date().toISOString(),
-          updated_at: new Date().toISOString(),
+          // Other fields will use database defaults
         })
         .select()
         .single()
@@ -55,11 +48,15 @@ export async function GET(request: NextRequest) {
         )
       }
 
+      // Calculate trial days left from the created subscription
+      const trialEnd = new Date(newSubscription.trial_ends_at)
+      const trialDaysLeft = Math.ceil((trialEnd.getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24))
+
       return NextResponse.json({
         subscription: newSubscription,
         isActive: true,
         isInTrial: true,
-        trialDaysLeft: Math.ceil((trialEndDate.getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24)),
+        trialDaysLeft,
       })
     }
 

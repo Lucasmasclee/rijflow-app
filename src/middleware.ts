@@ -39,11 +39,7 @@ export async function middleware(req: NextRequest) {
         .from('subscriptions')
         .insert({
           user_id: user.id,
-          subscription_status: 'trial',
-          subscription_tier: 'free',
-          trial_ends_at: trialEndDate.toISOString(),
-          created_at: new Date().toISOString(),
-          updated_at: new Date().toISOString(),
+          // Other fields will use database defaults
         })
         .select()
         .single()

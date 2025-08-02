@@ -26,19 +26,12 @@ export async function POST(request: NextRequest) {
       })
     }
 
-    // Create trial subscription
-    const trialEndDate = new Date()
-    trialEndDate.setDate(trialEndDate.getDate() + 60) // 60 days trial
-
+    // Create trial subscription (uses database defaults)
     const { data: newSubscription, error: createError } = await supabase
       .from('subscriptions')
       .insert({
         user_id: user.user.id,
-        subscription_status: 'trial',
-        subscription_tier: 'free',
-        trial_ends_at: trialEndDate.toISOString(),
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
+        // Other fields will use database defaults
       })
       .select()
       .single()
