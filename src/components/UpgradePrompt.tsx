@@ -12,7 +12,7 @@ interface UpgradePromptProps {
 
 export default function UpgradePrompt({ 
   feature, 
-  message = "Upgrade je abonnement om toegang te krijgen tot deze functie.",
+  message = "Je proefperiode is afgelopen. Kies een abonnement om door te gaan.",
   showTrialInfo = true,
   className = ""
 }: UpgradePromptProps) {
@@ -53,20 +53,24 @@ export default function UpgradePrompt({
 
             <div className="space-y-2 mb-4">
               <div className="flex items-center text-sm text-blue-700">
-                <Check className="h-4 w-4 mr-2 text-green-500" />
+                <Check className="w-4 h-4 mr-2 text-green-500" />
+                Volledige toegang tot de RijFlow app
+              </div>
+              <div className="flex items-center text-sm text-blue-700">
+                <Check className="w-4 h-4 mr-2 text-green-500" />
                 Onbeperkt aantal leerlingen
               </div>
               <div className="flex items-center text-sm text-blue-700">
-                <Check className="h-4 w-4 mr-2 text-green-500" />
+                <Check className="w-4 h-4 mr-2 text-green-500" />
                 AI-geassisteerde planning
               </div>
               <div className="flex items-center text-sm text-blue-700">
-                <Check className="h-4 w-4 mr-2 text-green-500" />
+                <Check className="w-4 h-4 mr-2 text-green-500" />
                 SMS notificaties
               </div>
               <div className="flex items-center text-sm text-blue-700">
-                <Check className="h-4 w-4 mr-2 text-green-500" />
-                Volledige toegang tot alle functies
+                <Check className="w-4 h-4 mr-2 text-green-500" />
+                Les planning en beheer
               </div>
             </div>
 

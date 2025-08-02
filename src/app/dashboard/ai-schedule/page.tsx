@@ -2120,9 +2120,9 @@ export default function AISchedulePage() {
       </div>
     }>
       <SubscriptionGuard 
-        feature="AI-geassisteerde Planning"
-        requiredLevel="ai"
-        message="Upgrade je abonnement om toegang te krijgen tot AI-geassisteerde planning."
+        feature="RijFlow App"
+        requiredLevel="basic"
+        message="Je proefperiode is afgelopen. Kies een abonnement om door te gaan."
       >
         <AISchedulePageContent />
       </SubscriptionGuard>

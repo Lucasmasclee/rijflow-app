@@ -88,24 +88,12 @@ export function useSubscription() {
   }
 
   const canAccessFeature = (feature: 'basic' | 'premium' | 'ai') => {
-    if (!subscriptionData) return feature === 'basic'
+    if (!subscriptionData) return false
     
-    const { subscription, isActive, isInTrial } = subscriptionData
+    const { isActive, isInTrial } = subscriptionData
     
-    // Basic features are available to everyone
-    if (feature === 'basic') return true
-    
-    // Premium features require active subscription or trial
-    if (feature === 'premium') {
-      return isActive || isInTrial
-    }
-    
-    // AI features require paid subscription (not trial)
-    if (feature === 'ai') {
-      return isActive && !isInTrial && subscription.subscription_tier !== 'free'
-    }
-    
-    return false
+    // All features require active subscription or trial
+    return isActive || isInTrial
   }
 
   return {

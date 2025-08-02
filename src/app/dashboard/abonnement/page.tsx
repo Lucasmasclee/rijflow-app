@@ -331,6 +331,10 @@ export default function AbonnementPage() {
                     <ul className="text-sm text-gray-600 mb-4 space-y-1">
                       <li className="flex items-center">
                         <Check className="w-4 h-4 text-green-500 mr-2" />
+                        Volledige toegang tot de RijFlow app
+                      </li>
+                      <li className="flex items-center">
+                        <Check className="w-4 h-4 text-green-500 mr-2" />
                         Onbeperkt aantal leerlingen
                       </li>
                       <li className="flex items-center">
@@ -343,7 +347,7 @@ export default function AbonnementPage() {
                       </li>
                       <li className="flex items-center">
                         <Check className="w-4 h-4 text-green-500 mr-2" />
-                        Volledige toegang tot alle functies
+                        Les planning en beheer
                       </li>
                     </ul>
                     <button

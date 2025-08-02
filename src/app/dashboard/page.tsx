@@ -29,6 +29,7 @@ import Link from 'next/link'
 import { supabase } from '@/lib/supabase'
 import { Student, Instructeur } from '@/types/database'
 import { toast } from 'react-hot-toast'
+import SubscriptionGuard from '@/components/SubscriptionGuard'
 
 // Force dynamic rendering to prevent static generation issues
 export const dynamic = 'force-dynamic'
@@ -177,15 +178,19 @@ export default function DashboardPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 pb-20">
-      {/* Mobile Navigation */}
-      <nav className="bg-white shadow-sm border-b safe-area-top">
-        <div className="container-mobile">
-          <div className="flex justify-between items-center h-16">
-            <div className="flex items-center">
-              <Car className="h-8 w-8 text-blue-600" />
-              <span className="ml-2 text-xl font-bold text-gray-900">RijFlow</span>
-            </div>
+    <SubscriptionGuard 
+      feature="RijFlow Dashboard"
+      message="Je proefperiode is afgelopen. Kies een abonnement om toegang te krijgen tot je dashboard."
+    >
+      <div className="min-h-screen bg-gray-50 pb-20">
+        {/* Mobile Navigation */}
+        <nav className="bg-white shadow-sm border-b safe-area-top">
+          <div className="container-mobile">
+            <div className="flex justify-between items-center h-16">
+              <div className="flex items-center">
+                <Car className="h-8 w-8 text-blue-600" />
+                <span className="ml-2 text-xl font-bold text-gray-900">RijFlow</span>
+              </div>
             
             {/* Desktop Navigation */}
             {/* <div className="hidden md:flex items-center space-x-4">
@@ -322,6 +327,7 @@ export default function DashboardPage() {
         </div>
       </nav>
     </div>
+    </SubscriptionGuard>
   )
 }
 

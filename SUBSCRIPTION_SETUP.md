@@ -112,15 +112,18 @@ De volgende API routes zijn geïmplementeerd:
 
 ### Middleware
 
-De middleware (`src/middleware.ts`) beschermt premium routes:
+De middleware (`src/middleware.ts`) beschermt alle dashboard routes:
 
-- `/dashboard/ai-schedule` - AI planning functies
-- `/dashboard/students` - Leerling beheer
+- Alle routes onder `/dashboard` vereisen een actief abonnement of proefperiode
+- Alleen `/dashboard/abonnement` is toegankelijk zonder actief abonnement
+- Gebruikers worden automatisch doorgestuurd naar de abonnementspagina als hun proefperiode is afgelopen
 
 ### Hooks en Components
 
 - `useSubscription()` - Hook voor abonnementsbeheer
+- `SubscriptionGuard` - Component voor het beschermen van content
 - `UpgradePrompt` - Component voor upgrade prompts
+- `SubscriptionStatus` - Component voor het tonen van abonnement status
 
 ## 🧪 Testing
 

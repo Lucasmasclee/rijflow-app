@@ -16,7 +16,7 @@ export async function middleware(req: NextRequest) {
     return NextResponse.redirect(new URL('/auth/signin', req.url))
   }
 
-  // If user is authenticated, check subscription for premium features
+  // If user is authenticated, check subscription for all dashboard access
   if (user && req.nextUrl.pathname.startsWith('/dashboard')) {
     // Get user's subscription
     const { data: subscription } = await supabase
@@ -34,18 +34,11 @@ export async function middleware(req: NextRequest) {
        new Date(subscription.trial_ends_at) > new Date())
     )
 
-    // Protect premium features
-    const premiumRoutes = [
-      '/dashboard/ai-schedule',
-      '/dashboard/students', // Assuming this is a premium feature
-    ]
+    // Allow access to subscription page even without active subscription
+    const isSubscriptionPage = req.nextUrl.pathname === '/dashboard/abonnement'
 
-    const isPremiumRoute = premiumRoutes.some(route => 
-      req.nextUrl.pathname.startsWith(route)
-    )
-
-    if (isPremiumRoute && !hasActiveSubscription) {
-      // Redirect to subscription page if trying to access premium features without active subscription
+    // If no active subscription and not on subscription page, redirect to subscription page
+    if (!hasActiveSubscription && !isSubscriptionPage) {
       return NextResponse.redirect(new URL('/dashboard/abonnement', req.url))
     }
   }

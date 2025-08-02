@@ -5,7 +5,7 @@ import UpgradePrompt from './UpgradePrompt'
 interface SubscriptionGuardProps {
   children: ReactNode
   feature: string
-  requiredLevel: 'basic' | 'premium' | 'ai'
+  requiredLevel?: 'basic' | 'premium' | 'ai' // Made optional since all features now require subscription
   message?: string
   showUpgradePrompt?: boolean
 }
@@ -13,7 +13,7 @@ interface SubscriptionGuardProps {
 export default function SubscriptionGuard({ 
   children, 
   feature, 
-  requiredLevel, 
+  requiredLevel = 'basic', 
   message,
   showUpgradePrompt = true 
 }: SubscriptionGuardProps) {
