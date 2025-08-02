@@ -7,6 +7,7 @@ import { useAuth } from '@/contexts/AuthContext'
 import { supabase } from '@/lib/supabase'
 import { Student, AIWeekplanningData } from '@/types/database'
 import TimeInput from '@/components/TimeInput'
+import SubscriptionGuard from '@/components/SubscriptionGuard'
 
 import toast from 'react-hot-toast'
 import { useRouter, useSearchParams } from 'next/navigation'
@@ -2118,7 +2119,13 @@ export default function AISchedulePage() {
         </div>
       </div>
     }>
-      <AISchedulePageContent />
+      <SubscriptionGuard 
+        feature="AI-geassisteerde Planning"
+        requiredLevel="ai"
+        message="Upgrade je abonnement om toegang te krijgen tot AI-geassisteerde planning."
+      >
+        <AISchedulePageContent />
+      </SubscriptionGuard>
     </Suspense>
   )
 }

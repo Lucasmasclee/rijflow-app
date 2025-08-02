@@ -179,4 +179,29 @@ export interface AvailabilityLink {
   token: string // unieke token voor de link
   created_at: string
   expires_at: string
+}
+
+// Subscription related interfaces
+export interface Subscription {
+  id: string
+  user_id: string
+  stripe_customer_id?: string
+  stripe_subscription_id?: string
+  subscription_status: 'trial' | 'active' | 'past_due' | 'canceled' | 'incomplete' | 'incomplete_expired' | 'trialing' | 'unpaid'
+  subscription_tier: 'free' | 'monthly' | 'yearly'
+  trial_ends_at?: string
+  current_period_start?: string
+  current_period_end?: string
+  cancel_at_period_end?: boolean
+  created_at: string
+  updated_at: string
+}
+
+export interface StripeEvent {
+  id: string
+  type: string
+  data: {
+    object: any
+  }
+  created: number
 } 
