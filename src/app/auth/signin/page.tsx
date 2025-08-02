@@ -8,6 +8,7 @@ import Link from 'next/link'
 import toast from 'react-hot-toast'
 import ClientOnly from '@/components/ClientOnly'
 import PasswordInput from '@/components/PasswordInput'
+import { supabase } from '@/lib/supabase'
 
 // Force dynamic rendering to prevent static generation issues
 export const dynamic = 'force-dynamic'
@@ -28,7 +29,28 @@ export default function SignInPage() {
     try {
       await signIn(formData.email, formData.password)
       toast.success('Succesvol ingelogd!')
-      router.push('/dashboard')
+      
+      // Check if user is a new instructor and redirect accordingly
+      const { data: { user } } = await supabase.auth.getUser()
+      if (user?.user_metadata?.role === 'instructor') {
+        // Check if instructor has standard availability set up
+        const { data: availabilityData, error: availabilityError } = await supabase
+          .from('standard_availability')
+          .select('id')
+          .eq('instructor_id', user.id)
+          .single()
+
+        if (availabilityError && availabilityError.code === 'PGRST116') {
+          // New instructor - redirect to schedule-settings
+          router.push('/dashboard/schedule-settings')
+        } else {
+          // Existing instructor - redirect to dashboard
+          router.push('/dashboard')
+        }
+      } else {
+        // Non-instructor user - redirect to dashboard
+        router.push('/dashboard')
+      }
     } catch (error: any) {
       toast.error(error.message || 'Inloggen mislukt. Controleer je gegevens.')
     } finally {
@@ -126,9 +148,9 @@ export default function SignInPage() {
               </div>
 
               <div className="text-sm">
-                <Link href="/auth/forgot-password" className="font-medium text-blue-600 hover:text-blue-500">
-                  Wachtwoord vergeten?
-                </Link>
+                <span className="font-medium text-gray-400">
+                  Wachtwoord vergeten? Neem contact op met support
+                </span>
               </div>
             </div>
 

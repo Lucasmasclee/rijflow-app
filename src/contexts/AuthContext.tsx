@@ -90,9 +90,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       // Als er geen standaard beschikbaarheid is ingesteld, stuur naar schedule-settings
       if (availabilityError && availabilityError.code === 'PGRST116') {
         // Redirect naar schedule-settings pagina voor nieuwe instructeurs
-        if (typeof window !== 'undefined') {
-          window.location.href = '/dashboard/schedule-settings'
-        }
+        // Don't redirect here, let the middleware handle it
+        console.log('New instructor - will be redirected to schedule-settings')
       }
     }
 

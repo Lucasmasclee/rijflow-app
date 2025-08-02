@@ -18,6 +18,9 @@ export async function middleware(req: NextRequest) {
 
   // If user is authenticated, check subscription for all dashboard access
   if (user && req.nextUrl.pathname.startsWith('/dashboard')) {
+    // Allow access to schedule-settings for new instructors
+    const isScheduleSettingsPage = req.nextUrl.pathname === '/dashboard/schedule-settings'
+    
     // Get user's subscription
     const { data: subscription } = await supabase
       .from('subscriptions')
@@ -34,11 +37,12 @@ export async function middleware(req: NextRequest) {
        new Date(subscription.trial_ends_at) > new Date())
     )
 
-    // Allow access to subscription page even without active subscription
+    // Allow access to subscription page and schedule-settings even without active subscription
     const isSubscriptionPage = req.nextUrl.pathname === '/dashboard/abonnement'
+    const isAllowedWithoutSubscription = isSubscriptionPage || isScheduleSettingsPage
 
-    // If no active subscription and not on subscription page, redirect to subscription page
-    if (!hasActiveSubscription && !isSubscriptionPage) {
+    // If no active subscription and not on allowed pages, redirect to subscription page
+    if (!hasActiveSubscription && !isAllowedWithoutSubscription) {
       return NextResponse.redirect(new URL('/dashboard/abonnement', req.url))
     }
   }
