@@ -8,7 +8,7 @@ interface AuthContextType {
   user: User | null
   loading: boolean
   mounted: boolean
-  signIn: (email: string, password: string) => Promise<void>
+  signIn: (email: string, password: string) => Promise<any>
   signUp: (email: string, password: string, role: 'instructor' | 'student', student_id?: string) => Promise<void>
   signOut: () => Promise<void>
 }
@@ -122,6 +122,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         }
       }
     }
+
+    // Return the user data for the signIn function
+    return data
   }
 
   const signUp = async (email: string, password: string, role: 'instructor' | 'student', student_id?: string) => {

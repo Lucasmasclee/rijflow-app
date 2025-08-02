@@ -27,12 +27,22 @@ export default function SignInPage() {
     setLoading(true)
 
     try {
+      console.log('Attempting to sign in...')
       await signIn(formData.email, formData.password)
+      console.log('Sign in successful, showing toast...')
       toast.success('Succesvol ingelogd!')
       
+      console.log('Redirecting to dashboard...')
       // Simple redirect to dashboard - let middleware handle subscription creation and routing
       router.push('/dashboard')
+      
+      // Add a fallback redirect after a delay
+      setTimeout(() => {
+        console.log('Fallback redirect...')
+        window.location.href = '/dashboard'
+      }, 2000)
     } catch (error: any) {
+      console.error('Sign in error:', error)
       toast.error(error.message || 'Inloggen mislukt. Controleer je gegevens.')
     } finally {
       setLoading(false)
