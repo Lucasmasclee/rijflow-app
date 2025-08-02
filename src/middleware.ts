@@ -27,7 +27,7 @@ export async function middleware(req: NextRequest) {
     const isScheduleSettingsPage = req.nextUrl.pathname === '/dashboard/schedule-settings'
     
     // Get user's instructor record with subscription data
-    const { data: instructor } = await supabase
+    let { data: instructor } = await supabase
       .from('instructors')
       .select('*')
       .eq('id', user.id)

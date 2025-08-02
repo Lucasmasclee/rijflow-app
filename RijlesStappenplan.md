@@ -258,6 +258,7 @@ Verbeteringen:
 - Optie om meldingen via whatsapp te sturen ipv SMS
 ✅✅✅- In ai-schedule moet "volgende" knop ook de wijzigingen opslaan (Dit gebeurt misschien al?) 
 - Todolist in dashboard ??
+- Leerling beschikbaarheid op een specifieke pagina laten zien
 
 
 
