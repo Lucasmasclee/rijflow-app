@@ -30,6 +30,8 @@ export async function middleware(req: NextRequest) {
 
     // If no subscription exists, create a trial subscription for existing users
     if (!subscription) {
+      console.log('No subscription found for user:', user.id, '- creating trial subscription')
+      
       const trialEndDate = new Date()
       trialEndDate.setDate(trialEndDate.getDate() + 60) // 60 days trial
 
@@ -46,23 +48,33 @@ export async function middleware(req: NextRequest) {
         .select()
         .single()
 
-      if (!createError) {
-        // Successfully created trial subscription, check if new instructor needs to go to schedule-settings
-        if (user.user_metadata?.role === 'instructor') {
-          const { data: availabilityData, error: availabilityError } = await supabase
-            .from('standard_availability')
-            .select('id')
-            .eq('instructor_id', user.id)
-            .single()
-
-          if (availabilityError && availabilityError.code === 'PGRST116') {
-            // New instructor - redirect to schedule-settings
-            return NextResponse.redirect(new URL('/dashboard/schedule-settings', req.url))
-          }
+      if (createError) {
+        console.error('Error creating trial subscription in middleware:', createError)
+        // If we can't create subscription, still allow access to subscription page
+        if (req.nextUrl.pathname === '/dashboard/abonnement') {
+          return res
         }
-        // Allow access to dashboard
-        return res
+        // Redirect to subscription page to handle manually
+        return NextResponse.redirect(new URL('/dashboard/abonnement', req.url))
       }
+
+      console.log('Successfully created trial subscription for user:', user.id)
+      
+      // Successfully created trial subscription, check if new instructor needs to go to schedule-settings
+      if (user.user_metadata?.role === 'instructor') {
+        const { data: availabilityData, error: availabilityError } = await supabase
+          .from('standard_availability')
+          .select('id')
+          .eq('instructor_id', user.id)
+          .single()
+
+        if (availabilityError && availabilityError.code === 'PGRST116') {
+          // New instructor - redirect to schedule-settings
+          return NextResponse.redirect(new URL('/dashboard/schedule-settings', req.url))
+        }
+      }
+      // Allow access to dashboard
+      return res
     }
 
     // Check if user has active subscription or is in trial

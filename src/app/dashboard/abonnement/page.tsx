@@ -140,6 +140,32 @@ function AbonnementPageContent() {
     }
   }
 
+  const handleCreateTrial = async () => {
+    setProcessing(true)
+    try {
+      const response = await fetch('/api/stripe/create-trial', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      })
+
+      if (response.ok) {
+        const data = await response.json()
+        toast.success('Trial abonnement succesvol aangemaakt!')
+        fetchSubscription() // Refresh subscription data
+      } else {
+        const errorData = await response.json()
+        toast.error('Fout bij aanmaken trial: ' + (errorData.error || 'Onbekende fout'))
+      }
+    } catch (error) {
+      console.error('Error creating trial subscription:', error)
+      toast.error('Er is een fout opgetreden bij het aanmaken van het trial abonnement')
+    } finally {
+      setProcessing(false)
+    }
+  }
+
   const getStatusBadge = () => {
     if (!subscriptionData) return null
 
@@ -270,7 +296,7 @@ function AbonnementPageContent() {
           </div>
 
           {/* Current Subscription */}
-          {subscriptionData && (
+          {subscriptionData ? (
             <div className="card">
               <h3 className="text-lg font-semibold mb-4">Huidig Abonnement</h3>
               <div className="space-y-4">
@@ -313,6 +339,22 @@ function AbonnementPageContent() {
                     {processing ? 'Bezig...' : 'Abonnement annuleren'}
                   </button>
                 )}
+              </div>
+            </div>
+          ) : (
+            <div className="card">
+              <h3 className="text-lg font-semibold mb-4">Geen Abonnement Gevonden</h3>
+              <div className="space-y-4">
+                <p className="text-gray-600">
+                  Er is geen abonnement gevonden voor je account. Klik hieronder om een gratis proefperiode van 60 dagen aan te maken.
+                </p>
+                <button
+                  onClick={handleCreateTrial}
+                  disabled={processing}
+                  className="w-full bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {processing ? 'Bezig...' : 'Gratis Proefperiode Aanmaken'}
+                </button>
               </div>
             </div>
           )}
