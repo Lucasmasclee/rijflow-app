@@ -238,6 +238,7 @@ Landingspagina updaten met de 2 nieuwe belangrijke functies, misschien een youtu
 Marketen (Hoe?)
 Iemand anders de hele app laten testen om glitches / fouten eruit te halen
 Android app icon
+Contact informatie op landingspagina
 
 _________________________________________________________________________________________________________________________________________________________________________
 

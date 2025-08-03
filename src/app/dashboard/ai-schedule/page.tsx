@@ -337,6 +337,8 @@ function AISchedulePageContent() {
       
       // Clear selections after successful addition
       setSelectedLessons(new Set())
+      // Go to lessons page
+      router.push('/dashboard/lessons')
       
     } catch (error) {
       console.error('Error adding lessons to schedule:', error)
@@ -1141,12 +1143,12 @@ function AISchedulePageContent() {
 
       {/* Progress Steps */}
       <div className="bg-white border-b border-gray-200">
-        <div className="container-mobile py-4">
+        <div className="container-mobile py-6">
           <div className="flex items-center justify-between">
             {steps.map((step, index) => (
               <div key={step.key} className="flex items-center">
                 <div className={`flex items-center gap-2 ${currentStep === step.key ? 'text-blue-600' : 'text-gray-400'}`}>
-                  <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium ${
+                  <div className={`w-10 h-10 rounded-full flex items-center justify-center text-sm font-medium ${
                     currentStep === step.key 
                       ? 'bg-blue-600 text-white' 
                       : index < steps.findIndex(s => s.key === currentStep)
@@ -1173,7 +1175,7 @@ function AISchedulePageContent() {
       </div>
 
       {/* Content */}
-      <div className="flex-1 overflow-y-auto">
+      <div className="flex-1 overflow-y-auto pb-24">
         <div className="container-mobile py-6">
           {/* Week Selection */}
           {currentStep === 'week-selection' && (
@@ -2053,30 +2055,30 @@ function AISchedulePageContent() {
           {/* Show results */}
 
           {/* Navigation Buttons */}
-          <div className="bg-white border-t border-gray-200">
-            <div className="container-mobile py-4">
+          <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 z-10">
+            <div className="container-mobile py-3">
               <div className="flex items-center justify-between">
                 <button
                   onClick={handlePrevious}
                   disabled={currentStep === 'week-selection'}
-                  className={`flex items-center gap-2 px-4 py-2 rounded-lg border transition-colors ${
+                  className={`flex items-center gap-1 px-3 py-2 rounded-lg border text-sm transition-colors ${
                     currentStep === 'week-selection'
                       ? 'border-gray-200 text-gray-400 cursor-not-allowed'
                       : 'border-gray-300 text-gray-700 hover:bg-gray-50'
                   }`}
                 >
-                  <ArrowLeft className="h-4 w-4" />
+                  <ArrowLeft className="h-3 w-3" />
                   Vorige
                 </button>
 
-                <div className="flex items-center gap-3">
+                <div className="flex items-center gap-2">
                   {/* Save button for instructor step */}
                   {currentStep === 'instructor' && (
                     <button
                       onClick={saveInstructorAvailability}
-                      className="flex items-center gap-2 px-4 py-2 rounded-lg border border-green-600 text-green-600 hover:bg-green-50 transition-colors"
+                      className="flex items-center gap-1 px-3 py-2 rounded-lg border border-green-600 text-green-600 hover:bg-green-50 transition-colors text-sm"
                     >
-                      <Check className="h-4 w-4" />
+                      <Check className="h-3 w-3" />
                       Opslaan
                     </button>
                   )}
@@ -2085,9 +2087,9 @@ function AISchedulePageContent() {
                   {currentStep === 'students' && (
                     <button
                       onClick={saveStudentData}
-                      className="flex items-center gap-2 px-4 py-2 rounded-lg border border-green-600 text-green-600 hover:bg-green-50 transition-colors"
+                      className="flex items-center gap-1 px-3 py-2 rounded-lg border border-green-600 text-green-600 hover:bg-green-50 transition-colors text-sm"
                     >
-                      <Check className="h-4 w-4" />
+                      <Check className="h-3 w-3" />
                       Opslaan
                     </button>
                   )}
@@ -2096,9 +2098,9 @@ function AISchedulePageContent() {
                   {currentStep === 'settings' && (
                     <button
                       onClick={saveAISettings}
-                      className="flex items-center gap-2 px-4 py-2 rounded-lg border border-green-600 text-green-600 hover:bg-green-50 transition-colors"
+                      className="flex items-center gap-1 px-3 py-2 rounded-lg border border-green-600 text-green-600 hover:bg-green-50 transition-colors text-sm"
                     >
-                      <Check className="h-4 w-4" />
+                      <Check className="h-3 w-3" />
                       Opslaan
                     </button>
                   )}
@@ -2106,14 +2108,14 @@ function AISchedulePageContent() {
                   <button
                     onClick={handleNext}
                     disabled={!canGoNext()}
-                    className={`flex items-center gap-2 px-6 py-2 rounded-lg transition-colors ${
+                    className={`flex items-center gap-1 px-4 py-2 rounded-lg transition-colors text-sm ${
                       canGoNext()
                         ? 'bg-blue-600 text-white hover:bg-blue-700'
                         : 'bg-gray-200 text-gray-400 cursor-not-allowed'
                     }`}
                   >
                     {currentStep === 'generate-planning' ? 'Voltooid' : 'Volgende'}
-                    <ArrowRight className="h-4 w-4" />
+                    <ArrowRight className="h-3 w-3" />
                   </button>
                 </div>
               </div>

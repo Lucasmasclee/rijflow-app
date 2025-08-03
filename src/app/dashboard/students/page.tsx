@@ -381,40 +381,8 @@ export default function StudentsPage() {
       </nav>
 
       <div className="container-mobile py-10">
-        {/* SMS Leerlingen knop */}
-        <div className="flex justify-end mb-6 gap-2">
-          {/* <button
-            className="btn btn-secondary"
-            onClick={async () => {
-              console.log('=== DEBUG AVAILABILITY LINKS ===')
-              try {
-                const response = await fetch('/api/sms/debug-availability-links')
-                const result = await response.json()
-                console.log('Debug result:', result)
-                
-                if (result.success) {
-                  const { debugInfo } = result
-                  console.log('Table exists:', debugInfo.tableExists)
-                  console.log('Students count:', debugInfo.studentsCount)
-                  console.log('Links count:', debugInfo.linksCount)
-                  console.log('Function test:', debugInfo.functionTest)
-                  console.log('Student week status:', debugInfo.studentWeekStatus)
-                  
-                  // Show summary in toast
-                  const missingLinks = debugInfo.studentWeekStatus?.filter((s: any) => s.totalLinks < 8).length || 0
-                  toast.success(`Debug: ${debugInfo.studentsCount} leerlingen, ${debugInfo.linksCount} links, ${missingLinks} leerlingen missen links`)
-                } else {
-                  console.error('Debug failed:', result)
-                  toast.error('Debug failed: ' + (result.error || 'Unknown error'))
-                }
-              } catch (error: any) {
-                console.error('Debug error:', error)
-                toast.error('Debug error: ' + (error?.message || 'Unknown error'))
-              }
-            }}
-          >
-            Debug Links
-          </button> */}
+        {/* SMS Leerlingen knop - moved to be directly above students list */}
+        <div className="flex justify-end mb-4 gap-2">
           <button
             className="btn btn-secondary"
             onClick={() => setShowSmsModal(true)}
@@ -422,58 +390,9 @@ export default function StudentsPage() {
             SMS Leerlingen
           </button>
         </div>
-        {/* Search and Filter */}
-        {/* <div className="card mb-6">
-          <div className="space-y-4"> */}
-            {/* <div className="relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
-              <input
-                type="text"
-                placeholder="Zoek op naam of e-mail..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full pl-12 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              />
-            </div> */}
-            
-            {/* <div className="flex gap-2">
-              <button
-                onClick={() => setFilterStatus('all')}
-                className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-                  filterStatus === 'all'
-                    ? 'bg-blue-600 text-white'
-                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                }`}
-              >
-                Alle
-              </button> */}
-              {/* <button
-                onClick={() => setFilterStatus('active')}
-                className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-                  filterStatus === 'active'
-                    ? 'bg-blue-600 text-white'
-                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                }`}
-              >
-                Actief
-              </button> */}
-              {/* <button
-                onClick={() => setFilterStatus('new')}
-                className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-                  filterStatus === 'new'
-                    ? 'bg-blue-600 text-white'
-                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                }`}
-              >
-                Nieuw
-              </button> */}
-            {/* </div> */}
-          {/* </div>
-        </div> */}
         
-
         {/* Students List */}
-        <div className="space-y-4 pt-10">
+        <div className="space-y-3">
           {loadingStudents ? (
             <div className="card text-center py-12">
               <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
@@ -513,37 +432,12 @@ export default function StudentsPage() {
                         </span>
                       )}
                     </div>
-                    
-                    {/* <div className="space-y-1 text-sm text-gray-600"> */}
-                      {/* <div className="flex items-center gap-2">
-                        <Mail className="h-4 w-4" />
-                        <span>{student.email}</span>
-                      </div> */}
-                      {/* {student.phone && (
-                        <div className="flex items-center gap-2">
-                          <Phone className="h-4 w-4" />
-                          <span>{student.phone}</span>
-                        </div>
-                      )}
-                      {student.address && (
-                        <div className="flex items-center gap-2">
-                          <MapPin className="h-4 w-4" />
-                          <span className="truncate">{student.address}</span>
-                        </div>
-                      )} */}
-                    {/* </div> */}
 
-                    <div className="flex items-center gap-4 mt-3 text-sm text-gray-500">
+                    <div className="flex items-center gap-4 mt-2 text-sm text-gray-500">
                       <div className="flex items-center gap-1 whitespace-nowrap">
                         <Calendar className="h-4 w-4" />
                         <span className="whitespace-nowrap">{student.lessonStats.lessonsCompleted} gehad, {student.lessonStats.lessonsScheduled} ingepland</span>
                       </div>
-                      {/* {student.last_lesson && (
-                        <div className="flex items-center gap-1">
-                          <MessageSquare className="h-4 w-4" />
-                          <span>Laatste les: {student.last_lesson}</span>
-                        </div>
-                      )} */}
                     </div>
                   </div>
 
@@ -628,7 +522,7 @@ export default function StudentsPage() {
       {/* SMS Leerlingen Modal */}
       {showSmsModal && (
         <div className="fixed inset-0 bg-gray-500 bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-6 w-full max-w-md mx-4">
+          <div className="bg-white rounded-lg p-6 w-full max-w-md mx-4 max-h-[90vh] flex flex-col">
             <div className="flex justify-between items-center mb-4">
               <h3 className="text-lg font-semibold text-gray-900">
                 SMS Leerlingen
@@ -647,42 +541,44 @@ export default function StudentsPage() {
 
             {/* Stap 1: Week-selectie */}
             {!selectedSmsWeek && (
-              <div className="space-y-3">
+              <div className="space-y-3 flex-1 overflow-y-auto">
                 <p className="text-sm text-gray-600 mb-4">
                   Selecteer een week waarvoor je de beschikbaarheid van leerlingen wilt verzamelen:
                 </p>
-                {getNext8Weeks().map((week, index) => {
-                  const weekStart = getMonday(week)
-                  const weekEnd = new Date(weekStart)
-                  weekEnd.setDate(weekStart.getDate() + 6)
-                  return (
-                    <button
-                      key={index}
-                      onClick={() => setSelectedSmsWeek(week)}
-                      className="w-full p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors text-left"
-                    >
-                      <div className="font-medium text-gray-900">
-                        {index === 0 ? 'Volgende week' : 'Week ' + (index + 1)}
-                      </div>
-                      <div className="text-sm text-gray-600">
-                        {weekStart.toLocaleDateString('nl-NL', {
-                          day: '2-digit',
-                          month: 'long'
-                        })} - {weekEnd.toLocaleDateString('nl-NL', {
-                          day: '2-digit',
-                          month: 'long',
-                          year: 'numeric'
-                        })}
-                      </div>
-                    </button>
-                  )
-                })}
+                <div className="space-y-2 max-h-48 overflow-y-auto">
+                  {getNext8Weeks().map((week, index) => {
+                    const weekStart = getMonday(week)
+                    const weekEnd = new Date(weekStart)
+                    weekEnd.setDate(weekStart.getDate() + 6)
+                    return (
+                      <button
+                        key={index}
+                        onClick={() => setSelectedSmsWeek(week)}
+                        className="w-full p-3 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors text-left"
+                      >
+                        <div className="font-medium text-gray-900">
+                          {index === 0 ? 'Volgende week' : 'Week ' + (index + 1)}
+                        </div>
+                        <div className="text-sm text-gray-600">
+                          {weekStart.toLocaleDateString('nl-NL', {
+                            day: '2-digit',
+                            month: 'long'
+                          })} - {weekEnd.toLocaleDateString('nl-NL', {
+                            day: '2-digit',
+                            month: 'long',
+                            year: 'numeric'
+                          })}
+                        </div>
+                      </button>
+                    )
+                  })}
+                </div>
               </div>
             )}
 
             {/* Stap 2: Lijst met leerlingen */}
             {selectedSmsWeek && (
-              <div>
+              <div className="flex-1 flex flex-col">
                 <p className="text-sm text-gray-600 mb-4">
                   Leerlingen voor week: {(() => {
                     const weekStart = getMonday(selectedSmsWeek)
@@ -696,8 +592,8 @@ export default function StudentsPage() {
                   })()}
                 </p>
                 
-                {/* Selecteer alle knop */}
-                <div className="mb-3">
+                {/* Selecteer alle knop - moved to the right */}
+                <div className="mb-3 flex justify-end">
                   <button
                     onClick={() => {
                       const eligibleStudents = students.filter(student => {
@@ -714,7 +610,7 @@ export default function StudentsPage() {
                   </button>
                 </div>
 
-                <div className="space-y-3 max-h-64 overflow-y-auto">
+                <div className="space-y-2 flex-1 overflow-y-auto max-h-80">
                   {students.map(student => {
                     const recentlySent = isSmsRecentlySent(student.sms_laatst_gestuurd)
                     const hasValidPhone = student.phone && isValidPhoneNumber(student.phone)
@@ -722,12 +618,12 @@ export default function StudentsPage() {
                     const canSelect = hasValidPhone && !recentlySent
 
                     return (
-                      <div key={student.id} className="flex items-center justify-between p-3 border border-gray-200 rounded-lg">
+                      <div key={student.id} className="flex items-center justify-between p-2 border border-gray-200 rounded-lg">
                         <div className="flex-1">
-                          <div className="font-medium text-gray-900">
+                          <div className="font-medium text-gray-900 text-sm">
                             {student.first_name} {student.last_name}
                           </div>
-                          <div className="text-sm text-gray-600">
+                          <div className="text-xs text-gray-600">
                             {student.phone || <span className="italic text-red-500">Geen telefoonnummer</span>}
                           </div>
                           {recentlySent && (
@@ -768,7 +664,7 @@ export default function StudentsPage() {
                   )}
                 </div>
 
-                <div className="flex justify-between mt-6">
+                <div className="flex justify-between mt-4">
                   <button
                     className="btn btn-secondary"
                     onClick={() => {
