@@ -321,4 +321,5 @@ Leerling J: Maandag 9:00 t/m 12:00, Donderdag 14:00 t/m 16:00
 - voeg alle gemaakte lessen toe aan het rooster. Controleer in je weekplanning of de lessen worden toegevoegd aan de juiste week.
 - Controleer of je een SMS krijgt per ingeplande les. 
 
-4. 
+4. Andere functies
+- Kopieer weekplanning
