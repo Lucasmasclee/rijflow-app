@@ -254,6 +254,7 @@ Glitches:
 - Algemene notities bij een les neerzetten
 
 Verbeteringen:
+- Bij een week selecteren in SMS leerlingen de huidige week en 7 volgende weken ipv de 8 volgende weken
 - Instructeurs kunnen niet teveel SMS sturen
 - Bij een les aanmaken / bewerken: Knop voor "Stuur melding", en toggle voor "Stuur herinnering 24 uur van tevoren"
 - Optie om meldingen via whatsapp te sturen ipv SMS
@@ -262,24 +263,54 @@ Verbeteringen:
 
 UI Verbeteringen:
 Dagplanning (Dashboard):
-- Les uitgeklapt -> Voortgangsnotities placeholder = "Bijvoorbeeld:" + "\n" + "18 juli: Achteruit inparkeren" + "\n" + "25 juli: Hellingproef"
+✅✅✅- Les uitgeklapt -> Voortgangsnotities placeholder = "Bijvoorbeeld:" + "\n" + "18 juli: Achteruit inparkeren" + "\n" + "25 juli: Hellingproef"
 
 Lessons pagina: Niks
 
 Leerling overzicht:
-- SMS Leerlingen knop is niet goed aligned met de lijst van leerlingen. De SMS Leerlingen knop moet direct boven de eerste leerling komen te staan. 
-- SMS Leerlingen -> Week selecteren: De lijst van weken moet veel minder hoog want op dit moment staat "Week 8" buiten het scherm aan de onderkant en staat het kruisje om te annuleren buiten het scherm aan de bovenkant
-- SMS Leerlingen -> Leerlingen selecteren: "Selecteer alle" knop moet boven de checkboxes komen te staan (Dus moet iets meer naar rechts)
-- SMS Leerlingen -> Het element voor elke leerling mag wat kleiner want op dit moment zie ik maximaal 3 leerlingen in de scrollview. Je mag ook de viewport groter maken
+✅✅✅- SMS Leerlingen knop is niet goed aligned met de lijst van leerlingen. De SMS Leerlingen knop moet direct boven de eerste leerling komen te staan. 
+✅✅✅- SMS Leerlingen -> Week selecteren: De lijst van weken moet veel minder hoog want op dit moment staat "Week 8" buiten het scherm aan de onderkant en staat het kruisje om te annuleren buiten het scherm aan de bovenkant
+✅✅✅- SMS Leerlingen -> Leerlingen selecteren: "Selecteer alle" knop moet boven de checkboxes komen te staan (Dus moet iets meer naar rechts)
+✅✅✅- SMS Leerlingen -> Het element voor elke leerling mag wat kleiner want op dit moment zie ik maximaal 3 leerlingen in de scrollview. 
 
 Schedule-settings: Niks
 
 AI-Schedule pagina:
-- De balk met de icons voor steps mag hoger (niet groter). Dus de balk met icons voor Week-selectie, Instructor, Leerlingen, Instellingen, AI-schedule
 - De navigatie balk voor vorige, volgende en opslaan moet ALTIJD vast onderin het scherm staan. Het moet dus geen onderdeel zijn van de scrollview
 - vorige, volgende en opslaan knoppen moeten kleiner Zodat 
+- instructeur beschikbaarheid -> Dagen staan als "Ma" + "\n" + "11" + "\n" + "aug", dit moet natuurlijk "Ma 11 aug" worden.
+- leerling beschikbaarheid -> Dagen staan als "Ma" + "\n" + "11" + "\n" + "aug", dit moet natuurlijk "Ma 11 aug" worden.
+- leerling beschikbaarheid -> Inputfields en teksten van lessen per week en minuten per les mogen kleiner zodat "[inputfield] lessen per week van [inputfield] minuten per les" op 1 regel past
+- instellingen: Maak de inputfields van 'pauze na elke les' en 'lange pauze duur' veel kleiner. Op dit moment zouden er 10 karakters inpassen, maar er hoeven er maximaal 2 in te passen.
+- instellingen: De checkbox voor blokuren aan/uit moet direct onder de tekst "geef een voorkeur aan blokuren". Dus het wordt "Blokuren", daaronder "geef voorkeur aan blokuren", daaronder de checkbox met aan/uit
+- Haal de icons en de stepindicator weg. 
+- Resultaat scherm (stap 5): "Maak weekplanning" knop mag iets kleiner
+- Resulaat scherm (stap 5): teksten "totaal aantal lessen ingepland" mag iets kleiner. "Totale tijd tussen lessen" mag iets kleiner
+- Resultaat scherm (stap 5): de tekst "Geplande lessen" en de knoppen "alles selecteren" en "alles deselecteren" mogen kleiner.
+- Resultaat scherm (stap 5): De elementen voor de ingeplande lessen -> De checkbox moet helemaal links staan, en de tekst met de datum, tijd en leerling moeten direct rechts daarvan staan en allemaal op 1 regel. Op dit moment neemt de checkbox superveel ruimte in beslag en wordt de tekst met de datum, tijd en leerling rechts heel slordig gepropt en staat deze tekst verdeeld over 9 regels.
+- - Resultaat scherm (stap 5): de checkbox voor "sms leerlingen over hun ingeplande les" moet meer naar links, en de bijbehorende tekst moet er direct naast staan
+- Resultaat scherm (stap 5): De checkbox voor "stuur 24 uur van tevoren herinnering" moet meer naar links, en de bijbehorende tekst moet er direct naast staan.
+- Resultaat scherm (stap 5): "Voeg lessen toe", daaronder "x van y lessen geselecteerd", daaronder de knop "voeg lessen toe".
+
+
 
 Beschikbaarheid\[public_token] pagina:
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -323,4 +354,6 @@ Leerling J: Maandag 9:00 t/m 12:00, Donderdag 14:00 t/m 16:00
 - Controleer of je een SMS krijgt per ingeplande les. 
 
 4. Andere functies
-- Kopieer weekplanning
+- Kopieer weekplanning naar de week van 8 september t/m 14 september
+- Begin bij 1 september, en voeg bij elke les progressienotities toe. Dus bij elke les op 1 september zet je bijvoorbeeld: "1 sep: Eerste rijles". Doe dit voor een aantal dagen en kijk of de progressienotities van leerlingen handig en overzichtelijk zijn
+- Bewerk een les en voeg lesnotities toe bijv "ophalen bij station". Kijk vervolgens in de dagplanning of je deze ziet en of het handig en duidelijk staat.

@@ -580,7 +580,7 @@ export default function StudentsPage() {
             {selectedSmsWeek && (
               <div className="flex-1 flex flex-col">
                 <p className="text-sm text-gray-600 mb-4">
-                  Leerlingen voor week: {(() => {
+                  Week: {(() => {
                     const weekStart = getMonday(selectedSmsWeek)
                     const weekEnd = new Date(weekStart)
                     weekEnd.setDate(weekStart.getDate() + 6)

@@ -1130,7 +1130,7 @@ function AISchedulePageContent() {
               </Link>
               <div>
                 <h1 className="text-xl font-semibold text-gray-900">
-                  AI-geassisteerde Planning
+                  Automatische weekplanning
                 </h1>
                 <p className="text-sm text-gray-600">
                   Laat AI je optimale lesrooster maken
@@ -1181,9 +1181,9 @@ function AISchedulePageContent() {
           {currentStep === 'week-selection' && (
             <div className="space-y-6">
               <div>
-                <h3 className="text-lg font-semibold mb-4">Selecteer Week</h3>
+                <h3 className="text-lg font-semibold mb-4">Stap 1: Selecteer Week</h3>
                 <p className="text-gray-600 mb-6">
-                  Kies een week waarvoor je een AI Weekplanning wilt genereren:
+                  Kies een week waarvoor je een automatische planning wilt genereren:
                 </p>
               </div>
               
@@ -1229,9 +1229,9 @@ function AISchedulePageContent() {
           {currentStep === 'instructor' && (
             <div className="space-y-6">
               <div>
-                <h3 className="text-lg font-semibold mb-4">Instructeur Beschikbaarheid</h3>
+                <h3 className="text-lg font-semibold mb-4">Stap 2: Jouw beschikbaarheid</h3>
                 <p className="text-gray-600 mb-6">
-                  Stel je beschikbaarheid in voor de week van {getSelectedWeekInfo()?.start} tot {getSelectedWeekInfo()?.end}:
+                  Vul de beschikbaarheid van de instructeur in voor de week van {getSelectedWeekInfo()?.start} tot {getSelectedWeekInfo()?.end}:
                 </p>
               </div>
 
@@ -1362,9 +1362,9 @@ function AISchedulePageContent() {
           {currentStep === 'students' && (
             <div className="space-y-6">
               <div>
-                <h3 className="text-lg font-semibold mb-4">Leerling Beschikbaarheid</h3>
+                <h3 className="text-lg font-semibold mb-4">Stap 3: Leerling Beschikbaarheid</h3>
                 <p className="text-gray-600 mb-6">
-                  Controleer de instellingen en beschikbaarheid van elke leerling voor de week van {getSelectedWeekInfo()?.start} tot {getSelectedWeekInfo()?.end}:
+                  Vul de beschikbaarheid van elke leerling in voor de week van {getSelectedWeekInfo()?.start} tot {getSelectedWeekInfo()?.end}:
                 </p>
               </div>
 
@@ -1707,9 +1707,9 @@ function AISchedulePageContent() {
           {currentStep === 'settings' && (
             <div className="space-y-6">
               <div>
-                <h3 className="text-lg font-semibold mb-4">AI-Weekplanning Instellingen</h3>
+                <h3 className="text-lg font-semibold mb-4">Stap 4: Instellingen</h3>
                 <p className="text-gray-600 mb-6">
-                  Configureer de AI-Weekplanning instellingen voor optimale lesrooster generatie:
+                  Configureer de instellingen voor de automatische weekplanning:
                 </p>
               </div>
 
@@ -1736,7 +1736,7 @@ function AISchedulePageContent() {
                     <span className="text-sm text-gray-600">minuten</span>
                   </div>
                   <p className="text-sm text-gray-500 mt-2">
-                    Tijd tussen lessen voor instructeur en leerling
+                    Tijd tussen alle lessen
                   </p>
                 </div>
 
@@ -1762,7 +1762,7 @@ function AISchedulePageContent() {
                     <span className="text-sm text-gray-600">minuten</span>
                   </div>
                   <p className="text-sm text-gray-500 mt-2">
-                    Duur van lange pauzes (0 = geen lange pauzes)
+                    Duur van extra pauzes
                   </p>
                 </div>
 
@@ -1804,26 +1804,28 @@ function AISchedulePageContent() {
           {currentStep === 'generate-planning' && (
             <div className="space-y-6">
               <div>
-                <h3 className="text-lg font-semibold mb-4">Start AI-Weekplanning</h3>
+                <h3 className="text-lg font-semibold mb-4">Stap 5: Maak weekplanning</h3>
                 <p className="text-gray-600 mb-6">
-                  Maak een input bestand aan en start de AI weekplanning voor de week van {getSelectedWeekInfo()?.start} tot {getSelectedWeekInfo()?.end}:
+                  Klik op "Maak weekplanning", en controleer de ingeplande lessen.
+                  Te veel of te weinig pauzes? Verander de instellingen in Stap 4en maak een nieuwe weekplanning.
+                  Let op: Het bewerken van lessen kan zodra je ze hebt toegevoegd.
                 </p>
               </div>
 
               <div className="bg-white border border-gray-200 rounded-lg p-6">
                 <div className="flex items-center justify-between mb-4">
                   <div>
-                    <h4 className="text-lg font-medium text-gray-900">AI Weekplanning Genereren</h4>
-                    <p className="text-sm text-gray-500 mt-1">
+                    <h4 className="text-lg font-medium text-gray-900">Automatische weekplanning</h4>
+                    {/* <p className="text-sm text-gray-500 mt-1">
                       Genereer een geoptimaliseerde weekplanning met AI en toon het resultaat in de console
-                    </p>
+                    </p> */}
                   </div>
                   <button
                     onClick={createInputFile}
                     className="flex items-center gap-2 px-4 py-2 rounded-lg bg-blue-600 text-white hover:bg-blue-700 transition-colors"
                   >
                     <Brain className="h-4 w-4" />
-                    Start AI-Weekplanning
+                    Maak weekplanning
                   </button>
                 </div>
 
@@ -1884,7 +1886,7 @@ function AISchedulePageContent() {
                 <div className="space-y-6">
                   {/* Statistics */}
                   <div className="bg-white border border-gray-200 rounded-lg p-6">
-                    <h4 className="text-lg font-medium text-gray-900 mb-4">Planning Statistieken</h4>
+                    <h4 className="text-lg font-medium text-gray-900 mb-4">Resultaat</h4>
                     <div className="grid grid-cols-2 gap-4">
                       <div className="bg-blue-50 p-4 rounded-lg">
                         <div className="text-2xl font-bold text-blue-600">
@@ -1954,7 +1956,9 @@ function AISchedulePageContent() {
                   {/* Students without lessons */}
                   {planningResult.leerlingen_zonder_les && Object.keys(planningResult.leerlingen_zonder_les).length > 0 && (
                     <div className="bg-white border border-gray-200 rounded-lg p-6">
-                      <h4 className="text-lg font-medium text-gray-900 mb-4">Leerlingen zonder voldoende lessen</h4>
+                      <h4 className="text-lg font-medium text-gray-900 mb-4">
+                        Leerlingen met te weinig lessen.
+                        Niet tevreden? Dubbelcheck de instellingen voor leerlingen in stap 3.</h4>
                       <div className="space-y-2">
                         {Object.entries(planningResult.leerlingen_zonder_les).map(([studentName, missingLessons]) => (
                           <div key={studentName} className="flex items-center justify-between p-3 bg-red-50 rounded-lg">
@@ -1972,7 +1976,7 @@ function AISchedulePageContent() {
                   <div className="bg-white border border-gray-200 rounded-lg p-6 mb-4">
                     <div className="flex items-center gap-2 mb-4">
                       <MessageSquare className="h-5 w-5 text-blue-600" />
-                      <h4 className="text-lg font-medium text-gray-900">SMS Notificaties</h4>
+                      <h4 className="text-lg font-medium text-gray-900">SMS Leerlingen</h4>
                     </div>
                     <div className="space-y-4">
                       {/* Immediate SMS Toggle */}
@@ -1986,12 +1990,12 @@ function AISchedulePageContent() {
                             className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
                           />
                           <label htmlFor="sendImmediateSms" className="text-sm font-medium text-gray-700">
-                            SMS Leerlingen over hun ingeplande les
+                            SMS Leerlingen over ingeplande lessen
                           </label>
                         </div>
-                        <div className="text-xs text-gray-500">
+                        {/* <div className="text-xs text-gray-500">
                           Stuur direct een SMS naar leerlingen
-                        </div>
+                        </div> */}
                       </div>
 
                       {/* Reminder SMS Toggle */}
@@ -2005,12 +2009,12 @@ function AISchedulePageContent() {
                             className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
                           />
                           <label htmlFor="sendReminderSms" className="text-sm font-medium text-gray-700">
-                            Stuur herinnering 24 uur van tevoren
+                            Stuur 24 uur van tevoren een herinnering
                           </label>
                         </div>
-                        <div className="text-xs text-gray-500">
+                        {/* <div className="text-xs text-gray-500">
                           Stuur herinnering 24 uur voor de les
-                        </div>
+                        </div> */}
                       </div>
                     </div>
                   </div>
@@ -2019,7 +2023,7 @@ function AISchedulePageContent() {
                   <div className="bg-white border border-gray-200 rounded-lg p-6">
                     <div className="flex items-center justify-between">
                       <div>
-                        <h4 className="text-lg font-medium text-gray-900">Toevoegen aan Rooster</h4>
+                        <h4 className="text-lg font-medium text-gray-900">Voeg lessen toe</h4>
                         <p className="text-sm text-gray-600 mt-1">
                           {selectedLessons.size} van de {planningResult.lessons?.length || 0} lessen geselecteerd
                         </p>
@@ -2041,7 +2045,7 @@ function AISchedulePageContent() {
                         ) : (
                           <>
                             <Check className="h-4 w-4" />
-                            Geselecteerde lessen toevoegen
+                            Voeg lessen toe
                           </>
                         )}
                       </button>
