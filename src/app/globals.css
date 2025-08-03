@@ -80,7 +80,7 @@ input[type="checkbox"] {
 input[type="number"] {
   width: auto !important;
   min-width: 3ch !important;
-  max-width: 4ch !important;
+  max-width: 6ch !important;
   text-align: center !important;
 }
 

@@ -1340,19 +1340,19 @@ function AISchedulePageContent() {
                   <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
                 </div>
               ) : (
-                <div className="space-y-6">
+                <div className="space-y-4">
                   {students.map((student, studentIndex) => (
-                    <div key={student.id} className="bg-white border border-gray-200 rounded-lg p-6">
+                    <div key={student.id} className="bg-white border border-gray-200 rounded-lg p-4">
                       {/* Student Header */}
-                      <div className="mb-4">
-                        <h4 className="text-lg font-semibold text-gray-900 mb-2">
+                      <div className="mb-3">
+                        <h4 className="text-base font-semibold text-gray-900 mb-2">
                           {student.last_name ? `${student.first_name} ${student.last_name}` : student.first_name}
                         </h4>
                         
                         {/* Lessons per week and minutes per lesson */}
-                        <div className="flex items-center gap-1 mb-4">
+                        <div className="flex items-center gap-1 mb-3">
                           <input
-                            type="text"
+                            type="number"
                             inputMode="numeric"
                             pattern="[0-9]*"
                             value={student.default_lessons_per_week || ''}
@@ -1403,7 +1403,7 @@ function AISchedulePageContent() {
                           />
                           <span className="text-xs text-gray-600">lessen per week van</span>
                           <input
-                            type="text"
+                            type="number"
                             inputMode="numeric"
                             pattern="[0-9]*"
                             value={student.default_lesson_duration_minutes || ''}
@@ -1460,7 +1460,7 @@ function AISchedulePageContent() {
                       </div>
 
                       {/* Student Availability */}
-                      <div className="space-y-3">
+                      <div className="space-y-2">
                         {DAY_ORDER.map((dayInfo, dayIndex) => {
                           const dayKey = dayInfo.dutchName
                           const dayAvailability = student.availability_data?.[dayKey] || []
@@ -1469,8 +1469,8 @@ function AISchedulePageContent() {
                           const endTime = isAvailable ? dayAvailability[1] : '17:00'
 
                           return (
-                            <div key={dayInfo.day} className="border border-gray-200 rounded-lg p-3">
-                              <div className="flex items-center justify-between mb-3">
+                            <div key={dayInfo.day} className="border border-gray-200 rounded-lg p-2">
+                              <div className="flex items-center justify-between mb-2">
                                 <div className="flex items-center gap-3">
                                   <input
                                     type="checkbox"
@@ -1501,12 +1501,12 @@ function AISchedulePageContent() {
                               </div>
 
                               {isAvailable && (
-                                <div className="grid grid-cols-2 gap-4">
+                                <div className="grid grid-cols-2 gap-3">
                                   <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                                    <label className="block text-xs font-medium text-gray-700 mb-1">
                                       Starttijd
                                     </label>
-                                    <div className="flex items-center space-x-2">
+                                    <div className="flex items-center space-x-1">
                                       <input
                                         type="text"
                                         inputMode="numeric"
@@ -1538,10 +1538,10 @@ function AISchedulePageContent() {
                                           }
                                           setStudents(newStudents)
                                         }}
-                                        className="w-16 p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-center"
+                                        className="w-12 h-6 p-1 border border-gray-300 rounded focus:ring-1 focus:ring-blue-500 focus:border-transparent text-center text-xs"
                                         placeholder="HH"
                                       />
-                                      <span className="text-gray-500 font-medium">:</span>
+                                      <span className="text-gray-500 font-medium text-xs">:</span>
                                       <input
                                         type="text"
                                         inputMode="numeric"
@@ -1573,17 +1573,17 @@ function AISchedulePageContent() {
                                           }
                                           setStudents(newStudents)
                                         }}
-                                        className="w-16 p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-center"
+                                        className="w-12 h-6 p-1 border border-gray-300 rounded focus:ring-1 focus:ring-blue-500 focus:border-transparent text-center text-xs"
                                         placeholder="MM"
                                       />
                                     </div>
                                   </div>
 
                                   <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                                    <label className="block text-xs font-medium text-gray-700 mb-1">
                                       Eindtijd
                                     </label>
-                                    <div className="flex items-center space-x-2">
+                                    <div className="flex items-center space-x-1">
                                       <input
                                         type="text"
                                         inputMode="numeric"
@@ -1615,10 +1615,10 @@ function AISchedulePageContent() {
                                           }
                                           setStudents(newStudents)
                                         }}
-                                        className="w-16 p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-center"
+                                        className="w-12 h-6 p-1 border border-gray-300 rounded focus:ring-1 focus:ring-blue-500 focus:border-transparent text-center text-xs"
                                         placeholder="HH"
                                       />
-                                      <span className="text-gray-500 font-medium">:</span>
+                                      <span className="text-gray-500 font-medium text-xs">:</span>
                                       <input
                                         type="text"
                                         inputMode="numeric"
@@ -1650,7 +1650,7 @@ function AISchedulePageContent() {
                                           }
                                           setStudents(newStudents)
                                         }}
-                                        className="w-16 p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-center"
+                                        className="w-12 h-6 p-1 border border-gray-300 rounded focus:ring-1 focus:ring-blue-500 focus:border-transparent text-center text-xs"
                                         placeholder="MM"
                                       />
                                     </div>

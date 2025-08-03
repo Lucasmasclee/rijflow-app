@@ -260,9 +260,7 @@ Verbeteringen:
 UI Verbeteringen:
 AI-Schedule pagina:
 - leerling beschikbaarheid -> Inputfields en teksten van lessen per week en minuten per les mogen kleiner zodat "[inputfield] lessen per week van [inputfield] minuten per les" op 1 regel past
-- instellingen: Maak de inputfields van 'pauze na elke les' en 'lange pauze duur' veel kleiner. Op dit moment zouden er 10 karakters inpassen, maar er hoeven er maximaal 2 in te passen dus deze inputfields mogen veel smaller.
-
-
+- Leerling beschikbaarheid moet veel minder lang zijn, elk element moet veel kleiner
 
 
 
@@ -271,21 +269,6 @@ AI-Schedule pagina:
 Lijst met geweldige ideeën voor deze app:
 - Basic en Premium versie maken, waarbij premium alle SMS functies heeft en de AI-weekplanning (Reden: SMS functies kosten geld; Als instructeurs geen gebruik maken van SMS en Automatische weekplanning is €40/maand veel te veel)
 - Een uitlegvideo voor de ai-weekplanning neerzetten op de ai-schedule pagina
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
