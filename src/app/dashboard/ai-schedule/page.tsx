@@ -1399,7 +1399,7 @@ function AISchedulePageContent() {
                               }
                               setStudents(newStudents)
                             }}
-                            className="w-4 h-6 text-center border border-gray-300 rounded focus:ring-blue-500 focus:border-blue-500 text-xs"
+                            className="!w-8 h-6 text-center border border-gray-300 rounded focus:ring-blue-500 focus:border-blue-500 text-xs"
                           />
                           <span className="text-xs text-gray-600">lessen van</span>
                           <input
@@ -1453,7 +1453,7 @@ function AISchedulePageContent() {
                               }
                               setStudents(newStudents)
                             }}
-                            className="w-5 h-6 text-center border border-gray-300 rounded focus:ring-blue-500 focus:border-blue-500 text-xs"
+                            className="!w-8 h-6 text-center border border-gray-300 rounded focus:ring-blue-500 focus:border-blue-500 text-xs"
                           />
                           <span className="text-xs text-gray-600">minuten</span>
                         </div>
@@ -1696,7 +1696,7 @@ function AISchedulePageContent() {
                         ...aiSettings,
                         pauzeTussenLessen: parseInt(e.target.value) || 0
                       })}
-                      className="w-4 h-6 text-center border border-gray-300 rounded focus:ring-blue-500 focus:border-blue-500 text-xs"
+                      className="!w-8 h-6 text-center border border-gray-300 rounded focus:ring-blue-500 focus:border-blue-500 text-xs"
                     />
                     <span className="text-sm text-gray-600">minuten</span>
                   </div>
@@ -1722,7 +1722,7 @@ function AISchedulePageContent() {
                         ...aiSettings,
                         langePauzeDuur: parseInt(e.target.value) || 0
                       })}
-                      className="w-4 h-6 text-center border border-gray-300 rounded focus:ring-blue-500 focus:border-blue-500 text-xs"
+                      className="!w-8 h-6 text-center border border-gray-300 rounded focus:ring-blue-500 focus:border-blue-500 text-xs"
                     />
                     <span className="text-sm text-gray-600">minuten</span>
                   </div>
