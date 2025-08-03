@@ -649,7 +649,7 @@ export default function StudentsPage() {
             {!selectedSmsWeek && (
               <div className="space-y-3">
                 <p className="text-sm text-gray-600 mb-4">
-                  Selecteer een week waarvoor je leerlingen wilt sms'en:
+                  Selecteer een week waarvoor je de beschikbaarheid van leerlingen wilt verzamelen:
                 </p>
                 {getNext8Weeks().map((week, index) => {
                   const weekStart = getMonday(week)
@@ -776,7 +776,7 @@ export default function StudentsPage() {
                       setSelectedStudents(new Set())
                     }}
                   >
-                    Terug naar weekselectie
+                    Terug
                   </button>
                   <button
                     onClick={sendSmsToStudents}
@@ -789,7 +789,7 @@ export default function StudentsPage() {
                         Verzenden...
                       </>
                     ) : (
-                      `SMS Sturen (${selectedStudents.size})`
+                      `Stuur SMS (${selectedStudents.size})`
                     )}
                   </button>
                 </div>

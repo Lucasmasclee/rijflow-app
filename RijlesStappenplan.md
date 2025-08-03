@@ -234,7 +234,7 @@ Todolist:
 Langs elke pagina gaan en UI elementen goedzetten
 Landingspagina updaten met de 2 nieuwe belangrijke functies, misschien een youtube video van een demo toevoegen? 
 ✅Screenshots appstore
-Betalingen opzetten
+(Later?) Betalingen opzetten
 Marketen (Hoe?)
 Iemand anders de hele app laten testen om glitches / fouten eruit te halen
 Android app icon
@@ -250,9 +250,75 @@ Glitches:
 ✅✅✅- Ai-schedule -> beschikbaarheid leerlingen inputfields -> lessen per week en minuten per les hebben autocorrectie
 - Ai-schedule -> Voor elke leerling neerzetten 2/2 lessen✅ of 3/4 lessen❌ ingepland
 ✅✅✅- Als een account niet meer bestaat en de app wordt geopend staat er 404: Not_found
+- Algemene notities bij een les neerzetten
 
 Verbeteringen:
 - Instructeurs kunnen niet teveel SMS sturen
 - Bij een les aanmaken / bewerken: Knop voor "Stuur melding", en toggle voor "Stuur herinnering 24 uur van tevoren"
 - Optie om meldingen via whatsapp te sturen ipv SMS
 ✅✅✅- In ai-schedule moet "volgende" knop ook de wijzigingen opslaan (Dit gebeurt misschien al?) 
+- Als instructeur in schedule-settings invult 45 min per les, wordt dit geupdated voor alle leerlingen?
+
+UI Verbeteringen:
+Dagplanning (Dashboard):
+- Les uitgeklapt -> Voortgangsnotities placeholder = "Bijvoorbeeld:" + "\n" + "18 juli: Achteruit inparkeren" + "\n" + "25 juli: Hellingproef"
+
+Lessons pagina: Niks
+
+Leerling overzicht:
+- SMS Leerlingen knop is niet goed aligned met de lijst van leerlingen. De SMS Leerlingen knop moet direct boven de eerste leerling komen te staan. 
+- SMS Leerlingen -> Week selecteren: De lijst van weken moet veel minder hoog want op dit moment staat "Week 8" buiten het scherm aan de onderkant en staat het kruisje om te annuleren buiten het scherm aan de bovenkant
+- SMS Leerlingen -> Leerlingen selecteren: "Selecteer alle" knop moet boven de checkboxes komen te staan (Dus moet iets meer naar rechts)
+- SMS Leerlingen -> Het element voor elke leerling mag wat kleiner want op dit moment zie ik maximaal 3 leerlingen in de scrollview. Je mag ook de viewport groter maken
+
+Schedule-settings: Niks
+
+AI-Schedule pagina:
+- De balk met de icons voor steps mag hoger (niet groter). Dus de balk met icons voor Week-selectie, Instructor, Leerlingen, Instellingen, AI-schedule
+- De navigatie balk voor vorige, volgende en opslaan moet ALTIJD vast onderin het scherm staan. Het moet dus geen onderdeel zijn van de scrollview
+- vorige, volgende en opslaan knoppen moeten kleiner Zodat 
+
+Beschikbaarheid\[public_token] pagina:
+
+
+
+Test: 
+Kijk bij elke stap van de test of alles goed en netjes staat. Noteer wat er fout staat of beter kan. Het is de bedoeling dat sommige instructies vaag zijn, dat test namelijk de navigatie van de app
+1. Rijschool info
+- Ga naar rijflow.nl of download de app en registreer je als instructeur
+- Vul je standaard beschikbaarheid in: Maandag, Dinsdag, Donderdag, Zaterdag: 7:00 t/m 16:00. Woensdag 13:00 t/m 17:00. Vrijdag 7:00 t/m 12:00
+- Maak 10 Leerlingen aan:
+- Noem ze Leerling A t/m Leerling J
+- Geef ze allemaal jouw eigen telefoonnummer (Voor de SMS functie), 
+- Lessen per week tussen 2 en 4, minuten per les tussen 40 en 60.
+
+2. Beschikbaarheid verzamelen
+- Verzamel door middel van de SMS functie de beschikbaarheid van alle leerlingen voor de week van 1 september t/m 7 september
+- Stuur een SMS naar alle leerlingen
+- Als het goed is krijg je nu 10 SMS'jes, 1 SMS per leerling met verschillende linkjes. 
+- Vul door middel van de link de beschikbaarheid voor elke leerling in:
+Leerling A: Maandag 7:00 t/m 10:00, Woensdag 13:00 t/m 16:00
+Leerling B: Dinsdag 8:00 t/m 12:00, Donderdag 13:00 t/m 15:00
+Leerling C: Woensdag 9:00 t/m 14:00, Vrijdag 10:00 t/m 13:00
+Leerling D: Maandag 10:00 t/m 13:00, Zaterdag 12:00 t/m 16:00
+Leerling E: Dinsdag 11:00 t/m 15:00, Donderdag 8:00 t/m 11:00
+Leerling F: Woensdag 12:00 t/m 15:00, Vrijdag 14:00 t/m 16:00
+Leerling G: Maandag 13:00 t/m 16:00, Donderdag 9:00 t/m 12:00, Zaterdag 10:00 t/m 13:00
+Leerling H: Dinsdag 14:00 t/m 16:00, Vrijdag 8:00 t/m 12:00
+Leerling I: Woensdag 8:00 t/m 11:00, Vrijdag 13:00 t/m 16:00, Zaterdag 9:00 t/m 12:00
+Leerling J: Maandag 9:00 t/m 12:00, Donderdag 14:00 t/m 16:00
+
+3. AI-Weekplanning
+- Ga naar de AI-Weekplanning functie
+- Selecteer de week van 1 september t/m 7 september
+- Controleer of je eigen beschikbaarheid hetzelfde is als wat je had ingesteld
+- Controleer de beschikbaarheid van alle leerlingen. Controleer ook of de lessen per week en minuten per les kloppen met wat je had ingevuld
+- In de instellingen: 10 minuten pauze tussen elke les, blokuren = aan, 20 min voor lange pauze duur
+- Laat AI de planning maken. Voeg nog niet de lessen toe. Controleer of het uberhaupt werkt, of er geen lessen buiten je beschikbaarheid zijn, of er altijd 10 minuten tussen lessen zitten en of het was gelukt om veel leerlingen in te plannen. 
+- Ga naar de instellingen van het ai-rooster en verander de pauze tussen lessen van 10 naar 5, sla het op en maak een nieuwe planning.
+- Controleer of je nu een betere planning hebt met meer lessen, minder pauze tussen lessen en minder leerlingen met x lessen te weinig.
+- Selecteer: Stuur SMS naar leerlingen van de lessen (herinnering hoeft niet, die mag uit).
+- voeg alle gemaakte lessen toe aan het rooster. Controleer in je weekplanning of de lessen worden toegevoegd aan de juiste week.
+- Controleer of je een SMS krijgt per ingeplande les. 
+
+4. 

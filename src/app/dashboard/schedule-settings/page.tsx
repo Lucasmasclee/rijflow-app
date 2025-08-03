@@ -298,7 +298,7 @@ export default function ScheduleSettingsPage() {
                   </>
                 )}
               </button>
-              <Settings className="h-8 w-8 text-blue-600" />
+              {/* <Settings className="h-8 w-8 text-blue-600" /> */}
             </div>
           </div>
         </div>
@@ -348,18 +348,18 @@ export default function ScheduleSettingsPage() {
           <div className="card text-center">
             <Calendar className="h-8 w-8 text-blue-600 mx-auto mb-2" />
             <div className="text-2xl font-bold text-gray-900">{getAvailableDaysCount()}</div>
-            <div className="text-sm text-gray-600">Beschikbare dagen</div>
+            <div className="text-xs text-gray-600">Beschikbare dagen</div>
           </div>
           <div className="card text-center">
             <Clock className="h-8 w-8 text-green-600 mx-auto mb-2" />
             <div className="text-2xl font-bold text-gray-900">{getTotalHours()}</div>
-            <div className="text-sm text-gray-600">Uren per week</div>
+            <div className="text-xs text-gray-600">Uren per week</div>
           </div>
         </div>
 
         {/* Availability Settings */}
         <div className="card mb-6">
-          <h3 className="text-lg font-semibold mb-4">Standaard dagelijkse beschikbaarheid</h3>
+          <h3 className="text-lg font-semibold mb-4">Standaard beschikbaarheid</h3>
           
           {loadingAvailability ? (
             <div className="text-center py-8">
