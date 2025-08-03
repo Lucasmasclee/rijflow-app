@@ -68,6 +68,14 @@ select {
   background-color: #ffffff !important; /* Explicit background color */
 }
 
+/* Override width for checkboxes to prevent them from expanding */
+input[type="checkbox"] {
+  width: auto !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  flex-shrink: 0 !important;
+}
+
 /* Ensure all input types have proper styling */
 input[type="text"],
 input[type="email"],

@@ -1919,7 +1919,7 @@ function AISchedulePageContent() {
                       <h3 className="text-base font-medium text-gray-900 mb-4">
                         Leerlingen met te weinig lessen:
                         <br />
-                        Niet tevreden? Dubbelcheck de instellingen voor leerlingen in stap 3.</h3>
+                        Niet tevreden? Controleer de instellingen in stap 3.</h3>
                       <div className="space-y-2">
                         {Object.entries(planningResult.leerlingen_zonder_les).map(([studentName, missingLessons]) => (
                           <div key={studentName} className="flex items-center justify-between p-3 bg-red-50 rounded-lg">
