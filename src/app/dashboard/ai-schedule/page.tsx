@@ -1352,7 +1352,7 @@ function AISchedulePageContent() {
                         {/* Lessons per week and minutes per lesson */}
                         <div className="flex items-center gap-1 mb-3">
                           <input
-                            type="number"
+                            type="text"
                             inputMode="numeric"
                             pattern="[0-9]*"
                             value={student.default_lessons_per_week || ''}
@@ -1403,7 +1403,7 @@ function AISchedulePageContent() {
                           />
                           <span className="text-xs text-gray-600">lessen van</span>
                           <input
-                            type="number"
+                            type="text"
                             inputMode="numeric"
                             pattern="[0-9]*"
                             value={student.default_lesson_duration_minutes || ''}
@@ -1688,7 +1688,7 @@ function AISchedulePageContent() {
                   </div>
                   <div className="flex items-center gap-4">
                     <input
-                      type="number"
+                      type="text"
                       min="0"
                       max="60"
                       value={aiSettings.pauzeTussenLessen}
@@ -1714,7 +1714,7 @@ function AISchedulePageContent() {
                   </div>
                   <div className="flex items-center gap-4">
                     <input
-                      type="number"
+                      type="text"
                       min="0"
                       max="120"
                       value={aiSettings.langePauzeDuur}
