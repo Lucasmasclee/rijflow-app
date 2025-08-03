@@ -118,8 +118,19 @@ export async function POST(request: NextRequest) {
 
           // Gebruik standaard beschikbaarheid als deze bestaat
           if (standardAvailability && !standardError && standardAvailability.availability_data) {
-            defaultStudentAvailability = standardAvailability.availability_data
-            console.log('Using standard availability for students:', defaultStudentAvailability)
+            // Parse standard availability_data if it's a JSON string
+            if (typeof standardAvailability.availability_data === 'string') {
+              try {
+                defaultStudentAvailability = JSON.parse(standardAvailability.availability_data)
+                console.log('Using parsed standard availability for students:', defaultStudentAvailability)
+              } catch (error) {
+                console.error('Error parsing standard availability_data JSON:', error)
+                console.log('Using default availability for students:', defaultStudentAvailability)
+              }
+            } else {
+              defaultStudentAvailability = standardAvailability.availability_data
+              console.log('Using standard availability for students:', defaultStudentAvailability)
+            }
           }
 
           // Maak records aan voor ontbrekende studenten

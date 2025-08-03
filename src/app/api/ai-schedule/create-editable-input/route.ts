@@ -100,8 +100,26 @@ export async function POST(request: NextRequest) {
         message = 'New availability created with default values'
       } else if (standardAvailability) {
         // Use standard_availability as fallback
-        availabilityData = standardAvailability.availability_data || {}
-        message = 'New availability created from standard availability'
+        // Parse standard availability_data if it's a JSON string
+        if (typeof standardAvailability.availability_data === 'string') {
+          try {
+            availabilityData = JSON.parse(standardAvailability.availability_data)
+            message = 'New availability created from standard availability'
+          } catch (error) {
+            console.error('Error parsing standard availability_data JSON:', error)
+            availabilityData = {
+              maandag: ['09:00', '17:00'],
+              dinsdag: ['09:00', '17:00'],
+              woensdag: ['09:00', '17:00'],
+              donderdag: ['09:00', '17:00'],
+              vrijdag: ['09:00', '17:00']
+            }
+            message = 'New availability created with default values (parsing error)'
+          }
+        } else {
+          availabilityData = standardAvailability.availability_data || {}
+          message = 'New availability created from standard availability'
+        }
       }
 
 
@@ -228,26 +246,78 @@ export async function POST(request: NextRequest) {
     }
 
     // Build the response data structure
+    // Parse availability_data if it's a JSON string
+    let parsedAvailabilityData = {}
+    if (instructorAvailability.availability_data) {
+      if (typeof instructorAvailability.availability_data === 'string') {
+        try {
+          parsedAvailabilityData = JSON.parse(instructorAvailability.availability_data)
+        } catch (error) {
+          console.error('Error parsing availability_data JSON:', error)
+          parsedAvailabilityData = {}
+        }
+      } else {
+        parsedAvailabilityData = instructorAvailability.availability_data
+      }
+    }
+
+    // Parse settings if it's a JSON string
+    let parsedSettings = {
+      maxLessenPerDag: 6,
+      blokuren: true,
+      pauzeTussenLessen: 10,
+      langePauzeDuur: 0,
+      locatiesKoppelen: true
+    }
+    
+    if (instructorAvailability.settings) {
+      if (typeof instructorAvailability.settings === 'string') {
+        try {
+          const parsedSettingsData = JSON.parse(instructorAvailability.settings)
+          parsedSettings = { ...parsedSettings, ...parsedSettingsData }
+        } catch (error) {
+          console.error('Error parsing settings JSON:', error)
+        }
+      } else {
+        parsedSettings = { ...parsedSettings, ...instructorAvailability.settings }
+      }
+    }
+
     const instructorData = {
-      beschikbareUren: instructorAvailability.availability_data || {},
+      beschikbareUren: parsedAvailabilityData,
       datums: generateWeekDates(weekStart),
-      maxLessenPerDag: instructorAvailability.settings?.maxLessenPerDag || 6,
-      blokuren: instructorAvailability.settings?.blokuren ?? true,
-      pauzeTussenLessen: instructorAvailability.settings?.pauzeTussenLessen || 10,
-      langePauzeDuur: instructorAvailability.settings?.langePauzeDuur || 0,
-      locatiesKoppelen: instructorAvailability.settings?.locatiesKoppelen ?? true
+      maxLessenPerDag: parsedSettings.maxLessenPerDag || 6,
+      blokuren: parsedSettings.blokuren ?? true,
+      pauzeTussenLessen: parsedSettings.pauzeTussenLessen || 10,
+      langePauzeDuur: parsedSettings.langePauzeDuur || 0,
+      locatiesKoppelen: parsedSettings.locatiesKoppelen ?? true
     }
 
     const studentsData = students.map(student => {
       // Find student availability for this week
       const studentAvail = studentAvailability?.find(sa => sa.student_id === student.id)
       
+      // Parse student availability_data if it's a JSON string
+      let parsedStudentAvailability = {}
+      if (studentAvail?.availability_data) {
+        if (typeof studentAvail.availability_data === 'string') {
+          try {
+            parsedStudentAvailability = JSON.parse(studentAvail.availability_data)
+          } catch (error) {
+            console.error('Error parsing student availability_data JSON:', error)
+            parsedStudentAvailability = {}
+          }
+        } else {
+          parsedStudentAvailability = studentAvail.availability_data
+        }
+      }
+      
       return {
         id: student.id,
         naam: student.last_name ? `${student.first_name} ${student.last_name}` : student.first_name,
         lessenPerWeek: student.default_lessons_per_week || 2,
         lesDuur: student.default_lesson_duration_minutes || 60,
-        beschikbaarheid: studentAvail?.availability_data || {}
+        beschikbaarheid: parsedStudentAvailability
       }
     })
 

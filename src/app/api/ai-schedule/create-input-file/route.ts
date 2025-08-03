@@ -118,7 +118,21 @@ export async function POST(request: NextRequest) {
     const beschikbareUren: Record<string, string[]> = {}
     
     if (instructorAvailability) {
-      const availabilityData = instructorAvailability.availability_data || {}
+      // Parse availability_data if it's a JSON string
+      let availabilityData = {}
+      if (instructorAvailability.availability_data) {
+        if (typeof instructorAvailability.availability_data === 'string') {
+          try {
+            availabilityData = JSON.parse(instructorAvailability.availability_data)
+          } catch (error) {
+            console.error('Error parsing instructor availability_data JSON:', error)
+            availabilityData = {}
+          }
+        } else {
+          availabilityData = instructorAvailability.availability_data
+        }
+      }
+      
       for (const [day, times] of Object.entries(availabilityData)) {
         if (Array.isArray(times) && times.length >= 2) {
           beschikbareUren[day] = times
@@ -138,7 +152,20 @@ export async function POST(request: NextRequest) {
       const beschikbaarheid: Record<string, string[]> = {}
       
       if (studentAvail && studentAvail.availability_data) {
-        for (const [day, times] of Object.entries(studentAvail.availability_data)) {
+        // Parse student availability_data if it's a JSON string
+        let studentAvailabilityData = {}
+        if (typeof studentAvail.availability_data === 'string') {
+          try {
+            studentAvailabilityData = JSON.parse(studentAvail.availability_data)
+          } catch (error) {
+            console.error('Error parsing student availability_data JSON:', error)
+            studentAvailabilityData = {}
+          }
+        } else {
+          studentAvailabilityData = studentAvail.availability_data
+        }
+        
+        for (const [day, times] of Object.entries(studentAvailabilityData)) {
           if (Array.isArray(times) && times.length >= 2) {
             beschikbaarheid[day] = times
           }
