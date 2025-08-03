@@ -39,15 +39,33 @@ export async function GET(request: NextRequest) {
     }
 
     // Format the data for the AI schedule
-    const formattedStudents = (students || []).map(student => ({
-      id: student.id,
-      naam: student.last_name 
-        ? `${student.first_name} ${student.last_name}`
-        : student.first_name,
-      lessenPerWeek: student.default_lessons_per_week || 2,
-      lesDuur: student.default_lesson_duration_minutes || 60,
-      beschikbaarheid: student.student_availability?.[0]?.availability_data || {}
-    }))
+    const formattedStudents = (students || []).map(student => {
+      // Parse student availability_data if it's a string
+      let studentAvailability = {}
+      if (student.student_availability?.[0]?.availability_data) {
+        const availabilityData = student.student_availability[0].availability_data
+        if (typeof availabilityData === 'string') {
+          try {
+            studentAvailability = JSON.parse(availabilityData)
+          } catch (parseError) {
+            console.error('Error parsing student availability_data as JSON:', parseError)
+            studentAvailability = {}
+          }
+        } else {
+          studentAvailability = availabilityData
+        }
+      }
+      
+      return {
+        id: student.id,
+        naam: student.last_name 
+          ? `${student.first_name} ${student.last_name}`
+          : student.first_name,
+        lessenPerWeek: student.default_lessons_per_week || 2,
+        lesDuur: student.default_lesson_duration_minutes || 60,
+        beschikbaarheid: studentAvailability
+      }
+    })
 
     return NextResponse.json({
       success: true,

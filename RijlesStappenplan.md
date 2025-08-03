@@ -278,3 +278,12 @@ TodoList voor automatische betaling:
 - Als betaald is, wordt de kolom 'heeft_abonnement' in supabase geupdated naar false
 - Als abonnement wordt opgezegd, wordt 'heeft_abonnement' in supabase geupdated naar false
 - Toegang blokkeren als: 'startdatum' is meer dan 60 dagen geleden && 'heeft_abonnement' = false
+
+
+
+
+
+
+
+PROMPT:
+@rijflow-app/ Let op: Verander GEEN Functionaliteit en verander niks wat de functionaliteit zou kunnen beïnvloeden. Er zijn een aantal knoppen, teksten, plaatjes, etc... en andere UI elementen die niet op een correcte plaats staan of niet de juiste tekst hebben. Jouw taak is alleen om deze elementen op de juiste plaats te zetten. Nogmaals, verander GEEN functionaliteit, alleen plaatsen en designs van UI elementen. Hier is een lijst van elementen met de pagina waarop ze niet goed staan: 

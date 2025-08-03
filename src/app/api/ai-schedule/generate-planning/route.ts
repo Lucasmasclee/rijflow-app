@@ -116,7 +116,17 @@ export async function POST(request: NextRequest) {
     const beschikbareUren: Record<string, string[]> = {}
     
     if (instructorAvailability) {
-      const availabilityData = instructorAvailability.availability_data || {}
+      // Parse availability_data if it's a string
+      let availabilityData = instructorAvailability.availability_data || {}
+      if (typeof instructorAvailability.availability_data === 'string') {
+        try {
+          availabilityData = JSON.parse(instructorAvailability.availability_data)
+        } catch (parseError) {
+          console.error('Error parsing instructor availability_data as JSON:', parseError)
+          availabilityData = {}
+        }
+      }
+      
       for (const [day, times] of Object.entries(availabilityData)) {
         if (Array.isArray(times) && times.length >= 2) {
           beschikbareUren[day] = times
@@ -136,7 +146,18 @@ export async function POST(request: NextRequest) {
       const beschikbaarheid: Record<string, string[]> = {}
       
       if (studentAvail && studentAvail.availability_data) {
-        for (const [day, times] of Object.entries(studentAvail.availability_data)) {
+        // Parse student availability_data if it's a string
+        let studentAvailabilityData = studentAvail.availability_data
+        if (typeof studentAvail.availability_data === 'string') {
+          try {
+            studentAvailabilityData = JSON.parse(studentAvail.availability_data)
+          } catch (parseError) {
+            console.error('Error parsing student availability_data as JSON:', parseError)
+            studentAvailabilityData = {}
+          }
+        }
+        
+        for (const [day, times] of Object.entries(studentAvailabilityData)) {
           if (Array.isArray(times) && times.length >= 2) {
             beschikbaarheid[day] = times
           }

@@ -100,7 +100,17 @@ export async function POST(request: NextRequest) {
         message = 'New availability created with default values'
       } else if (standardAvailability) {
         // Use standard_availability as fallback
-        availabilityData = standardAvailability.availability_data || {}
+        // Parse standard availability data if it's a string
+        let standardAvailabilityData = standardAvailability.availability_data || {}
+        if (typeof standardAvailability.availability_data === 'string') {
+          try {
+            standardAvailabilityData = JSON.parse(standardAvailability.availability_data)
+          } catch (parseError) {
+            console.error('Error parsing standard availability_data as JSON:', parseError)
+            standardAvailabilityData = {}
+          }
+        }
+        availabilityData = standardAvailabilityData
         message = 'New availability created from standard availability'
       }
 
@@ -227,9 +237,20 @@ export async function POST(request: NextRequest) {
       // Don't fail here, just log the error
     }
 
+    // If availability_data is a string, parse it as JSON
+    let parsedAvailabilityData = instructorAvailability.availability_data
+    if (typeof instructorAvailability.availability_data === 'string') {
+      try {
+        parsedAvailabilityData = JSON.parse(instructorAvailability.availability_data)
+      } catch (parseError) {
+        console.error('Error parsing availability_data as JSON:', parseError)
+        parsedAvailabilityData = {}
+      }
+    }
+
     // Build the response data structure
     const instructorData = {
-      beschikbareUren: instructorAvailability.availability_data || {},
+      beschikbareUren: parsedAvailabilityData || {},
       datums: generateWeekDates(weekStart),
       maxLessenPerDag: instructorAvailability.settings?.maxLessenPerDag || 6,
       blokuren: instructorAvailability.settings?.blokuren ?? true,
@@ -242,12 +263,27 @@ export async function POST(request: NextRequest) {
       // Find student availability for this week
       const studentAvail = studentAvailability?.find(sa => sa.student_id === student.id)
       
+      // Parse student availability data if it's a string
+      let parsedStudentAvailability = {}
+      if (studentAvail?.availability_data) {
+        if (typeof studentAvail.availability_data === 'string') {
+          try {
+            parsedStudentAvailability = JSON.parse(studentAvail.availability_data)
+          } catch (parseError) {
+            console.error('Error parsing student availability_data as JSON:', parseError)
+            parsedStudentAvailability = {}
+          }
+        } else {
+          parsedStudentAvailability = studentAvail.availability_data
+        }
+      }
+      
       return {
         id: student.id,
         naam: student.last_name ? `${student.first_name} ${student.last_name}` : student.first_name,
         lessenPerWeek: student.default_lessons_per_week || 2,
         lesDuur: student.default_lesson_duration_minutes || 60,
-        beschikbaarheid: studentAvail?.availability_data || {}
+        beschikbaarheid: parsedStudentAvailability
       }
     })
 
