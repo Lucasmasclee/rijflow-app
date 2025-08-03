@@ -1141,39 +1141,6 @@ function AISchedulePageContent() {
         </div>
       </div>
 
-      {/* Progress Steps */}
-      <div className="bg-white border-b border-gray-200">
-        <div className="container-mobile py-6">
-          <div className="flex items-center justify-between">
-            {steps.map((step, index) => (
-              <div key={step.key} className="flex items-center">
-                <div className={`flex items-center gap-2 ${currentStep === step.key ? 'text-blue-600' : 'text-gray-400'}`}>
-                  <div className={`w-10 h-10 rounded-full flex items-center justify-center text-sm font-medium ${
-                    currentStep === step.key 
-                      ? 'bg-blue-600 text-white' 
-                      : index < steps.findIndex(s => s.key === currentStep)
-                      ? 'bg-green-600 text-white'
-                      : 'bg-gray-200 text-gray-600'
-                  }`}>
-                    {index < steps.findIndex(s => s.key === currentStep) ? (
-                      <Check className="h-4 w-4" />
-                    ) : (
-                      <step.icon className="h-4 w-4" />
-                    )}
-                  </div>
-                  <span className="hidden sm:inline text-sm font-medium">{step.name}</span>
-                </div>
-                {index < steps.length - 1 && (
-                  <div className={`w-8 h-px mx-2 ${
-                    index < steps.findIndex(s => s.key === currentStep) ? 'bg-green-600' : 'bg-gray-200'
-                  }`} />
-                )}
-              </div>
-            ))}
-          </div>
-        </div>
-      </div>
-
       {/* Content */}
       <div className="flex-1 overflow-y-auto pb-24">
         <div className="container-mobile py-6">
@@ -1383,114 +1350,112 @@ function AISchedulePageContent() {
                         </h4>
                         
                         {/* Lessons per week and minutes per lesson */}
-                        <div className="flex items-center gap-4 mb-4">
-                          <div className="flex items-center gap-2">
-                            <input
-                              type="text"
-                              inputMode="numeric"
-                              pattern="[0-9]*"
-                              value={student.default_lessons_per_week || ''}
-                              onChange={(e) => {
-                                const value = e.target.value
-                                // Allow empty input for normal typing
-                                if (value === '') {
-                                  const newStudents = [...students]
-                                  newStudents[studentIndex] = {
-                                    ...newStudents[studentIndex],
-                                    default_lessons_per_week: 0
-                                  }
-                                  setStudents(newStudents)
-                                  return
-                                }
-                                
-                                // Only allow numbers
-                                if (!/^\d*$/.test(value)) return
-                                
-                                const numValue = parseInt(value, 10)
-                                if (isNaN(numValue)) return
-                                
+                        <div className="flex items-center gap-2 mb-4">
+                          <input
+                            type="text"
+                            inputMode="numeric"
+                            pattern="[0-9]*"
+                            value={student.default_lessons_per_week || ''}
+                            onChange={(e) => {
+                              const value = e.target.value
+                              // Allow empty input for normal typing
+                              if (value === '') {
                                 const newStudents = [...students]
                                 newStudents[studentIndex] = {
                                   ...newStudents[studentIndex],
-                                  default_lessons_per_week: numValue
+                                  default_lessons_per_week: 0
                                 }
                                 setStudents(newStudents)
-                              }}
-                              onBlur={(e) => {
-                                const value = e.target.value
-                                let numValue = parseInt(value, 10)
-                                
-                                if (isNaN(numValue) || numValue < 1) {
-                                  numValue = 1
-                                } else if (numValue > 7) {
-                                  numValue = 7
-                                }
-                                
+                                return
+                              }
+                              
+                              // Only allow numbers
+                              if (!/^\d*$/.test(value)) return
+                              
+                              const numValue = parseInt(value, 10)
+                              if (isNaN(numValue)) return
+                              
+                              const newStudents = [...students]
+                              newStudents[studentIndex] = {
+                                ...newStudents[studentIndex],
+                                default_lessons_per_week: numValue
+                              }
+                              setStudents(newStudents)
+                            }}
+                            onBlur={(e) => {
+                              const value = e.target.value
+                              let numValue = parseInt(value, 10)
+                              
+                              if (isNaN(numValue) || numValue < 1) {
+                                numValue = 1
+                              } else if (numValue > 7) {
+                                numValue = 7
+                              }
+                              
+                              const newStudents = [...students]
+                              newStudents[studentIndex] = {
+                                ...newStudents[studentIndex],
+                                default_lessons_per_week: numValue
+                              }
+                              setStudents(newStudents)
+                            }}
+                            className="w-12 h-8 text-center border border-gray-300 rounded focus:ring-blue-500 focus:border-blue-500 text-sm"
+                          />
+                          <span className="text-xs text-gray-600">lessen per week van</span>
+                          <input
+                            type="text"
+                            inputMode="numeric"
+                            pattern="[0-9]*"
+                            value={student.default_lesson_duration_minutes || ''}
+                            onChange={(e) => {
+                              const value = e.target.value
+                              // Allow empty input for normal typing
+                              if (value === '') {
                                 const newStudents = [...students]
                                 newStudents[studentIndex] = {
                                   ...newStudents[studentIndex],
-                                  default_lessons_per_week: numValue
+                                  default_lesson_duration_minutes: 0
                                 }
                                 setStudents(newStudents)
-                              }}
-                              className="w-16 h-10 text-center border border-gray-300 rounded focus:ring-blue-500 focus:border-blue-500"
-                            />
-                            <span className="text-sm text-gray-600">Lessen per week van</span>
-                            <input
-                              type="text"
-                              inputMode="numeric"
-                              pattern="[0-9]*"
-                              value={student.default_lesson_duration_minutes || ''}
-                              onChange={(e) => {
-                                const value = e.target.value
-                                // Allow empty input for normal typing
-                                if (value === '') {
-                                  const newStudents = [...students]
-                                  newStudents[studentIndex] = {
-                                    ...newStudents[studentIndex],
-                                    default_lesson_duration_minutes: 0
-                                  }
-                                  setStudents(newStudents)
-                                  return
-                                }
-                                
-                                // Only allow numbers
-                                if (!/^\d*$/.test(value)) return
-                                
-                                const numValue = parseInt(value, 10)
-                                if (isNaN(numValue)) return
-                                
-                                const newStudents = [...students]
-                                newStudents[studentIndex] = {
-                                  ...newStudents[studentIndex],
-                                  default_lesson_duration_minutes: numValue
-                                }
-                                setStudents(newStudents)
-                              }}
-                              onBlur={(e) => {
-                                const value = e.target.value
-                                let numValue = parseInt(value, 10)
-                                
-                                if (isNaN(numValue) || numValue < 30) {
-                                  numValue = 30
-                                } else if (numValue > 120) {
-                                  numValue = 120
-                                }
-                                
-                                // Round to nearest 5
-                                numValue = Math.round(numValue / 5) * 5
-                                
-                                const newStudents = [...students]
-                                newStudents[studentIndex] = {
-                                  ...newStudents[studentIndex],
-                                  default_lesson_duration_minutes: numValue
-                                }
-                                setStudents(newStudents)
-                              }}
-                              className="w-20 h-10 text-center border border-gray-300 rounded focus:ring-blue-500 focus:border-blue-500"
-                            />
-                            <span className="text-sm text-gray-600">minuten per les</span>
-                          </div>
+                                return
+                              }
+                              
+                              // Only allow numbers
+                              if (!/^\d*$/.test(value)) return
+                              
+                              const numValue = parseInt(value, 10)
+                              if (isNaN(numValue)) return
+                              
+                              const newStudents = [...students]
+                              newStudents[studentIndex] = {
+                                ...newStudents[studentIndex],
+                                default_lesson_duration_minutes: numValue
+                              }
+                              setStudents(newStudents)
+                            }}
+                            onBlur={(e) => {
+                              const value = e.target.value
+                              let numValue = parseInt(value, 10)
+                              
+                              if (isNaN(numValue) || numValue < 30) {
+                                numValue = 30
+                              } else if (numValue > 120) {
+                                numValue = 120
+                              }
+                              
+                              // Round to nearest 5
+                              numValue = Math.round(numValue / 5) * 5
+                              
+                              const newStudents = [...students]
+                              newStudents[studentIndex] = {
+                                ...newStudents[studentIndex],
+                                default_lesson_duration_minutes: numValue
+                              }
+                              setStudents(newStudents)
+                            }}
+                            className="w-16 h-8 text-center border border-gray-300 rounded focus:ring-blue-500 focus:border-blue-500 text-sm"
+                          />
+                          <span className="text-xs text-gray-600">minuten per les</span>
                         </div>
                       </div>
 
@@ -1731,7 +1696,7 @@ function AISchedulePageContent() {
                         ...aiSettings,
                         pauzeTussenLessen: parseInt(e.target.value) || 0
                       })}
-                      className="w-20 h-10 text-center border border-gray-300 rounded focus:ring-blue-500 focus:border-blue-500"
+                      className="w-12 h-8 text-center border border-gray-300 rounded focus:ring-blue-500 focus:border-blue-500 text-sm"
                     />
                     <span className="text-sm text-gray-600">minuten</span>
                   </div>
@@ -1757,7 +1722,7 @@ function AISchedulePageContent() {
                         ...aiSettings,
                         langePauzeDuur: parseInt(e.target.value) || 0
                       })}
-                      className="w-20 h-10 text-center border border-gray-300 rounded focus:ring-blue-500 focus:border-blue-500"
+                      className="w-12 h-8 text-center border border-gray-300 rounded focus:ring-blue-500 focus:border-blue-500 text-sm"
                     />
                     <span className="text-sm text-gray-600">minuten</span>
                   </div>
@@ -1768,15 +1733,13 @@ function AISchedulePageContent() {
 
                 {/* Blokuren */}
                 <div className="bg-white border border-gray-200 rounded-lg p-6">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <label className="text-lg font-medium text-gray-900">
-                        Blokuren
-                      </label>
-                      <p className="text-sm text-gray-500 mt-1">
-                        Plan lessen in blokken van 2 uur voor efficiëntere planning
-                      </p>
-                    </div>
+                  <div>
+                    <label className="text-lg font-medium text-gray-900">
+                      Blokuren
+                    </label>
+                    <p className="text-sm text-gray-500 mt-1 mb-3">
+                      Geef voorkeur aan blokuren
+                    </p>
                     <div className="flex items-center">
                       <input
                         type="checkbox"
@@ -1822,7 +1785,7 @@ function AISchedulePageContent() {
                   </div>
                   <button
                     onClick={createInputFile}
-                    className="flex items-center gap-2 px-4 py-2 rounded-lg bg-blue-600 text-white hover:bg-blue-700 transition-colors"
+                    className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-blue-600 text-white hover:bg-blue-700 transition-colors text-sm"
                   >
                     <Brain className="h-4 w-4" />
                     Maak weekplanning
@@ -1892,13 +1855,13 @@ function AISchedulePageContent() {
                         <div className="text-2xl font-bold text-blue-600">
                           {planningResult.schedule_details?.lessen || 0}
                         </div>
-                        <div className="text-sm text-blue-700">Totaal aantal lessen ingepland</div>
+                        <div className="text-xs text-blue-700">Totaal aantal lessen ingepland</div>
                       </div>
                       <div className="bg-green-50 p-4 rounded-lg">
                         <div className="text-2xl font-bold text-green-600">
                           {planningResult.schedule_details?.totale_minuten_tussen_lesson || 0}
                         </div>
-                        <div className="text-sm text-green-700">Totale tijd tussen lessen (min)</div>
+                        <div className="text-xs text-green-700">Totale tijd tussen lessen (min)</div>
                       </div>
                     </div>
                   </div>
@@ -1907,17 +1870,17 @@ function AISchedulePageContent() {
                   {planningResult.lessons && planningResult.lessons.length > 0 && (
                     <div className="bg-white border border-gray-200 rounded-lg p-6">
                       <div className="flex items-center justify-between mb-4">
-                        <h4 className="text-lg font-medium text-gray-900">Geplande Lessen</h4>
+                        <h4 className="text-base font-medium text-gray-900">Geplande Lessen</h4>
                         <div className="flex gap-2">
                           <button
                             onClick={selectAllLessons}
-                            className="px-3 py-1 text-sm bg-blue-600 text-white rounded hover:bg-blue-700"
+                            className="px-2 py-1 text-xs bg-blue-600 text-white rounded hover:bg-blue-700"
                           >
                             Alles selecteren
                           </button>
                           <button
                             onClick={deselectAllLessons}
-                            className="px-3 py-1 text-sm bg-gray-600 text-white rounded hover:bg-gray-700"
+                            className="px-2 py-1 text-xs bg-gray-600 text-white rounded hover:bg-gray-700"
                           >
                             Alles deselecteren
                           </button>
@@ -1936,14 +1899,11 @@ function AISchedulePageContent() {
                                 id={lessonId}
                                 checked={isSelected}
                                 onChange={(e) => handleLessonSelection(lessonId, e.target.checked)}
-                                className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                                className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500 flex-shrink-0"
                               />
-                              <div className="flex-1">
-                                <div className="font-medium text-gray-900">
-                                  {formatLessonDateTime(lesson.date, lesson.startTime, lesson.endTime)}
-                                </div>
-                                <div className="text-sm text-gray-600">
-                                  {lesson.studentName}
+                              <div className="flex-1 min-w-0">
+                                <div className="font-medium text-gray-900 text-sm">
+                                  {formatLessonDateTime(lesson.date, lesson.startTime, lesson.endTime)} - {lesson.studentName}
                                 </div>
                               </div>
                             </div>
@@ -2021,13 +1981,11 @@ function AISchedulePageContent() {
 
                   {/* Add to schedule button */}
                   <div className="bg-white border border-gray-200 rounded-lg p-6">
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <h4 className="text-lg font-medium text-gray-900">Voeg lessen toe</h4>
-                        <p className="text-sm text-gray-600 mt-1">
-                          {selectedLessons.size} van de {planningResult.lessons?.length || 0} lessen geselecteerd
-                        </p>
-                      </div>
+                    <div>
+                      <h4 className="text-lg font-medium text-gray-900">Voeg lessen toe</h4>
+                      <p className="text-sm text-gray-600 mt-1 mb-4">
+                        {selectedLessons.size} van de {planningResult.lessons?.length || 0} lessen geselecteerd
+                      </p>
                       <button
                         onClick={addSelectedLessonsToSchedule}
                         disabled={selectedLessons.size === 0 || sendingSms}
@@ -2060,12 +2018,12 @@ function AISchedulePageContent() {
 
           {/* Navigation Buttons */}
           <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 z-10">
-            <div className="container-mobile py-3">
+            <div className="container-mobile py-2">
               <div className="flex items-center justify-between">
                 <button
                   onClick={handlePrevious}
                   disabled={currentStep === 'week-selection'}
-                  className={`flex items-center gap-1 px-3 py-2 rounded-lg border text-sm transition-colors ${
+                  className={`flex items-center gap-1 px-2 py-1.5 rounded-lg border text-xs transition-colors ${
                     currentStep === 'week-selection'
                       ? 'border-gray-200 text-gray-400 cursor-not-allowed'
                       : 'border-gray-300 text-gray-700 hover:bg-gray-50'
@@ -2080,7 +2038,7 @@ function AISchedulePageContent() {
                   {currentStep === 'instructor' && (
                     <button
                       onClick={saveInstructorAvailability}
-                      className="flex items-center gap-1 px-3 py-2 rounded-lg border border-green-600 text-green-600 hover:bg-green-50 transition-colors text-sm"
+                      className="flex items-center gap-1 px-2 py-1.5 rounded-lg border border-green-600 text-green-600 hover:bg-green-50 transition-colors text-xs"
                     >
                       <Check className="h-3 w-3" />
                       Opslaan
@@ -2091,7 +2049,7 @@ function AISchedulePageContent() {
                   {currentStep === 'students' && (
                     <button
                       onClick={saveStudentData}
-                      className="flex items-center gap-1 px-3 py-2 rounded-lg border border-green-600 text-green-600 hover:bg-green-50 transition-colors text-sm"
+                      className="flex items-center gap-1 px-2 py-1.5 rounded-lg border border-green-600 text-green-600 hover:bg-green-50 transition-colors text-xs"
                     >
                       <Check className="h-3 w-3" />
                       Opslaan
@@ -2102,7 +2060,7 @@ function AISchedulePageContent() {
                   {currentStep === 'settings' && (
                     <button
                       onClick={saveAISettings}
-                      className="flex items-center gap-1 px-3 py-2 rounded-lg border border-green-600 text-green-600 hover:bg-green-50 transition-colors text-sm"
+                      className="flex items-center gap-1 px-2 py-1.5 rounded-lg border border-green-600 text-green-600 hover:bg-green-50 transition-colors text-xs"
                     >
                       <Check className="h-3 w-3" />
                       Opslaan
@@ -2112,7 +2070,7 @@ function AISchedulePageContent() {
                   <button
                     onClick={handleNext}
                     disabled={!canGoNext()}
-                    className={`flex items-center gap-1 px-4 py-2 rounded-lg transition-colors text-sm ${
+                    className={`flex items-center gap-1 px-3 py-1.5 rounded-lg transition-colors text-xs ${
                       canGoNext()
                         ? 'bg-blue-600 text-white hover:bg-blue-700'
                         : 'bg-gray-200 text-gray-400 cursor-not-allowed'

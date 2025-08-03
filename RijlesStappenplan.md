@@ -260,6 +260,7 @@ Verbeteringen:
 - Optie om meldingen via whatsapp te sturen ipv SMS
 ✅✅✅- In ai-schedule moet "volgende" knop ook de wijzigingen opslaan (Dit gebeurt misschien al?) 
 - Als instructeur in schedule-settings invult 45 min per les, wordt dit geupdated voor alle leerlingen?
+- Automatische weekplanning: optie voor alleen blokuren (Dus een optie "geef voorkeur aan blokuren" en een optie "alleen blokuren")
 
 UI Verbeteringen:
 Dagplanning (Dashboard):
