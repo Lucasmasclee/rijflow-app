@@ -246,6 +246,7 @@ Contact informatie op landingspagina
 _________________________________________________________________________________________________________________________________________________________________________
 
 Verbeteringen:
+- GLITCH: Door tijdzone krijg je op zondag na 22:00 niet de juiste week. 
 - In twilio automatisch saldo verhogen aan
 - Ai-schedule -> Voor elke leerling neerzetten 2/2 lessen✅ of 3/4 lessen❌ ingepland
 - Algemene notities bij een les neerzetten
