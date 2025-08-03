@@ -1768,13 +1768,13 @@ function AISchedulePageContent() {
             <div className="space-y-6">
               <div>
                 <h3 className="text-lg font-semibold mb-4">Stap 5: Maak weekplanning</h3>
-                <p className="text-gray-600 mb-6 text-sm">
+                {/* <p className="text-gray-600 mb-6 text-sm">
                   Klik op "Maak weekplanning", en controleer de ingeplande lessen.
                   <br />
                   Te veel of te weinig pauzes? Verander de instellingen in Stap 4, en maak een nieuwe weekplanning.
                   <br />
                   Let op: Het bewerken van lessen kan zodra je ze hebt toegevoegd.
-                </p>
+                </p> */}
               </div>
 
               <div className="bg-white border border-gray-200 rounded-lg p-6">
@@ -1902,7 +1902,7 @@ function AISchedulePageContent() {
                                 className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500 flex-shrink-0"
                               />
                               <div className="flex-1 min-w-0">
-                                <div className="font-medium text-gray-900 text-sm">
+                                <div className="font-medium text-gray-900 text-xs">
                                   {formatLessonDateTime(lesson.date, lesson.startTime, lesson.endTime)} - {lesson.studentName}
                                 </div>
                               </div>
@@ -1918,8 +1918,9 @@ function AISchedulePageContent() {
                     <div className="bg-white border border-gray-200 rounded-lg p-6">
                       <h3 className="text-base font-medium text-gray-900 mb-4">
                         Leerlingen met te weinig lessen:
-                        <br />
-                        Niet tevreden? Controleer de instellingen in stap 3.</h3>
+                        {/* <br /> */}
+                        {/* Niet tevreden? Controleer de instellingen in stap 3. */}
+                        </h3>
                       <div className="space-y-2">
                         {Object.entries(planningResult.leerlingen_zonder_les).map(([studentName, missingLessons]) => (
                           <div key={studentName} className="flex items-center justify-between p-3 bg-red-50 rounded-lg">

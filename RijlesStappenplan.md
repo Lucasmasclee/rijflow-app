@@ -255,15 +255,13 @@ Verbeteringen:
 - Automatische weekplanning: optie voor alleen blokuren (Dus een optie "geef voorkeur aan blokuren" en een optie "alleen blokuren")
 - Automatische weekplanning: Ingevulde capiciteit ipv totale minuten tussen lessen.
 
+
+
 UI Verbeteringen:
 AI-Schedule pagina:
-- instructeur beschikbaarheid -> Dagen staan als "Ma" + "\n" + "11" + "\n" + "aug", dit moet natuurlijk "Ma 11 aug" worden.
-- leerling beschikbaarheid -> Dagen staan als "Ma" + "\n" + "11" + "\n" + "aug", dit moet natuurlijk "Ma 11 aug" worden.
 - leerling beschikbaarheid -> Inputfields en teksten van lessen per week en minuten per les mogen kleiner zodat "[inputfield] lessen per week van [inputfield] minuten per les" op 1 regel past
 - instellingen: Maak de inputfields van 'pauze na elke les' en 'lange pauze duur' veel kleiner. Op dit moment zouden er 10 karakters inpassen, maar er hoeven er maximaal 2 in te passen dus deze inputfields mogen veel smaller.
-- instellingen: De checkbox moet helemaal links staan. Het heeft een glitch waarbij het langer is dan dat het eruit ziet, waardoor er veel ruimte links en rechts van deze checkbox staat.
-- Resultaat scherm (stap 5): De elementen voor de ingeplande lessen -> De checkboxes hebben een glitch: Het heeft een glitch waarbij het langer is dan dat het eruit ziet, waardoor er veel ruimte links en rechts van deze checkbox staat. Zorg dat de checkbox de ruimte in beslag neemt die het daadwerkelijk nodig heeft, en helemaal links staat.
-- Resultaat scherm (stap 5): de checkboxes voor "sms leerlingen over hun ingeplande les" en "stuur 24 uur van tevoren herinnering" hebben een glitch. Ze hebben een glitch waarbij het langer/breder is dan dat het eruit ziet, waardoor er veel ruimte links en rechts van deze checkbox staat.
+
 
 
 

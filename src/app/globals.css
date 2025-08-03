@@ -76,6 +76,14 @@ input[type="checkbox"] {
   flex-shrink: 0 !important;
 }
 
+/* Override width for number inputs to make them smaller */
+input[type="number"] {
+  width: auto !important;
+  min-width: 3ch !important;
+  max-width: 4ch !important;
+  text-align: center !important;
+}
+
 /* Ensure all input types have proper styling */
 input[type="text"],
 input[type="email"],
