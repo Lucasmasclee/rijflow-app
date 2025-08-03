@@ -231,7 +231,10 @@ ________________________________________________________________________________
 Todolist: 
 ✅4 taken voor AI Weekplanning
 ✅Voor functionaliteit: Testscenario waarbij sample_input gemaakt wordt (Dus leerlingen toevoegen, sms sturen, beschikbaarheid invullen, ai-weekplanning, etc..)
-Langs elke pagina gaan en UI elementen goedzetten
+✅Langs elke pagina gaan en UI elementen goedzetten
+Testscenario zelf uitvoeren
+Testscenario door Lennard laten uitvoeren
+Alle feedback uit het testscenario verbeteren
 Landingspagina updaten met de 2 nieuwe belangrijke functies, misschien een youtube video van een demo toevoegen? 
 ✅Screenshots appstore
 (Later?) Betalingen opzetten
