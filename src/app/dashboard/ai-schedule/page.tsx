@@ -901,10 +901,19 @@ function AISchedulePageContent() {
     try {
       const weekStart = formatDateToISO(selectedWeek)
       
+      // Get the current session to include auth token
+      const { data: { session } } = await supabase.auth.getSession()
+      
+      if (!session?.access_token) {
+        toast.error('Niet ingelogd. Log opnieuw in.')
+        return
+      }
+      
       const response = await fetch('/api/ai-schedule/generate-planning', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          'Authorization': `Bearer ${session.access_token}`
         },
         body: JSON.stringify({
           weekStart,
@@ -939,10 +948,19 @@ function AISchedulePageContent() {
     try {
       const weekStart = formatDateToISO(selectedWeek)
       
+      // Get the current session to include auth token
+      const { data: { session } } = await supabase.auth.getSession()
+      
+      if (!session?.access_token) {
+        toast.error('Niet ingelogd. Log opnieuw in.')
+        return
+      }
+      
       const response = await fetch('/api/ai-schedule/generate-planning', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          'Authorization': `Bearer ${session.access_token}`
         },
         body: JSON.stringify({
           weekStart,
