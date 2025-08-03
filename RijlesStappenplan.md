@@ -262,17 +262,18 @@ AI-Schedule pagina:
 - leerling beschikbaarheid -> Inputfields en teksten van lessen per week en minuten per les mogen kleiner zodat "[inputfield] lessen per week van [inputfield] minuten per les" op 1 regel past
 - instellingen: Maak de inputfields van 'pauze na elke les' en 'lange pauze duur' veel kleiner. Op dit moment zouden er 10 karakters inpassen, maar er hoeven er maximaal 2 in te passen dus deze inputfields mogen veel smaller.
 - instellingen: De checkbox moet helemaal links staan. Het heeft een glitch waarbij het langer is dan dat het eruit ziet, waardoor er veel ruimte links en rechts van deze checkbox staat.
-- Resultaat scherm (stap 5): "Maak weekplanning" knop moet onder "automatische weekplanning" komen te staan in plaats van ernaast.
-- Resultaat scherm (stap 5): de knoppen "alles selecteren" en "alles deselecteren" mogen kleiner.
 - Resultaat scherm (stap 5): De elementen voor de ingeplande lessen -> De checkboxes hebben een glitch: Het heeft een glitch waarbij het langer is dan dat het eruit ziet, waardoor er veel ruimte links en rechts van deze checkbox staat. Zorg dat de checkbox de ruimte in beslag neemt die het daadwerkelijk nodig heeft, en helemaal links staat.
-- Resulaat scherm (stap 5): tekst "klik op ..... hebt toegevoegd" moet kleiner. Daarnaast moeten nieuwe regels starten bij "Te veel ... nieuwe weekplanning" en "Let op: ... hebt toegevoegd"
-- Resultaat scherm (stap 5): tekst "leerlingen ... stap 3" mag iets kleiner en op een nieuwe regel beginnen bij "niet tevreden? ... stap 3."
 - Resultaat scherm (stap 5): de checkboxes voor "sms leerlingen over hun ingeplande les" en "stuur 24 uur van tevoren herinnering" hebben een glitch. Ze hebben een glitch waarbij het langer/breder is dan dat het eruit ziet, waardoor er veel ruimte links en rechts van deze checkbox staat.
 
 
 
+
+
+
 Lijst met geweldige ideeën voor deze app:
-- Basic en Premium versie maken, waarbij premium alle SMS functies heeft en de AI-weekplanning (Dit is ook omdat de SMS functies geld kosten)
+- Basic en Premium versie maken, waarbij premium alle SMS functies heeft en de AI-weekplanning (Reden: SMS functies kosten geld; Als instructeurs geen gebruik maken van SMS en Automatische weekplanning is €40/maand veel te veel)
+- Een uitlegvideo voor de ai-weekplanning neerzetten op de ai-schedule pagina
+
 
 
 

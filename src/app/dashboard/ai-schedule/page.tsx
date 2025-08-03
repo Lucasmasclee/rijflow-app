@@ -1740,7 +1740,7 @@ function AISchedulePageContent() {
                     <p className="text-sm text-gray-500 mt-1 mb-3">
                       Geef voorkeur aan blokuren
                     </p>
-                    <div className="flex items-center">
+                    <div className="flex items-center justify-start">
                       <input
                         type="checkbox"
                         id="blokuren"
@@ -1878,12 +1878,12 @@ function AISchedulePageContent() {
                           >
                             Alles selecteren
                           </button>
-                          <button
+                          {/* <button
                             onClick={deselectAllLessons}
                             className="px-1.5 py-0.5 text-xs bg-gray-600 text-white rounded hover:bg-gray-700"
                           >
                             Alles deselecteren
-                          </button>
+                          </button> */}
                         </div>
                       </div>
                       
@@ -1893,7 +1893,7 @@ function AISchedulePageContent() {
                           const isSelected = selectedLessons.has(lessonId)
                           
                           return (
-                            <div key={lessonId} className="flex items-center gap-2 p-3 border border-gray-200 rounded-lg">
+                            <div key={lessonId} className="flex items-center gap-2 p-3 border border-gray-200 rounded-lg justify-start">
                               <input
                                 type="checkbox"
                                 id={lessonId}
@@ -1916,10 +1916,10 @@ function AISchedulePageContent() {
                   {/* Students without lessons */}
                   {planningResult.leerlingen_zonder_les && Object.keys(planningResult.leerlingen_zonder_les).length > 0 && (
                     <div className="bg-white border border-gray-200 rounded-lg p-6">
-                      <h4 className="text-base font-medium text-gray-900 mb-4">
-                        Leerlingen met te weinig lessen.
+                      <h3 className="text-base font-medium text-gray-900 mb-4">
+                        Leerlingen met te weinig lessen:
                         <br />
-                        Niet tevreden? Dubbelcheck de instellingen voor leerlingen in stap 3.</h4>
+                        Niet tevreden? Dubbelcheck de instellingen voor leerlingen in stap 3.</h3>
                       <div className="space-y-2">
                         {Object.entries(planningResult.leerlingen_zonder_les).map(([studentName, missingLessons]) => (
                           <div key={studentName} className="flex items-center justify-between p-3 bg-red-50 rounded-lg">
@@ -1941,7 +1941,7 @@ function AISchedulePageContent() {
                     </div>
                     <div className="space-y-4">
                       {/* Immediate SMS Toggle */}
-                      <div className="flex items-center">
+                      <div className="flex items-center justify-start">
                         <input
                           type="checkbox"
                           id="sendImmediateSms"
@@ -1955,7 +1955,7 @@ function AISchedulePageContent() {
                       </div>
 
                       {/* Reminder SMS Toggle */}
-                      <div className="flex items-center">
+                      <div className="flex items-center justify-start">
                         <input
                           type="checkbox"
                           id="sendReminderSms"
