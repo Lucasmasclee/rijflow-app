@@ -242,18 +242,10 @@ Contact informatie op landingspagina
 
 _________________________________________________________________________________________________________________________________________________________________________
 
-Glitches:
-✅✅✅- Schedule Settings worden niet direct opgeslagen
-✅✅✅- "selecteer alles" knop bij 'SMS leerlingen voor beschikbaarheid' functie
-✅✅✅- Als een leerling beschikbaarheid invult is de minimale tijd 8:00 --> Moet 6:00 zijn
-✅✅✅- Als een leerling beschikbaarheid invult: Datum bij elke dag neerzetten 
-✅✅✅- In ai-schedule: Datums neerzetten bij beschikbaarheid instructeur en leerlingen
-✅✅✅- Ai-schedule -> beschikbaarheid leerlingen inputfields -> lessen per week en minuten per les hebben autocorrectie
-- Ai-schedule -> Voor elke leerling neerzetten 2/2 lessen✅ of 3/4 lessen❌ ingepland
-✅✅✅- Als een account niet meer bestaat en de app wordt geopend staat er 404: Not_found
-- Algemene notities bij een les neerzetten
-
 Verbeteringen:
+- In twilio automatisch saldo verhogen aan
+- Ai-schedule -> Voor elke leerling neerzetten 2/2 lessen✅ of 3/4 lessen❌ ingepland
+- Algemene notities bij een les neerzetten
 - Bij een week selecteren in SMS leerlingen de huidige week en 7 volgende weken ipv de 8 volgende weken
 - Instructeurs kunnen niet teveel SMS sturen
 - Bij een les aanmaken / bewerken: Knop voor "Stuur melding", en toggle voor "Stuur herinnering 24 uur van tevoren"
@@ -261,41 +253,26 @@ Verbeteringen:
 ✅✅✅- In ai-schedule moet "volgende" knop ook de wijzigingen opslaan (Dit gebeurt misschien al?) 
 - Als instructeur in schedule-settings invult 45 min per les, wordt dit geupdated voor alle leerlingen?
 - Automatische weekplanning: optie voor alleen blokuren (Dus een optie "geef voorkeur aan blokuren" en een optie "alleen blokuren")
+- Automatische weekplanning: Ingevulde capiciteit ipv totale minuten tussen lessen.
 
 UI Verbeteringen:
-Dagplanning (Dashboard):
-✅✅✅- Les uitgeklapt -> Voortgangsnotities placeholder = "Bijvoorbeeld:" + "\n" + "18 juli: Achteruit inparkeren" + "\n" + "25 juli: Hellingproef"
-
-Lessons pagina: Niks
-
-Leerling overzicht:
-✅✅✅- SMS Leerlingen knop is niet goed aligned met de lijst van leerlingen. De SMS Leerlingen knop moet direct boven de eerste leerling komen te staan. 
-✅✅✅- SMS Leerlingen -> Week selecteren: De lijst van weken moet veel minder hoog want op dit moment staat "Week 8" buiten het scherm aan de onderkant en staat het kruisje om te annuleren buiten het scherm aan de bovenkant
-✅✅✅- SMS Leerlingen -> Leerlingen selecteren: "Selecteer alle" knop moet boven de checkboxes komen te staan (Dus moet iets meer naar rechts)
-✅✅✅- SMS Leerlingen -> Het element voor elke leerling mag wat kleiner want op dit moment zie ik maximaal 3 leerlingen in de scrollview. 
-
-Schedule-settings: Niks
-
 AI-Schedule pagina:
-- De navigatie balk voor vorige, volgende en opslaan moet ALTIJD vast onderin het scherm staan. Het moet dus geen onderdeel zijn van de scrollview
-- vorige, volgende en opslaan knoppen moeten kleiner Zodat 
 - instructeur beschikbaarheid -> Dagen staan als "Ma" + "\n" + "11" + "\n" + "aug", dit moet natuurlijk "Ma 11 aug" worden.
 - leerling beschikbaarheid -> Dagen staan als "Ma" + "\n" + "11" + "\n" + "aug", dit moet natuurlijk "Ma 11 aug" worden.
 - leerling beschikbaarheid -> Inputfields en teksten van lessen per week en minuten per les mogen kleiner zodat "[inputfield] lessen per week van [inputfield] minuten per les" op 1 regel past
-- instellingen: Maak de inputfields van 'pauze na elke les' en 'lange pauze duur' veel kleiner. Op dit moment zouden er 10 karakters inpassen, maar er hoeven er maximaal 2 in te passen.
-- instellingen: De checkbox voor blokuren aan/uit moet direct onder de tekst "geef een voorkeur aan blokuren". Dus het wordt "Blokuren", daaronder "geef voorkeur aan blokuren", daaronder de checkbox met aan/uit
-- Haal de icons en de stepindicator weg. 
-- Resultaat scherm (stap 5): "Maak weekplanning" knop mag iets kleiner
-- Resulaat scherm (stap 5): teksten "totaal aantal lessen ingepland" mag iets kleiner. "Totale tijd tussen lessen" mag iets kleiner
-- Resultaat scherm (stap 5): de tekst "Geplande lessen" en de knoppen "alles selecteren" en "alles deselecteren" mogen kleiner.
-- Resultaat scherm (stap 5): De elementen voor de ingeplande lessen -> De checkbox moet helemaal links staan, en de tekst met de datum, tijd en leerling moeten direct rechts daarvan staan en allemaal op 1 regel. Op dit moment neemt de checkbox superveel ruimte in beslag en wordt de tekst met de datum, tijd en leerling rechts heel slordig gepropt en staat deze tekst verdeeld over 9 regels.
-- - Resultaat scherm (stap 5): de checkbox voor "sms leerlingen over hun ingeplande les" moet meer naar links, en de bijbehorende tekst moet er direct naast staan
-- Resultaat scherm (stap 5): De checkbox voor "stuur 24 uur van tevoren herinnering" moet meer naar links, en de bijbehorende tekst moet er direct naast staan.
-- Resultaat scherm (stap 5): "Voeg lessen toe", daaronder "x van y lessen geselecteerd", daaronder de knop "voeg lessen toe".
+- instellingen: Maak de inputfields van 'pauze na elke les' en 'lange pauze duur' veel kleiner. Op dit moment zouden er 10 karakters inpassen, maar er hoeven er maximaal 2 in te passen dus deze inputfields mogen veel smaller.
+- instellingen: De checkbox moet helemaal links staan. Het heeft een glitch waarbij het langer is dan dat het eruit ziet, waardoor er veel ruimte links en rechts van deze checkbox staat.
+- Resultaat scherm (stap 5): "Maak weekplanning" knop moet onder "automatische weekplanning" komen te staan in plaats van ernaast.
+- Resultaat scherm (stap 5): de knoppen "alles selecteren" en "alles deselecteren" mogen kleiner.
+- Resultaat scherm (stap 5): De elementen voor de ingeplande lessen -> De checkboxes hebben een glitch: Het heeft een glitch waarbij het langer is dan dat het eruit ziet, waardoor er veel ruimte links en rechts van deze checkbox staat. Zorg dat de checkbox de ruimte in beslag neemt die het daadwerkelijk nodig heeft, en helemaal links staat.
+- Resulaat scherm (stap 5): tekst "klik op ..... hebt toegevoegd" moet kleiner. Daarnaast moeten nieuwe regels starten bij "Te veel ... nieuwe weekplanning" en "Let op: ... hebt toegevoegd"
+- Resultaat scherm (stap 5): tekst "leerlingen ... stap 3" mag iets kleiner en op een nieuwe regel beginnen bij "niet tevreden? ... stap 3."
+- Resultaat scherm (stap 5): de checkboxes voor "sms leerlingen over hun ingeplande les" en "stuur 24 uur van tevoren herinnering" hebben een glitch. Ze hebben een glitch waarbij het langer/breder is dan dat het eruit ziet, waardoor er veel ruimte links en rechts van deze checkbox staat.
 
 
 
-Beschikbaarheid\[public_token] pagina:
+Lijst met geweldige ideeën voor deze app:
+- Basic en Premium versie maken, waarbij premium alle SMS functies heeft en de AI-weekplanning (Dit is ook omdat de SMS functies geld kosten)
 
 
 

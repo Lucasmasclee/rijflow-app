@@ -1129,12 +1129,12 @@ function AISchedulePageContent() {
                 <ArrowLeft className="h-5 w-5" />
               </Link>
               <div>
-                <h1 className="text-xl font-semibold text-gray-900">
+                <h1 className="text-l font-semibold text-gray-900">
                   Automatische weekplanning
                 </h1>
-                <p className="text-sm text-gray-600">
+                {/* <p className="text-sm text-gray-600">
                   Laat AI je optimale lesrooster maken
-                </p>
+                </p> */}
               </div>
             </div>
           </div>
@@ -1350,7 +1350,7 @@ function AISchedulePageContent() {
                         </h4>
                         
                         {/* Lessons per week and minutes per lesson */}
-                        <div className="flex items-center gap-2 mb-4">
+                        <div className="flex items-center gap-1 mb-4">
                           <input
                             type="text"
                             inputMode="numeric"
@@ -1399,7 +1399,7 @@ function AISchedulePageContent() {
                               }
                               setStudents(newStudents)
                             }}
-                            className="w-12 h-8 text-center border border-gray-300 rounded focus:ring-blue-500 focus:border-blue-500 text-sm"
+                            className="w-8 h-6 text-center border border-gray-300 rounded focus:ring-blue-500 focus:border-blue-500 text-xs"
                           />
                           <span className="text-xs text-gray-600">lessen per week van</span>
                           <input
@@ -1453,7 +1453,7 @@ function AISchedulePageContent() {
                               }
                               setStudents(newStudents)
                             }}
-                            className="w-16 h-8 text-center border border-gray-300 rounded focus:ring-blue-500 focus:border-blue-500 text-sm"
+                            className="w-10 h-6 text-center border border-gray-300 rounded focus:ring-blue-500 focus:border-blue-500 text-xs"
                           />
                           <span className="text-xs text-gray-600">minuten per les</span>
                         </div>
@@ -1696,7 +1696,7 @@ function AISchedulePageContent() {
                         ...aiSettings,
                         pauzeTussenLessen: parseInt(e.target.value) || 0
                       })}
-                      className="w-12 h-8 text-center border border-gray-300 rounded focus:ring-blue-500 focus:border-blue-500 text-sm"
+                      className="w-8 h-6 text-center border border-gray-300 rounded focus:ring-blue-500 focus:border-blue-500 text-xs"
                     />
                     <span className="text-sm text-gray-600">minuten</span>
                   </div>
@@ -1722,7 +1722,7 @@ function AISchedulePageContent() {
                         ...aiSettings,
                         langePauzeDuur: parseInt(e.target.value) || 0
                       })}
-                      className="w-12 h-8 text-center border border-gray-300 rounded focus:ring-blue-500 focus:border-blue-500 text-sm"
+                      className="w-8 h-6 text-center border border-gray-300 rounded focus:ring-blue-500 focus:border-blue-500 text-xs"
                     />
                     <span className="text-sm text-gray-600">minuten</span>
                   </div>
@@ -1749,9 +1749,9 @@ function AISchedulePageContent() {
                           ...aiSettings,
                           blokuren: e.target.checked
                         })}
-                        className="w-5 h-5 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                        className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500 flex-shrink-0"
                       />
-                      <label htmlFor="blokuren" className="ml-3 text-sm text-gray-700">
+                      <label htmlFor="blokuren" className="ml-2 text-sm text-gray-700">
                         {aiSettings.blokuren ? 'Aan' : 'Uit'}
                       </label>
                     </div>
@@ -1768,29 +1768,30 @@ function AISchedulePageContent() {
             <div className="space-y-6">
               <div>
                 <h3 className="text-lg font-semibold mb-4">Stap 5: Maak weekplanning</h3>
-                <p className="text-gray-600 mb-6">
+                <p className="text-gray-600 mb-6 text-sm">
                   Klik op "Maak weekplanning", en controleer de ingeplande lessen.
-                  Te veel of te weinig pauzes? Verander de instellingen in Stap 4en maak een nieuwe weekplanning.
+                  <br />
+                  Te veel of te weinig pauzes? Verander de instellingen in Stap 4, en maak een nieuwe weekplanning.
+                  <br />
                   Let op: Het bewerken van lessen kan zodra je ze hebt toegevoegd.
                 </p>
               </div>
 
               <div className="bg-white border border-gray-200 rounded-lg p-6">
-                <div className="flex items-center justify-between mb-4">
-                  <div>
-                    <h4 className="text-lg font-medium text-gray-900">Automatische weekplanning</h4>
-                    {/* <p className="text-sm text-gray-500 mt-1">
-                      Genereer een geoptimaliseerde weekplanning met AI en toon het resultaat in de console
-                    </p> */}
-                  </div>
-                  <button
-                    onClick={createInputFile}
-                    className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-blue-600 text-white hover:bg-blue-700 transition-colors text-sm"
-                  >
-                    <Brain className="h-4 w-4" />
-                    Maak weekplanning
-                  </button>
+                <div className="mb-4">
+                  <h4 className="text-lg font-medium text-gray-900">Automatische weekplanning</h4>
+                  {/* <p className="text-sm text-gray-500 mt-1">
+                    Genereer een geoptimaliseerde weekplanning met AI en toon het resultaat in de console
+                  </p> */}
                 </div>
+                <button
+                  onClick={createInputFile}
+                  className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-blue-600 text-white hover:bg-blue-700 transition-colors text-sm"
+                >
+                  <Brain className="h-4 w-4" />
+                  Maak weekplanning
+                </button>
+              </div>
 
                 {/* <div className="mt-4 p-4 bg-blue-50 rounded-lg">
                   <h5 className="font-medium text-blue-900 mb-2">Instructies:</h5>
@@ -1801,7 +1802,6 @@ function AISchedulePageContent() {
                     <li>• Open de browser console (F12) om de resultaten te bekijken</li>
                   </ul>
                 </div> */}
-              </div>
 
               {/* <div className="bg-white border border-gray-200 rounded-lg p-6">
                 <div className="flex items-center justify-between mb-4">
@@ -1861,7 +1861,7 @@ function AISchedulePageContent() {
                         <div className="text-2xl font-bold text-green-600">
                           {planningResult.schedule_details?.totale_minuten_tussen_lesson || 0}
                         </div>
-                        <div className="text-xs text-green-700">Totale tijd tussen lessen (min)</div>
+                        <div className="text-xs text-green-700">Totale minuten tussen lessen</div>
                       </div>
                     </div>
                   </div>
@@ -1871,16 +1871,16 @@ function AISchedulePageContent() {
                     <div className="bg-white border border-gray-200 rounded-lg p-6">
                       <div className="flex items-center justify-between mb-4">
                         <h4 className="text-base font-medium text-gray-900">Geplande Lessen</h4>
-                        <div className="flex gap-2">
+                        <div className="flex gap-1">
                           <button
                             onClick={selectAllLessons}
-                            className="px-2 py-1 text-xs bg-blue-600 text-white rounded hover:bg-blue-700"
+                            className="px-1.5 py-0.5 text-xs bg-blue-600 text-white rounded hover:bg-blue-700"
                           >
                             Alles selecteren
                           </button>
                           <button
                             onClick={deselectAllLessons}
-                            className="px-2 py-1 text-xs bg-gray-600 text-white rounded hover:bg-gray-700"
+                            className="px-1.5 py-0.5 text-xs bg-gray-600 text-white rounded hover:bg-gray-700"
                           >
                             Alles deselecteren
                           </button>
@@ -1893,7 +1893,7 @@ function AISchedulePageContent() {
                           const isSelected = selectedLessons.has(lessonId)
                           
                           return (
-                            <div key={lessonId} className="flex items-center gap-3 p-3 border border-gray-200 rounded-lg">
+                            <div key={lessonId} className="flex items-center gap-2 p-3 border border-gray-200 rounded-lg">
                               <input
                                 type="checkbox"
                                 id={lessonId}
@@ -1916,8 +1916,9 @@ function AISchedulePageContent() {
                   {/* Students without lessons */}
                   {planningResult.leerlingen_zonder_les && Object.keys(planningResult.leerlingen_zonder_les).length > 0 && (
                     <div className="bg-white border border-gray-200 rounded-lg p-6">
-                      <h4 className="text-lg font-medium text-gray-900 mb-4">
+                      <h4 className="text-base font-medium text-gray-900 mb-4">
                         Leerlingen met te weinig lessen.
+                        <br />
                         Niet tevreden? Dubbelcheck de instellingen voor leerlingen in stap 3.</h4>
                       <div className="space-y-2">
                         {Object.entries(planningResult.leerlingen_zonder_les).map(([studentName, missingLessons]) => (
@@ -1940,41 +1941,31 @@ function AISchedulePageContent() {
                     </div>
                     <div className="space-y-4">
                       {/* Immediate SMS Toggle */}
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center space-x-3">
-                          <input
-                            type="checkbox"
-                            id="sendImmediateSms"
-                            checked={sendImmediateSms}
-                            onChange={(e) => setSendImmediateSms(e.target.checked)}
-                            className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
-                          />
-                          <label htmlFor="sendImmediateSms" className="text-sm font-medium text-gray-700">
-                            SMS Leerlingen over ingeplande lessen
-                          </label>
-                        </div>
-                        {/* <div className="text-xs text-gray-500">
-                          Stuur direct een SMS naar leerlingen
-                        </div> */}
+                      <div className="flex items-center">
+                        <input
+                          type="checkbox"
+                          id="sendImmediateSms"
+                          checked={sendImmediateSms}
+                          onChange={(e) => setSendImmediateSms(e.target.checked)}
+                          className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded flex-shrink-0"
+                        />
+                        <label htmlFor="sendImmediateSms" className="text-sm font-medium text-gray-700 ml-2">
+                          SMS Leerlingen over ingeplande lessen
+                        </label>
                       </div>
 
                       {/* Reminder SMS Toggle */}
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center space-x-3">
-                          <input
-                            type="checkbox"
-                            id="sendReminderSms"
-                            checked={sendReminderSms}
-                            onChange={(e) => setSendReminderSms(e.target.checked)}
-                            className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
-                          />
-                          <label htmlFor="sendReminderSms" className="text-sm font-medium text-gray-700">
-                            Stuur 24 uur van tevoren een herinnering
-                          </label>
-                        </div>
-                        {/* <div className="text-xs text-gray-500">
-                          Stuur herinnering 24 uur voor de les
-                        </div> */}
+                      <div className="flex items-center">
+                        <input
+                          type="checkbox"
+                          id="sendReminderSms"
+                          checked={sendReminderSms}
+                          onChange={(e) => setSendReminderSms(e.target.checked)}
+                          className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded flex-shrink-0"
+                        />
+                        <label htmlFor="sendReminderSms" className="text-sm font-medium text-gray-700 ml-2">
+                          Stuur 24 uur van tevoren een herinnering
+                        </label>
                       </div>
                     </div>
                   </div>
