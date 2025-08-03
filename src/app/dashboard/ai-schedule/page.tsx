@@ -1401,7 +1401,7 @@ function AISchedulePageContent() {
                             }}
                             className="w-8 h-6 text-center border border-gray-300 rounded focus:ring-blue-500 focus:border-blue-500 text-xs"
                           />
-                          <span className="text-xs text-gray-600">lessen per week van</span>
+                          <span className="text-xs text-gray-600">lessen van</span>
                           <input
                             type="number"
                             inputMode="numeric"
@@ -1455,7 +1455,7 @@ function AISchedulePageContent() {
                             }}
                             className="w-10 h-6 text-center border border-gray-300 rounded focus:ring-blue-500 focus:border-blue-500 text-xs"
                           />
-                          <span className="text-xs text-gray-600">minuten per les</span>
+                          <span className="text-xs text-gray-600">minuten</span>
                         </div>
                       </div>
 

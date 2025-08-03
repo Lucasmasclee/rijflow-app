@@ -258,9 +258,7 @@ Verbeteringen:
 
 
 UI Verbeteringen:
-AI-Schedule pagina:
-- leerling beschikbaarheid -> Inputfields en teksten van lessen per week en minuten per les mogen kleiner zodat "[inputfield] lessen per week van [inputfield] minuten per les" op 1 regel past
-- Leerling beschikbaarheid moet veel minder lang zijn, elk element moet veel kleiner
+
 
 
 
