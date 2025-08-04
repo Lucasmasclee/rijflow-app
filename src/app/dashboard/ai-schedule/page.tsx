@@ -1767,7 +1767,8 @@ function AISchedulePageContent() {
           {currentStep === 'generate-planning' && (
             <div className="space-y-6">
               <div>
-                <h3 className="text-lg font-semibold mb-4">Stap 5: Maak weekplanning</h3>
+                <h3 className="text-lg font-semibold mb-4">
+                  <br />Stap 5: Maak weekplanning</h3>
                 {/* <p className="text-gray-600 mb-6 text-sm">
                   Klik op "Maak weekplanning", en controleer de ingeplande lessen.
                   <br />

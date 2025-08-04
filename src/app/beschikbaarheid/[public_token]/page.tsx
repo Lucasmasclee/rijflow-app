@@ -495,12 +495,12 @@ export default function BeschikbaarheidPage() {
               {saving ? (
                 <>
                   <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                  Opslaan...
+                  Versturen...
                 </>
               ) : (
                 <>
                   <Save className="h-4 w-4" />
-                  Opslaan
+                  Versturen
                 </>
               )}
             </button>

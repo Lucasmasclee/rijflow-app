@@ -262,9 +262,11 @@ Verbeteringen:
 - Automatische weekplanning: Ingevulde capiciteit ipv totale minuten tussen lessen.
 - Confirm email knop in email moet app openen in plaats van website`
 - TESTEN: Meerdere tijdsblokken op 1 dag, voor zowel instructeur als leerlingen
+- Meldingen via whatsapp ipv SMS want SMS is te duur
 
+Demo script:
+Doel: Als instructeurs op de landingspagina van RijFlow komen, moeten ze na het zien van deze video zoveel mogelijk kans hebben om de app te downloaden
 
-Demo idee:
 5 seconde: SMS naar leerlingen sturen, tekst = "Ik stuur nu met 1 knop een SMS naar al mijn leerlingen met een link om hun beschikbaarheid in te vullen". 
 5 seconde: Schermopname van mijn telefoon met de SMS met de link
 10 seconde: Het resultaat van de automatische planning laten zien, tekst = "En hier is het resultaat van de automatische weekplanning, met maarliefst 35 lessen"
@@ -272,6 +274,7 @@ Demo idee:
 5 seconde: Schermopname van telefoon met de SMS voor de ingeplande les
 Benoemen: Leerlingen hoeven GEEN account aan te maken
 Benoemen: Leerlingen krijgen een bericht over hun les én een herinnering 24 uur van tevoren
+Benoemen: Het rooster is altijd nog bewerkbaar. 
 
 
 
@@ -280,6 +283,8 @@ Benoemen: Leerlingen krijgen een bericht over hun les én een herinnering 24 uur
 Lijst met geweldige ideeën voor deze app:
 - Basic en Premium versie maken, waarbij premium alle SMS functies heeft en de AI-weekplanning (Reden: SMS functies kosten geld; Als instructeurs geen gebruik maken van SMS en Automatische weekplanning is €40/maand veel te veel)
 - Een uitlegvideo voor de ai-weekplanning neerzetten op de ai-schedule pagina
+- Als instructeurs aanmelden, deze instructeurs opbellen / mailen om te vragen voor feedback, met het idee om de conversie van download naar klant te verhogen en natuurlijk de app te verbeteren
+- Een korte youtube video om conversie te maximaliseren en een lange video om uitgebreid de automatische weekplanning uit te leggen
 
 
 
@@ -290,7 +295,11 @@ Test:
 Kijk bij elke stap van de test of alles goed en netjes staat. Noteer wat er fout staat of beter kan. Het is de bedoeling dat sommige instructies vaag zijn, dat test namelijk de navigatie van de app
 1. Rijschool info
 ✅- Ga naar rijflow.nl of download de app en registreer je als instructeur
-✅- Vul je standaard beschikbaarheid in: Maandag, Dinsdag, Donderdag, Zaterdag: 7:00 t/m 11:00. Woensdag 13:00 t/m 17:00. Vrijdag 7:00 t/m 12:00
+✅- Vul je standaard beschikbaarheid in: 
+✅Maandag, Dinsdag, Donderdag: 7:00 t/m 16:00. 
+✅Woensdag 13:00 t/m 17:00. 
+✅Vrijdag 7:00 t/m 12:00
+✅Zaterdag 7:00 t/m 11:00
 ✅- Maak 10 Leerlingen aan:
 ✅- Noem ze Leerling 1 t/m Leerling 10
 ✅- Geef ze allemaal jouw eigen telefoonnummer (Voor de SMS functie), 
@@ -301,36 +310,104 @@ Kijk bij elke stap van de test of alles goed en netjes staat. Noteer wat er fout
 ✅- Stuur een SMS naar alle leerlingen
 ✅- Als het goed is krijg je nu 10 SMS'jes, 1 SMS per leerling met verschillende linkjes. 
 ✅- Vul door middel van de link de beschikbaarheid voor elke leerling in:
-Leerling 1: Maandag 7:00 t/m 10:00, Woensdag 13:00 t/m 16:00
-Leerling 2: Dinsdag 8:00 t/m 12:00, Donderdag 13:00 t/m 15:00
-Leerling 3: Woensdag 9:00 t/m 14:00, Vrijdag 10:00 t/m 13:00
-Leerling 4: Maandag 10:00 t/m 13:00, Zaterdag 12:00 t/m 16:00
-Leerling 5: Dinsdag 11:00 t/m 15:00, Donderdag 8:00 t/m 11:00
-Leerling 6: Woensdag 12:00 t/m 15:00, Vrijdag 14:00 t/m 16:00
-Leerling 7: Maandag 13:00 t/m 16:00, Donderdag 9:00 t/m 12:00, Zaterdag 10:00 t/m 13:00
-Leerling 8: Dinsdag 14:00 t/m 16:00, Vrijdag 8:00 t/m 12:00
-Leerling 9: Woensdag 8:00 t/m 11:00, Vrijdag 13:00 t/m 16:00, Zaterdag 9:00 t/m 12:00
-Leerling 10: Maandag 9:00 t/m 12:00, Donderdag 14:00 t/m 16:00
+✅Leerling 1: Maandag 7:00 t/m 10:00, Woensdag 13:00 t/m 16:00
+✅Leerling 2: Dinsdag 8:00 t/m 12:00, Donderdag 13:00 t/m 15:00
+✅Leerling 3: Woensdag 9:00 t/m 14:00, Vrijdag 10:00 t/m 13:00
+✅Leerling 4: Maandag 10:00 t/m 13:00, Zaterdag 12:00 t/m 16:00
+✅Leerling 5: Dinsdag 11:00 t/m 15:00, Donderdag 8:00 t/m 11:00
+✅Leerling 6: Woensdag 12:00 t/m 15:00, Vrijdag 14:00 t/m 16:00
+✅Leerling 7: Maandag 13:00 t/m 16:00, Donderdag 9:00 t/m 12:00, Zaterdag 10:00 t/m 13:00
+✅Leerling 8: Dinsdag 14:00 t/m 16:00, Vrijdag 8:00 t/m 12:00
+✅Leerling 9: Woensdag 8:00 t/m 11:00, Vrijdag 13:00 t/m 16:00, Zaterdag 9:00 t/m 12:00
+✅Leerling 10: Maandag 9:00 t/m 12:00, Donderdag 14:00 t/m 16:00
 
 3. AI-Weekplanning
-- Ga naar de AI-Weekplanning functie
-- Selecteer de week van 1 september t/m 7 september
-- Controleer of je eigen beschikbaarheid hetzelfde is als wat je had ingesteld
-- Controleer de beschikbaarheid van alle leerlingen. Controleer ook of de lessen per week en minuten per les kloppen met wat je had ingevuld
-- In de instellingen: 10 minuten pauze tussen elke les, blokuren = aan, 20 min voor lange pauze duur
-- Laat AI de planning maken. Voeg nog niet de lessen toe. Controleer of het uberhaupt werkt, of er geen lessen buiten je beschikbaarheid zijn, of er altijd 10 minuten tussen lessen zitten en of het was gelukt om veel leerlingen in te plannen. 
-- Ga naar de instellingen van het ai-rooster en verander de pauze tussen lessen van 10 naar 5, sla het op en maak een nieuwe planning.
-- Controleer of je nu een betere planning hebt met meer lessen, minder pauze tussen lessen en minder leerlingen met x lessen te weinig.
-- Selecteer: Stuur SMS naar leerlingen van de lessen (herinnering hoeft niet, die mag uit).
-- voeg alle gemaakte lessen toe aan het rooster. Controleer in je weekplanning of de lessen worden toegevoegd aan de juiste week.
-- Controleer of je een SMS krijgt per ingeplande les. 
+✅- Ga naar de AI-Weekplanning functie
+✅- Selecteer de week van 1 september t/m 7 september
+✅- Controleer of je eigen beschikbaarheid hetzelfde is als wat je had ingesteld
+✅- Controleer de beschikbaarheid van alle leerlingen. Controleer ook of de lessen per week en minuten per les kloppen met wat je had ingevuld
+✅- In de instellingen: 10 minuten pauze tussen elke les, blokuren = aan, 20 min voor lange pauze duur
+✅- Laat AI de planning maken. Voeg nog niet de lessen toe. Controleer of:
+✅- Het uberhaupt werkt, 
+✅- Of er geen lessen buiten je beschikbaarheid zijn
+✅- Of er altijd 10 minuten tussen lessen zitten
+✅- Of het in het algemeen was gelukt om een volle planning te maken
+✅- Ga terug naar de instellingen van het ai-rooster en verander de pauze tussen lessen van 10 naar 0, sla het op en maak een nieuwe planning.
+✅- Controleer of je nu een betere planning hebt met meer lessen, minder pauze tussen lessen en minder leerlingen met x lessen te weinig.
+✅- Selecteer: Stuur SMS naar leerlingen van de lessen (herinnering hoeft niet, die mag uit).
+✅- voeg alle gemaakte lessen toe aan het rooster. Controleer in je weekplanning of de lessen worden toegevoegd aan de juiste week.
+✅- Controleer of je een SMS krijgt per ingeplande les. 
 
 4. Andere functies
-- Kopieer weekplanning naar de week van 8 september t/m 14 september
-- Begin bij 1 september, en voeg bij elke les progressienotities toe. Dus bij elke les op 1 september zet je bijvoorbeeld: "1 sep: Eerste rijles". Doe dit voor een aantal dagen en kijk of de progressienotities van leerlingen handig en overzichtelijk zijn
-- Bewerk een les en voeg lesnotities toe bijv "ophalen bij station". Kijk vervolgens in de dagplanning of je deze ziet en of het handig en duidelijk staat.
+✅- Kopieer weekplanning naar de week van 8 september t/m 14 september
+✅- Begin bij 1 september, en voeg bij elke les progressienotities toe. Dus bij elke les op 1 september zet je bijvoorbeeld: "1 sep: Eerste rijles". Doe dit voor een aantal dagen en kijk of de progressienotities van leerlingen handig en overzichtelijk zijn
+✅- Bewerk een les en voeg lesnotities toe bijv "ophalen bij station". Kijk vervolgens in de dagplanning of je deze ziet en of het handig en duidelijk staat.
 
 
 
 Eigen feedback:
 In schedule-settings moet balk met "terug" en "opslaan" bovenaan het scherm blijven, dus uit de scrollview
+In beschikbaarheid/public_token de balk met "versturen" onderaan, buiten de scrollview ?
+In ai-schedule een laadanimatie in "volgende" knop om te laten zien dat het aan het laden is.
+Op ai-schedule resultaat pagina ergens neerzetten: "Let op: Je kan het rooster altijd nog bewerken nadat je het hebt toegevoegd"
+Op ai-schedule resultaat pagina een bezettingsgraad of rating geven aan het rooster, om te laten zien hoe goed het is en hoe waardevol deze functie is.
+SMS voor ingeplande lessen: Geen dubbele SMS voor blokuren (niet sturen dmv een check of er een andere les van die leerling op dezelfde dag is met een eerdere begintijd)
+Als lesnotities worden toegevoegd wordt de les in het weekoverzicht heel rommelig
+Lesnotities worden niet direct laten zien in dagoverzicht -> Moet wel.
+
+
+
+Twilio kost 0,0966 per SMS
+Een instructeur heeft ~20 leerlingen, en ~20 lessen per week
+Aantal SMS per week:
+20 voor alle lessen
+20 voor herinnering van lessen
+20 voor weekplanning invullen
+Totaal = 60 SMS per week
+60*0,0966 = 5,8 euro per week
+
+Slechtst denkbare scenario:
+Een instructeur heeft 40 leerlingen
+Elke week 40 SMS voor beschikbaarheid
+Elke week 30 lessen
+Elke week 30 herinneringen
+Totaal = 100 SMS per week
+100*0,0966 = 9,66/week = 43,47/maand
+
+Een limiet van 500 SMS per maand komt uit op 48,3 kosten per maand
+Ik zou hiervoor 40 euro kunnen rekenen, waarbij ik winst maak als een instructeur < 414 SMSjes stuurt
+Dit zou genoeg zijn voor 40 Leerlingen:
+- 40 Beschikbaarheid SMS
+- 30 meldingen voor lessen
+- 30 herinneringen voor lessen
+
+Totaal = 100 per week = 450 per maand
+
+
+Ik zat als volgt te denken: Er zijn instructeurs die uberhaupt geen automatische planning en SMS functies willen. Deze instructeurs kunnen voor €20/maand een abonnement afsluiten. De groep die wel de automatische planning zou gebruiken, zou waarschijnlijk ook de SMS functies willen gebruiken. Daarnaast, leveren de automatische planning en SMS functie samen superveel waarde (Misschien wel 10-20 uur per maand). Daarnaast wil ik altijd voorkomen dat de SMS limiet wordt bereikt, omdat dat de instructeur superveel extra werk zou opleveren. Ik zou voor dit premium abonnement dan een SMS limiet van €50 euro zetten, wat neerkomt op 517 SMS per maand. Ik zou hier dan €70 per maand voor vragen, waarbij ik winst zou maken op instructeurs die minder dan 500 SMSjes per maand sturen. 
+
+Ik zat ook nog het volgende te denken: Er zijn 3 opties voor abonnementen. Om het overzichtelijk te houden voor instructeurs zou ik beginnen met vragen of ze gebruik willen maken van de automatische weekplanning, en vragen of ze gebruik zouden maken van de SMS functie. In dit geval zou ik €20/maand vragen voor de basisfuncties, €30/maand voor basisfuncties + ai-weekplanning, en €80/maand voor ai weekplanning en de SMS functie, met een limiet van 517 SMSjes per maand.
+
+Ik zat ook nog het volgende te denken: Er zijn 4 opties: Wel/niet automatische weekplanning + wel/niet sms-functies + geen van beide. Omdat instructeurs overspoeld zouden raken bij het zien van 5 verschillende opties, zou ik 2 vragen stellen en op basis daarvan de beste (en misschien op 1 na beste optie laten zien).
+Basic: €20/maand; Proefperiode = 60 dagen gratis
+Basic + AW: €45/maand; Proefperiode = 60 dagen gratis
+Basic + SMS: €65/maand (500 SMS twv €50); Proefperiode = €50 voor 2 maanden met 500 SMS twv €50 
+Basic + AW + SMS = €80/maand (500 SMS twv €50) (25% voordeel); Proefperiode = €50 voor 2 maanden met 500 SMS twv €50
+
+Een proefperiode instellen van €100 voor 2 maanden, met €100 twv SMS inbegrepen (Hier kan ik dus geen verlies op lijden)
+
+Abonnement pagina: 
+Vraag 1: Wil je gebruik maken van een automatische weekplanning (Ja/nee)
+Vraag 2: Wil je automatische meldingen via SMS sturen naar leerlingen (Ja/nee)
+Op basis van de antwoorden, worden er altijd 2 opties laten zien: 
+Ja + Ja = optie 1 & 4
+Ja + nee = optie 2 & 4
+Nee + Ja = optie 3 & 4
+Nee + Nee = optie 1 & 4
+
+Basic: €20/maand; Proefperiode = 60 dagen gratis
+Basic + AW: €45/maand; Proefperiode = 60 dagen gratis
+Basic + SMS: €65/maand (500 SMS twv €50); Proefperiode = €50 voor 2 maanden met 500 SMS twv €50 
+Basic + AW + SMS = €80/maand (500 SMS twv €50) (25% voordeel); Proefperiode = €50 voor 2 maanden met 500 SMS twv €50
+Lijst met features: Dagplanning, Weekplanning, Leerlingbeheer, Automatische weekplanning, Automatische SMS meldingen
+
