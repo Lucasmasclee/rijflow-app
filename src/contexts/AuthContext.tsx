@@ -126,10 +126,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }
 
   const signUp = async (email: string, password: string, role: 'instructor' | 'student', student_id?: string) => {
+    console.log('🔧 AuthContext signUp called with:', { email, role, student_id })
+    
     // Determine the redirect URL - use current origin if available, otherwise use production URL
     const redirectUrl = typeof window !== 'undefined' 
       ? `${window.location.origin}/auth/signin`
       : 'https://rijflow.nl/auth/signin'
+    
+    console.log('🔗 Redirect URL:', redirectUrl)
     
     // Prepare user metadata
     const userMetadata: any = { role }
@@ -137,6 +141,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       userMetadata.student_id = student_id
     }
     
+    console.log('📋 User metadata:', userMetadata)
+    
+    console.log('📞 Calling Supabase auth.signUp...')
     const { data, error: signUpError } = await supabase.auth.signUp({
       email,
       password,
@@ -145,10 +152,25 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         emailRedirectTo: redirectUrl
       },
     })
-    if (signUpError) throw signUpError
+    
+    console.log('📊 Supabase auth response:', { 
+      hasData: !!data, 
+      hasUser: !!data?.user, 
+      userId: data?.user?.id,
+      hasError: !!signUpError 
+    })
+    
+    if (signUpError) {
+      console.error('❌ Supabase auth signUp error:', signUpError)
+      throw signUpError
+    }
+    
+    console.log('✅ Supabase auth signUp successful')
+    
     // Voeg instructeur toe aan instructors-tabel als rol 'instructor' is
     if (role === 'instructor' && data?.user) {
-      // Vul hier eventueel meer velden in als gewenst
+      console.log('👨‍🏫 Adding instructor to database...')
+      
       const { error: insertError } = await supabase.from('instructors').insert([
         {
           id: data.user.id,
@@ -156,10 +178,20 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           rijschoolnaam: 'Mijn Rijschool'
         }
       ])
+      
       if (insertError) {
+        console.error('❌ Instructor insert error:', insertError)
+        console.error('Error details:', {
+          message: insertError.message,
+          code: insertError.code,
+          details: insertError.details,
+          hint: insertError.hint
+        })
         // Je kunt hier eventueel een rollback doen of een waarschuwing loggen
         console.error('Kon instructeur niet toevoegen aan instructors-tabel:', insertError)
         // throw insertError // optioneel, afhankelijk van gewenste UX
+      } else {
+        console.log('✅ Instructor added to database successfully')
       }
     }
 

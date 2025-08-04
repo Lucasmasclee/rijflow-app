@@ -8,6 +8,8 @@ import Link from 'next/link'
 import toast from 'react-hot-toast'
 import ClientOnly from '@/components/ClientOnly'
 import PasswordInput from '@/components/PasswordInput'
+import ErrorBoundary from '@/components/ErrorBoundary'
+import DebugPanel from '@/components/DebugPanel'
 
 // Force dynamic rendering to prevent static generation issues
 export const dynamic = 'force-dynamic'
@@ -28,10 +30,24 @@ export default function SignUpPage() {
     setLoading(true)
 
     try {
+      console.log('🚀 Start registratie voor:', formData.email, formData.role)
+      
+      // Debug: Log de signUp functie call
+      console.log('📞 Calling signUp function...')
       await signUp(formData.email, formData.password, formData.role)
+      
+      console.log('✅ SignUp successful')
       setEmailSent(true)
       toast.success('Account aangemaakt! Controleer je e-mail om je account te bevestigen.')
     } catch (error: any) {
+      console.error('❌ SignUp error:', error)
+      console.error('Error details:', {
+        message: error.message,
+        code: error.code,
+        details: error.details,
+        hint: error.hint,
+        stack: error.stack
+      })
       toast.error(error.message || 'Er is iets misgegaan bij het aanmaken van je account.')
     } finally {
       setLoading(false)
@@ -56,11 +72,12 @@ export default function SignUpPage() {
           <div className="card text-center">
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
             <p className="mt-4 text-gray-600">Laden...</p>
-          </div>
-        </div>
+                  </div>
       </div>
-    )
-  }
+      <DebugPanel />
+    </div>
+  )
+}
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center py-12 px-4 safe-area-top safe-area-bottom">
@@ -93,7 +110,8 @@ export default function SignUpPage() {
               </Link>
             </div>
           ) : (
-            <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
+            <ErrorBoundary>
+              <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
               <div className="space-y-4">
                 {/* Role Selection */}
                 <div>
@@ -184,6 +202,7 @@ export default function SignUpPage() {
                 </p>
               </div>
             </form>
+            </ErrorBoundary>
           )}
         </ClientOnly>
 
