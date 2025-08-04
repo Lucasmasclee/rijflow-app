@@ -366,7 +366,7 @@ export default function BeschikbaarheidPage() {
                                 const minutes = currentTime.split(':')[1] || '00'
                                 handleTimeChange(day.key, index * 2, `${formattedValue}:${minutes}`)
                               }}
-                              className="w-16 p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-center"
+                              className="w-16 !p-0.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-center"
                               placeholder="HH"
                             />
                             <span className="text-gray-500 font-medium">:</span>
@@ -426,7 +426,7 @@ export default function BeschikbaarheidPage() {
                                 const minutes = currentTime.split(':')[1] || '00'
                                 handleTimeChange(day.key, index * 2 + 1, `${formattedValue}:${minutes}`)
                               }}
-                              className="w-16 p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-center"
+                              className="w-16 !p-0.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-center"
                               placeholder="HH"
                             />
                             <span className="text-gray-500 font-medium">:</span>
@@ -455,7 +455,7 @@ export default function BeschikbaarheidPage() {
                                 const hours = currentTime.split(':')[0] || '17'
                                 handleTimeChange(day.key, index * 2 + 1, `${hours}:${formattedValue}`)
                               }}
-                              className="w-16 p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-center"
+                              className="w-16 !p-0.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-center"
                               placeholder="MM"
                             />
                           </div>
