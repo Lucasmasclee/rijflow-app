@@ -228,21 +228,23 @@ Rooster Instellingen
 
 _________________________________________________________________________________________________________________________________________________________________________
 
-Todolist: 
+Todolist 4 augustus: 
 ✅4 taken voor AI Weekplanning
 ✅Voor functionaliteit: Testscenario waarbij sample_input gemaakt wordt (Dus leerlingen toevoegen, sms sturen, beschikbaarheid invullen, ai-weekplanning, etc..)
 ✅Langs elke pagina gaan en UI elementen goedzetten
 Testscenario zelf uitvoeren
 Testscenario door Lennard laten uitvoeren
 Alle feedback uit het testscenario verbeteren
+Demo video plan uitwerken
+Demo video maken
 Landingspagina updaten met de 2 nieuwe belangrijke functies, misschien een youtube video van een demo toevoegen? 
+Landingspagina: Thumbnail youtube video
 ✅Screenshots appstore
 (Later?) Betalingen opzetten
 Marketen (Hoe?)
 Iemand anders de hele app laten testen om glitches / fouten eruit te halen
 Android app icon
 Contact informatie op landingspagina
-
 _________________________________________________________________________________________________________________________________________________________________________
 
 Verbeteringen:
@@ -260,9 +262,12 @@ Verbeteringen:
 - Automatische weekplanning: Ingevulde capiciteit ipv totale minuten tussen lessen.
 
 
-
-UI Verbeteringen:
-
+Demo idee:
+5 seconde: SMS naar leerlingen sturen, tekst = "Ik stuur nu met 1 knop een SMS naar al mijn leerlingen met een link om hun beschikbaarheid in te vullen". 
+5 seconde: Schermopname van mijn telefoon met de SMS met de link
+10 seconde: Het resultaat van de automatische planning laten zien, tekst = "En hier is het resultaat van de automatische weekplanning, met maarliefst 35 lessen"
+10 seconde: SMS sturen naar leerlingen voor ingeplande lessen
+5 seconde: Schermopname van telefoon met de SMS voor de ingeplande les
 
 
 
@@ -271,6 +276,7 @@ UI Verbeteringen:
 Lijst met geweldige ideeën voor deze app:
 - Basic en Premium versie maken, waarbij premium alle SMS functies heeft en de AI-weekplanning (Reden: SMS functies kosten geld; Als instructeurs geen gebruik maken van SMS en Automatische weekplanning is €40/maand veel te veel)
 - Een uitlegvideo voor de ai-weekplanning neerzetten op de ai-schedule pagina
+
 
 
 

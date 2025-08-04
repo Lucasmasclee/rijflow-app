@@ -15,11 +15,55 @@ import {
   Star,
   Car,
   Menu,
-  X
+  X,
+  Play
 } from 'lucide-react'
 
 // Force dynamic rendering to prevent static generation issues
 export const dynamic = 'force-dynamic'
+
+// YouTube Video Component
+function YouTubeVideo({ videoId }: { videoId: string }) {
+  const [isPlaying, setIsPlaying] = useState(false)
+
+  const handlePlay = () => {
+    setIsPlaying(true)
+  }
+
+  if (isPlaying) {
+    return (
+      <div className="relative w-full max-w-2xl mx-auto mb-8">
+        <div className="relative pb-[56.25%] h-0">
+          <iframe
+            src={`https://www.youtube.com/embed/${videoId}?autoplay=1`}
+            title="YouTube video player"
+            className="absolute top-0 left-0 w-full h-full rounded-lg"
+            frameBorder="0"
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+            allowFullScreen
+          />
+        </div>
+      </div>
+    )
+  }
+
+  return (
+    <div className="relative w-full max-w-2xl mx-auto mb-8 cursor-pointer" onClick={handlePlay}>
+      <div className="relative pb-[56.25%] h-0">
+        <img
+          src={`https://img.youtube.com/vi/${videoId}/maxresdefault.jpg`}
+          alt="Video thumbnail"
+          className="absolute top-0 left-0 w-full h-full object-cover rounded-lg"
+        />
+        <div className="absolute inset-0 bg-black bg-opacity-30 rounded-lg flex items-center justify-center">
+          <div className="bg-red-600 rounded-full p-4 hover:bg-red-700 transition-colors">
+            <Play className="h-8 w-8 text-white ml-1" />
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+}
 
 export default function HomePage() {
   const { user } = useAuth() || { user: null }
@@ -76,11 +120,16 @@ export default function HomePage() {
         <div className="container-mobile">
           <div className="text-center mb-12 md:mb-16">
             <h2 className="text-mobile-xl md:text-3xl font-bold text-gray-900 mb-4">
-              Alles wat je nodig hebt in één app
+              RijFlow - Bespaar 20 uur per maand
             </h2>
             <p className="text-mobile-lg md:text-xl text-gray-600">
               Gemaakt door een leerling, die voor zijn instructeur deze tool heeft gemaakt.
+              <br />
+              <br />
             </p>
+            
+            {/* YouTube Video Embed */}
+            <YouTubeVideo videoId="vxrOvDFBST0" />
           </div>
 
           <div className="mobile-grid md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
@@ -154,7 +203,7 @@ export default function HomePage() {
             Download de app
           </h2>
           <p className="text-mobile-lg md:text-xl text-gray-600 mb-8">
-            Download RijFlow in de Appstores.
+            Download RijFlow in de Playstore en Appstore.
           </p>
           
           <div className="flex flex-col items-center gap-4">

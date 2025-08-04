@@ -199,13 +199,23 @@ export default function SignUpPage() {
             </div>
           </div>
           <div className="text-center mt-2">
-            <Link href="/terms" className="text-sm text-blue-600 hover:text-blue-500">
+            <a 
+              href="https://www.apple.com/legal/internet-services/itunes/dev/stdeula/" 
+              target="_blank" 
+              rel="noopener noreferrer"
+              className="text-sm text-blue-600 hover:text-blue-500"
+            >
               Algemene voorwaarden
-            </Link>
+            </a>
             {' en '}
-            <Link href="/privacy" className="text-sm text-blue-600 hover:text-blue-500">
+            <a 
+              href="https://sites.google.com/view/lines-privacy-policy/homepage" 
+              target="_blank" 
+              rel="noopener noreferrer"
+              className="text-sm text-blue-600 hover:text-blue-500"
+            >
               Privacybeleid
-            </Link>
+            </a>
           </div>
         </div>
       </div>
