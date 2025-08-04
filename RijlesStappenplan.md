@@ -260,7 +260,8 @@ Verbeteringen:
 - Als instructeur in schedule-settings invult 45 min per les, wordt dit geupdated voor alle leerlingen?
 - Automatische weekplanning: optie voor alleen blokuren (Dus een optie "geef voorkeur aan blokuren" en een optie "alleen blokuren")
 - Automatische weekplanning: Ingevulde capiciteit ipv totale minuten tussen lessen.
-- Confirm email knop in email moet app openen in plaats van website
+- Confirm email knop in email moet app openen in plaats van website`
+- TESTEN: Meerdere tijdsblokken op 1 dag, voor zowel instructeur als leerlingen
 
 
 Demo idee:
@@ -288,28 +289,28 @@ Lijst met geweldige ideeën voor deze app:
 Test: 
 Kijk bij elke stap van de test of alles goed en netjes staat. Noteer wat er fout staat of beter kan. Het is de bedoeling dat sommige instructies vaag zijn, dat test namelijk de navigatie van de app
 1. Rijschool info
-- Ga naar rijflow.nl of download de app en registreer je als instructeur
-- Vul je standaard beschikbaarheid in: Maandag, Dinsdag, Donderdag, Zaterdag: 7:00 t/m 16:00. Woensdag 13:00 t/m 17:00. Vrijdag 7:00 t/m 12:00
-- Maak 10 Leerlingen aan:
-- Noem ze Leerling A t/m Leerling J
-- Geef ze allemaal jouw eigen telefoonnummer (Voor de SMS functie), 
-- Lessen per week tussen 2 en 4, minuten per les tussen 40 en 60.
+✅- Ga naar rijflow.nl of download de app en registreer je als instructeur
+✅- Vul je standaard beschikbaarheid in: Maandag, Dinsdag, Donderdag, Zaterdag: 7:00 t/m 11:00. Woensdag 13:00 t/m 17:00. Vrijdag 7:00 t/m 12:00
+✅- Maak 10 Leerlingen aan:
+✅- Noem ze Leerling 1 t/m Leerling 10
+✅- Geef ze allemaal jouw eigen telefoonnummer (Voor de SMS functie), 
+✅- Lessen per week tussen 2 en 4, minuten per les tussen 40 en 60.
 
 2. Beschikbaarheid verzamelen
-- Verzamel door middel van de SMS functie de beschikbaarheid van alle leerlingen voor de week van 1 september t/m 7 september
-- Stuur een SMS naar alle leerlingen
-- Als het goed is krijg je nu 10 SMS'jes, 1 SMS per leerling met verschillende linkjes. 
-- Vul door middel van de link de beschikbaarheid voor elke leerling in:
-Leerling A: Maandag 7:00 t/m 10:00, Woensdag 13:00 t/m 16:00
-Leerling B: Dinsdag 8:00 t/m 12:00, Donderdag 13:00 t/m 15:00
-Leerling C: Woensdag 9:00 t/m 14:00, Vrijdag 10:00 t/m 13:00
-Leerling D: Maandag 10:00 t/m 13:00, Zaterdag 12:00 t/m 16:00
-Leerling E: Dinsdag 11:00 t/m 15:00, Donderdag 8:00 t/m 11:00
-Leerling F: Woensdag 12:00 t/m 15:00, Vrijdag 14:00 t/m 16:00
-Leerling G: Maandag 13:00 t/m 16:00, Donderdag 9:00 t/m 12:00, Zaterdag 10:00 t/m 13:00
-Leerling H: Dinsdag 14:00 t/m 16:00, Vrijdag 8:00 t/m 12:00
-Leerling I: Woensdag 8:00 t/m 11:00, Vrijdag 13:00 t/m 16:00, Zaterdag 9:00 t/m 12:00
-Leerling J: Maandag 9:00 t/m 12:00, Donderdag 14:00 t/m 16:00
+✅- Verzamel door middel van de SMS functie de beschikbaarheid van alle leerlingen voor de week van 1 september t/m 7 september
+✅- Stuur een SMS naar alle leerlingen
+✅- Als het goed is krijg je nu 10 SMS'jes, 1 SMS per leerling met verschillende linkjes. 
+✅- Vul door middel van de link de beschikbaarheid voor elke leerling in:
+Leerling 1: Maandag 7:00 t/m 10:00, Woensdag 13:00 t/m 16:00
+Leerling 2: Dinsdag 8:00 t/m 12:00, Donderdag 13:00 t/m 15:00
+Leerling 3: Woensdag 9:00 t/m 14:00, Vrijdag 10:00 t/m 13:00
+Leerling 4: Maandag 10:00 t/m 13:00, Zaterdag 12:00 t/m 16:00
+Leerling 5: Dinsdag 11:00 t/m 15:00, Donderdag 8:00 t/m 11:00
+Leerling 6: Woensdag 12:00 t/m 15:00, Vrijdag 14:00 t/m 16:00
+Leerling 7: Maandag 13:00 t/m 16:00, Donderdag 9:00 t/m 12:00, Zaterdag 10:00 t/m 13:00
+Leerling 8: Dinsdag 14:00 t/m 16:00, Vrijdag 8:00 t/m 12:00
+Leerling 9: Woensdag 8:00 t/m 11:00, Vrijdag 13:00 t/m 16:00, Zaterdag 9:00 t/m 12:00
+Leerling 10: Maandag 9:00 t/m 12:00, Donderdag 14:00 t/m 16:00
 
 3. AI-Weekplanning
 - Ga naar de AI-Weekplanning functie
@@ -332,3 +333,4 @@ Leerling J: Maandag 9:00 t/m 12:00, Donderdag 14:00 t/m 16:00
 
 
 Eigen feedback:
+In schedule-settings moet balk met "terug" en "opslaan" bovenaan het scherm blijven, dus uit de scrollview

@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react'
 import { useParams } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
-import { Calendar, Clock, Save, CheckCircle, AlertCircle } from 'lucide-react'
+import { Calendar, Clock, Save, CheckCircle, AlertCircle, Trash2 } from 'lucide-react'
 import toast from 'react-hot-toast'
 
 interface Student {
@@ -395,7 +395,7 @@ export default function BeschikbaarheidPage() {
                                 const hours = currentTime.split(':')[0] || '09'
                                 handleTimeChange(day.key, index * 2, `${hours}:${formattedValue}`)
                               }}
-                              className="w-16 p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-center"
+                              className="w-16 !p-0.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-center"
                               placeholder="MM"
                             />
                           </div>
@@ -462,9 +462,9 @@ export default function BeschikbaarheidPage() {
                         </div>
                         <button
                           onClick={() => removeTimeSlot(day.key, index)}
-                          className="text-red-600 hover:text-red-700 text-sm"
+                          className="text-red-600 hover:text-red-700 p-2 rounded-full hover:bg-red-50"
                         >
-                          Verwijderen
+                          <Trash2 className="h-4 w-4" />
                         </button>
                       </div>
                     ))}

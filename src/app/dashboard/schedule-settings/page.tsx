@@ -307,8 +307,9 @@ export default function ScheduleSettingsPage() {
       <div className="container-mobile py-6">
         {/* Header */}
         <div className="mb-6">
-          <h1 className="text-2xl md:text-3xl font-bold text-gray-900 mb-2">
-            Rooster Instellingen
+          <h1 className="text-xl md:text-2xl font-bold text-gray-900 mb-2">
+            <br />
+            Vul je standaard beschikbaarheid in
           </h1>
           {/* <p className="text-gray-600">
             Configureer je standaard beschikbare tijden en lesduur voor lesplanning
