@@ -260,6 +260,7 @@ Verbeteringen:
 - Als instructeur in schedule-settings invult 45 min per les, wordt dit geupdated voor alle leerlingen?
 - Automatische weekplanning: optie voor alleen blokuren (Dus een optie "geef voorkeur aan blokuren" en een optie "alleen blokuren")
 - Automatische weekplanning: Ingevulde capiciteit ipv totale minuten tussen lessen.
+- Confirm email knop in email moet app openen in plaats van website
 
 
 Demo idee:
@@ -268,6 +269,8 @@ Demo idee:
 10 seconde: Het resultaat van de automatische planning laten zien, tekst = "En hier is het resultaat van de automatische weekplanning, met maarliefst 35 lessen"
 10 seconde: SMS sturen naar leerlingen voor ingeplande lessen
 5 seconde: Schermopname van telefoon met de SMS voor de ingeplande les
+Benoemen: Leerlingen hoeven GEEN account aan te maken
+Benoemen: Leerlingen krijgen een bericht over hun les én een herinnering 24 uur van tevoren
 
 
 
@@ -325,3 +328,7 @@ Leerling J: Maandag 9:00 t/m 12:00, Donderdag 14:00 t/m 16:00
 - Kopieer weekplanning naar de week van 8 september t/m 14 september
 - Begin bij 1 september, en voeg bij elke les progressienotities toe. Dus bij elke les op 1 september zet je bijvoorbeeld: "1 sep: Eerste rijles". Doe dit voor een aantal dagen en kijk of de progressienotities van leerlingen handig en overzichtelijk zijn
 - Bewerk een les en voeg lesnotities toe bijv "ophalen bij station". Kijk vervolgens in de dagplanning of je deze ziet en of het handig en duidelijk staat.
+
+
+
+Eigen feedback:
