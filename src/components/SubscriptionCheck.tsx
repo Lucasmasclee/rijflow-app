@@ -14,6 +14,7 @@ export default function SubscriptionCheck({ children }: SubscriptionCheckProps) 
   const { user, loading } = useAuth()
   const router = useRouter()
   const [checkingSubscription, setCheckingSubscription] = useState(true)
+  const [shouldRedirect, setShouldRedirect] = useState(false)
 
   useEffect(() => {
     const checkSubscription = async () => {
@@ -44,7 +45,7 @@ export default function SubscriptionCheck({ children }: SubscriptionCheckProps) 
 
         // If no subscription data exists, redirect to subscription page
         if (!instructor.abonnement || instructor.abonnement === 'no_subscription') {
-          router.push('/dashboard/abonnement')
+          setShouldRedirect(true)
           return
         }
 
@@ -57,7 +58,7 @@ export default function SubscriptionCheck({ children }: SubscriptionCheckProps) 
             
             // If trial period is more than 60 days, redirect to subscription page
             if (daysSinceTrialStart > 60) {
-              router.push('/dashboard/abonnement')
+              setShouldRedirect(true)
               return
             }
           }
@@ -71,7 +72,7 @@ export default function SubscriptionCheck({ children }: SubscriptionCheckProps) 
         }
 
         // Default case: redirect to subscription page
-        router.push('/dashboard/abonnement')
+        setShouldRedirect(true)
       } catch (error) {
         console.error('Error checking subscription:', error)
         setCheckingSubscription(false)
@@ -79,7 +80,14 @@ export default function SubscriptionCheck({ children }: SubscriptionCheckProps) 
     }
 
     checkSubscription()
-  }, [user, loading, router])
+  }, [user, loading])
+
+  // Handle redirect after subscription check
+  useEffect(() => {
+    if (shouldRedirect) {
+      router.push('/dashboard/abonnement')
+    }
+  }, [shouldRedirect, router])
 
   if (loading || checkingSubscription) {
     return (

@@ -2,7 +2,7 @@
 
 import { useAuth } from '@/contexts/AuthContext'
 import { useRouter } from 'next/navigation'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import Image from 'next/image'
 import { 
   Calendar, 
@@ -70,6 +70,7 @@ export default function HomePage() {
   const router = useRouter()
   const [email, setEmail] = useState('')
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
+  const [shouldRedirect, setShouldRedirect] = useState(false)
 
   const handleGetStarted = () => {
     if (email) {
@@ -80,8 +81,20 @@ export default function HomePage() {
     }
   }
 
+  // Handle redirect when user is logged in
+  useEffect(() => {
+    if (user) {
+      setShouldRedirect(true)
+    }
+  }, [user])
+
+  useEffect(() => {
+    if (shouldRedirect) {
+      router.push('/dashboard')
+    }
+  }, [shouldRedirect, router])
+
   if (user) {
-    router.push('/dashboard')
     return null
   }
 

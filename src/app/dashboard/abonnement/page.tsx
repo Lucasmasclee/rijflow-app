@@ -44,12 +44,14 @@ interface PlanCard {
 }
 
 export default function AbonnementPage() {
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoadingMonthly, setIsLoadingMonthly] = useState(false);
+  const [isLoadingYearly, setIsLoadingYearly] = useState(false);
   const [instructorData, setInstructorData] = useState<Instructeur | null>(null);
   const [planCards, setPlanCards] = useState<PlanCard[]>([]);
   const [loadingData, setLoadingData] = useState(true);
   const [loadingPlans, setLoadingPlans] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [shouldRedirect, setShouldRedirect] = useState(false);
   const [billingCycle, setBillingCycle] = useState<{ [key: string]: 'monthly' | 'yearly' }>({
     basic: 'monthly',
     premium: 'monthly'
@@ -60,7 +62,8 @@ export default function AbonnementPage() {
 
   console.log('🚀 AbonnementPage component initialized');
   console.log('🔧 Current state:', {
-    isLoading,
+    isLoadingMonthly,
+    isLoadingYearly,
     instructorData: instructorData ? 'exists' : 'null',
     loadingData,
     error,
@@ -180,11 +183,18 @@ export default function AbonnementPage() {
 
     if (success) {
       toast.success('Abonnement succesvol gestart!');
-      router.push('/dashboard');
+      setShouldRedirect(true);
     } else if (canceled) {
       toast.error('Betaling geannuleerd.');
     }
-  }, [searchParams, router]);
+  }, [searchParams]);
+
+  // Handle redirect after successful subscription
+  useEffect(() => {
+    if (shouldRedirect) {
+      router.push('/dashboard');
+    }
+  }, [shouldRedirect, router]);
 
   const fetchPlanData = async () => {
     try {
@@ -316,7 +326,8 @@ export default function AbonnementPage() {
       return;
     }
 
-    setIsLoading(true);
+    setIsLoadingMonthly(planType === 'basic' ? true : false);
+    setIsLoadingYearly(planType === 'premium' ? true : false);
     
     try {
       if (planCards.length === 0) {
@@ -360,7 +371,7 @@ export default function AbonnementPage() {
         }
 
         toast.success('Proefperiode van 60 dagen gestart!');
-        router.push('/dashboard');
+        setShouldRedirect(true);
         return;
       }
 
@@ -401,7 +412,8 @@ export default function AbonnementPage() {
       console.error('Error starting subscription:', error);
       toast.error('Er is een fout opgetreden bij het starten van het abonnement.');
     } finally {
-      setIsLoading(false);
+      setIsLoadingMonthly(false);
+      setIsLoadingYearly(false);
     }
   };
 
@@ -424,7 +436,7 @@ export default function AbonnementPage() {
   return (
     <div className="min-h-screen bg-gray-50 py-8">
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-                 <div className="text-center mb-8">
+        <div className="text-center mb-8">
            <h1 className="text-3xl font-bold text-gray-900 mb-4">
              Kies je abonnement
            </h1>
@@ -433,7 +445,7 @@ export default function AbonnementPage() {
            </p>
            
                        {/* Debug Buttons */}
-            <div className="mt-4 space-x-2">
+            {/* <div className="mt-4 space-x-2">
               <button
                 onClick={testSupabaseConnection}
                 className="px-4 py-2 bg-gray-500 text-white rounded hover:bg-gray-600 text-sm"
@@ -458,7 +470,7 @@ export default function AbonnementPage() {
               >
                 Debug Database
               </button>
-            </div>
+            </div> */}
          </div>
 
                  {error && (
@@ -562,14 +574,14 @@ export default function AbonnementPage() {
 
                                  <button
                    onClick={() => handleStartSubscription(planCard.type)}
-                   disabled={isLoading}
+                   disabled={(isLoadingMonthly && planCard.type === 'basic') || (isLoadingYearly && planCard.type === 'premium')}
                    className={`w-full py-3 px-4 rounded-lg font-semibold transition duration-200 ${
                      isPopular
                        ? 'bg-blue-600 hover:bg-blue-700 text-white'
                        : 'bg-gray-100 hover:bg-gray-200 text-gray-900'
                    } disabled:opacity-50 disabled:cursor-not-allowed`}
                  >
-                   {isLoading ? 'Bezig...' : 
+                   {(isLoadingMonthly && planCard.type === 'basic') || (isLoadingYearly && planCard.type === 'premium') ? 'Bezig...' : 
                      planCard.type === 'basic' && !hasHadFreeTrial 
                        ? 'Start proefperiode' 
                        : 'Kies abonnement'
