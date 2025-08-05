@@ -13,6 +13,9 @@ export interface Instructeur {
   location?: string
   kvk_number?: string
   logo_url?: string
+  subscription_status?: 'active' | 'inactive'
+  stripe_customer_id?: string
+  subscription_id?: string
   created_at: string
   updated_at: string
 }
