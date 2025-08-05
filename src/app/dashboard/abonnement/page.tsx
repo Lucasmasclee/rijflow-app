@@ -43,62 +43,12 @@ interface PlanCard {
   };
 }
 
-const planCards: PlanCard[] = [
-  {
-    type: 'basic',
-    name: 'Basis',
-    description: 'Perfect voor startende rijscholen',
-    features: [
-      'Onbeperkt aantal leerlingen',
-      'Lesplanning en agenda',
-      'Voortgangsnotities',
-      'SMS notificaties',
-      'Basis support'
-    ],
-    monthly: {
-      id: 'basic-monthly',
-      price: '€29,99',
-      period: 'per maand',
-      stripePriceId: process.env.STRIPE_BASIC_MONTHLY_PRICE_ID!
-    },
-    yearly: {
-      id: 'basic-yearly',
-      price: '€299,99',
-      period: 'per jaar (2 maanden gratis)',
-      stripePriceId: process.env.STRIPE_BASIC_YEARLY_PRICE_ID!,
-      popular: true
-    }
-  },
-  {
-    type: 'premium',
-    name: 'Premium',
-    description: 'Voor groeiende rijscholen met geavanceerde behoeften',
-    features: [
-      'Alles uit Basis',
-      'AI-geassisteerde planning',
-      'Geavanceerde rapportages',
-      'Prioriteit support',
-      'API toegang'
-    ],
-    monthly: {
-      id: 'premium-monthly',
-      price: '€49,99',
-      period: 'per maand',
-      stripePriceId: process.env.STRIPE_PREMIUM_MONTHLY_PRICE_ID!
-    },
-    yearly: {
-      id: 'premium-yearly',
-      price: '€499,99',
-      period: 'per jaar',
-      stripePriceId: process.env.STRIPE_PREMIUM_YEARLY_PRICE_ID!
-    }
-  }
-];
-
 export default function AbonnementPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [instructorData, setInstructorData] = useState<Instructeur | null>(null);
+  const [planCards, setPlanCards] = useState<PlanCard[]>([]);
   const [loadingData, setLoadingData] = useState(true);
+  const [loadingPlans, setLoadingPlans] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [billingCycle, setBillingCycle] = useState<{ [key: string]: 'monthly' | 'yearly' }>({
     basic: 'monthly',
@@ -236,6 +186,22 @@ export default function AbonnementPage() {
     }
   }, [searchParams, router]);
 
+  const fetchPlanData = async () => {
+    try {
+      const response = await fetch('/api/get-subscription-plans');
+      if (response.ok) {
+        const data = await response.json();
+        setPlanCards(data.planCards);
+      } else {
+        console.error('Failed to fetch plan data');
+      }
+    } catch (error) {
+      console.error('Error fetching plan data:', error);
+    } finally {
+      setLoadingPlans(false);
+    }
+  };
+
   useEffect(() => {
     const fetchInstructorData = async () => {
       console.log('🔍 Starting fetchInstructorData...');
@@ -340,6 +306,7 @@ export default function AbonnementPage() {
     };
 
     console.log('🔄 useEffect triggered, user changed:', user?.id);
+    fetchPlanData();
     fetchInstructorData();
   }, [user]);
 
@@ -352,6 +319,11 @@ export default function AbonnementPage() {
     setIsLoading(true);
     
     try {
+      if (planCards.length === 0) {
+        toast.error('Abonnement gegevens zijn nog niet geladen.');
+        return;
+      }
+      
       const planCard = planCards.find(p => p.type === planType);
       if (!planCard) {
         toast.error('Ongeldig abonnement geselecteerd.');
@@ -435,7 +407,7 @@ export default function AbonnementPage() {
 
 
 
-  if (loadingData) {
+  if (loadingData || loadingPlans) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
