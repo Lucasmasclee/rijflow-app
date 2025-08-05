@@ -433,6 +433,116 @@ export default function AbonnementPage() {
   const hasHadFreeTrial = instructorData?.start_free_trial && 
     new Date(instructorData.start_free_trial) < new Date(Date.now() - 60 * 24 * 60 * 60 * 1000);
 
+  // Functie om te controleren of gebruiker een geldige proefperiode heeft of een abonnement heeft afgesloten
+  const hasValidSubscription = () => {
+    if (!instructorData) return false;
+    
+    // Als er geen abonnement is, check proefperiode
+    if (!instructorData.abonnement || instructorData.abonnement === 'no_subscription') {
+      if (instructorData.start_free_trial) {
+        const trialStartDate = new Date(instructorData.start_free_trial);
+        const currentDate = new Date();
+        const daysSinceTrialStart = Math.floor((currentDate.getTime() - trialStartDate.getTime()) / (1000 * 60 * 60 * 24));
+        
+        // Proefperiode is geldig als het minder dan 60 dagen geleden is gestart
+        return daysSinceTrialStart <= 60;
+      }
+      return false;
+    }
+    
+    // Als er een abonnement is, check of het actief is
+    if (instructorData.abonnement.startsWith('basic-') || instructorData.abonnement.startsWith('premium-')) {
+      // Voor basic abonnementen, check ook proefperiode
+      if (instructorData.abonnement.startsWith('basic-') && instructorData.start_free_trial) {
+        const trialStartDate = new Date(instructorData.start_free_trial);
+        const currentDate = new Date();
+        const daysSinceTrialStart = Math.floor((currentDate.getTime() - trialStartDate.getTime()) / (1000 * 60 * 60 * 24));
+        
+        // Als proefperiode nog geldig is of abonnement is actief
+        return daysSinceTrialStart <= 60 || instructorData.subscription_status === 'active';
+      }
+      
+      // Voor premium abonnementen, check alleen status
+      if (instructorData.abonnement.startsWith('premium-')) {
+        return instructorData.subscription_status === 'active';
+      }
+    }
+    
+    return false;
+  };
+
+  // Functie om de huidige abonnement status te bepalen
+  const getCurrentSubscriptionStatus = () => {
+    if (!instructorData) return null;
+    
+    // Als er geen abonnement is, check proefperiode
+    if (!instructorData.abonnement || instructorData.abonnement === 'no_subscription') {
+      if (instructorData.start_free_trial) {
+        const trialStartDate = new Date(instructorData.start_free_trial);
+        const currentDate = new Date();
+        const daysSinceTrialStart = Math.floor((currentDate.getTime() - trialStartDate.getTime()) / (1000 * 60 * 60 * 24));
+        
+        // Als proefperiode nog geldig is
+        if (daysSinceTrialStart <= 60) {
+          const remainingDays = 60 - daysSinceTrialStart;
+          return {
+            type: 'trial',
+            text: `Proefperiode, nog ${remainingDays} dagen gratis`,
+            color: 'bg-green-100 text-green-800 border-green-200'
+          };
+        } else {
+          return {
+            type: 'expired',
+            text: 'Proefperiode verlopen',
+            color: 'bg-red-100 text-red-800 border-red-200'
+          };
+        }
+      }
+      return null;
+    }
+    
+    // Als er een abonnement is
+    if (instructorData.abonnement.startsWith('basic-')) {
+      // Voor basic abonnementen, check ook proefperiode
+      if (instructorData.start_free_trial) {
+        const trialStartDate = new Date(instructorData.start_free_trial);
+        const currentDate = new Date();
+        const daysSinceTrialStart = Math.floor((currentDate.getTime() - trialStartDate.getTime()) / (1000 * 60 * 60 * 24));
+        
+        // Als proefperiode nog geldig is
+        if (daysSinceTrialStart <= 60) {
+          const remainingDays = 60 - daysSinceTrialStart;
+          return {
+            type: 'trial',
+            text: `Proefperiode, nog ${remainingDays} dagen gratis`,
+            color: 'bg-green-100 text-green-800 border-green-200'
+          };
+        }
+      }
+      
+      // Basic abonnement actief
+      if (instructorData.subscription_status === 'active') {
+        return {
+          type: 'basic',
+          text: 'Basic abonnement',
+          color: 'bg-blue-100 text-blue-800 border-blue-200'
+        };
+      }
+    }
+    
+    if (instructorData.abonnement.startsWith('premium-')) {
+      if (instructorData.subscription_status === 'active') {
+        return {
+          type: 'premium',
+          text: 'Premium abonnement',
+          color: 'bg-purple-100 text-purple-800 border-purple-200'
+        };
+      }
+    }
+    
+    return null;
+  };
+
   return (
     <div className="min-h-screen bg-gray-50 py-8">
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -443,6 +553,33 @@ export default function AbonnementPage() {
            <p className="text-lg text-gray-600">
              Start vandaag nog met het beheren van je rijschool
            </p>
+           
+           {/* Huidige abonnement status */}
+           {getCurrentSubscriptionStatus() && (
+             <div className="mt-6">
+               <div className={`inline-flex items-center px-4 py-2 rounded-full border ${getCurrentSubscriptionStatus()?.color} font-medium`}>
+                 <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                 </svg>
+                 {getCurrentSubscriptionStatus()?.text}
+               </div>
+             </div>
+           )}
+           
+           {/* Dashboard knop - alleen zichtbaar als gebruiker geldige proefperiode of abonnement heeft */}
+           {hasValidSubscription() && (
+             <div className="mt-6">
+               <button
+                 onClick={() => router.push('/dashboard')}
+                 className="inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors"
+               >
+                 <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+                 </svg>
+                 Ga naar Dashboard
+               </button>
+             </div>
+           )}
            
                        {/* Debug Buttons */}
             {/* <div className="mt-4 space-x-2">

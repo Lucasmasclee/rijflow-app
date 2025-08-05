@@ -190,15 +190,22 @@ export default function DashboardPage() {
             </div>
             
             {/* Desktop Navigation */}
-            {/* <div className="hidden md:flex items-center space-x-4">
+            <div className="hidden md:flex items-center space-x-4">
+              <button
+                onClick={() => router.push('/dashboard/abonnement')}
+                className="flex items-center gap-2 text-gray-600 hover:text-gray-900 px-3 py-2 rounded-md text-sm font-medium hover:bg-gray-100 transition-colors"
+              >
+                <Settings className="h-4 w-4" />
+                Abonnement
+              </button>
               <button
                 onClick={handleSignOut}
-                className="flex items-center gap-2 text-gray-600 hover:text-gray-900 px-3 py-2 rounded-md text-sm font-medium"
+                className="flex items-center gap-2 text-gray-600 hover:text-gray-900 px-3 py-2 rounded-md text-sm font-medium hover:bg-gray-100 transition-colors"
               >
                 <LogOut className="h-4 w-4" />
                 Uitloggen
               </button>
-            </div> */}
+            </div>
 
             {/* Mobile Menu Button */}
             <button
@@ -223,6 +230,16 @@ export default function DashboardPage() {
               >
                 <LogOut className="h-4 w-4" />
                 Uitloggen
+              </button>
+              <button
+                onClick={() => {
+                  router.push('/dashboard/abonnement')
+                  setMobileMenuOpen(false)
+                }}
+                className="flex items-center gap-2 text-gray-600 hover:text-gray-900 py-2 px-3 rounded-md text-base font-medium w-full text-left"
+              >
+                <Settings className="h-4 w-4" />
+                Abonnement
               </button>
             </div>
           </div>
@@ -305,13 +322,13 @@ export default function DashboardPage() {
               <Calendar className="h-6 w-6" />
               <span>Weekplanning</span>
             </Link>
-            {/* <Link href="/dashboard" className="nav-mobile-item active">
-              <Home className="h-6 w-6" />
-              <span>Dashboard</span>
-            </Link> */}
             <Link href="/dashboard/students" className="nav-mobile-item">
               <Users className="h-6 w-6" />
               <span>Leerlingen</span>
+            </Link>
+            <Link href="/dashboard/abonnement" className="nav-mobile-item">
+              <Settings className="h-6 w-6" />
+              <span>Abonnement</span>
             </Link>
           </div>
         </div>
