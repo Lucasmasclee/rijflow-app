@@ -13,6 +13,8 @@ export interface Instructeur {
   location?: string
   kvk_number?: string
   logo_url?: string
+  abonnement?: 'no_subscription' | 'basic-monthly' | 'basic-yearly' | 'premium-monthly' | 'premium-yearly'
+  start_free_trial?: string
   subscription_status?: 'active' | 'inactive'
   stripe_customer_id?: string
   subscription_id?: string

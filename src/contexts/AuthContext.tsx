@@ -59,7 +59,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       // Check of instructeur al bestaat
       const { data: existing, error: selectError } = await supabase
         .from('instructors')
-        .select('id')
+        .select('id, abonnement, start_free_trial, subscription_status')
         .eq('id', user.id)
         .single()
       if (selectError && selectError.code !== 'PGRST116') {
@@ -67,16 +67,51 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         console.error('Fout bij check op bestaande instructeur:', selectError)
       }
       if (!existing) {
-        // Voeg toe aan instructors-tabel
+        // Voeg toe aan instructors-tabel met default values
         const { error: insertError } = await supabase.from('instructors').insert([
           {
             id: user.id,
             email: user.email,
-            rijschoolnaam: 'Mijn Rijschool'
+            rijschoolnaam: 'Mijn Rijschool',
+            abonnement: 'no_subscription',
+            subscription_status: 'inactive'
           }
         ])
         if (insertError) {
           console.error('Kon instructeur niet toevoegen aan instructors-tabel bij eerste login:', insertError)
+        }
+      }
+
+      // Check subscription status and redirect accordingly
+      if (existing) {
+        // If no subscription or trial expired, redirect to subscription page
+        if (!existing.abonnement || existing.abonnement === 'no_subscription') {
+          if (typeof window !== 'undefined') {
+            window.location.href = '/dashboard/abonnement'
+          }
+          return
+        }
+
+        // Check if basic subscription trial has expired
+        if (existing.abonnement.startsWith('basic-') && existing.start_free_trial) {
+          const trialStartDate = new Date(existing.start_free_trial)
+          const currentDate = new Date()
+          const daysSinceTrialStart = Math.floor((currentDate.getTime() - trialStartDate.getTime()) / (1000 * 60 * 60 * 24))
+          
+          if (daysSinceTrialStart > 60) {
+            if (typeof window !== 'undefined') {
+              window.location.href = '/dashboard/abonnement'
+            }
+            return
+          }
+        }
+
+        // Check if premium subscription is active
+        if (existing.abonnement.startsWith('premium-') && existing.subscription_status !== 'active') {
+          if (typeof window !== 'undefined') {
+            window.location.href = '/dashboard/abonnement'
+          }
+          return
         }
       }
 
@@ -175,7 +210,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         {
           id: data.user.id,
           email: data.user.email,
-          rijschoolnaam: 'Mijn Rijschool'
+          rijschoolnaam: 'Mijn Rijschool',
+          abonnement: 'no_subscription',
+          subscription_status: 'inactive'
         }
       ])
       

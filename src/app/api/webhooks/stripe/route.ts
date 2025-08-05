@@ -3,7 +3,7 @@ import Stripe from 'stripe';
 import { supabase } from '@/lib/supabase';
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-  apiVersion: '2024-12-18.acacia',
+  apiVersion: '2025-07-30.basil',
 });
 
 const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET!;
@@ -27,10 +27,14 @@ export async function POST(request: NextRequest) {
         const session = event.data.object as Stripe.Checkout.Session;
         
         if (session.mode === 'subscription' && session.client_reference_id) {
+          // Get the plan ID from metadata
+          const planId = session.metadata?.planId;
+          
           // Update instructor's subscription status in the database
           const { error } = await supabase
             .from('instructors')
             .update({ 
+              abonnement: planId || 'no_subscription',
               subscription_status: 'active',
               stripe_customer_id: session.customer as string,
               subscription_id: session.subscription as string
@@ -47,10 +51,29 @@ export async function POST(request: NextRequest) {
         const subscription = event.data.object as Stripe.Subscription;
         
         if (subscription.status === 'active') {
+          // Get the plan ID from the subscription metadata or determine from price ID
+          let planId = 'no_subscription';
+          
+          if (subscription.items.data.length > 0) {
+            const priceId = subscription.items.data[0].price.id;
+            
+            // Map price IDs to plan IDs
+            if (priceId === process.env.STRIPE_BASIC_MONTHLY_PRICE_ID) {
+              planId = 'basic-monthly';
+            } else if (priceId === process.env.STRIPE_BASIC_YEARLY_PRICE_ID) {
+              planId = 'basic-yearly';
+            } else if (priceId === process.env.STRIPE_PREMIUM_MONTHLY_PRICE_ID) {
+              planId = 'premium-monthly';
+            } else if (priceId === process.env.STRIPE_PREMIUM_YEARLY_PRICE_ID) {
+              planId = 'premium-yearly';
+            }
+          }
+          
           // Update subscription status
           const { error } = await supabase
             .from('instructors')
             .update({ 
+              abonnement: planId,
               subscription_status: 'active',
               subscription_id: subscription.id
             })

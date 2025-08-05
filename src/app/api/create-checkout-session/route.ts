@@ -2,12 +2,12 @@ import { NextRequest, NextResponse } from 'next/server';
 import Stripe from 'stripe';
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-  apiVersion: '2024-12-18.acacia',
+  apiVersion: '2025-07-30.basil',
 });
 
 export async function POST(request: NextRequest) {
   try {
-    const { userId } = await request.json();
+    const { userId, planId, stripePriceId } = await request.json();
 
     if (!userId) {
       return NextResponse.json(
@@ -16,11 +16,18 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    if (!planId || !stripePriceId) {
+      return NextResponse.json(
+        { error: 'Plan ID and Stripe Price ID are required' },
+        { status: 400 }
+      );
+    }
+
     const session = await stripe.checkout.sessions.create({
       payment_method_types: ['card'],
       line_items: [
         {
-          price: process.env.STRIPE_MONTHLY_PRICE_ID,
+          price: stripePriceId,
           quantity: 1,
         },
       ],
@@ -30,6 +37,7 @@ export async function POST(request: NextRequest) {
       client_reference_id: userId,
       metadata: {
         userId: userId,
+        planId: planId,
       },
     });
 

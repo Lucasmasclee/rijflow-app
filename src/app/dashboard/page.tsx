@@ -3,6 +3,7 @@
 import { useAuth } from '@/contexts/AuthContext'
 import { useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
+import SubscriptionCheck from '@/components/SubscriptionCheck'
 import { 
   Calendar, 
   Users, 
@@ -177,9 +178,10 @@ export default function DashboardPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 pb-20">
-      {/* Mobile Navigation */}
-      <nav className="bg-white shadow-sm border-b safe-area-top">
+    <SubscriptionCheck>
+      <div className="min-h-screen bg-gray-50 pb-20">
+        {/* Mobile Navigation */}
+        <nav className="bg-white shadow-sm border-b safe-area-top">
         <div className="container-mobile">
           <div className="flex justify-between items-center h-16">
             <div className="flex items-center">
@@ -314,7 +316,8 @@ export default function DashboardPage() {
           </div>
         </div>
       </nav>
-    </div>
+      </div>
+    </SubscriptionCheck>
   )
 }
 

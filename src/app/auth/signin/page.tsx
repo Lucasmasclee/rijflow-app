@@ -28,7 +28,11 @@ export default function SignInPage() {
     try {
       await signIn(formData.email, formData.password)
       toast.success('Succesvol ingelogd!')
-      router.push('/dashboard')
+      // The signIn function will handle redirects based on subscription status
+      // If no redirect happens, go to dashboard
+      setTimeout(() => {
+        router.push('/dashboard')
+      }, 100)
     } catch (error: any) {
       toast.error(error.message || 'Inloggen mislukt. Controleer je gegevens.')
     } finally {
