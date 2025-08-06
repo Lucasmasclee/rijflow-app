@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { useAuth } from '@/contexts/AuthContext'
-import { checkAndUpdateSubscriptionStatus, shouldRedirectToSubscription } from '@/lib/subscription-utils'
+import { checkAndUpdateSubscriptionStatus, getRedirectPath } from '@/lib/subscription-utils'
 
 interface SubscriptionCheckProps {
   children: React.ReactNode
@@ -14,6 +14,7 @@ export default function SubscriptionCheck({ children }: SubscriptionCheckProps) 
   const router = useRouter()
   const [checkingSubscription, setCheckingSubscription] = useState(true)
   const [shouldRedirect, setShouldRedirect] = useState(false)
+  const [redirectPath, setRedirectPath] = useState<string | null>(null)
 
   useEffect(() => {
     const checkSubscription = async () => {
@@ -38,10 +39,11 @@ export default function SubscriptionCheck({ children }: SubscriptionCheckProps) 
           return
         }
 
-        // Check if user should be redirected to subscription page
-        const needsRedirect = shouldRedirectToSubscription(subscriptionStatus)
+        // Get the appropriate redirect path based on subscription status and schedule settings
+        const path = await getRedirectPath(user.id, subscriptionStatus)
         
-        if (needsRedirect) {
+        if (path) {
+          setRedirectPath(path)
           setShouldRedirect(true)
         } else {
           setCheckingSubscription(false)
@@ -57,10 +59,10 @@ export default function SubscriptionCheck({ children }: SubscriptionCheckProps) 
 
   // Handle redirect after subscription check
   useEffect(() => {
-    if (shouldRedirect) {
-      router.push('/dashboard/abonnement')
+    if (shouldRedirect && redirectPath) {
+      router.push(redirectPath)
     }
-  }, [shouldRedirect, router])
+  }, [shouldRedirect, redirectPath, router])
 
   if (loading || checkingSubscription) {
     return (

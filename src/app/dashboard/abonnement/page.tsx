@@ -6,7 +6,7 @@ import { loadStripe } from '@stripe/stripe-js';
 import toast from 'react-hot-toast';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/lib/supabase';
-import { checkAndUpdateSubscriptionStatus, getSubscriptionDisplayInfo, shouldRedirectToSubscription } from '@/lib/subscription-utils';
+import { checkAndUpdateSubscriptionStatus, getSubscriptionDisplayInfo, getRedirectPath } from '@/lib/subscription-utils';
 import { Instructeur } from '@/types/database';
 
 // Debug Supabase configuration
@@ -53,6 +53,7 @@ function AbonnementPageContent() {
   const [loadingPlans, setLoadingPlans] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [shouldRedirect, setShouldRedirect] = useState(false);
+  const [redirectPath, setRedirectPath] = useState<string | null>(null);
   const [billingCycle, setBillingCycle] = useState<{ [key: string]: 'monthly' | 'yearly' }>({
     basic: 'monthly',
     premium: 'monthly'
@@ -87,8 +88,10 @@ function AbonnementPageContent() {
   useEffect(() => {
     if (shouldRedirect) {
       router.push('/dashboard');
+    } else if (redirectPath) {
+      router.push(redirectPath);
     }
-  }, [shouldRedirect, router]);
+  }, [shouldRedirect, redirectPath, router]);
 
   const fetchPlanData = async () => {
     try {
@@ -168,7 +171,10 @@ function AbonnementPageContent() {
         setError(null);
 
         // Check if user should be redirected to dashboard (active subscription)
-        if (!shouldRedirectToSubscription(subscriptionStatus)) {
+        const redirectPath = await getRedirectPath(user.id, subscriptionStatus);
+        if (redirectPath) {
+          setRedirectPath(redirectPath);
+        } else {
           setShouldRedirect(true);
         }
       } catch (error) {
@@ -329,13 +335,7 @@ function AbonnementPageContent() {
            )}
            
            {/* Dashboard knop - alleen zichtbaar als gebruiker geldige proefperiode of abonnement heeft */}
-           {!shouldRedirectToSubscription(instructorData ? {
-             abonnement: instructorData.abonnement || 'no_subscription',
-             start_free_trial: instructorData.start_free_trial || null,
-             subscription_status: instructorData.subscription_status || 'inactive',
-             stripe_customer_id: instructorData.stripe_customer_id || undefined,
-             subscription_id: instructorData.subscription_id || undefined
-           } : null) && (
+           {!redirectPath && (
              <div className="mt-6">
                <button
                  onClick={() => router.push('/dashboard')}

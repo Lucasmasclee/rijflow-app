@@ -3,7 +3,7 @@
 import { createContext, useContext, useEffect, useState } from 'react'
 import { supabase } from '@/lib/supabase'
 import { User } from '@/types/database'
-import { checkAndUpdateSubscriptionStatus, shouldRedirectToSubscription } from '@/lib/subscription-utils'
+import { checkAndUpdateSubscriptionStatus, getRedirectPath } from '@/lib/subscription-utils'
 
 interface AuthContextType {
   user: User | null
@@ -109,34 +109,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       const subscriptionStatus = await checkAndUpdateSubscriptionStatus(user.id)
       
       if (subscriptionStatus) {
-        // Check if user should be redirected to subscription page
-        if (shouldRedirectToSubscription(subscriptionStatus)) {
+        // Get the appropriate redirect path based on subscription status and schedule settings
+        const redirectPath = await getRedirectPath(user.id, subscriptionStatus)
+        
+        if (redirectPath) {
           if (typeof window !== 'undefined') {
-            window.location.href = '/dashboard/abonnement'
-          }
-          return
-        } else {
-          // User has active subscription, redirect to dashboard
-          if (typeof window !== 'undefined') {
-            window.location.href = '/dashboard'
+            window.location.href = redirectPath
           }
           return
         }
-      }
-
-      // Check of instructeur al standaard beschikbaarheid heeft ingesteld
-      const { data: availabilityData, error: availabilityError } = await supabase
-        .from('standard_availability')
-        .select('id')
-        .eq('instructor_id', user.id)
-        .single()
-
-      // Als er geen standaard beschikbaarheid is ingesteld, stuur naar schedule-settings
-      if (availabilityError && availabilityError.code === 'PGRST116') {
-        // Redirect naar schedule-settings pagina voor nieuwe instructeurs
-        if (typeof window !== 'undefined') {
-          window.location.href = '/dashboard/schedule-settings'
-        }
+        // If no redirect path, user stays on current page (dashboard)
       }
     }
   }

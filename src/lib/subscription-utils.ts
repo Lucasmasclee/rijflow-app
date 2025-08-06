@@ -37,7 +37,7 @@ export async function checkAndUpdateSubscriptionStatus(userId: string): Promise<
     let updatedData: Partial<SubscriptionStatus> = {};
 
     // Check if trial period has expired (more than 60 days)
-    if (trialStartDate && daysSinceTrialStart && daysSinceTrialStart > 60 && instructor.subscription_status === 'no_subscription' && instructor.abonnement === 'active') {
+    if (trialStartDate && daysSinceTrialStart && daysSinceTrialStart > 60 && instructor.abonnement === 'no_subscription' && instructor.subscription_status === 'active') {
       // Trial period expired - update to no_subscription and inactive
       if (instructor.abonnement !== 'no_subscription' || instructor.subscription_status !== 'inactive') {
         updatedData = {
@@ -46,7 +46,7 @@ export async function checkAndUpdateSubscriptionStatus(userId: string): Promise<
         };
         shouldUpdate = true;
       }
-    } else if (trialStartDate && daysSinceTrialStart && daysSinceTrialStart <= 60) {
+    } else if (trialStartDate && daysSinceTrialStart && daysSinceTrialStart <= 60 && instructor.abonnement === 'no_subscription' && instructor.subscription_status === 'active') {
       // Trial period is still active - ensure abonnement is 'no_subscription' and status is 'active'
       if (instructor.abonnement !== 'no_subscription' || instructor.subscription_status !== 'active') {
         updatedData = {
@@ -119,6 +119,62 @@ export function shouldRedirectToSubscription(subscriptionStatus: SubscriptionSta
   }
 
   return false;
+}
+
+export async function getRedirectPath(userId: string, subscriptionStatus: SubscriptionStatus | null): Promise<string | null> {
+  if (!subscriptionStatus) return '/dashboard/abonnement';
+
+  const { supabase } = await import('./supabase');
+  
+  // Check if user has schedule-settings record
+  const { data: availabilityData, error: availabilityError } = await supabase
+    .from('standard_availability')
+    .select('id')
+    .eq('instructor_id', userId)
+    .single();
+  
+  const hasScheduleSettings = !availabilityError || availabilityError.code !== 'PGRST116';
+
+  // Calculate trial days if applicable
+  let trialDays = null;
+  if (subscriptionStatus.start_free_trial) {
+    const trialStartDate = new Date(subscriptionStatus.start_free_trial);
+    const currentDate = new Date();
+    trialDays = Math.floor((currentDate.getTime() - trialStartDate.getTime()) / (1000 * 60 * 60 * 24));
+  }
+
+  // no_subscription & inactive -> dashboard/abonnement
+  if (subscriptionStatus.abonnement === 'no_subscription' && subscriptionStatus.subscription_status === 'inactive') {
+    return '/dashboard/abonnement';
+  }
+
+  // no_subscription & active & (start_free_trial > 60) -> dashboard/abonnement
+  if (subscriptionStatus.abonnement === 'no_subscription' && subscriptionStatus.subscription_status === 'active' && trialDays && trialDays > 60) {
+    return '/dashboard/abonnement';
+  }
+
+  // no_subscription & active & (start_free_trial <= 60) & geen schedule-settings record -> dashboard/schedule-settings
+  if (subscriptionStatus.abonnement === 'no_subscription' && subscriptionStatus.subscription_status === 'active' && trialDays && trialDays <= 60 && !hasScheduleSettings) {
+    return '/dashboard/schedule-settings';
+  }
+
+  // no_subscription & active & (start_free_trial <= 60) & wel schedule-settings record -> dashboard (niks)
+  if (subscriptionStatus.abonnement === 'no_subscription' && subscriptionStatus.subscription_status === 'active' && trialDays && trialDays <= 60 && hasScheduleSettings) {
+    return null; // Stay on current page
+  }
+
+  // (abonnement != no_subscription) && (subscription_status == active) & geen schedule-settings record -> dashboard/schedule-settings
+  if (subscriptionStatus.abonnement !== 'no_subscription' && subscriptionStatus.subscription_status === 'active' && !hasScheduleSettings) {
+    return '/dashboard/schedule-settings';
+  }
+
+  // (abonnement != no_subscription) && (subscription_status == active) & wel schedule-settings record -> dashboard (niks)
+  if (subscriptionStatus.abonnement !== 'no_subscription' && subscriptionStatus.subscription_status === 'active' && hasScheduleSettings) {
+    return null; // Stay on current page
+  }
+
+  // Default fallback
+  return '/dashboard/abonnement';
 }
 
 export function getSubscriptionDisplayInfo(subscriptionStatus: SubscriptionStatus | null) {
