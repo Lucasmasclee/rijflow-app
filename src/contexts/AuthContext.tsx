@@ -27,7 +27,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     // Get initial session
     const getSession = async () => {
       const { data: { session } } = await supabase.auth.getSession()
-      setUser(session?.user ?? null)
+      if (session?.user) {
+        const user: User = {
+          id: session.user.id,
+          email: session.user.email || undefined,
+          created_at: session.user.created_at,
+          updated_at: session.user.updated_at,
+          user_metadata: session.user.user_metadata
+        }
+        setUser(user)
+      } else {
+        setUser(null)
+      }
       setLoading(false)
     }
 
@@ -36,7 +47,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     // Listen for auth changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
-        setUser(session?.user ?? null)
+        if (session?.user) {
+          const user: User = {
+            id: session.user.id,
+            email: session.user.email || undefined,
+            created_at: session.user.created_at,
+            updated_at: session.user.updated_at,
+            user_metadata: session.user.user_metadata
+          }
+          setUser(user)
+        } else {
+          setUser(null)
+        }
         setLoading(false)
       }
     )

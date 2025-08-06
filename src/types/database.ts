@@ -1,9 +1,9 @@
 export interface User {
   id: string
-  email: string
-  created_at: string
-  updated_at: string
-  role: 'instructor' | 'student'
+  email?: string
+  created_at?: string
+  updated_at?: string
+  role?: 'instructor' | 'student'
   user_metadata?: {
     role?: 'instructor' | 'student'
     student_id?: string
