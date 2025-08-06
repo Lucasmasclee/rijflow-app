@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Suspense } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { loadStripe } from '@stripe/stripe-js';
 import toast from 'react-hot-toast';
@@ -44,7 +44,7 @@ interface PlanCard {
   };
 }
 
-export default function AbonnementPage() {
+function AbonnementPageContent() {
   const [isLoadingMonthly, setIsLoadingMonthly] = useState(false);
   const [isLoadingYearly, setIsLoadingYearly] = useState(false);
   const [instructorData, setInstructorData] = useState<Instructeur | null>(null);
@@ -473,5 +473,13 @@ export default function AbonnementPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function AbonnementPage() {
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <AbonnementPageContent />
+    </Suspense>
   );
 }
