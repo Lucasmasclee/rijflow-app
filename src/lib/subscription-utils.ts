@@ -37,7 +37,7 @@ export async function checkAndUpdateSubscriptionStatus(userId: string): Promise<
     let updatedData: Partial<SubscriptionStatus> = {};
 
     // Check if trial period has expired (more than 60 days)
-    if (trialStartDate && daysSinceTrialStart && daysSinceTrialStart > 60) {
+    if (trialStartDate && daysSinceTrialStart && daysSinceTrialStart > 60 && instructor.abonnement !== 'no_subscription') {
       // Trial period expired - update to no_subscription and inactive
       if (instructor.abonnement !== 'no_subscription' || instructor.subscription_status !== 'inactive') {
         updatedData = {
@@ -47,9 +47,10 @@ export async function checkAndUpdateSubscriptionStatus(userId: string): Promise<
         shouldUpdate = true;
       }
     } else if (trialStartDate && daysSinceTrialStart && daysSinceTrialStart <= 60) {
-      // Trial period is still active
-      if (instructor.abonnement.startsWith('basic-') && instructor.subscription_status !== 'active') {
+      // Trial period is still active - ensure abonnement is 'no_subscription' and status is 'active'
+      if (instructor.abonnement !== 'no_subscription' || instructor.subscription_status !== 'active') {
         updatedData = {
+          abonnement: 'no_subscription',
           subscription_status: 'active'
         };
         shouldUpdate = true;
@@ -100,13 +101,13 @@ export function shouldRedirectToSubscription(subscriptionStatus: SubscriptionSta
     return false;
   }
 
-  // If no subscription or inactive, redirect
-  if (subscriptionStatus.abonnement === 'no_subscription' || subscriptionStatus.subscription_status === 'inactive') {
+  // If subscription is inactive, redirect
+  if (subscriptionStatus.subscription_status === 'inactive') {
     return true;
   }
 
-  // Check trial period for basic subscriptions
-  if (subscriptionStatus.abonnement.startsWith('basic-') && subscriptionStatus.start_free_trial) {
+  // Check trial period for expired trials
+  if (subscriptionStatus.start_free_trial) {
     const trialStartDate = new Date(subscriptionStatus.start_free_trial);
     const currentDate = new Date();
     const daysSinceTrialStart = Math.floor((currentDate.getTime() - trialStartDate.getTime()) / (1000 * 60 * 60 * 24));
@@ -128,8 +129,8 @@ export function getSubscriptionDisplayInfo(subscriptionStatus: SubscriptionStatu
     ? Math.floor((new Date().getTime() - trialStartDate.getTime()) / (1000 * 60 * 60 * 24))
     : null;
 
-  // Trial period
-  if (subscriptionStatus.abonnement.startsWith('basic-') && trialStartDate && daysSinceTrialStart && daysSinceTrialStart <= 60) {
+  // Trial period - check for active trial period
+  if (trialStartDate && daysSinceTrialStart && daysSinceTrialStart <= 60 && subscriptionStatus.subscription_status === 'active') {
     const remainingDays = 60 - daysSinceTrialStart;
     return {
       type: 'trial',
@@ -176,8 +177,8 @@ export function hasValidSubscription(subscriptionStatus: SubscriptionStatus | nu
     return true;
   }
 
-  // Check trial period for basic subscriptions
-  if (subscriptionStatus.abonnement.startsWith('basic-') && subscriptionStatus.start_free_trial) {
+  // Check trial period for basic subscriptions or no_subscription with active status
+  if ((subscriptionStatus.abonnement.startsWith('basic-') || subscriptionStatus.abonnement === 'no_subscription') && subscriptionStatus.start_free_trial) {
     const trialStartDate = new Date(subscriptionStatus.start_free_trial);
     const currentDate = new Date();
     const daysSinceTrialStart = Math.floor((currentDate.getTime() - trialStartDate.getTime()) / (1000 * 60 * 60 * 24));

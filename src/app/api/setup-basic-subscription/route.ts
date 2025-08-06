@@ -132,7 +132,7 @@ export async function POST(request: NextRequest) {
     // Update instructor with basic subscription and start free trial
     console.log('🔧 Updating instructor subscription...');
     console.log('🔧 Update data:', {
-      abonnement: planId,
+      abonnement: 'no_subscription',
       start_free_trial: new Date().toISOString(),
       subscription_status: 'active'
     });
@@ -140,7 +140,7 @@ export async function POST(request: NextRequest) {
     const { error: updateError } = await supabaseAdmin
       .from('instructors')
       .update({
-        abonnement: planId,
+        abonnement: 'no_subscription',
         start_free_trial: new Date().toISOString(),
         subscription_status: 'active'
       })
