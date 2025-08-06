@@ -63,35 +63,92 @@ export async function POST(request: NextRequest) {
         
         if (session.mode === 'subscription' && session.client_reference_id) {
           // Get the plan ID from metadata
-          const planId = session.metadata?.planId;
+          let planId = session.metadata?.planId;
           
           console.log('🛒 Plan ID from metadata:', planId);
+          console.log('🛒 Plan ID type:', typeof planId);
+          console.log('🛒 Full metadata:', session.metadata);
           
           if (!planId) {
             console.error('❌ No plan ID found in session metadata');
             break;
           }
 
+          // Normalize plan ID (remove any extra spaces, convert to lowercase, etc.)
+          planId = planId.trim().toLowerCase();
+          console.log('🛒 Normalized plan ID:', planId);
+
+          // Validate plan ID against check constraints
+          const validPlanIds = ['no_subscription', 'basic-monthly', 'basic-yearly', 'premium-monthly', 'premium-yearly'];
+          if (!validPlanIds.includes(planId)) {
+            console.error('❌ Invalid plan ID:', planId, 'Valid options:', validPlanIds);
+            console.error('❌ Plan ID type:', typeof planId);
+            console.error('❌ Plan ID length:', planId?.length);
+            
+            // Try to map common variations
+            const planIdMap: { [key: string]: string } = {
+              'basic': 'basic-monthly',
+              'premium': 'premium-monthly',
+              'basic_monthly': 'basic-monthly',
+              'basic_yearly': 'basic-yearly',
+              'premium_monthly': 'premium-monthly',
+              'premium_yearly': 'premium-yearly'
+            };
+            
+            if (planIdMap[planId]) {
+              planId = planIdMap[planId];
+              console.log('🔄 Mapped plan ID to:', planId);
+            } else {
+              break;
+            }
+          }
+
+          console.log('✅ Plan ID is valid:', planId);
+
           console.log('🛒 Updating instructor subscription for user:', session.client_reference_id);
           console.log('🛒 Plan ID:', planId);
           console.log('🛒 Customer ID:', session.customer);
           console.log('🛒 Subscription ID:', session.subscription);
 
+          // Prepare update data
+          const updateData = {
+            abonnement: planId,
+            subscription_status: 'active' as const,
+            stripe_customer_id: session.customer as string,
+            subscription_id: session.subscription as string
+          };
+
+          console.log('🔄 Update data being sent:', updateData);
+          console.log('🔄 Update data types:', {
+            abonnement: typeof updateData.abonnement,
+            subscription_status: typeof updateData.subscription_status,
+            stripe_customer_id: typeof updateData.stripe_customer_id,
+            subscription_id: typeof updateData.subscription_id
+          });
+
+          // Validate subscription_status
+          const validStatuses = ['active', 'inactive'];
+          if (!validStatuses.includes(updateData.subscription_status)) {
+            console.error('❌ Invalid subscription_status:', updateData.subscription_status, 'Valid options:', validStatuses);
+            break;
+          }
+
           // Update instructor's subscription status in the database using admin client
-          const { error } = await supabaseAdmin
+          const { data: updateResult, error } = await supabaseAdmin
             .from('instructors')
-            .update({ 
-              abonnement: planId,
-              subscription_status: 'active',
-              stripe_customer_id: session.customer as string,
-              subscription_id: session.subscription as string
-            })
-            .eq('id', session.client_reference_id);
+            .update(updateData)
+            .eq('id', session.client_reference_id)
+            .select();
 
           if (error) {
             console.error('❌ Error updating instructor subscription:', error);
+            console.error('❌ Error code:', error.code);
+            console.error('❌ Error message:', error.message);
+            console.error('❌ Error details:', error.details);
+            console.error('❌ Error hint:', error.hint);
           } else {
             console.log('✅ Successfully updated subscription for user', session.client_reference_id, 'to', planId);
+            console.log('✅ Update result:', updateResult);
           }
         } else {
           console.log('⚠️ Session is not a subscription or missing client_reference_id');
