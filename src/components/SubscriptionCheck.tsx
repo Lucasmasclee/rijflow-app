@@ -4,7 +4,6 @@ import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { useAuth } from '@/contexts/AuthContext'
 import { checkAndUpdateSubscriptionStatus, shouldRedirectToSubscription } from '@/lib/subscription-utils'
-import type { User as SupabaseUser } from '@supabase/supabase-js'
 
 interface SubscriptionCheckProps {
   children: React.ReactNode
@@ -24,7 +23,7 @@ export default function SubscriptionCheck({ children }: SubscriptionCheckProps) 
       }
 
       // Only check subscription for instructors
-      if ((user as SupabaseUser).user_metadata?.role !== 'instructor') {
+      if (user.user_metadata?.role !== 'instructor') {
         setCheckingSubscription(false)
         return
       }

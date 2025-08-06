@@ -4,7 +4,6 @@ import { createContext, useContext, useEffect, useState } from 'react'
 import { supabase } from '@/lib/supabase'
 import { User } from '@/types/database'
 import { checkAndUpdateSubscriptionStatus, shouldRedirectToSubscription } from '@/lib/subscription-utils'
-import type { User as SupabaseUser } from '@supabase/supabase-js'
 
 interface AuthContextType {
   user: User | null
@@ -53,11 +52,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     if (error) throw error
     // Extra logging voor debugging
     console.log('user object:', data?.user)
-    console.log('user metadata:', (data?.user as SupabaseUser)?.user_metadata)
+    console.log('user metadata:', data?.user?.user_metadata)
 
     // --- Instructeur toevoegen bij eerste login ---
     const user = data?.user
-    if (user && (user as SupabaseUser).user_metadata?.role === 'instructor') {
+    if (user && user.user_metadata?.role === 'instructor') {
       // Check of instructeur al bestaat
       const { data: existing, error: selectError } = await supabase
         .from('instructors')

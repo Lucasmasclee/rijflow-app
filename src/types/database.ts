@@ -4,6 +4,11 @@ export interface User {
   created_at: string
   updated_at: string
   role: 'instructor' | 'student'
+  user_metadata?: {
+    role?: 'instructor' | 'student'
+    student_id?: string
+    [key: string]: any
+  }
 }
 
 export interface Instructeur {

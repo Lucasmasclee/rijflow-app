@@ -7,11 +7,10 @@ import toast from 'react-hot-toast';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/lib/supabase';
 import { checkAndUpdateSubscriptionStatus, getSubscriptionDisplayInfo, shouldRedirectToSubscription } from '@/lib/subscription-utils';
-import type { User as SupabaseUser } from '@supabase/supabase-js';
+import { Instructeur } from '@/types/database';
 
 // Debug Supabase configuration
 console.log('🔧 Supabase client initialized:', !!supabase);
-import { Instructeur } from '@/types/database';
 
 const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!);
 
@@ -120,7 +119,7 @@ export default function AbonnementPage() {
 
       console.log('🆔 User ID:', user.id);
       console.log('📧 User email:', user.email);
-      console.log('🔑 User role:', (user as SupabaseUser).user_metadata?.role);
+      console.log('🔑 User role:', user.user_metadata?.role);
 
       try {
         // Check and update subscription status first
