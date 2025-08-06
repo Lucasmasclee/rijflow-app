@@ -45,13 +45,13 @@ export async function GET() {
       ],
       monthly: {
         id: 'basic-monthly',
-        price: '€29,99',
+        price: '€19,99',
         period: 'per maand',
         stripePriceId: process.env.STRIPE_BASIC_MONTHLY_PRICE_ID!
       },
       yearly: {
         id: 'basic-yearly',
-        price: '€299,99',
+        price: '€199,99',
         period: 'per jaar (2 maanden gratis)',
         stripePriceId: process.env.STRIPE_BASIC_YEARLY_PRICE_ID!,
         popular: true

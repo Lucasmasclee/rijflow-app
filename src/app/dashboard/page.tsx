@@ -326,10 +326,10 @@ export default function DashboardPage() {
               <Users className="h-6 w-6" />
               <span>Leerlingen</span>
             </Link>
-            <Link href="/dashboard/abonnement" className="nav-mobile-item">
+            {/* <Link href="/dashboard/abonnement" className="nav-mobile-item">
               <Settings className="h-6 w-6" />
               <span>Abonnement</span>
-            </Link>
+            </Link> */}
           </div>
         </div>
       </nav>
