@@ -37,7 +37,7 @@ export async function checkAndUpdateSubscriptionStatus(userId: string): Promise<
     let updatedData: Partial<SubscriptionStatus> = {};
 
     // Check if trial period has expired (more than 60 days)
-    if (trialStartDate && daysSinceTrialStart && daysSinceTrialStart > 60 && instructor.abonnement !== 'no_subscription') {
+    if (trialStartDate && daysSinceTrialStart && daysSinceTrialStart > 60 && instructor.subscription_status === 'no_subscription' && instructor.abonnement === 'active') {
       // Trial period expired - update to no_subscription and inactive
       if (instructor.abonnement !== 'no_subscription' || instructor.subscription_status !== 'inactive') {
         updatedData = {

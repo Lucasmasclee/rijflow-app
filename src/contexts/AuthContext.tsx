@@ -103,24 +103,24 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         if (insertError) {
           console.error('Kon instructeur niet toevoegen aan instructors-tabel bij eerste login:', insertError)
         }
-      } else {
-        // Check subscription status and redirect accordingly
-        const subscriptionStatus = await checkAndUpdateSubscriptionStatus(user.id)
-        
-        if (subscriptionStatus) {
-          // Check if user should be redirected to subscription page
-          if (shouldRedirectToSubscription(subscriptionStatus)) {
-            if (typeof window !== 'undefined') {
-              window.location.href = '/dashboard/abonnement'
-            }
-            return
-          } else {
-            // User has active subscription, redirect to dashboard
-            if (typeof window !== 'undefined') {
-              window.location.href = '/dashboard'
-            }
-            return
+      }
+
+      // Check subscription status and redirect accordingly (voor zowel nieuwe als bestaande instructeurs)
+      const subscriptionStatus = await checkAndUpdateSubscriptionStatus(user.id)
+      
+      if (subscriptionStatus) {
+        // Check if user should be redirected to subscription page
+        if (shouldRedirectToSubscription(subscriptionStatus)) {
+          if (typeof window !== 'undefined') {
+            window.location.href = '/dashboard/abonnement'
           }
+          return
+        } else {
+          // User has active subscription, redirect to dashboard
+          if (typeof window !== 'undefined') {
+            window.location.href = '/dashboard'
+          }
+          return
         }
       }
 
