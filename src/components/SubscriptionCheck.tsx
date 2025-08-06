@@ -3,8 +3,8 @@
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { useAuth } from '@/contexts/AuthContext'
-import { supabase } from '@/lib/supabase'
-import { Instructeur } from '@/types/database'
+import { checkAndUpdateSubscriptionStatus, shouldRedirectToSubscription } from '@/lib/subscription-utils'
+import type { User as SupabaseUser } from '@supabase/supabase-js'
 
 interface SubscriptionCheckProps {
   children: React.ReactNode
@@ -24,55 +24,29 @@ export default function SubscriptionCheck({ children }: SubscriptionCheckProps) 
       }
 
       // Only check subscription for instructors
-      if (user.user_metadata?.role !== 'instructor') {
+      if ((user as SupabaseUser).user_metadata?.role !== 'instructor') {
         setCheckingSubscription(false)
         return
       }
 
       try {
-        // Fetch instructor data including subscription info
-        const { data: instructor, error } = await supabase
-          .from('instructors')
-          .select('abonnement, start_free_trial, subscription_status')
-          .eq('id', user.id)
-          .single()
-
-        if (error) {
-          console.error('Error fetching instructor subscription data:', error)
+        // Check and update subscription status
+        const subscriptionStatus = await checkAndUpdateSubscriptionStatus(user.id)
+        
+        if (!subscriptionStatus) {
+          console.error('Failed to check subscription status')
           setCheckingSubscription(false)
           return
         }
 
-        // If no subscription data exists, redirect to subscription page
-        if (!instructor.abonnement || instructor.abonnement === 'no_subscription') {
+        // Check if user should be redirected to subscription page
+        const needsRedirect = shouldRedirectToSubscription(subscriptionStatus)
+        
+        if (needsRedirect) {
           setShouldRedirect(true)
-          return
-        }
-
-        // Check if user has basic subscription and trial period has expired
-        if (instructor.abonnement.startsWith('basic-')) {
-          if (instructor.start_free_trial) {
-            const trialStartDate = new Date(instructor.start_free_trial)
-            const currentDate = new Date()
-            const daysSinceTrialStart = Math.floor((currentDate.getTime() - trialStartDate.getTime()) / (1000 * 60 * 60 * 24))
-            
-            // If trial period is more than 60 days, redirect to subscription page
-            if (daysSinceTrialStart > 60) {
-              setShouldRedirect(true)
-              return
-            }
-          }
-        }
-
-        // If user has premium subscription or valid basic subscription, allow access
-        if (instructor.abonnement.startsWith('premium-') || 
-            (instructor.abonnement.startsWith('basic-') && instructor.subscription_status === 'active')) {
+        } else {
           setCheckingSubscription(false)
-          return
         }
-
-        // Default case: redirect to subscription page
-        setShouldRedirect(true)
       } catch (error) {
         console.error('Error checking subscription:', error)
         setCheckingSubscription(false)

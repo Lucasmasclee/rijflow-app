@@ -49,11 +49,11 @@ export async function POST(request: NextRequest) {
     console.log('🔍 Checking if instructor exists in database...');
     console.log('🔍 Query: SELECT * FROM instructors WHERE id =', userId);
     
-         let { data: instructor, error: fetchError } = await supabaseAdmin
-       .from('instructors')
-       .select('*')
-       .eq('id', userId)
-       .single();
+    let { data: instructor, error: fetchError } = await supabaseAdmin
+      .from('instructors')
+      .select('*')
+      .eq('id', userId)
+      .single();
 
     console.log('📊 Supabase response - data:', instructor);
     console.log('📊 Supabase response - error:', fetchError);
@@ -62,18 +62,18 @@ export async function POST(request: NextRequest) {
     if (fetchError && fetchError.code === 'PGRST116') {
       console.log('⚠️ Instructor not found, creating new record...');
       
-             const { data: newInstructor, error: createError } = await supabaseAdmin
-         .from('instructors')
-         .insert({
-           id: userId,
-           email: '', // Will be updated by AuthContext
-           rijschoolnaam: '',
-           abonnement: 'no_subscription',
-           subscription_status: 'inactive',
-           start_free_trial: null
-         })
-         .select()
-         .single();
+      const { data: newInstructor, error: createError } = await supabaseAdmin
+        .from('instructors')
+        .insert({
+          id: userId,
+          email: '', // Will be updated by AuthContext
+          rijschoolnaam: '',
+          abonnement: 'no_subscription',
+          subscription_status: 'inactive',
+          start_free_trial: null
+        })
+        .select()
+        .single();
 
       console.log('📊 Create response - data:', newInstructor);
       console.log('📊 Create response - error:', createError);
@@ -137,14 +137,14 @@ export async function POST(request: NextRequest) {
       subscription_status: 'active'
     });
     
-         const { error: updateError } = await supabaseAdmin
-       .from('instructors')
-       .update({
-         abonnement: planId,
-         start_free_trial: new Date().toISOString(),
-         subscription_status: 'active'
-       })
-       .eq('id', userId);
+    const { error: updateError } = await supabaseAdmin
+      .from('instructors')
+      .update({
+        abonnement: planId,
+        start_free_trial: new Date().toISOString(),
+        subscription_status: 'active'
+      })
+      .eq('id', userId);
 
     console.log('📊 Update response - error:', updateError);
 

@@ -6,6 +6,8 @@ import { loadStripe } from '@stripe/stripe-js';
 import toast from 'react-hot-toast';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/lib/supabase';
+import { checkAndUpdateSubscriptionStatus, getSubscriptionDisplayInfo, shouldRedirectToSubscription } from '@/lib/subscription-utils';
+import type { User as SupabaseUser } from '@supabase/supabase-js';
 
 // Debug Supabase configuration
 console.log('🔧 Supabase client initialized:', !!supabase);
@@ -70,113 +72,6 @@ export default function AbonnementPage() {
     user: user ? 'exists' : 'null'
   });
 
-  // Test function to debug Supabase connection
-  const testSupabaseConnection = async () => {
-    console.log('🧪 Testing Supabase connection...');
-    try {
-      const { data, error } = await supabase
-        .from('instructors')
-        .select('count')
-        .limit(1);
-      
-      console.log('🧪 Test result - data:', data);
-      console.log('🧪 Test result - error:', error);
-      
-      if (error) {
-        console.error('🧪 Test failed:', error);
-      } else {
-        console.log('🧪 Test successful');
-      }
-    } catch (err) {
-      console.error('🧪 Test exception:', err);
-    }
-  };
-
-  // Test function to debug API routes
-  const testApiConnection = async () => {
-    console.log('🧪 Testing API connection...');
-    try {
-      const response = await fetch('/api/test', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ test: 'data' }),
-      });
-      
-      const result = await response.json();
-      console.log('🧪 API test result:', result);
-      
-      if (response.ok) {
-        console.log('🧪 API test successful');
-      } else {
-        console.error('🧪 API test failed:', result);
-      }
-    } catch (err) {
-      console.error('🧪 API test exception:', err);
-    }
-  };
-
-  // Debug function to test server-side logging
-  const testDebugApi = async () => {
-    console.log('🔍 Testing debug API...');
-    try {
-      const response = await fetch('/api/debug', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ 
-          userId: user?.id,
-          test: 'debug_data' 
-        }),
-      });
-      
-      const result = await response.json();
-      console.log('🔍 Debug API result:', result);
-      
-      if (response.ok) {
-        console.log('🔍 Debug API successful');
-      } else {
-        console.error('🔍 Debug API failed:', result);
-      }
-    } catch (err) {
-      console.error('🔍 Debug API exception:', err);
-    }
-  };
-
-  // Debug function to check database contents
-  const testDatabaseDebug = async () => {
-    console.log('🔍 Testing database debug...');
-    try {
-      const response = await fetch('/api/debug-database', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ 
-          userId: user?.id
-        }),
-      });
-      
-      const result = await response.json();
-      console.log('🔍 Database debug result:', result);
-      
-      if (response.ok) {
-        console.log('🔍 Database debug successful');
-      } else {
-        console.error('🔍 Database debug failed:', result);
-      }
-    } catch (err) {
-      console.error('🔍 Database debug exception:', err);
-    }
-  };
-
-  // Run test on component mount
-  useEffect(() => {
-    testSupabaseConnection();
-  }, []);
-
   useEffect(() => {
     const success = searchParams.get('success');
     const canceled = searchParams.get('canceled');
@@ -216,8 +111,6 @@ export default function AbonnementPage() {
     const fetchInstructorData = async () => {
       console.log('🔍 Starting fetchInstructorData...');
       console.log('👤 User:', user);
-      console.log('👤 User type:', typeof user);
-      console.log('👤 User keys:', user ? Object.keys(user) : 'null');
       
       if (!user) {
         console.log('❌ No user found, setting loading to false');
@@ -227,50 +120,25 @@ export default function AbonnementPage() {
 
       console.log('🆔 User ID:', user.id);
       console.log('📧 User email:', user.email);
-      console.log('🔑 User role:', user.user_metadata?.role);
-      console.log('🆔 User ID type:', typeof user.id);
-      console.log('🆔 User ID length:', user.id?.length);
+      console.log('🔑 User role:', (user as SupabaseUser).user_metadata?.role);
 
-      // Test Supabase connection first
       try {
-        console.log('🔧 Testing Supabase connection...');
-        const { data: testData, error: testError } = await supabase
-          .from('instructors')
-          .select('count')
-          .limit(1);
+        // Check and update subscription status first
+        const subscriptionStatus = await checkAndUpdateSubscriptionStatus(user.id);
         
-        console.log('🔧 Supabase connection test - data:', testData);
-        console.log('🔧 Supabase connection test - error:', testError);
-        
-        if (testError) {
-          console.error('🔧 Supabase connection failed:', testError);
-          setError(`Supabase connection failed: ${testError.message}`);
+        if (!subscriptionStatus) {
+          console.error('❌ Failed to check subscription status');
+          setError('Failed to check subscription status');
           setLoadingData(false);
           return;
         }
-        
-        console.log('🔧 Supabase connection successful');
-      } catch (testError) {
-        console.error('🔧 Supabase connection test exception:', testError);
-        setError(`Supabase connection test failed: ${testError instanceof Error ? testError.message : 'Unknown error'}`);
-        setLoadingData(false);
-        return;
-      }
 
-      try {
-        console.log('🔗 Attempting to fetch instructor data...');
-        console.log('🔗 Query: SELECT * FROM instructors WHERE id =', user.id);
-        
+        // Fetch full instructor data
         const { data, error } = await supabase
           .from('instructors')
           .select('*')
           .eq('id', user.id)
           .single();
-
-        console.log('📊 Supabase response - data:', data);
-        console.log('📊 Supabase response - error:', error);
-        console.log('📊 Data type:', typeof data);
-        console.log('📊 Error type:', typeof error);
 
         if (error) {
           console.error('❌ Supabase error details:', {
@@ -281,7 +149,6 @@ export default function AbonnementPage() {
             error: error
           });
           
-          // Check if it's a "not found" error
           if (error.code === 'PGRST116') {
             console.log('⚠️ Instructor record not found, this might be expected for new users');
             setError('Instructor record not found - this might be normal for new users');
@@ -298,16 +165,15 @@ export default function AbonnementPage() {
         }
 
         console.log('✅ Successfully fetched instructor data:', data);
-        console.log('✅ Data keys:', Object.keys(data));
         setInstructorData(data);
         setError(null);
+
+        // Check if user should be redirected to dashboard (active subscription)
+        if (!shouldRedirectToSubscription(subscriptionStatus)) {
+          setShouldRedirect(true);
+        }
       } catch (error) {
         console.error('💥 Caught exception during fetch:', error);
-        console.error('💥 Error type:', typeof error);
-        console.error('💥 Error constructor:', error?.constructor?.name);
-        console.error('💥 Error message:', error instanceof Error ? error.message : 'Unknown error');
-        console.error('💥 Error stack:', error instanceof Error ? error.stack : 'No stack');
-        console.error('💥 Full error object:', error);
         setError(`Failed to fetch instructor data: ${error instanceof Error ? error.message : 'Unknown error'}`);
       } finally {
         console.log('🏁 Setting loading to false');
@@ -417,8 +283,6 @@ export default function AbonnementPage() {
     }
   };
 
-
-
   if (loadingData || loadingPlans) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
@@ -433,115 +297,14 @@ export default function AbonnementPage() {
   const hasHadFreeTrial = instructorData?.start_free_trial && 
     new Date(instructorData.start_free_trial) < new Date(Date.now() - 60 * 24 * 60 * 60 * 1000);
 
-  // Functie om te controleren of gebruiker een geldige proefperiode heeft of een abonnement heeft afgesloten
-  const hasValidSubscription = () => {
-    if (!instructorData) return false;
-    
-    // Als er geen abonnement is, check proefperiode
-    if (!instructorData.abonnement || instructorData.abonnement === 'no_subscription') {
-      if (instructorData.start_free_trial) {
-        const trialStartDate = new Date(instructorData.start_free_trial);
-        const currentDate = new Date();
-        const daysSinceTrialStart = Math.floor((currentDate.getTime() - trialStartDate.getTime()) / (1000 * 60 * 60 * 24));
-        
-        // Proefperiode is geldig als het minder dan 60 dagen geleden is gestart
-        return daysSinceTrialStart <= 60;
-      }
-      return false;
-    }
-    
-    // Als er een abonnement is, check of het actief is
-    if (instructorData.abonnement.startsWith('basic-') || instructorData.abonnement.startsWith('premium-')) {
-      // Voor basic abonnementen, check ook proefperiode
-      if (instructorData.abonnement.startsWith('basic-') && instructorData.start_free_trial) {
-        const trialStartDate = new Date(instructorData.start_free_trial);
-        const currentDate = new Date();
-        const daysSinceTrialStart = Math.floor((currentDate.getTime() - trialStartDate.getTime()) / (1000 * 60 * 60 * 24));
-        
-        // Als proefperiode nog geldig is of abonnement is actief
-        return daysSinceTrialStart <= 60 || instructorData.subscription_status === 'active';
-      }
-      
-      // Voor premium abonnementen, check alleen status
-      if (instructorData.abonnement.startsWith('premium-')) {
-        return instructorData.subscription_status === 'active';
-      }
-    }
-    
-    return false;
-  };
-
-  // Functie om de huidige abonnement status te bepalen
-  const getCurrentSubscriptionStatus = () => {
-    if (!instructorData) return null;
-    
-    // Als er geen abonnement is, check proefperiode
-    if (!instructorData.abonnement || instructorData.abonnement === 'no_subscription') {
-      if (instructorData.start_free_trial) {
-        const trialStartDate = new Date(instructorData.start_free_trial);
-        const currentDate = new Date();
-        const daysSinceTrialStart = Math.floor((currentDate.getTime() - trialStartDate.getTime()) / (1000 * 60 * 60 * 24));
-        
-        // Als proefperiode nog geldig is
-        if (daysSinceTrialStart <= 60) {
-          const remainingDays = 60 - daysSinceTrialStart;
-          return {
-            type: 'trial',
-            text: `Proefperiode, nog ${remainingDays} dagen gratis`,
-            color: 'bg-green-100 text-green-800 border-green-200'
-          };
-        } else {
-          return {
-            type: 'expired',
-            text: 'Proefperiode verlopen',
-            color: 'bg-red-100 text-red-800 border-red-200'
-          };
-        }
-      }
-      return null;
-    }
-    
-    // Als er een abonnement is
-    if (instructorData.abonnement.startsWith('basic-')) {
-      // Voor basic abonnementen, check ook proefperiode
-      if (instructorData.start_free_trial) {
-        const trialStartDate = new Date(instructorData.start_free_trial);
-        const currentDate = new Date();
-        const daysSinceTrialStart = Math.floor((currentDate.getTime() - trialStartDate.getTime()) / (1000 * 60 * 60 * 24));
-        
-        // Als proefperiode nog geldig is
-        if (daysSinceTrialStart <= 60) {
-          const remainingDays = 60 - daysSinceTrialStart;
-          return {
-            type: 'trial',
-            text: `Proefperiode, nog ${remainingDays} dagen gratis`,
-            color: 'bg-green-100 text-green-800 border-green-200'
-          };
-        }
-      }
-      
-      // Basic abonnement actief
-      if (instructorData.subscription_status === 'active') {
-        return {
-          type: 'basic',
-          text: 'Basic abonnement',
-          color: 'bg-blue-100 text-blue-800 border-blue-200'
-        };
-      }
-    }
-    
-    if (instructorData.abonnement.startsWith('premium-')) {
-      if (instructorData.subscription_status === 'active') {
-        return {
-          type: 'premium',
-          text: 'Premium abonnement',
-          color: 'bg-purple-100 text-purple-800 border-purple-200'
-        };
-      }
-    }
-    
-    return null;
-  };
+  // Get current subscription status display info
+  const subscriptionDisplayInfo = getSubscriptionDisplayInfo(instructorData ? {
+    abonnement: instructorData.abonnement || 'no_subscription',
+    start_free_trial: instructorData.start_free_trial || null,
+    subscription_status: instructorData.subscription_status || 'inactive',
+    stripe_customer_id: instructorData.stripe_customer_id || undefined,
+    subscription_id: instructorData.subscription_id || undefined
+  } : null);
 
   return (
     <div className="min-h-screen bg-gray-50 py-8">
@@ -555,19 +318,25 @@ export default function AbonnementPage() {
            </p>
            
            {/* Huidige abonnement status */}
-           {getCurrentSubscriptionStatus() && (
+           {subscriptionDisplayInfo && (
              <div className="mt-6">
-               <div className={`inline-flex items-center px-4 py-2 rounded-full border ${getCurrentSubscriptionStatus()?.color} font-medium`}>
+               <div className={`inline-flex items-center px-4 py-2 rounded-full border ${subscriptionDisplayInfo.color} font-medium`}>
                  <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                  </svg>
-                 {getCurrentSubscriptionStatus()?.text}
+                 {subscriptionDisplayInfo.text}
                </div>
              </div>
            )}
            
            {/* Dashboard knop - alleen zichtbaar als gebruiker geldige proefperiode of abonnement heeft */}
-           {hasValidSubscription() && (
+           {!shouldRedirectToSubscription(instructorData ? {
+             abonnement: instructorData.abonnement || 'no_subscription',
+             start_free_trial: instructorData.start_free_trial || null,
+             subscription_status: instructorData.subscription_status || 'inactive',
+             stripe_customer_id: instructorData.stripe_customer_id || undefined,
+             subscription_id: instructorData.subscription_id || undefined
+           } : null) && (
              <div className="mt-6">
                <button
                  onClick={() => router.push('/dashboard')}
@@ -580,37 +349,9 @@ export default function AbonnementPage() {
                </button>
              </div>
            )}
-           
-                       {/* Debug Buttons */}
-            {/* <div className="mt-4 space-x-2">
-              <button
-                onClick={testSupabaseConnection}
-                className="px-4 py-2 bg-gray-500 text-white rounded hover:bg-gray-600 text-sm"
-              >
-                Test Supabase Connection
-              </button>
-              <button
-                onClick={testApiConnection}
-                className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 text-sm"
-              >
-                Test API Connection
-              </button>
-              <button
-                onClick={testDebugApi}
-                className="px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600 text-sm"
-              >
-                Test Debug API
-              </button>
-              <button
-                onClick={testDatabaseDebug}
-                className="px-4 py-2 bg-purple-500 text-white rounded hover:bg-purple-600 text-sm"
-              >
-                Debug Database
-              </button>
-            </div> */}
          </div>
 
-                 {error && (
+         {error && (
            <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-8">
              <p className="text-red-800 font-semibold mb-2">
                Error: {error}
@@ -637,9 +378,9 @@ export default function AbonnementPage() {
 
         <div className="grid md:grid-cols-2 gap-8">
           {planCards.map((planCard) => {
-                         const currentCycle = billingCycle[planCard.type];
-             const currentPlan = currentCycle === 'monthly' ? planCard.monthly : planCard.yearly;
-             const isPopular = currentCycle === 'yearly' ? planCard.yearly.popular : false;
+            const currentCycle = billingCycle[planCard.type];
+            const currentPlan = currentCycle === 'monthly' ? planCard.monthly : planCard.yearly;
+            const isPopular = currentCycle === 'yearly' ? planCard.yearly.popular : false;
             return (
               <div
                 key={planCard.type}
@@ -647,12 +388,6 @@ export default function AbonnementPage() {
                   isPopular ? 'border-gray-200' : 'border-gray-200'
                 }`}
               >
-                {/* {isPopular && (
-                  <div className="bg-blue-500 text-white text-xs font-semibold px-3 py-1 rounded-full inline-block mb-4">
-                    Meest gekozen
-                  </div>
-                )} */}
-                
                 <h3 className="text-2xl font-semibold text-gray-900 mb-2">
                   {planCard.name}
                 </h3>
@@ -661,37 +396,37 @@ export default function AbonnementPage() {
                   {planCard.description}
                 </p>
 
-                                 {/* Billing Cycle Toggle */}
-                 <div className="bg-gray-100 rounded-lg p-1 mb-6">
-                   <div className="flex">
-                     <button
-                       onClick={() => setBillingCycle(prev => ({
-                         ...prev,
-                         [planCard.type]: 'monthly'
-                       }))}
-                       className={`flex-1 py-2 px-4 rounded-md text-sm font-medium transition-colors ${
-                         currentCycle === 'monthly'
-                           ? 'bg-white text-gray-900 shadow-sm'
-                           : 'text-gray-600 hover:text-gray-900'
-                       }`}
-                     >
-                       Maandelijks
-                     </button>
-                     <button
-                       onClick={() => setBillingCycle(prev => ({
-                         ...prev,
-                         [planCard.type]: 'yearly'
-                       }))}
-                       className={`flex-1 py-2 px-4 rounded-md text-sm font-medium transition-colors ${
-                         currentCycle === 'yearly'
-                           ? 'bg-white text-gray-900 shadow-sm'
-                           : 'text-gray-600 hover:text-gray-900'
-                       }`}
-                     >
-                       Jaarlijks
-                     </button>
-                   </div>
-                 </div>
+                {/* Billing Cycle Toggle */}
+                <div className="bg-gray-100 rounded-lg p-1 mb-6">
+                  <div className="flex">
+                    <button
+                      onClick={() => setBillingCycle(prev => ({
+                        ...prev,
+                        [planCard.type]: 'monthly'
+                      }))}
+                      className={`flex-1 py-2 px-4 rounded-md text-sm font-medium transition-colors ${
+                        currentCycle === 'monthly'
+                          ? 'bg-white text-gray-900 shadow-sm'
+                          : 'text-gray-600 hover:text-gray-900'
+                      }`}
+                    >
+                      Maandelijks
+                    </button>
+                    <button
+                      onClick={() => setBillingCycle(prev => ({
+                        ...prev,
+                        [planCard.type]: 'yearly'
+                      }))}
+                      className={`flex-1 py-2 px-4 rounded-md text-sm font-medium transition-colors ${
+                        currentCycle === 'yearly'
+                          ? 'bg-white text-gray-900 shadow-sm'
+                          : 'text-gray-600 hover:text-gray-900'
+                      }`}
+                    >
+                      Jaarlijks
+                    </button>
+                  </div>
+                </div>
                 
                 <div className="mb-6">
                   <span className="text-4xl font-bold text-gray-900">{currentPlan.price}</span>
@@ -709,21 +444,21 @@ export default function AbonnementPage() {
                   ))}
                 </ul>
 
-                                 <button
-                   onClick={() => handleStartSubscription(planCard.type)}
-                   disabled={(isLoadingMonthly && planCard.type === 'basic') || (isLoadingYearly && planCard.type === 'premium')}
-                   className={`w-full py-3 px-4 rounded-lg font-semibold transition duration-200 ${
-                     isPopular
-                       ? 'bg-blue-600 hover:bg-blue-700 text-white'
-                       : 'bg-gray-100 hover:bg-gray-200 text-gray-900'
-                   } disabled:opacity-50 disabled:cursor-not-allowed`}
-                 >
-                   {(isLoadingMonthly && planCard.type === 'basic') || (isLoadingYearly && planCard.type === 'premium') ? 'Bezig...' : 
-                     planCard.type === 'basic' && !hasHadFreeTrial 
-                       ? 'Start proefperiode' 
-                       : 'Kies abonnement'
-                   }
-                 </button>
+                <button
+                  onClick={() => handleStartSubscription(planCard.type)}
+                  disabled={(isLoadingMonthly && planCard.type === 'basic') || (isLoadingYearly && planCard.type === 'premium')}
+                  className={`w-full py-3 px-4 rounded-lg font-semibold transition duration-200 ${
+                    isPopular
+                      ? 'bg-blue-600 hover:bg-blue-700 text-white'
+                      : 'bg-gray-100 hover:bg-gray-200 text-gray-900'
+                  } disabled:opacity-50 disabled:cursor-not-allowed`}
+                >
+                  {(isLoadingMonthly && planCard.type === 'basic') || (isLoadingYearly && planCard.type === 'premium') ? 'Bezig...' : 
+                    planCard.type === 'basic' && !hasHadFreeTrial 
+                      ? 'Start proefperiode' 
+                      : 'Kies abonnement'
+                  }
+                </button>
               </div>
             );
           })}
