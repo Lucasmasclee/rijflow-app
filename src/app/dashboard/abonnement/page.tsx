@@ -6,7 +6,7 @@ import { loadStripe } from '@stripe/stripe-js';
 import toast from 'react-hot-toast';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/lib/supabase';
-import { checkAndUpdateSubscriptionStatus, getSubscriptionDisplayInfo, getRedirectPath } from '@/lib/subscription-utils';
+import { checkAndUpdateSubscriptionStatus, getSubscriptionDisplayInfo } from '@/lib/subscription-utils';
 import { Instructeur } from '@/types/database';
 
 // Debug Supabase configuration
@@ -52,8 +52,7 @@ function AbonnementPageContent() {
   const [loadingData, setLoadingData] = useState(true);
   const [loadingPlans, setLoadingPlans] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [shouldRedirect, setShouldRedirect] = useState(false);
-  const [redirectPath, setRedirectPath] = useState<string | null>(null);
+  const [trialStarted, setTrialStarted] = useState(false);
   const [billingCycle, setBillingCycle] = useState<{ [key: string]: 'monthly' | 'yearly' }>({
     basic: 'monthly',
     premium: 'monthly'
@@ -78,20 +77,10 @@ function AbonnementPageContent() {
 
     if (success) {
       toast.success('Abonnement succesvol gestart!');
-      setShouldRedirect(true);
     } else if (canceled) {
       toast.error('Betaling geannuleerd.');
     }
   }, [searchParams]);
-
-  // Handle redirect after successful subscription
-  useEffect(() => {
-    if (shouldRedirect) {
-      router.push('/dashboard');
-    } else if (redirectPath) {
-      router.push(redirectPath);
-    }
-  }, [shouldRedirect, redirectPath, router]);
 
   const fetchPlanData = async () => {
     try {
@@ -169,14 +158,6 @@ function AbonnementPageContent() {
         console.log('✅ Successfully fetched instructor data:', data);
         setInstructorData(data);
         setError(null);
-
-        // Check if user should be redirected to dashboard (active subscription)
-        const redirectPath = await getRedirectPath(user.id, subscriptionStatus);
-        if (redirectPath) {
-          setRedirectPath(redirectPath);
-        } else {
-          setShouldRedirect(true);
-        }
       } catch (error) {
         console.error('💥 Caught exception during fetch:', error);
         setError(`Failed to fetch instructor data: ${error instanceof Error ? error.message : 'Unknown error'}`);
@@ -242,7 +223,7 @@ function AbonnementPageContent() {
         }
 
         toast.success('Proefperiode van 60 dagen gestart!');
-        setShouldRedirect(true);
+        setTrialStarted(true);
         return;
       }
 
@@ -334,8 +315,8 @@ function AbonnementPageContent() {
              </div>
            )}
            
-           {/* Dashboard knop - alleen zichtbaar als gebruiker geldige proefperiode of abonnement heeft */}
-           {!redirectPath && (
+           {/* Dashboard knop - alleen zichtbaar als subscription_status = active */}
+           {instructorData?.subscription_status === 'active' && (
              <div className="mt-6">
                <button
                  onClick={() => router.push('/dashboard')}

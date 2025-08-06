@@ -133,7 +133,17 @@ export async function getRedirectPath(userId: string, subscriptionStatus: Subscr
     .eq('instructor_id', userId)
     .single();
   
-  const hasScheduleSettings = !availabilityError || availabilityError.code !== 'PGRST116';
+  let hasScheduleSettings = false;
+  if (!availabilityError) {
+    // No error means we found a record
+    hasScheduleSettings = true;
+  } else if (availabilityError.code === 'PGRST116') {
+    // PGRST116 means no rows found
+    hasScheduleSettings = false;
+  } else {
+    // Any other error means something went wrong, assume no settings
+    hasScheduleSettings = false;
+  }
 
   // Calculate trial days if applicable
   let trialDays = null;
@@ -149,17 +159,19 @@ export async function getRedirectPath(userId: string, subscriptionStatus: Subscr
   }
 
   // no_subscription & active & (start_free_trial > 60) -> dashboard/abonnement
-  if (subscriptionStatus.abonnement === 'no_subscription' && subscriptionStatus.subscription_status === 'active' && trialDays && trialDays > 60) {
+  if (subscriptionStatus.abonnement === 'no_subscription' && subscriptionStatus.subscription_status === 'active' && trialDays !== null && trialDays > 60) {
     return '/dashboard/abonnement';
   }
 
   // no_subscription & active & (start_free_trial <= 60) & geen schedule-settings record -> dashboard/schedule-settings
-  if (subscriptionStatus.abonnement === 'no_subscription' && subscriptionStatus.subscription_status === 'active' && trialDays && trialDays <= 60 && !hasScheduleSettings) {
+  if (subscriptionStatus.abonnement === 'no_subscription' && subscriptionStatus.subscription_status === 'active' && (trialDays === null || trialDays <= 60) && !hasScheduleSettings) {
+    console.log('🎯 Redirect: no_subscription & active & trial <= 60 & noScheduleSettings -> dashboard/schedule-settings');
     return '/dashboard/schedule-settings';
   }
 
   // no_subscription & active & (start_free_trial <= 60) & wel schedule-settings record -> dashboard (niks)
-  if (subscriptionStatus.abonnement === 'no_subscription' && subscriptionStatus.subscription_status === 'active' && trialDays && trialDays <= 60 && hasScheduleSettings) {
+  if (subscriptionStatus.abonnement === 'no_subscription' && subscriptionStatus.subscription_status === 'active' && (trialDays === null || trialDays <= 60) && hasScheduleSettings) {
+    console.log('🎯 Redirect: no_subscription & active & trial <= 60 & hasScheduleSettings -> stay on current page');
     return null; // Stay on current page
   }
 
