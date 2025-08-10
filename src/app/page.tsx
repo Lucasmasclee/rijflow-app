@@ -35,7 +35,7 @@ function YouTubeVideo({ videoId }: { videoId: string }) {
       <div className="relative w-full max-w-2xl mx-auto mb-8">
         <div className="relative pb-[56.25%] h-0">
           <iframe
-            src={`https://www.youtube.com/watch?v=QN72hoa6YLw`}
+            src={`https://www.youtube.com/embed/${videoId}?autoplay=1`}
             title="YouTube video player"
             className="absolute top-0 left-0 w-full h-full rounded-lg"
             frameBorder="0"
@@ -50,10 +50,15 @@ function YouTubeVideo({ videoId }: { videoId: string }) {
   return (
     <div className="relative w-full max-w-2xl mx-auto mb-8 cursor-pointer" onClick={handlePlay}>
       <div className="relative pb-[56.25%] h-0">
-        <img
-          src={`https://img.youtube.com/vi/${videoId}/maxresdefault.jpg`}
+        <Image
+          src="/demo_thumbnail.jpeg"
           alt="Video thumbnail"
+          fill
           className="absolute top-0 left-0 w-full h-full object-cover rounded-lg"
+          priority
+          onError={(e) => {
+            console.error('Failed to load thumbnail image');
+          }}
         />
         <div className="absolute inset-0 bg-black bg-opacity-30 rounded-lg flex items-center justify-center">
           <div className="bg-red-600 rounded-full p-4 hover:bg-red-700 transition-colors">
@@ -142,7 +147,7 @@ export default function HomePage() {
             </p>
             
             {/* YouTube Video Embed */}
-            <YouTubeVideo videoId="vxrOvDFBST0" />
+            <YouTubeVideo videoId="QN72hoa6YLw" />
           </div>
 
           <div className="mobile-grid md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
