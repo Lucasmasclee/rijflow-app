@@ -50,14 +50,19 @@ function YouTubeVideo({ videoId }: { videoId: string }) {
   return (
     <div className="relative w-full max-w-2xl mx-auto mb-8 cursor-pointer" onClick={handlePlay}>
       <div className="relative pb-[56.25%] h-0">
-        <Image
-          src="/demo_thumbnail.jpeg"
+        <img
+          src={`/demo_thumbnail.jpeg`}
           alt="Video thumbnail"
-          fill
           className="absolute top-0 left-0 w-full h-full object-cover rounded-lg"
-          priority
+          loading="eager"
+          decoding="sync"
           onError={(e) => {
-            console.error('Failed to load thumbnail image');
+            console.error('Test thumbnail failed to load');
+            const target = e.target as HTMLImageElement;
+            target.style.backgroundColor = '#ef4444';
+          }}
+          onLoad={() => {
+            console.log('Test thumbnail loaded successfully');
           }}
         />
         <div className="absolute inset-0 bg-black bg-opacity-30 rounded-lg flex items-center justify-center">
@@ -146,8 +151,21 @@ export default function HomePage() {
               <br />
             </p>
             
-            {/* YouTube Video Embed */}
-            <YouTubeVideo videoId="QN72hoa6YLw" />
+              
+             
+             {/* YouTube Video Embed */}
+             <div className="w-full max-w-2xl mx-auto mb-8">
+               <div className="relative pb-[56.25%] h-0">
+                 <iframe
+                   src="https://www.youtube.com/embed/QN72hoa6YLw"
+                   title="RijFlow Demo Video"
+                   className="absolute top-0 left-0 w-full h-full rounded-lg"
+                   allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                   allowFullScreen
+                   loading="lazy"
+                 />
+               </div>
+             </div>
           </div>
 
           <div className="mobile-grid md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
