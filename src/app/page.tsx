@@ -35,7 +35,7 @@ function YouTubeVideo({ videoId }: { videoId: string }) {
       <div className="relative w-full max-w-2xl mx-auto mb-8">
         <div className="relative pb-[56.25%] h-0">
           <iframe
-            src={`https://www.youtube.com/embed/${videoId}?autoplay=1`}
+            src={`https://www.youtube.com/watch?v=QN72hoa6YLw`}
             title="YouTube video player"
             className="absolute top-0 left-0 w-full h-full rounded-lg"
             frameBorder="0"

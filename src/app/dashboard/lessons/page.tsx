@@ -836,7 +836,7 @@ export default function LessonsPage() {
               <ChevronLeft className="h-5 w-5" />
             </button>
             
-            <h2 className="text-lg font-semibold text-gray-900">
+            <h2 className="text-sm font-semibold text-gray-900">
               {viewMode === 'week' 
                 ? (() => {
                     const monday = getMonday(currentDate)
