@@ -8,6 +8,12 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
 
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
         // Override point for customization after application launch.
+        
+        // Capacitor initialisatie toevoegen
+        let config = InstanceConfiguration()
+        // Verwijder de server URL configuratie voor productie
+        // config.appLocation = "https://rijflow.nl"
+        
         return true
     }
 

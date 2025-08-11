@@ -4,10 +4,11 @@ const config: CapacitorConfig = {
   appId: 'com.mascelli.rijlesplanner',
   appName: 'RijFlow',
   webDir: 'out',
-  server: {
-    url: 'https://rijflow.nl',
-    cleartext: true
-  },
+  // Server configuratie uitcommentariëren voor productie om conflicten te voorkomen
+  // server: {
+  //   url: 'https://rijflow.nl',
+  //   cleartext: true
+  // },
   ios: {
     contentInset: 'always',
     scheme: 'App',
