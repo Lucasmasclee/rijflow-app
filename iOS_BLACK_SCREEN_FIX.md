@@ -49,7 +49,10 @@ chmod +x scripts/fix-ios-capacitor.sh
 
 ### Handmatig:
 ```bash
-npx cap clean ios
+# Verwijder iOS build bestanden handmatig
+rm -rf ios/App/build
+rm -rf ios/App/DerivedData
+
 npm run build
 npx cap sync ios
 npx cap open ios
@@ -70,7 +73,10 @@ npx cap open ios
 
 1. **Clean Capacitor build**:
    ```bash
-   npx cap clean ios
+   # Verwijder iOS build bestanden handmatig
+   rm -rf ios/App/build
+   rm -rf ios/App/DerivedData
+   
    npm run build
    npx cap sync ios
    ```
@@ -97,7 +103,7 @@ npx cap open ios
 
 - **iOS builds moeten op macOS worden uitgevoerd**
 - **Gebruik altijd `npm run build` voor iOS (geen static export)**
-- **Voer altijd `npx cap clean ios` uit bij problemen**
+- **Verwijder handmatig iOS build bestanden bij problemen (Capacitor 7.4.2 heeft geen 'clean' commando)**
 - **Controleer altijd de Xcode console voor foutmeldingen**
 
 ## Contact

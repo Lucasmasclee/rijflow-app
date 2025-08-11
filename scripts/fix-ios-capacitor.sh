@@ -12,8 +12,10 @@ if [[ "$OSTYPE" != "darwin"* ]]; then
     exit 1
 fi
 
-echo "🧹 Capacitor iOS project opschonen..."
-npx cap clean ios
+echo "🧹 iOS project opschonen..."
+# Verwijder iOS build bestanden handmatig (Capacitor 7.4.2 heeft geen 'clean' commando)
+rm -rf ios/App/build
+rm -rf ios/App/DerivedData
 
 echo "📦 Dependencies installeren..."
 npm install

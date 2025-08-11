@@ -9,7 +9,7 @@
     "lint": "next lint",
     "ios:build": "npm run build && npx cap sync ios",
     "ios:open": "npx cap open ios",
-    "fix-ios-capacitor": "npx cap clean ios && npm run build && npx cap sync ios"
+    "fix-ios-capacitor": "npm run build && npx cap sync ios"
   },
   "dependencies": {
     "@capacitor/android": "^7.4.2",

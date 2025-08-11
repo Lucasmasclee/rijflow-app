@@ -5,8 +5,10 @@ REM Dit script bereidt de app voor op iOS build (moet op Mac worden afgemaakt)
 echo 🔧 RijFlow iOS Capacitor Fix Script voor Windows
 echo ================================================
 
-echo 🧹 Capacitor iOS project opschonen...
-call npx cap clean ios
+echo 🧹 iOS project opschonen...
+REM Verwijder iOS build bestanden handmatig (Capacitor 7.4.2 heeft geen 'clean' commando)
+if exist "ios\App\build" rmdir /s /q "ios\App\build"
+if exist "ios\App\DerivedData" rmdir /s /q "ios\App\DerivedData"
 
 echo 📦 Dependencies installeren...
 call npm install
