@@ -12,12 +12,13 @@ const nextConfig: NextConfig = {
     pagesBufferLength: 2,
   },
   // Capacitor optimalisaties
-  experimental: {
-    // Voorkom dat TypeScript bestanden worden gekopieerd
-    outputFileTracing: false,
-  },
-  // Voorkom source maps in productie
   productionBrowserSourceMaps: false,
+  // Static export voor Capacitor
+  output: 'export',
+  trailingSlash: true,
+  images: {
+    unoptimized: true
+  }
 };
 
 export default withPWA({
