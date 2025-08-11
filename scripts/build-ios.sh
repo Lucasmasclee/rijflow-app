@@ -30,13 +30,13 @@ echo "✅ Vereisten gecontroleerd"
 echo "📦 Dependencies installeren..."
 npm install
 
-# Build de web app
-echo "🔨 Web app builden..."
-npm run build
+# Build de web app met static export (belangrijk voor iOS!)
+echo "🔨 Web app builden met static export..."
+npm run build:static
 
 # Sync met Capacitor
 echo "🔄 Capacitor synchroniseren..."
-npx cap sync
+npx cap sync ios
 
 # Open Xcode
 echo "📱 Xcode openen..."
@@ -47,10 +47,15 @@ echo "✅ Build voltooid!"
 echo ""
 echo "Volgende stappen in Xcode:"
 echo "1. Selecteer je Team (Apple Developer Account)"
-echo "2. Zet Bundle Identifier op: com.rijflow.app"
-echo "3. Zet Version op: 1.0.0"
-echo "4. Zet Build op: 1"
+echo "2. Zet Bundle Identifier op: com.mascelli.rijlesplanner"
+echo "3. Zet Version op: 2.0.1"
+echo "4. Zet Build op: 3"
 echo "5. Product → Archive"
 echo "6. Distribute App → App Store Connect"
+echo ""
+echo "🔧 Belangrijke iOS instellingen:"
+echo "- Zorg dat 'Background Modes' is uitgeschakeld"
+echo "- Zet 'Status Bar Style' op 'Default'"
+echo "- Controleer dat 'Launch Screen' correct is ingesteld"
 echo ""
 echo "📖 Zie app-store-connect.md voor volledige handleiding" 

@@ -5,8 +5,11 @@
   "scripts": {
     "dev": "next dev --turbopack",
     "build": "next build --no-lint",
+    "build:static": "next build --no-lint && next export",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "ios:build": "npm run build:static && npx cap sync ios",
+    "ios:open": "npx cap open ios"
   },
   "dependencies": {
     "@capacitor/android": "^7.4.2",
