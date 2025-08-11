@@ -10,8 +10,10 @@ const config: CapacitorConfig = {
   },
   ios: {
     contentInset: 'always',
-    scheme: 'App'
-  }
+    scheme: 'App',
+    limitsNavigationsToAppBoundDomains: false
+  },
+  loggingBehavior: 'debug'
 };
 
 export default config;
