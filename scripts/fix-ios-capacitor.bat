@@ -1,18 +1,33 @@
 @echo off
-echo Fixing iOS Capacitor configuration...
-echo.
+REM RijFlow iOS Capacitor Fix Script voor Windows
+REM Dit script bereidt de app voor op iOS build (moet op Mac worden afgemaakt)
 
-echo Syncing Capacitor project...
-npx cap sync ios
+echo 🔧 RijFlow iOS Capacitor Fix Script voor Windows
+echo ================================================
+
+echo 🧹 Capacitor iOS project opschonen...
+call npx cap clean ios
+
+echo 📦 Dependencies installeren...
+call npm install
+
+echo 🔨 Web app builden...
+call npm run build
+
+echo 🔄 Capacitor synchroniseren...
+call npx cap sync ios
 
 echo.
-echo Opening iOS project in Xcode...
-npx cap open ios
-
+echo ✅ Windows fix voltooid!
 echo.
-echo Please build and run the project in Xcode
-echo If you still see a black screen, try:
-echo 1. Clean build folder (Product -> Clean Build Folder)
-echo 2. Delete derived data (Window -> Projects -> Click arrow next to project -> Delete)
-echo 3. Rebuild the project
-pause 
+echo 📱 Volgende stappen op Mac:
+echo 1. Kopieer de hele projectmap naar je Mac
+echo 2. Voer uit: chmod +x scripts/fix-ios-capacitor.sh
+echo 3. Voer uit: ./scripts/fix-ios-capacitor.sh
+echo.
+echo 🔧 Of handmatig:
+echo 1. npx cap open ios
+echo 2. Product → Clean Build Folder
+echo 3. Product → Build
+echo.
+echo ⚠️  Let op: iOS builds moeten op macOS worden uitgevoerd! 
