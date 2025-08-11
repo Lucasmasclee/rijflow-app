@@ -3,7 +3,7 @@ import type { CapacitorConfig } from '@capacitor/cli';
 const config: CapacitorConfig = {
   appId: 'com.mascelli.rijlesplanner',
   appName: 'RijFlow',
-  webDir: 'out',
+  webDir: '.next',
   server: {
     url: 'https://rijflow.nl',
     cleartext: true

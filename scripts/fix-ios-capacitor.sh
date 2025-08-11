@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # RijFlow iOS Capacitor Fix Script
-# Dit script lost het "No such module 'Capacitor'" probleem op
+# Dit script lost het zwarte scherm en storyboard problemen op
 
 echo "🔧 RijFlow iOS Capacitor Fix Script"
 echo "==================================="
@@ -12,40 +12,30 @@ if [[ "$OSTYPE" != "darwin"* ]]; then
     exit 1
 fi
 
-# Controleer of CocoaPods is geïnstalleerd
-if ! command -v pod &> /dev/null; then
-    echo "❌ CocoaPods is niet geïnstalleerd"
-    echo "📦 Installeer CocoaPods met: sudo gem install cocoapods"
-    exit 1
-fi
+echo "🧹 Capacitor iOS project opschonen..."
+npx cap clean ios
 
-echo "✅ Vereisten gecontroleerd"
+echo "📦 Dependencies installeren..."
+npm install
 
-# Ga naar iOS directory
-cd ios/App
-
-echo "🧹 Oude Pods opruimen..."
-rm -rf Pods
-rm -rf Podfile.lock
-
-echo "📦 CocoaPods dependencies installeren..."
-pod install
+echo "🔨 Web app builden..."
+npm run build
 
 echo "🔄 Capacitor synchroniseren..."
-cd ../..
 npx cap sync ios
 
-echo "🧹 Xcode cache opruimen..."
-# Dit moet handmatig in Xcode: Product → Clean Build Folder
+echo "📱 Xcode project openen..."
+npx cap open ios
 
 echo ""
 echo "✅ Fix voltooid!"
 echo ""
-echo "📋 Volgende stappen in Xcode:"
-echo "1. Sluit Xcode volledig"
-echo "2. Open Xcode opnieuw"
-echo "3. Open het .xcworkspace bestand (NIET .xcodeproj)"
-echo "4. Product → Clean Build Folder"
-echo "5. Build de app opnieuw"
+echo "🔧 Volgende stappen in Xcode:"
+echo "1. Product → Clean Build Folder"
+echo "2. Product → Build"
+echo "3. Run op simulator of device"
 echo ""
-echo "💡 Tip: Gebruik altijd het .xcworkspace bestand, niet .xcodeproj" 
+echo "⚠️  Als het probleem blijft bestaan:"
+echo "- Controleer Xcode console voor foutmeldingen"
+echo "- Reset iOS Simulator (Device → Erase All Content and Settings)"
+echo "- Controleer of alle Capacitor plugins correct zijn geïnstalleerd" 

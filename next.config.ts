@@ -11,12 +11,6 @@ const nextConfig: NextConfig = {
     // number of pages that should be kept simultaneously without being disposed
     pagesBufferLength: 2,
   },
-  // Static export for Capacitor
-  output: 'export',
-  trailingSlash: true,
-  images: {
-    unoptimized: true
-  }
 };
 
 export default withPWA({

@@ -5,10 +5,9 @@
   "scripts": {
     "dev": "next dev --turbopack",
     "build": "next build --no-lint",
-    "build:static": "next build --no-lint && next export",
     "start": "next start",
     "lint": "next lint",
-    "ios:build": "npm run build:static && npx cap sync ios",
+    "ios:build": "npm run build && npx cap sync ios",
     "ios:open": "npx cap open ios"
   },
   "dependencies": {
