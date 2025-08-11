@@ -27,6 +27,7 @@ interface PlanCard {
     period: string;
     stripePriceId: string;
     popular?: boolean;
+    discount?: string;
   };
 }
 
@@ -34,14 +35,14 @@ export async function GET() {
   const planCards: PlanCard[] = [
     {
       type: 'basic',
-      name: 'Basis',
+      name: 'Basic',
       description: 'Perfect voor startende rijscholen',
       features: [
-        'Onbeperkt aantal leerlingen',
-        'Lesplanning en agenda',
+        'Onbeperkte leerlingbeheer',
+        'Onbeperkte lesplanning',
         'Voortgangsnotities',
-        'SMS notificaties',
-        'Basis support'
+        'Overzichtelijke dagplanning',
+        'Overzichtelijke weekplanning'
       ],
       monthly: {
         id: 'basic-monthly',
@@ -52,9 +53,10 @@ export async function GET() {
       yearly: {
         id: 'basic-yearly',
         price: '€199,99',
-        period: 'per jaar (2 maanden gratis)',
+        period: 'per jaar (16,66/maand)',
         stripePriceId: process.env.STRIPE_BASIC_YEARLY_PRICE_ID!,
-        popular: true
+        popular: true,
+        discount: '20% korting'
       }
     },
     {
@@ -62,11 +64,11 @@ export async function GET() {
       name: 'Premium',
       description: 'Voor groeiende rijscholen met geavanceerde behoeften',
       features: [
-        'Alles uit Basis',
-        'AI-geassisteerde planning',
-        'Geavanceerde rapportages',
-        'Prioriteit support',
-        'API toegang'
+        'Alles uit Basic',
+        'Automatische beschikbaarheid',
+        'Automatische weekplanning',
+        'Automatische meldingen',
+        'Automatische herinneringen'
       ],
       monthly: {
         id: 'premium-monthly',
@@ -77,8 +79,9 @@ export async function GET() {
       yearly: {
         id: 'premium-yearly',
         price: '€499,99',
-        period: 'per jaar',
-        stripePriceId: process.env.STRIPE_PREMIUM_YEARLY_PRICE_ID!
+        period: 'per jaar (41,66/maand)',
+        stripePriceId: process.env.STRIPE_PREMIUM_YEARLY_PRICE_ID!,
+        discount: '20% korting'
       }
     }
   ];

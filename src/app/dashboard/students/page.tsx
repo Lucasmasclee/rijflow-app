@@ -85,7 +85,7 @@ export default function StudentsPage() {
     // Gebruik lokale datum om tijdzone problemen te voorkomen
     const today = new Date()
     const currentWeekMonday = getMonday(today)
-    for (let i = 1; i <= 8; i++) {
+    for (let i = 0; i <= 7; i++) {
       const weekStart = new Date(currentWeekMonday)
       weekStart.setDate(currentWeekMonday.getDate() + (i * 7))
       weeks.push(weekStart)
@@ -557,7 +557,7 @@ export default function StudentsPage() {
                         className="w-full p-3 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors text-left"
                       >
                         <div className="font-medium text-gray-900">
-                          {index === 0 ? 'Volgende week' : 'Week ' + (index + 1)}
+                          {index === 0 ? 'Deze week' : index === 1 ? 'Volgende week' : 'Over ' + (index) +' Weken'}
                         </div>
                         <div className="text-sm text-gray-600">
                           {weekStart.toLocaleDateString('nl-NL', {
@@ -615,7 +615,7 @@ export default function StudentsPage() {
                     const recentlySent = isSmsRecentlySent(student.sms_laatst_gestuurd)
                     const hasValidPhone = student.phone && isValidPhoneNumber(student.phone)
                     const isSelected = selectedStudents.has(student.id)
-                    const canSelect = hasValidPhone && !recentlySent
+                    const canSelect = hasValidPhone
 
                     return (
                       <div key={student.id} className="flex items-center justify-between p-2 border border-gray-200 rounded-lg">
@@ -626,11 +626,6 @@ export default function StudentsPage() {
                           <div className="text-xs text-gray-600">
                             {student.phone || <span className="italic text-red-500">Geen telefoonnummer</span>}
                           </div>
-                          {recentlySent && (
-                            <div className="text-xs text-yellow-600 mt-1">
-                              SMS minder dan 6 dagen geleden gestuurd
-                            </div>
-                          )}
                           {!hasValidPhone && student.phone && (
                             <div className="text-xs text-red-600 mt-1">
                               Ongeldig telefoonnummer formaat
@@ -647,7 +642,7 @@ export default function StudentsPage() {
                             />
                           ) : (
                             <div className="text-xs text-gray-400 px-2 py-1 bg-gray-100 rounded">
-                              {recentlySent ? 'Recent gestuurd' : 'Geen telefoon'}
+                              Geen telefoon
                             </div>
                           )}
                         </div>

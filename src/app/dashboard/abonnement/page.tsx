@@ -41,6 +41,7 @@ interface PlanCard {
     period: string;
     stripePriceId: string;
     popular?: boolean;
+    discount?: string;
   };
 }
 
@@ -397,13 +398,18 @@ function AbonnementPageContent() {
                         ...prev,
                         [planCard.type]: 'yearly'
                       }))}
-                      className={`flex-1 py-2 px-4 rounded-md text-sm font-medium transition-colors ${
+                      className={`flex-1 py-2 px-4 rounded-md text-sm font-medium transition-colors relative ${
                         currentCycle === 'yearly'
                           ? 'bg-white text-gray-900 shadow-sm'
                           : 'text-gray-600 hover:text-gray-900'
                       }`}
                     >
                       Jaarlijks
+                      {planCard.yearly.discount && (
+                        <span className="absolute -top-2 -right-2 bg-green-500 text-white text-xs px-2 py-1 rounded-full font-bold">
+                          {planCard.yearly.discount}
+                        </span>
+                      )}
                     </button>
                   </div>
                 </div>
