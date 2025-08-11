@@ -8,12 +8,12 @@
     "build:static": "next build --no-lint",
     "start": "next start",
     "lint": "next lint",
-    "ios:build": "npm run build:static && npx cap sync ios",
+    "ios:build": "npm run build && npx cap sync ios",
     "ios:open": "npx cap open ios",
-    "fix-ios-capacitor": "npm run build:static && npx cap sync ios",
-    "complete-ios-fix": "npm run build:static && npx cap remove ios && npx cap add ios",
-    "debug-ios": "npm run build:static && npx cap sync ios",
-    "fix-capacitor-build": "npm run build:static && npx cap sync ios",
+    "fix-ios-capacitor": "npm run build && npx cap sync ios",
+    "complete-ios-fix": "npm run build && npx cap remove ios && npx cap add ios",
+    "debug-ios": "npm run build && npx cap sync ios",
+    "fix-capacitor-build": "npm run build && npx cap sync ios",
     "remove-typescript-files": "scripts\\remove-typescript-files.bat"
   },
   "dependencies": {

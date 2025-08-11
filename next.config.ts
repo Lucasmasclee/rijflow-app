@@ -13,12 +13,6 @@ const nextConfig: NextConfig = {
   },
   // Capacitor optimalisaties
   productionBrowserSourceMaps: false,
-  // Static export voor Capacitor
-  output: 'export',
-  trailingSlash: true,
-  images: {
-    unoptimized: true
-  }
 };
 
 export default withPWA({
