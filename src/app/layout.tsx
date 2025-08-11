@@ -3,7 +3,7 @@ import { Inter } from "next/font/google";
 import "./globals.css";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { Toaster } from "react-hot-toast";
-import DebugPanel from "@/components/DebugPanel";
+import SimpleDebug from "@/components/SimpleDebug";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -55,7 +55,7 @@ export default function RootLayout({
               },
             }}
           />
-          <DebugPanel />
+          <SimpleDebug />
         </AuthProvider>
       </body>
     </html>
