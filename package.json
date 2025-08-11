@@ -5,6 +5,7 @@
   "scripts": {
     "dev": "next dev --turbopack",
     "build": "next build --no-lint",
+    "build:capacitor": "next build --no-lint && npx cap sync",
     "start": "next start",
     "lint": "next lint"
   },
