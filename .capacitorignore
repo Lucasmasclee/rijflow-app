@@ -1,0 +1,49 @@
+# Capacitor ignore file
+# Bestanden die niet naar de native app moeten worden gekopieerd
+
+# TypeScript bestanden
+**/*.ts
+**/*.tsx
+
+# Source maps
+**/*.map
+
+# Development bestanden
+**/node_modules/**
+**/.git/**
+**/.next/cache/**
+**/.next/server/**
+**/.next/static/chunks/**
+**/.next/static/development/**
+**/.next/static/webpack/**
+**/.next/trace/**
+**/.next/typescript-error-overlay/**
+**/.next/webpack-require-hook.js
+
+# Build artifacts
+**/build/**
+**/dist/**
+**/out/**
+
+# Logs
+**/*.log
+**/npm-debug.log*
+**/yarn-debug.log*
+**/yarn-error.log*
+
+# Environment bestanden
+**/.env*
+**/.env.local
+**/.env.development.local
+**/.env.test.local
+**/.env.production.local
+
+# IDE bestanden
+**/.vscode/**
+**/.idea/**
+**/*.swp
+**/*.swo
+
+# OS bestanden
+**/.DS_Store
+**/Thumbs.db 

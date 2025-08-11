@@ -11,6 +11,13 @@ const nextConfig: NextConfig = {
     // number of pages that should be kept simultaneously without being disposed
     pagesBufferLength: 2,
   },
+  // Capacitor optimalisaties
+  experimental: {
+    // Voorkom dat TypeScript bestanden worden gekopieerd
+    outputFileTracing: false,
+  },
+  // Voorkom source maps in productie
+  productionBrowserSourceMaps: false,
 };
 
 export default withPWA({
