@@ -12,6 +12,10 @@ const nextConfig: NextConfig = {
     // number of pages that should be kept simultaneously without being disposed
     pagesBufferLength: 2,
   },
+  // PWA configuratie aanpassen voor export mode
+  images: {
+    unoptimized: true
+  },
 };
 
 export default withPWA({
@@ -20,4 +24,6 @@ export default withPWA({
   register: true,
   skipWaiting: true,
   disable: process.env.NODE_ENV === 'development',
+  // PWA opties voor export mode
+  buildExcludes: [/middleware-manifest\.json$/],
 });
