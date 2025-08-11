@@ -2,7 +2,8 @@ import type { NextConfig } from "next";
 import withPWA from 'next-pwa';
 
 const nextConfig: NextConfig = {
-  /* config options here */
+  output: 'export',
+  trailingSlash: true,
   reactStrictMode: true,
   // Suppress hydration warnings in development (useful for browser extensions)
   onDemandEntries: {
