@@ -16,7 +16,13 @@ import {
   Car,
   Menu,
   X,
-  Play
+  Play,
+  CalendarDays,
+  CalendarCheck,
+  Bell,
+  Clock3,
+  UserCheck,
+  Settings
 } from 'lucide-react'
 
 // Force dynamic rendering to prevent static generation issues
@@ -143,7 +149,7 @@ export default function HomePage() {
         <div className="container-mobile">
           <div className="text-center mb-12 md:mb-16">
             <h2 className="text-mobile-xl md:text-3xl font-bold text-gray-900 mb-4">
-              RijFlow - Bespaar 20 uur per maand
+              RijFlow - Bespaar 10 uur per maand
             </h2>
             <p className="text-mobile-lg md:text-xl text-gray-600">
               Gemaakt door een leerling, die voor zijn instructeur deze tool heeft gemaakt.
@@ -171,61 +177,61 @@ export default function HomePage() {
           <div className="mobile-grid md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
             <div className="card" style={{ padding: '11px', marginBottom: '11px' }}>
               <div className="flex items-center mb-3">
-                <Calendar className="h-8 w-8 text-blue-600 mr-2" />
-                <h3 className="text-sm md:text-base font-semibold text-gray-900">AI Weekplanning</h3>
+                <CalendarDays className="h-8 w-8 text-blue-600 mr-2" />
+                <h3 className="text-sm md:text-base font-semibold text-gray-900">Automatische beschikbaarheid</h3>
               </div>
               <p className="text-gray-600 text-sm">
-                Laat AI je optimale weekplanning maken op basis van beschikbaarheid en voorkeuren.
+                Beheer eenvoudig je beschikbaarheid en laat het systeem automatisch je agenda optimaliseren.
               </p>
             </div>
 
             <div className="card" style={{ padding: '11px', marginBottom: '11px' }}>
               <div className="flex items-center mb-3">
-                <Users className="h-8 w-8 text-blue-600 mr-2" />
-                <h3 className="text-sm md:text-base font-semibold text-gray-900">Dagplanning</h3>
+                <CalendarCheck className="h-8 w-8 text-blue-600 mr-2" />
+                <h3 className="text-sm md:text-base font-semibold text-gray-900">Automatische weekplanning</h3>
               </div>
               <p className="text-gray-600 text-sm">
-                Overzichtelijke dagplanning met alle lessen, locaties en leerlingen.
+                Laat het systeem automatisch je optimale weekplanning maken op basis van je voorkeuren.
               </p>
             </div>
 
             <div className="card" style={{ padding: '11px', marginBottom: '11px' }}>
               <div className="flex items-center mb-3">
-                <FileText className="h-8 w-8 text-blue-600 mr-2" />
-                <h3 className="text-sm md:text-base font-semibold text-gray-900">Weekplanning</h3>
+                <Bell className="h-8 w-8 text-blue-600 mr-2" />
+                <h3 className="text-sm md:text-base font-semibold text-gray-900">Automatische meldingen</h3>
               </div>
               <p className="text-gray-600 text-sm">
-                Plan je hele week vooruit met een duidelijk weekoverzicht van alle lessen.
+                Ontvang automatisch meldingen over belangrijke updates en wijzigingen in je planning.
               </p>
             </div>
 
             <div className="card" style={{ padding: '11px', marginBottom: '11px' }}>
               <div className="flex items-center mb-3">
-                <MessageSquare className="h-8 w-8 text-blue-600 mr-2" />
+                <Clock3 className="h-8 w-8 text-blue-600 mr-2" />
+                <h3 className="text-sm md:text-base font-semibold text-gray-900">Automatische herinneringen</h3>
+              </div>
+              <p className="text-gray-600 text-sm">
+                Krijg automatisch herinneringen voor aankomende lessen en belangrijke taken.
+              </p>
+            </div>
+
+            <div className="card" style={{ padding: '11px', marginBottom: '11px' }}>
+              <div className="flex items-center mb-3">
+                <Settings className="h-8 w-8 text-blue-600 mr-2" />
+                <h3 className="text-sm md:text-base font-semibold text-gray-900">Planning</h3>
+              </div>
+              <p className="text-gray-600 text-sm">
+                Overzichtelijk planningssysteem voor al je rijlessen en afspraken.
+              </p>
+            </div>
+
+            <div className="card" style={{ padding: '11px', marginBottom: '11px' }}>
+              <div className="flex items-center mb-3">
+                <UserCheck className="h-8 w-8 text-blue-600 mr-2" />
                 <h3 className="text-sm md:text-base font-semibold text-gray-900">Leerlingbeheer</h3>
               </div>
               <p className="text-gray-600 text-sm">
-                Beheer al je leerlingen, hun gegevens en lespakketten op één centrale plek.
-              </p>
-            </div>
-
-            <div className="card" style={{ padding: '11px', marginBottom: '11px' }}>
-              <div className="flex items-center mb-3">
-                <Clock className="h-8 w-8 text-blue-600 mr-2" />
-                <h3 className="text-sm md:text-base font-semibold text-gray-900">Voortgang bijhouden</h3>
-              </div>
-              <p className="text-gray-600 text-sm">
-                Houd de voortgang van je leerlingen bij en zie hun ontwikkeling over tijd.
-              </p>
-            </div>
-
-            <div className="card" style={{ padding: '11px', marginBottom: '11px' }}>
-              <div className="flex items-center mb-3">
-                <CheckCircle className="h-8 w-8 text-blue-600 mr-2" />
-                <h3 className="text-sm md:text-base font-semibold text-gray-900">Urenregistratie</h3>
-              </div>
-              <p className="text-gray-600 text-sm">
-                Automatische urenregistratie voor een complete administratie van je werkuren.
+                Beheer al je leerlingen en hun voortgang op één centrale plek.
               </p>
             </div>
           </div>
