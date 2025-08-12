@@ -346,6 +346,66 @@ function InstructorDashboard() {
   const [loadingLessons, setLoadingLessons] = useState(true)
   const [expandedLessons, setExpandedLessons] = useState<Set<string>>(new Set())
   const [selectedDate, setSelectedDate] = useState(new Date())
+  const [smsCount, setSmsCount] = useState<number>(0)
+  const [updatingSmsCount, setUpdatingSmsCount] = useState(false)
+
+  // Fetch instructor data including sms_count
+  const fetchInstructorData = async () => {
+    if (!user) return
+    
+    try {
+      const { data, error } = await supabase
+        .from('instructors')
+        .select('sms_count')
+        .eq('id', user.id)
+        .single()
+
+      if (error) {
+        console.error('Error fetching instructor data:', error)
+        return
+      }
+
+      if (data?.sms_count !== undefined) {
+        setSmsCount(data.sms_count)
+      }
+    } catch (error) {
+      console.error('Error fetching instructor data:', error)
+    }
+  }
+
+  // Function to increment sms_count
+  const handleTestSmsCount = async () => {
+    if (!user) return
+    
+    setUpdatingSmsCount(true)
+    try {
+      const { data, error } = await supabase
+        .from('instructors')
+        .update({ 
+          sms_count: (smsCount || 0) + 1,
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', user.id)
+        .select('sms_count')
+        .single()
+
+      if (error) {
+        console.error('Error updating sms_count:', error)
+        toast.error('Fout bij het bijwerken van SMS teller')
+        return
+      }
+
+      if (data) {
+        setSmsCount(data.sms_count)
+        toast.success('SMS teller succesvol bijgewerkt!')
+      }
+    } catch (error) {
+      console.error('Error updating sms_count:', error)
+      toast.error('Fout bij het bijwerken van SMS teller')
+    } finally {
+      setUpdatingSmsCount(false)
+    }
+  }
 
   // Fetch students from database
   const fetchStudents = async () => {
@@ -603,6 +663,7 @@ function InstructorDashboard() {
     if (user) {
       fetchStudents()
       fetchLessons()
+      fetchInstructorData()
     }
   }, [user])
 
@@ -612,10 +673,22 @@ function InstructorDashboard() {
 
   return (
     <div className="space-y-6">
-{/* Today's Lessons */}
+      {/* Today's Lessons */}
 <div className="card">
         <div className="flex justify-between items-center mb-4">
-          <h3 className="text-lg font-semibold">Lessen vandaag</h3>
+          <div className="flex items-center gap-4">
+            <h3 className="text-lg font-semibold">Lessen vandaag</h3>
+            <button
+              onClick={handleTestSmsCount}
+              disabled={updatingSmsCount}
+              className="px-3 py-1 bg-blue-600 text-white text-sm rounded-md hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {updatingSmsCount ? 'Bijwerken...' : 'Test'}
+            </button>
+            <span className="text-sm text-gray-600">
+              SMS teller: {smsCount}
+            </span>
+          </div>
           <div className="flex items-center gap-1">
             <button
               onClick={goToPreviousDay}

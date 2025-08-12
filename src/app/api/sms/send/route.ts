@@ -71,6 +71,19 @@ export async function POST(request: NextRequest) {
 
     console.log('Supabase client created')
 
+    // Get the current user (instructor) to update their sms_count
+    const { data: { user }, error: userError } = await supabase.auth.getUser()
+    
+    if (userError || !user) {
+      console.error('Error getting current user:', userError)
+      return NextResponse.json(
+        { error: 'Authentication failed' },
+        { status: 401 }
+      )
+    }
+
+    console.log('Current user:', user.id)
+
     // DEBUG: Check if availability_links table exists
     const { data: tableCheck, error: tableError } = await supabase
       .from('availability_links')
@@ -125,6 +138,7 @@ export async function POST(request: NextRequest) {
     }
 
     const results = []
+    let successfulSmsCount = 0 // Counter for successful SMS messages
     
     // Use the formatted dates from the students page
     const weekText = `${weekStartFormatted} - ${weekEndFormatted}`
@@ -276,6 +290,9 @@ export async function POST(request: NextRequest) {
             console.error(`Error updating sms_laatst_gestuurd for ${student.first_name}:`, updateError)
           }
 
+          // Increment successful SMS counter
+          successfulSmsCount++
+
           results.push({
             studentId: student.id,
             success: true,
@@ -296,6 +313,46 @@ export async function POST(request: NextRequest) {
           success: false,
           error: 'Network error'
         })
+      }
+    }
+
+    // Update the instructor's sms_count with the number of successful SMS messages
+    if (successfulSmsCount > 0) {
+      console.log(`Updating instructor sms_count: adding ${successfulSmsCount} to current count`)
+      
+      try {
+        // First get the current sms_count
+        const { data: instructorData, error: fetchError } = await supabase
+          .from('instructors')
+          .select('sms_count')
+          .eq('id', user.id)
+          .single()
+
+        if (fetchError) {
+          console.error('Error fetching current instructor sms_count:', fetchError)
+        } else {
+          const currentSmsCount = instructorData?.sms_count || 0
+          const newSmsCount = currentSmsCount + successfulSmsCount
+          
+          console.log(`Current sms_count: ${currentSmsCount}, new sms_count: ${newSmsCount}`)
+          
+          // Update the sms_count
+          const { error: updateError } = await supabase
+            .from('instructors')
+            .update({ 
+              sms_count: newSmsCount,
+              updated_at: new Date().toISOString()
+            })
+            .eq('id', user.id)
+
+          if (updateError) {
+            console.error('Error updating instructor sms_count:', updateError)
+          } else {
+            console.log(`Successfully updated instructor sms_count from ${currentSmsCount} to ${newSmsCount}`)
+          }
+        }
+      } catch (error) {
+        console.error('Exception updating instructor sms_count:', error)
       }
     }
 

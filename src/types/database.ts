@@ -23,6 +23,7 @@ export interface Instructeur {
   subscription_status?: 'active' | 'inactive'
   stripe_customer_id?: string
   subscription_id?: string
+  sms_count?: number
   created_at: string
   updated_at: string
 }
