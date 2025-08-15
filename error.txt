@@ -1,22 +1,9 @@
-/register.js
-> [PWA] Service worker: /Users/lucasmasclee/Documents/rijflow-app/public/sw.js
-> [PWA]   url: /sw.js
-> [PWA]   scope: /
- ✓ Compiled successfully in 1000ms
- ✓ Checking validity of types    
- ✓ Collecting page data    
-Error occurred prerendering page "/_not-found". Read more: https://nextjs.org/docs/messages/prerender-error
-Error: supabaseUrl is required.
-    at new tI (/Users/lucasmasclee/Documents/rijflow-app/.next/server/chunks/542.js:6:75513)
-    at tU (/Users/lucasmasclee/Documents/rijflow-app/.next/server/chunks/542.js:6:79668)
-    at 6558 (/Users/lucasmasclee/Documents/rijflow-app/.next/server/app/_not-found/page.js:1:3350)
-    at Object.t [as require] (/Users/lucasmasclee/Documents/rijflow-app/.next/server/webpack-runtime.js:1:128)
-    at require (/Users/lucasmasclee/Documents/rijflow-app/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:140:9879)
-    at u (/Users/lucasmasclee/Documents/rijflow-app/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:92:646)
-    at U (/Users/lucasmasclee/Documents/rijflow-app/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:92:10632)
-    at T (/Users/lucasmasclee/Documents/rijflow-app/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:92:8681)
-    at rM (/Users/lucasmasclee/Documents/rijflow-app/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:76:33176)
-    at nW (/Users/lucasmasclee/Documents/rijflow-app/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:76:65533)
-Export encountered an error on /_not-found/page: /_not-found, exiting the build.
- ⨯ Next.js build worker exited with code: 1 and signal: null
-lucasmasclee@Lucass-MacBook-Air rijflow-app % 
+Info.plist configuration "(no name)" for UIWindowSceneSessionRoleApplication contained UISceneDelegateClassName key, but could not load class with name "App.SceneDelegate".
+Info.plist configuration "(no name)" for UIWindowSceneSessionRoleApplication contained UISceneDelegateClassName key, but could not load class with name "App.SceneDelegate".
+There is no scene delegate set. A scene delegate class must be specified to use a main storyboard file.
+Snapshot request 0x102764960 complete with error: <NSError: 0x102764810; domain: FBSSceneSnapshotErrorDomain; code: 4; "an unrelated condition or state was not satisfied"> {
+    NSLocalizedDescription = an error occurred during a scene snapshotting operation;
+}
+Snapshot request 0x102764960 complete with error: <NSError: 0x102766850; domain: FBSSceneSnapshotErrorDomain; code: 4; "an unrelated condition or state was not satisfied"> {
+    NSLocalizedDescription = an error occurred during a scene snapshotting operation;
+}
