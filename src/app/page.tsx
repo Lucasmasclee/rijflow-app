@@ -282,9 +282,9 @@ export default function HomePage() {
           <h2 className="text-mobile-xl md:text-3xl font-bold text-white mb-4">
             Klaar om te beginnen?
           </h2>
-          <p className="text-mobile-lg md:text-xl text-blue-100 mb-8">
+          {/* <p className="text-mobile-lg md:text-xl text-blue-100 mb-8">
             Deze tool is nog in ontwikkeling, en om die reden volledig gratis.
-          </p>
+          </p> */}
           <button
             onClick={() => router.push('/auth/signup')}
             className="btn bg-white hover:bg-gray-100 text-blue-600 text-lg btn-mobile-full md:w-auto"

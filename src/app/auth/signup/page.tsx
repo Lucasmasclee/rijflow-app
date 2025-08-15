@@ -65,9 +65,9 @@ export default function SignUpPage() {
               <span className="ml-2 text-2xl font-bold text-gray-900">RijFlow</span>
             </div>
             <h2 className="text-2xl md:text-3xl font-bold text-gray-900">Account aanmaken</h2>
-            <p className="mt-2 text-sm text-gray-600">
+            {/* <p className="mt-2 text-sm text-gray-600">
               Deze tool is in ontwikkeling, en volledig gratis.
-            </p>
+            </p> */}
           </div>
           <div className="card text-center">
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
@@ -88,9 +88,9 @@ export default function SignUpPage() {
             <span className="ml-2 text-2xl font-bold text-gray-900">RijFlow</span>
           </Link>
           <h2 className="text-2xl md:text-3xl font-bold text-gray-900">Account aanmaken</h2>
-          <p className="mt-2 text-sm text-gray-600">
+          {/* <p className="mt-2 text-sm text-gray-600">
             Deze tool is in ontwikkeling, en volledig gratis.
-          </p>
+          </p> */}
         </div>
 
         <ClientOnly delay={100}>
