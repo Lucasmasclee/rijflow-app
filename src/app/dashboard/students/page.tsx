@@ -52,6 +52,9 @@ export default function StudentsPage() {
   const [selectedStudents, setSelectedStudents] = useState<Set<string>>(new Set())
   // State voor SMS verzenden
   const [sendingSms, setSendingSms] = useState(false)
+  
+  // Boolean to check if sms_count >= sms_limiet
+  const [smsCountExceeded, setSmsCountExceeded] = useState(false)
 
   // Functie om sms_count te verhogen
   const incrementSmsCount = async () => {
@@ -366,14 +369,50 @@ export default function StudentsPage() {
         console.error('SMS send failed:', result)
         toast.error('Fout bij het verzenden van SMS berichten')
       }
+      // router.refresh()
     } catch (error) {
       console.error('Error sending SMS:', error)
       toast.error('Er is een fout opgetreden bij het verzenden van SMS')
     } finally {
       setSendingSms(false)
       console.log('=== SMS SEND FRONTEND COMPLETED ===')
+      router.push('/dashboard/students')
     }
+    // router.refresh()
   }
+
+  // Check SMS count and limit when component mounts
+  useEffect(() => {
+    const checkSmsCount = async () => {
+      if (!user) return;
+      
+      try {
+        // Fetch instructor data to get sms_count and sms_limiet
+        const { data: instructor, error } = await supabase
+          .from('instructors')
+          .select('sms_count, sms_limiet')
+          .eq('id', user.id)
+          .single();
+
+        if (error) {
+          console.error('Error fetching instructor SMS data:', error);
+          return;
+        }
+
+        if (instructor) {
+          const currentCount = instructor.sms_count || 0;
+          const limit = instructor.sms_limiet || 0;
+          const exceeded = limit > 0 && currentCount >= limit;
+          
+          setSmsCountExceeded(exceeded);
+        }
+      } catch (error) {
+        console.error('Error checking SMS count:', error);
+      }
+    };
+
+    checkSmsCount();
+  }, [user]);
 
   useEffect(() => {
     if (user) {
@@ -431,12 +470,30 @@ export default function StudentsPage() {
       <div className="container-mobile py-10">
         {/* SMS Leerlingen knop - moved to be directly above students list */}
         <div className="flex justify-end mb-4 gap-2">
+          {!smsCountExceeded &&
           <button
-            className="btn btn-secondary"
+            className={`btn ${smsCountExceeded ? 'btn-disabled opacity-50 cursor-not-allowed' : 'btn-secondary'}`}
             onClick={() => setShowSmsModal(true)}
+            disabled={smsCountExceeded}
           >
             SMS Leerlingen
           </button>
+          }
+          
+          {/* Warning message when SMS count is exceeded */}
+          {smsCountExceeded && (
+            <div className="flex items-center gap-2 p-3 bg-yellow-50 border border-yellow-200 rounded-md">
+              <div className="flex-shrink-0">
+                <svg className="h-4 w-4 text-yellow-400" fill="currentColor" viewBox="0 0 20 20">
+                  <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                </svg>
+              </div>
+              <div className="text-sm text-yellow-800">
+                <p className="font-medium">SMS limiet bereikt</p>
+                {/* <p>Je hebt je maandelijkse SMS limiet bereikt. Upgrade je plan of neem contact op.</p> */}
+              </div>
+            </div>
+          )}
         </div>
         
         {/* Students List */}
@@ -586,6 +643,23 @@ export default function StudentsPage() {
                 <X className="h-5 w-5" />
               </button>
             </div>
+            
+            {/* Warning message when SMS count is exceeded in modal */}
+            {smsCountExceeded && (
+              <div className="mb-4 p-3 bg-yellow-50 border border-yellow-200 rounded-md">
+                <div className="flex items-center gap-2">
+                  <div className="flex-shrink-0">
+                    <svg className="h-4 w-4 text-yellow-400" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                    </svg>
+                  </div>
+                  <div className="text-sm text-yellow-800">
+                    <p className="font-medium">SMS limiet bereikt</p>
+                    <p>Je hebt je maandelijkse SMS limiet bereikt. SMS verzending is uitgeschakeld tot de volgende factureringscyclus.</p>
+                  </div>
+                </div>
+              </div>
+            )}
 
             {/* Stap 1: Week-selectie */}
             {!selectedSmsWeek && (
@@ -602,7 +676,12 @@ export default function StudentsPage() {
                       <button
                         key={index}
                         onClick={() => setSelectedSmsWeek(week)}
-                        className="w-full p-3 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors text-left"
+                        disabled={smsCountExceeded}
+                        className={`w-full p-3 border border-gray-200 rounded-lg transition-colors text-left ${
+                          smsCountExceeded 
+                            ? 'opacity-50 cursor-not-allowed bg-gray-100' 
+                            : 'hover:bg-gray-50'
+                        }`}
                       >
                         <div className="font-medium text-gray-900">
                           {index === 0 ? 'Deze week' : index === 1 ? 'Volgende week' : 'Over ' + (index) +' Weken'}
@@ -647,7 +726,7 @@ export default function StudentsPage() {
                       const eligibleStudents = students.filter(student => {
                         const recentlySent = isSmsRecentlySent(student.sms_laatst_gestuurd)
                         const hasValidPhone = student.phone && isValidPhoneNumber(student.phone)
-                        return hasValidPhone && !recentlySent
+                        return hasValidPhone
                       })
                       const eligibleStudentIds = eligibleStudents.map(student => student.id)
                       setSelectedStudents(new Set(eligibleStudentIds))

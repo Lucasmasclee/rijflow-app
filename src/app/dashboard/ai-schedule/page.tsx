@@ -66,6 +66,48 @@ function AISchedulePageContent() {
   const [sendReminderSms, setSendReminderSms] = useState(false)
   const [sendingSms, setSendingSms] = useState(false)
 
+  // Boolean to check if sms_count >= sms_limiet
+  const [smsCountExceeded, setSmsCountExceeded] = useState(false)
+
+  // Check SMS count and limit when component mounts
+  useEffect(() => {
+    const checkSmsCount = async () => {
+      if (!user) return;
+      
+      try {
+        // Fetch instructor data to get sms_count and sms_limiet
+        const { data: instructor, error } = await supabase
+          .from('instructors')
+          .select('sms_count, sms_limiet')
+          .eq('id', user.id)
+          .single();
+
+        if (error) {
+          console.error('Error fetching instructor SMS data:', error);
+          return;
+        }
+
+        if (instructor) {
+          const currentCount = instructor.sms_count || 0;
+          const limit = instructor.sms_limiet || 0;
+          const exceeded = limit > 0 && currentCount >= limit;
+          
+          setSmsCountExceeded(exceeded);
+          
+          // If SMS count is exceeded, turn off SMS options
+          if (exceeded) {
+            setSendImmediateSms(false);
+            setSendReminderSms(false);
+          }
+        }
+      } catch (error) {
+        console.error('Error checking SMS count:', error);
+      }
+    };
+
+    checkSmsCount();
+  }, [user]);
+
   // Instructor availability
   const [instructorAvailability, setInstructorAvailability] = useState<DayAvailability[]>([
     { day: 'monday', available: true, startTime: '09:00', endTime: '17:00', startHours: '09', startMinutes: '00', endHours: '17', endMinutes: '00' },
@@ -1948,9 +1990,17 @@ function AISchedulePageContent() {
                           id="sendImmediateSms"
                           checked={sendImmediateSms}
                           onChange={(e) => setSendImmediateSms(e.target.checked)}
-                          className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded flex-shrink-0"
+                          disabled={smsCountExceeded}
+                          className={`h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded flex-shrink-0 ${
+                            smsCountExceeded ? 'opacity-50 cursor-not-allowed' : ''
+                          }`}
                         />
-                        <label htmlFor="sendImmediateSms" className="text-sm font-medium text-gray-700 ml-2">
+                        <label 
+                          htmlFor="sendImmediateSms" 
+                          className={`text-sm font-medium ml-2 ${
+                            smsCountExceeded ? 'text-gray-400' : 'text-gray-700'
+                          }`}
+                        >
                           SMS Leerlingen over ingeplande lessen
                         </label>
                       </div>
@@ -1962,12 +2012,37 @@ function AISchedulePageContent() {
                           id="sendReminderSms"
                           checked={sendReminderSms}
                           onChange={(e) => setSendReminderSms(e.target.checked)}
-                          className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded flex-shrink-0"
+                          disabled={smsCountExceeded}
+                          className={`h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded flex-shrink-0 ${
+                            smsCountExceeded ? 'opacity-50 cursor-not-allowed' : ''
+                          }`}
                         />
-                        <label htmlFor="sendReminderSms" className="text-sm font-medium text-gray-700 ml-2">
+                        <label 
+                          htmlFor="sendReminderSms" 
+                          className={`text-sm font-medium ml-2 ${
+                            smsCountExceeded ? 'text-gray-400' : 'text-gray-700'
+                          }`}
+                        >
                           Stuur 24 uur van tevoren een herinnering
                         </label>
                       </div>
+                      
+                      {/* Warning message when SMS count is exceeded */}
+                      {smsCountExceeded && (
+                        <div className="mt-3 p-3 bg-yellow-50 border border-yellow-200 rounded-md">
+                          <div className="flex items-center gap-2">
+                            <div className="flex-shrink-0">
+                              <svg className="h-4 w-4 text-yellow-400" fill="currentColor" viewBox="0 0 20 20">
+                                <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                              </svg>
+                            </div>
+                            <div className="text-sm text-yellow-800">
+                              <p className="font-medium">SMS limiet bereikt</p>
+                              <p>Je hebt je maandelijkse SMS limiet bereikt. Upgrade je plan of neem contact op.</p>
+                            </div>
+                          </div>
+                        </div>
+                      )}
                     </div>
                   </div>
 
