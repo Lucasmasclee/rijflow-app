@@ -6,6 +6,7 @@ export interface SubscriptionStatus {
   subscription_status: 'active' | 'inactive';
   stripe_customer_id?: string;
   subscription_id?: string;
+  sms_limiet?: number;
 }
 
 export async function checkAndUpdateSubscriptionStatus(userId: string): Promise<SubscriptionStatus | null> {
@@ -36,13 +37,16 @@ export async function checkAndUpdateSubscriptionStatus(userId: string): Promise<
     let shouldUpdate = false;
     let updatedData: Partial<SubscriptionStatus> = {};
 
+    const sms_limiet = (instructor.abonnement === 'premium-monthly' || instructor.abonnement === 'premium-yearly') ? 500 : 0;
+
     // Check if trial period has expired (more than 60 days)
     if (trialStartDate && daysSinceTrialStart && daysSinceTrialStart > 60 && instructor.abonnement === 'no_subscription' && instructor.subscription_status === 'active') {
       // Trial period expired - update to no_subscription and inactive
       if (instructor.abonnement !== 'no_subscription' || instructor.subscription_status !== 'inactive') {
         updatedData = {
           abonnement: 'no_subscription',
-          subscription_status: 'inactive'
+          subscription_status: 'inactive',
+          sms_limiet: sms_limiet
         };
         shouldUpdate = true;
       }
@@ -51,14 +55,16 @@ export async function checkAndUpdateSubscriptionStatus(userId: string): Promise<
       if (instructor.abonnement !== 'no_subscription' || instructor.subscription_status !== 'active') {
         updatedData = {
           abonnement: 'no_subscription',
-          subscription_status: 'active'
+          subscription_status: 'active',
+          sms_limiet: sms_limiet
         };
         shouldUpdate = true;
       }
     }
 
     // Update the database if needed
-    if (shouldUpdate) {
+    // if (shouldUpdate) {
+    if (true) {
       const { error: updateError } = await supabase
         .from('instructors')
         .update(updatedData)
