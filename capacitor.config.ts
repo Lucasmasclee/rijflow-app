@@ -5,14 +5,21 @@ const config: CapacitorConfig = {
   appName: 'RijFlow',
   webDir: '.next',
   server: {
-    url: 'https://rijflow.nl',
-    cleartext: true
+    url: 'https://rijflow-app.vercel.app',
+    cleartext: true,
+    allowNavigation: ['*']
   },
   ios: {
     contentInset: 'always',
     scheme: 'App',
-    limitsNavigationsToAppBoundDomains: false
-  }
+    limitsNavigationsToAppBoundDomains: false,
+    backgroundColor: '#ffffff',
+    webContentsDebuggingEnabled: true
+  },
+  android: {
+    backgroundColor: '#ffffff'
+  },
+  loggingBehavior: 'debug'
 };
 
 export default config;
