@@ -7,8 +7,18 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     var window: UIWindow?
 
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
-        // Override point for customization after application launch.
-        return true
+        // Fix voor FBSSceneSnapshotErrorDomain code 4
+        if #available(iOS 13.0, *) {
+            // Gebruik moderne scene-based lifecycle
+            return true
+        } else {
+            // Fallback voor oudere iOS versies
+            window = UIWindow(frame: UIScreen.main.bounds)
+            let viewController = CAPBridgeViewController()
+            window?.rootViewController = viewController
+            window?.makeKeyAndVisible()
+            return true
+        }
     }
 
     func applicationWillResignActive(_ application: UIApplication) {
