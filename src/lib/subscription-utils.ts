@@ -61,6 +61,10 @@ export async function checkAndUpdateSubscriptionStatus(userId: string): Promise<
         shouldUpdate = true;
       }
     }
+    updatedData = {
+      sms_limiet: sms_limiet
+    };
+    
 
     // Update the database if needed
     // if (shouldUpdate) {
@@ -81,7 +85,8 @@ export async function checkAndUpdateSubscriptionStatus(userId: string): Promise<
         start_free_trial: instructor.start_free_trial,
         subscription_status: updatedData.subscription_status || instructor.subscription_status,
         stripe_customer_id: instructor.stripe_customer_id,
-        subscription_id: instructor.subscription_id
+        subscription_id: instructor.subscription_id,
+        sms_limiet: sms_limiet
       };
     }
 

@@ -814,7 +814,7 @@ function InstructorDashboard() {
       </div> */}
 
       {/* Test increment sms count button */}
-      <div className="card">
+      {/* <div className="card">
         <h3 className="text-lg font-semibold mb-4">Test</h3>
         <button
           onClick={testIncrementSmsCount}
@@ -822,7 +822,7 @@ function InstructorDashboard() {
         >
           Test
         </button>
-      </div>
+      </div> */}
 
       
 
