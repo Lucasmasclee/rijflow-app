@@ -53,6 +53,46 @@ export default function StudentsPage() {
   // State voor SMS verzenden
   const [sendingSms, setSendingSms] = useState(false)
 
+  // Functie om sms_count te verhogen
+  const incrementSmsCount = async () => {
+    if (!user) return
+    
+    try {
+      // Eerst de huidige sms_count ophalen
+      const { data: currentData, error: fetchError } = await supabase
+        .from('instructors')
+        .select('sms_count')
+        .eq('id', user.id)
+        .single()
+
+      if (fetchError) {
+        console.error('Error fetching current sms_count:', fetchError)
+        return
+      }
+
+      // Huidige waarde ophalen (of 0 als null)
+      const currentCount = currentData?.sms_count || 0
+      const newCount = currentCount + 1
+
+      // Update met nieuwe waarde
+      const { error: updateError } = await supabase
+        .from('instructors')
+        .update({ 
+          sms_count: newCount
+        })
+        .eq('id', user.id)
+
+      if (updateError) {
+        console.error('Error incrementing sms_count:', updateError)
+        return
+      }
+
+      console.log(`sms_count verhoogd van ${currentCount} naar ${newCount}`)
+    } catch (error) {
+      console.error('Error incrementing sms_count:', error)
+    }
+  }
+
   // Helper: maandag van een datum
   const getMonday = (date: Date) => {
     // Gebruik UTC methoden om tijdzone problemen te voorkomen
@@ -306,6 +346,14 @@ export default function StudentsPage() {
       if (result.success) {
         console.log('SMS send successful, summary:', result.summary)
         toast.success(`SMS verzonden naar ${result.summary.successful} leerlingen`)
+        
+        // Verhoog sms_count voor elke succesvolle SMS
+        if (result.summary && result.summary.successful > 0) {
+          for (let i = 0; i < result.summary.successful; i++) {
+            await incrementSmsCount()
+          }
+          console.log(`sms_count verhoogd met ${result.summary.successful}`)
+        }
         
         // Refresh students to update sms_laatst_gestuurd
         await fetchStudents()

@@ -95,6 +95,8 @@ export default function DashboardPage() {
     }
   }
 
+
+
   useEffect(() => {
     if (!loading && !user) {
       router.push('/auth/signin')
@@ -346,6 +348,49 @@ function InstructorDashboard() {
   const [loadingLessons, setLoadingLessons] = useState(true)
   const [expandedLessons, setExpandedLessons] = useState<Set<string>>(new Set())
   const [selectedDate, setSelectedDate] = useState(new Date())
+
+  // Test functie om sms_count te verhogen
+  const testIncrementSmsCount = async () => {
+    if (!user) return
+    
+    try {
+      // Eerst de huidige sms_count ophalen
+      const { data: currentData, error: fetchError } = await supabase
+        .from('instructors')
+        .select('sms_count')
+        .eq('id', user.id)
+        .single()
+
+      if (fetchError) {
+        console.error('Error fetching current sms_count:', fetchError)
+        toast.error('Fout bij het ophalen van huidige sms_count')
+        return
+      }
+
+      // Huidige waarde ophalen (of 0 als null)
+      const currentCount = currentData?.sms_count || 0
+      const newCount = currentCount + 1
+
+      // Update met nieuwe waarde
+      const { error: updateError } = await supabase
+        .from('instructors')
+        .update({ 
+          sms_count: newCount
+        })
+        .eq('id', user.id)
+
+      if (updateError) {
+        console.error('Error incrementing sms_count:', updateError)
+        toast.error('Fout bij het verhogen van sms_count')
+        return
+      }
+
+      toast.success(`sms_count succesvol verhoogd van ${currentCount} naar ${newCount}`)
+    } catch (error) {
+      console.error('Error incrementing sms_count:', error)
+      toast.error('Er is een fout opgetreden')
+    }
+  }
 
   // Fetch students from database
   const fetchStudents = async () => {
@@ -767,6 +812,17 @@ function InstructorDashboard() {
           </Link>
         </div>
       </div> */}
+
+      {/* Test increment sms count button */}
+      <div className="card">
+        <h3 className="text-lg font-semibold mb-4">Test</h3>
+        <button
+          onClick={testIncrementSmsCount}
+          className="btn btn-primary w-full"
+        >
+          Test
+        </button>
+      </div>
 
       
 
