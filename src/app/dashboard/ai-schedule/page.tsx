@@ -66,6 +66,15 @@ function AISchedulePageContent() {
   const [sendReminderSms, setSendReminderSms] = useState(false)
   const [sendingSms, setSendingSms] = useState(false)
 
+  // Navigation loading states
+  const [isNextLoading, setIsNextLoading] = useState(false)
+  const [isPreviousLoading, setIsPreviousLoading] = useState(false)
+
+  // Save button loading states
+  const [isInstructorSaving, setIsInstructorSaving] = useState(false)
+  const [isStudentSaving, setIsStudentSaving] = useState(false)
+  const [isSettingsSaving, setIsSettingsSaving] = useState(false)
+
   // Boolean to check if sms_count >= sms_limiet
   const [smsCountExceeded, setSmsCountExceeded] = useState(false)
 
@@ -543,6 +552,8 @@ function AISchedulePageContent() {
   const saveInstructorAvailability = async () => {
     if (!user || !selectedWeek) return
     
+    setIsInstructorSaving(true)
+    
     try {
       const weekStartString = formatDateToISO(selectedWeek)
       
@@ -600,11 +611,15 @@ function AISchedulePageContent() {
     } catch (error) {
       console.error('Error saving instructor availability:', error)
       toast.error('Fout bij opslaan van instructeur beschikbaarheid')
+    } finally {
+      setIsInstructorSaving(false)
     }
   }
 
   const saveStudentData = async () => {
     if (!user || !selectedWeek) return
+    
+    setIsStudentSaving(true)
     
     try {
       const weekStartString = formatDateToISO(selectedWeek)
@@ -671,6 +686,8 @@ function AISchedulePageContent() {
     } catch (error) {
       console.error('Error saving student data:', error)
       toast.error('Fout bij opslaan van leerling data')
+    } finally {
+      setIsStudentSaving(false)
     }
   }
 
@@ -907,6 +924,8 @@ function AISchedulePageContent() {
   const saveAISettings = async () => {
     if (!user) return
     
+    setIsSettingsSaving(true)
+    
     try {
       // Update or insert AI settings directly in instructor_ai_settings table
       const { data, error } = await supabase
@@ -933,6 +952,8 @@ function AISchedulePageContent() {
     } catch (error) {
       console.error('Error saving AI settings:', error)
       toast.error('Fout bij opslaan van AI instellingen')
+    } finally {
+      setIsSettingsSaving(false)
     }
   }
 
@@ -1064,41 +1085,59 @@ function AISchedulePageContent() {
 
   // Navigation
   const handleNext = async () => {
-    if (currentStep === 'week-selection') {
-      if (!selectedWeek) {
-        toast.error('Selecteer eerst een week')
-        return
+    setIsNextLoading(true)
+    
+    try {
+      if (currentStep === 'week-selection') {
+        if (!selectedWeek) {
+          toast.error('Selecteer eerst een week')
+          return
+        }
+        
+        // Zorg ervoor dat alle studenten availability records hebben voor deze week
+        await ensureStudentAvailability()
+        
+        // Data is al geladen wanneer de week werd geselecteerd
+        setCurrentStep('instructor')
+      } else if (currentStep === 'instructor') {
+        // Sla instructeur beschikbaarheid op voordat we naar de volgende stap gaan
+        await saveAvailabilityData()
+        setCurrentStep('students')
+      } else if (currentStep === 'students') {
+        // Sla student beschikbaarheid op voordat we naar de volgende stap gaan
+        await saveAvailabilityData()
+        setCurrentStep('settings')
+      } else if (currentStep === 'settings') {
+        // Sla instellingen op voordat we naar de volgende stap gaan
+        await saveAISettings()
+        setCurrentStep('generate-planning')
       }
-      
-      // Zorg ervoor dat alle studenten availability records hebben voor deze week
-      await ensureStudentAvailability()
-      
-      // Data is al geladen wanneer de week werd geselecteerd
-      setCurrentStep('instructor')
-    } else if (currentStep === 'instructor') {
-      // Sla instructeur beschikbaarheid op voordat we naar de volgende stap gaan
-      await saveAvailabilityData()
-      setCurrentStep('students')
-    } else if (currentStep === 'students') {
-      // Sla student beschikbaarheid op voordat we naar de volgende stap gaan
-      await saveAvailabilityData()
-      setCurrentStep('settings')
-    } else if (currentStep === 'settings') {
-      // Sla instellingen op voordat we naar de volgende stap gaan
-      await saveAISettings()
-      setCurrentStep('generate-planning')
+    } catch (error) {
+      console.error('Error in handleNext:', error)
+      toast.error('Er is een fout opgetreden bij het navigeren')
+    } finally {
+      setIsNextLoading(false)
     }
   }
 
   const handlePrevious = () => {
-    if (currentStep === 'instructor') {
-      setCurrentStep('week-selection')
-    } else if (currentStep === 'students') {
-      setCurrentStep('instructor')
-    } else if (currentStep === 'settings') {
-      setCurrentStep('students')
-    } else if (currentStep === 'generate-planning') {
-      setCurrentStep('settings')
+    setIsPreviousLoading(true)
+    
+    try {
+      if (currentStep === 'instructor') {
+        setCurrentStep('week-selection')
+      } else if (currentStep === 'students') {
+        setCurrentStep('instructor')
+      } else if (currentStep === 'settings') {
+        setCurrentStep('students')
+      } else if (currentStep === 'generate-planning') {
+        setCurrentStep('settings')
+      }
+    } catch (error) {
+      console.error('Error in handlePrevious:', error)
+      toast.error('Er is een fout opgetreden bij het navigeren')
+    } finally {
+      setIsPreviousLoading(false)
     }
   }
 
@@ -2089,15 +2128,19 @@ function AISchedulePageContent() {
               <div className="flex items-center justify-between">
                 <button
                   onClick={handlePrevious}
-                  disabled={currentStep === 'week-selection'}
+                  disabled={currentStep === 'week-selection' || isPreviousLoading}
                   className={`flex items-center gap-1 px-2 py-1.5 rounded-lg border text-xs transition-colors ${
-                    currentStep === 'week-selection'
+                    currentStep === 'week-selection' || isPreviousLoading
                       ? 'border-gray-200 text-gray-400 cursor-not-allowed'
                       : 'border-gray-300 text-gray-700 hover:bg-gray-50'
                   }`}
                 >
-                  <ArrowLeft className="h-3 w-3" />
-                  Vorige
+                  {isPreviousLoading ? (
+                    <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-gray-400"></div>
+                  ) : (
+                    <ArrowLeft className="h-3 w-3" />
+                  )}
+                  {isPreviousLoading ? 'Laden...' : 'Vorige'}
                 </button>
 
                 <div className="flex items-center gap-2">
@@ -2105,10 +2148,15 @@ function AISchedulePageContent() {
                   {currentStep === 'instructor' && (
                     <button
                       onClick={saveInstructorAvailability}
-                      className="flex items-center gap-1 px-2 py-1.5 rounded-lg border border-green-600 text-green-600 hover:bg-green-50 transition-colors text-xs"
+                      disabled={isInstructorSaving}
+                      className="flex items-center gap-1 px-2 py-1.5 rounded-lg border border-green-600 text-green-600 hover:bg-green-50 transition-colors text-xs disabled:opacity-50 disabled:cursor-not-allowed"
                     >
-                      <Check className="h-3 w-3" />
-                      Opslaan
+                      {isInstructorSaving ? (
+                        <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-green-600"></div>
+                      ) : (
+                        <Check className="h-3 w-3" />
+                      )}
+                      {isInstructorSaving ? 'Opslaan...' : 'Opslaan'}
                     </button>
                   )}
 
@@ -2116,10 +2164,15 @@ function AISchedulePageContent() {
                   {currentStep === 'students' && (
                     <button
                       onClick={saveStudentData}
-                      className="flex items-center gap-1 px-2 py-1.5 rounded-lg border border-green-600 text-green-600 hover:bg-green-50 transition-colors text-xs"
+                      disabled={isStudentSaving}
+                      className="flex items-center gap-1 px-2 py-1.5 rounded-lg border border-green-600 text-green-600 hover:bg-green-50 transition-colors text-xs disabled:opacity-50 disabled:cursor-not-allowed"
                     >
-                      <Check className="h-3 w-3" />
-                      Opslaan
+                      {isStudentSaving ? (
+                        <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-green-600"></div>
+                      ) : (
+                        <Check className="h-3 w-3" />
+                      )}
+                      {isStudentSaving ? 'Opslaan...' : 'Opslaan'}
                     </button>
                   )}
 
@@ -2127,24 +2180,38 @@ function AISchedulePageContent() {
                   {currentStep === 'settings' && (
                     <button
                       onClick={saveAISettings}
-                      className="flex items-center gap-1 px-2 py-1.5 rounded-lg border border-green-600 text-green-600 hover:bg-green-50 transition-colors text-xs"
+                      disabled={isSettingsSaving}
+                      className="flex items-center gap-1 px-2 py-1.5 rounded-lg border border-green-600 text-green-600 hover:bg-green-50 transition-colors text-xs disabled:opacity-50 disabled:cursor-not-allowed"
                     >
-                      <Check className="h-3 w-3" />
-                      Opslaan
+                      {isSettingsSaving ? (
+                        <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-green-600"></div>
+                      ) : (
+                        <Check className="h-3 w-3" />
+                      )}
+                      {isSettingsSaving ? 'Opslaan...' : 'Opslaan'}
                     </button>
                   )}
 
                   <button
                     onClick={handleNext}
-                    disabled={!canGoNext()}
+                    disabled={!canGoNext() || isNextLoading}
                     className={`flex items-center gap-1 px-3 py-1.5 rounded-lg transition-colors text-xs ${
-                      canGoNext()
+                      canGoNext() && !isNextLoading
                         ? 'bg-blue-600 text-white hover:bg-blue-700'
                         : 'bg-gray-200 text-gray-400 cursor-not-allowed'
                     }`}
                   >
-                    {currentStep === 'generate-planning' ? 'Voltooid' : 'Volgende'}
-                    <ArrowRight className="h-3 w-3" />
+                    {isNextLoading ? (
+                      <>
+                        <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-white"></div>
+                        Laden...
+                      </>
+                    ) : (
+                      <>
+                        {currentStep === 'generate-planning' ? 'Voltooid' : 'Volgende'}
+                        <ArrowRight className="h-3 w-3" />
+                      </>
+                    )}
                   </button>
                 </div>
               </div>
