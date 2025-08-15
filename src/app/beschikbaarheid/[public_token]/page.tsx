@@ -320,7 +320,7 @@ export default function BeschikbaarheidPage() {
         </div>
 
         {/* Availability Form */}
-        <div className="bg-white rounded-lg shadow-sm p-6">
+        <div className="bg-white rounded-lg shadow-sm p-6 mb-6">
           <div className="space-y-6">
             {daysOfWeek.map((day) => (
               <div key={day.key} className="border-b border-gray-200 pb-6 last:border-b-0">
@@ -485,26 +485,27 @@ export default function BeschikbaarheidPage() {
             ))}
           </div>
 
-          {/* Save Button */}
-          <div className="mt-8 pt-6 border-t border-gray-200">
-            <button
-              onClick={handleSave}
-              disabled={saving}
-              className="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 text-white font-medium py-3 px-6 rounded-lg flex items-center justify-center gap-2 transition-colors"
-            >
-              {saving ? (
-                <>
-                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                  Opslaan...
-                </>
-              ) : (
-                <>
-                  <Save className="h-4 w-4" />
-                  Opslaan
-                </>
-              )}
-            </button>
-          </div>
+        </div>
+
+        {/* Save Button - Fixed at bottom */}
+        <div className="bg-white rounded-lg shadow-sm p-6">
+          <button
+            onClick={handleSave}
+            disabled={saving}
+            className="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 text-white font-medium py-3 px-6 rounded-lg flex items-center justify-center gap-2 transition-colors"
+          >
+            {saving ? (
+              <>
+                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                Opslaan...
+              </>
+            ) : (
+              <>
+                <Save className="h-4 w-4" />
+                Opslaan
+              </>
+            )}
+          </button>
         </div>
       </div>
     </div>

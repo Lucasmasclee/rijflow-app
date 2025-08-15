@@ -265,8 +265,8 @@ export default function ScheduleSettingsPage() {
 
   return (
     <div className="min-h-screen bg-gray-50 pb-20">
-      {/* Mobile Navigation */}
-      <nav className="bg-white shadow-sm border-b safe-area-top">
+      {/* Mobile Navigation - Fixed at top */}
+      <nav className="bg-white shadow-sm border-b safe-area-top sticky top-0 z-50">
         <div className="container-mobile">
           <div className="flex justify-between items-center h-16">
             <div className="flex items-center">
@@ -304,6 +304,7 @@ export default function ScheduleSettingsPage() {
         </div>
       </nav>
 
+      {/* Scrollable Content */}
       <div className="container-mobile py-6">
         {/* Header */}
         <div className="mb-6">
@@ -332,7 +333,7 @@ export default function ScheduleSettingsPage() {
                   step="5"
                   value={defaultLessonDuration}
                   onChange={(e) => setDefaultLessonDuration(parseInt(e.target.value) || 50)}
-                  className="w-24 p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-center"
+                  className="!w-50 !p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-center"
                 />
                 <span className="text-gray-600">minuten</span>
               </div>
