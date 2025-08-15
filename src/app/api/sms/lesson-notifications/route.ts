@@ -229,8 +229,49 @@ export async function POST(request: NextRequest) {
         ? `${lessonWithStudent.student.first_name} ${lessonWithStudent.student.last_name}`
         : lessonWithStudent.student?.first_name
 
+      
+
       // Send immediate notification if requested
       if (sendImmediate) {
+        // Update sms_count
+        if (!user) return
+        
+        try {
+          // Eerst de huidige sms_count ophalen
+          const { data: currentData, error: fetchError } = await supabase
+            .from('instructors')
+            .select('sms_count')
+            .eq('id', user.id)
+            .single()
+    
+          if (fetchError) {
+            console.error('Error fetching current sms_count:', fetchError)
+            return
+          }
+    
+          // Huidige waarde ophalen (of 0 als null)
+          const currentCount = currentData?.sms_count || 0
+          const newCount = currentCount + 1
+    
+          // Update met nieuwe waarde
+          const { error: updateError } = await supabase
+            .from('instructors')
+            .update({ 
+              sms_count: newCount
+            })
+            .eq('id', user.id)
+    
+          if (updateError) {
+            console.error('Error incrementing sms_count:', updateError)
+            return
+          }
+    
+          console.log(`sms_count verhoogd van ${currentCount} naar ${newCount}`)
+        } catch (error) {
+          console.error('Error incrementing sms_count:', error)
+        }
+        
+        
         const immediateMessage = `Beste ${studentName}, er is een rijles ingepland op ${dayName} ${formattedDate} ${startTime} - ${endTime}`
         
         console.log(`Sending immediate SMS to ${lessonWithStudent.student?.first_name}: ${immediateMessage}`)
@@ -301,6 +342,44 @@ export async function POST(request: NextRequest) {
 
       // Schedule reminder if requested
       if (sendReminder) {
+        // Update sms_count
+        if (!user) return
+        
+        try {
+          // Eerst de huidige sms_count ophalen
+          const { data: currentData, error: fetchError } = await supabase
+            .from('instructors')
+            .select('sms_count')
+            .eq('id', user.id)
+            .single()
+    
+          if (fetchError) {
+            console.error('Error fetching current sms_count:', fetchError)
+            return
+          }
+    
+          // Huidige waarde ophalen (of 0 als null)
+          const currentCount = currentData?.sms_count || 0
+          const newCount = currentCount + 1
+    
+          // Update met nieuwe waarde
+          const { error: updateError } = await supabase
+            .from('instructors')
+            .update({ 
+              sms_count: newCount
+            })
+            .eq('id', user.id)
+    
+          if (updateError) {
+            console.error('Error incrementing sms_count:', updateError)
+            return
+          }
+    
+          console.log(`sms_count verhoogd van ${currentCount} naar ${newCount}`)
+        } catch (error) {
+          console.error('Error incrementing sms_count:', error)
+        }
+    
         const reminderMessage = `Herinnering: Je hebt op ${dayName} ${formattedDate} ${startTime} - ${endTime} rijles`
         
         console.log(`Scheduling reminder SMS to ${lessonWithStudent.student?.first_name}: ${reminderMessage}`)
