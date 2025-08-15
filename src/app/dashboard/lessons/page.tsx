@@ -26,6 +26,7 @@ import Link from 'next/link'
 import { supabase } from '@/lib/supabase'
 import { Student, Lesson } from '@/types/database'
 import { calculateLessonCount, getDefaultLessonDuration } from '@/lib/lesson-utils'
+import { hasPremiumSubscription as checkPremiumSubscription } from '@/lib/subscription-utils'
 import toast from 'react-hot-toast'
 
 interface LessonWithStudent extends Lesson {
@@ -82,6 +83,7 @@ export default function LessonsPage() {
   const [showConfirmationModal, setShowConfirmationModal] = useState(false)
   const [selectedTargetWeek, setSelectedTargetWeek] = useState<Date | null>(null)
   const [copyingLessons, setCopyingLessons] = useState(false)
+  const [hasPremiumSubscription, setHasPremiumSubscription] = useState(false)
 
   // Default lesson duration
   const [defaultLessonDuration, setDefaultLessonDuration] = useState(50)
@@ -95,6 +97,36 @@ export default function LessonsPage() {
       router.push('/auth/signin')
     }
   }, [user, loading, router])
+
+  // Fetch instructor data including subscription status
+  const fetchInstructorData = async () => {
+    if (!user) return
+    
+    try {
+      const { data, error } = await supabase
+        .from('instructors')
+        .select('abonnement, subscription_status, start_free_trial')
+        .eq('id', user.id)
+        .single()
+
+      if (error) {
+        console.error('Error fetching instructor data:', error)
+        return
+      }
+
+      // Check if instructor has a premium subscription using the helper function
+      const subscriptionStatus = {
+        abonnement: data?.abonnement || 'no_subscription',
+        subscription_status: data?.subscription_status || 'inactive',
+        start_free_trial: data?.start_free_trial || null
+      }
+      
+      const hasPremium = checkPremiumSubscription(subscriptionStatus)
+      setHasPremiumSubscription(hasPremium)
+    } catch (error) {
+      console.error('Error fetching instructor data:', error)
+    }
+  }
 
   // Fetch students from database
   const fetchStudents = async () => {
@@ -185,6 +217,7 @@ export default function LessonsPage() {
 
   useEffect(() => {
     if (user && !loading) {
+      fetchInstructorData()
       fetchStudents()
     }
   }, [user, loading])
@@ -232,6 +265,11 @@ export default function LessonsPage() {
 
   // Handle copy week button click
   const handleCopyWeekClick = () => {
+    if (!hasPremiumSubscription) {
+      toast.error('Deze functie is alleen beschikbaar voor premium abonnementen')
+      return
+    }
+    
     if (lessons.length === 0) {
       toast.error('Er zijn geen lessen om te kopiëren')
       return
@@ -759,10 +797,12 @@ export default function LessonsPage() {
             </button>
             <Link
               href="/dashboard/ai-schedule"
-              className="btn btn-secondary w-full flex items-center justify-center gap-2"
+              inert={!hasPremiumSubscription}
+              className={`btn btn-secondary w-full flex items-center justify-center gap-2 ${!hasPremiumSubscription ? 'btn-disabled opacity-50 cursor-not-allowed' : ''}`}
             >
               <Calendar className="h-4 w-4" />
-              AI Weekplanning
+              {hasPremiumSubscription ? 'Automatische Weekplanning' : 'Automatische Weekplanning (Premium)'}
+              {/* Automatische Weekplanning */}
             </Link>
             <Link
               href="/dashboard/schedule-settings"

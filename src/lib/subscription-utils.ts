@@ -269,4 +269,15 @@ export function hasValidSubscription(subscriptionStatus: SubscriptionStatus | nu
   }
 
   return false;
+}
+
+export function hasPremiumSubscription(subscriptionStatus: SubscriptionStatus | null): boolean {
+  if (!subscriptionStatus) return false;
+  
+  // Check if subscription is active and premium
+  if (subscriptionStatus.subscription_status === 'active') {
+    return subscriptionStatus.abonnement.startsWith('premium-');
+  }
+  
+  return false;
 } 
