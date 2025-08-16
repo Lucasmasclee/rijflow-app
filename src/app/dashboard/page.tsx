@@ -423,6 +423,14 @@ function InstructorDashboard() {
     
     try {
       setLoadingLessons(true)
+      
+      // Calculate date range: 30 days ago to 30 days in the future
+      const today = new Date()
+      const thirtyDaysAgo = new Date(today)
+      thirtyDaysAgo.setDate(today.getDate() - 30)
+      const thirtyDaysFromNow = new Date(today)
+      thirtyDaysFromNow.setDate(today.getDate() + 30)
+      
       const { data, error } = await supabase
         .from('lessons')
         .select(`
@@ -438,7 +446,8 @@ function InstructorDashboard() {
           )
         `)
         .eq('instructor_id', user.id)
-        .gte('date', new Date().toISOString().split('T')[0])
+        .gte('date', thirtyDaysAgo.toISOString().split('T')[0])
+        .lte('date', thirtyDaysFromNow.toISOString().split('T')[0])
         .order('date', { ascending: true })
         .order('start_time', { ascending: true })
 
@@ -656,11 +665,16 @@ function InstructorDashboard() {
   )
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-3">
 {/* Today's Lessons */}
 <div className="card">
         <div className="flex justify-between items-center mb-4">
-          <h3 className="text-lg font-semibold">Lessen vandaag</h3>
+          <h3 className="text-lg font-semibold">{selectedDate.toDateString() === new Date().toDateString() ? 'Lessen vandaag' : selectedDate.toLocaleDateString('nl-NL', { 
+            weekday: 'long', 
+            // year: 'numeric', 
+            month: 'long', 
+            day: 'numeric' 
+          })}</h3>
           <div className="flex items-center gap-1">
             <button
               onClick={goToPreviousDay}
@@ -700,50 +714,64 @@ function InstructorDashboard() {
         ) : todayLessons.length === 0 ? (
           <div className="text-center py-8 text-gray-500">
             <Calendar className="h-12 w-12 mx-auto mb-2 text-gray-300" />
-            <p>Geen lessen gepland voor vandaag</p>
+            <p>Geen lessen gepland voor {selectedDate.toDateString() === new Date().toDateString() ? 'vandaag' : 'deze dag'}</p>
           </div>
         ) : (
           <div className="space-y-3">
             {todayLessons.map((lesson) => {
               const student = lesson.students
               return (
-                <div key={lesson.id} className={`border border-gray-200 rounded-lg p-4 hover:bg-gray-50 cursor-pointer transition-colors ${expandedLessons.has(lesson.id) ? '' : 'h-16'}`}>
+                <div key={lesson.id} className={`border border-gray-200 rounded-l px-3 py-0 hover:bg-gray-50 cursor-pointer transition-colors ${expandedLessons.has(lesson.id) ? '' : 'h-16'}`}>
                   <div 
                     className="flex justify-between items-start"
                     onClick={() => toggleLessonExpansion(lesson.id)}
                   >
                     <div className="flex-1">
-                      <h4 className="text-xs flex items-center">
-                        <span className="flex items-center">
-                          <Link href={`/dashboard/students/${student.id}`} className="underline hover:text-blue-600 flex items-center">
-                            {student.first_name}
-                          </Link>
-                          <span className="mx-1">|</span>
-                          <span>{lesson.start_time.slice(0,5)} - {lesson.end_time.slice(0,5)}</span>
-                          <span className="mx-1">|</span>
-                          <button
-                            onClick={(e) => {
-                              e.stopPropagation()
-                              openGoogleMaps(student.address)
-                            }}
-                            className="underline hover:text-blue-600 flex items-center"
-                          >
-                            <ExternalLink className="h-2.5 w-2.5" />
-                            <span className="text-xs ml-0.5">
-                              {student.address.length > 12 ? student.address.slice(0, 9) + "..." : student.address}
-                            </span>
-                          </button>
-                        </span>
-                      </h4>
+                                             <div className="space-y-0">
+                         <h4 className="text-xs flex items-center">
+                           <span className="flex items-center">
+                             <Link href={`/dashboard/students/${student.id}`} className="underline hover:text-blue-600 flex items-center">
+                               {student.first_name}
+                             </Link>
+                             <span className="mx-1">|</span>
+                             <span>{lesson.start_time.slice(0,5)} - {lesson.end_time.slice(0,5)}</span>
+                             <span className="mx-1">|</span>
+                             <button
+                               onClick={(e) => {
+                                 e.stopPropagation()
+                                 openGoogleMaps(student.address)
+                               }}
+                               className="underline hover:text-blue-600 flex items-center"
+                             >
+                               <ExternalLink className="h-2.5 w-2.5" />
+                               <span className="text-xs ml-0.5">
+                                 {student.address.length > 12 ? student.address.slice(0, 9) + "..." : student.address}
+                               </span>
+                             </button>
+                           </span>
+                         </h4>
+                         <div className="text-xs text-gray-500 leading-tight font-bold">
+                           {lesson.notes && (
+                             <p className="truncate">Notities: {lesson.notes}</p>
+                           )}
+                           {lesson.student?.address && (
+                             <p className="truncate">Adres: {lesson.student.address}</p>
+                           )}
+                           {!lesson.notes && !lesson.student?.address && (
+                             <p>Geen lesnotities</p>
+                           )}
+                         </div>
+                       </div>
+                      
                     </div>
-                    {/* <div className="p-2">
-                      {expandedLessons.has(lesson.id) ? (
-                        <ChevronUp className="h-4 w-4" />
-                      ) : (
-                        <ChevronDown className="h-4 w-4" />
-                      )}
-                    </div> */}
                   </div>
+                  
+                  {/* Lesnotities - altijd zichtbaar */}
+                  {/* <div className="mt-2">
+                    <div className="bg-gray-100 py-0 rounded">
+                      
+                    </div>
+                  </div> */}
                   
                   {expandedLessons.has(lesson.id) && (
                     <div className="mt-4 pt-4 border-t border-gray-200">
