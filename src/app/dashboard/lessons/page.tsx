@@ -950,17 +950,23 @@ export default function LessonsPage() {
                     {dayLessons.length === 0 ? (
                       <p className="text-gray-500 text-sm py-1">Geen lessen gepland</p>
                     ) : (
-                      <div className="space-y-0.5">
+                      <div className="space-y-2.5">
                         {dayLessons.map((lesson) => (
-                          <div key={lesson.id} className="bg-gray-50 rounded-lg py-0 px-2 h-12 relative">
-                            <div className="flex items-center justify-between h-full">
-                              <div className="flex items-center gap-1">
+                          <div key={lesson.id} className="bg-gray-50 rounded-lg py-0 px-2 h-15 relative">
+                            <div className="flex flex-col h-full py-1">
+                              <div className="flex items-center space-x-2">
                                 <Clock className="h-3 w-3 text-blue-600" />
                                 <span className="text-xs font-medium text-blue-900">
                                   {formatTime(lesson.start_time)} - {formatTime(lesson.end_time)}
                                 </span>
                               </div>
-                              <div className="flex items-center space-x-1">
+                              <div className="flex items-center space-x-2 mt-1">
+                                <User className="h-3 w-3 text-gray-500" />
+                                <span className="text-xs text-gray-600 truncate">
+                                  {lesson.student ? `${lesson.student.first_name} ${lesson.student.last_name || ''}` : 'Onbekende leerling'}
+                                </span>
+                              </div>
+                              <div className="absolute top-1 right-2 flex items-center space-x-1">
                                 <button 
                                   className="p-0.5 text-blue-600 hover:text-blue-700 hover:bg-blue-200 rounded"
                                   onClick={(e) => {
@@ -991,17 +997,14 @@ export default function LessonsPage() {
                               </div>
                             </div>
                             <div className="absolute bottom-0 left-2 right-2">
-                              <div className="flex items-center space-x-2">
-                                <User className="h-2 w-2 text-gray-500" />
-                                <span className="text-xs text-gray-600 truncate">
-                                  {lesson.student ? `${lesson.student.first_name} ${lesson.student.last_name || ''}` : 'Onbekende leerling'}
-                                </span>
+                              <div className="bg-gray-100 p-0.5 rounded mt-0.5">
+                                <p className="text-xs text-gray-500 leading-tight font-bold truncate"> {lesson.notes ? "Notities: " + lesson.notes : lesson.student?.address ? "Adres: " + lesson.student?.address : 'Geen lesnotities'}</p>
                               </div>
-                              {lesson.notes && (
+                              {/* {lesson.notes && (
                                 <div className="bg-gray-100 p-0.5 rounded mt-0.5">
-                                  <p className="text-xs text-gray-500 leading-tight truncate">{lesson.notes}</p>
+                                  <p className="text-xs text-gray-500 leading-tight font-bold truncate">{lesson.notes}</p>
                                 </div>
-                              )}
+                              )} */}
                             </div>
                           </div>
                         ))}
