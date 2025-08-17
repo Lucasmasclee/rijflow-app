@@ -54,6 +54,7 @@ function AbonnementPageContent() {
   const [loadingPlans, setLoadingPlans] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [trialStarted, setTrialStarted] = useState(false);
+  const [isCancelling, setIsCancelling] = useState(false);
   const [billingCycle, setBillingCycle] = useState<{ [key: string]: 'monthly' | 'yearly' }>({
     basic: 'monthly',
     premium: 'monthly'
@@ -69,6 +70,7 @@ function AbonnementPageContent() {
     instructorData: instructorData ? 'exists' : 'null',
     loadingData,
     error,
+    isCancelling,
     user: user ? 'exists' : 'null'
   });
 
@@ -225,6 +227,12 @@ function AbonnementPageContent() {
 
         toast.success('Proefperiode van 60 dagen gestart!');
         setTrialStarted(true);
+        
+        // Automatisch doorsturen naar dashboard na succesvol starten proefperiode
+        setTimeout(() => {
+          router.push('/dashboard');
+        }, 1500); // 1.5 seconde wachten zodat gebruiker de success message kan zien
+        
         return;
       }
 
@@ -270,6 +278,64 @@ function AbonnementPageContent() {
     }
   };
 
+  const handleCancelSubscription = async () => {
+    if (!user) {
+      toast.error('Je moet ingelogd zijn om je abonnement op te zeggen.');
+      return;
+    }
+
+    if (!instructorData?.stripe_customer_id || !instructorData?.subscription_id) {
+      toast.error('Geen actief abonnement gevonden om op te zeggen.');
+      return;
+    }
+
+    // Bevestiging vragen voordat het abonnement wordt opgezegd
+    if (!confirm('Weet je zeker dat je je abonnement wilt opzeggen? Je hebt nog toegang tot het einde van je huidige factureringsperiode.')) {
+      return;
+    }
+
+    setIsCancelling(true);
+    
+    try {
+      const response = await fetch('/api/cancel-subscription', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ 
+          userId: user.id
+        }),
+      });
+
+      const result = await response.json();
+
+      if (!response.ok) {
+        console.error('Error cancelling subscription:', result.error);
+        toast.error(result.error || 'Er is een fout opgetreden bij het opzeggen van je abonnement.');
+        return;
+      }
+
+      toast.success(result.message || 'Abonnement succesvol opgezegd!');
+      
+      // Refresh instructor data to reflect the changes
+      const { data: updatedInstructor } = await supabase
+        .from('instructors')
+        .select('*')
+        .eq('id', user.id)
+        .single();
+      
+      if (updatedInstructor) {
+        setInstructorData(updatedInstructor);
+      }
+      
+    } catch (error) {
+      console.error('Error cancelling subscription:', error);
+      toast.error('Er is een fout opgetreden bij het opzeggen van je abonnement.');
+    } finally {
+      setIsCancelling(false);
+    }
+  };
+
   if (loadingData || loadingPlans) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
@@ -293,6 +359,122 @@ function AbonnementPageContent() {
     subscription_id: instructorData.subscription_id || undefined
   } : null);
 
+  // Helper function to get button text and state for Basic plan
+  const getBasicButtonInfo = (currentCycle: 'monthly' | 'yearly') => {
+    const currentAbonnement = instructorData?.abonnement || 'no_subscription';
+    const isStripeValid = instructorData?.stripe_customer_id && instructorData?.subscription_id;
+    const isProefperiodeBeschikbaar = !hasHadFreeTrial && !isStripeValid && instructorData?.subscription_status === 'inactive';
+    const isProefperiodeActief = !isStripeValid && instructorData?.subscription_status === 'active' && 
+      instructorData?.start_free_trial && new Date(instructorData.start_free_trial) <= new Date(Date.now() - 60 * 24 * 60 * 60 * 1000);
+    
+    if (isProefperiodeBeschikbaar) {
+      return { text: 'Start 60 dagen proefperiode', disabled: false };
+    }
+    
+    if (isProefperiodeActief) {
+      return { text: 'Upgrade naar Basic', disabled: false };
+    }
+    
+    if (currentCycle === 'monthly' && currentAbonnement === 'basic-monthly') {
+      return { text: 'Actief', disabled: true };
+    }
+    
+    if (currentCycle === 'yearly' && currentAbonnement === 'basic-yearly') {
+      return { text: 'Actief', disabled: true };
+    }
+    
+    return { text: 'Upgrade naar Basic', disabled: false };
+  };
+
+  // Helper function to get button text and state for Premium plan
+  const getPremiumButtonInfo = (currentCycle: 'monthly' | 'yearly') => {
+    const currentAbonnement = instructorData?.abonnement || 'no_subscription';
+    const isStripeValid = instructorData?.stripe_customer_id && instructorData?.subscription_id;
+    const isProefperiodeBeschikbaar = !hasHadFreeTrial && !isStripeValid && instructorData?.subscription_status === 'inactive';
+    const isProefperiodeActief = !isStripeValid && instructorData?.subscription_status === 'active' && 
+      instructorData?.start_free_trial && new Date(instructorData.start_free_trial) <= new Date(Date.now() - 60 * 24 * 60 * 60 * 1000);
+    
+    if (isProefperiodeBeschikbaar || isProefperiodeActief) {
+      return { text: 'Upgrade naar Premium', disabled: false };
+    }
+    
+    if (currentCycle === 'monthly' && currentAbonnement === 'premium-monthly') {
+      return { text: 'Actief', disabled: true };
+    }
+    
+    if (currentCycle === 'yearly' && currentAbonnement === 'premium-yearly') {
+      return { text: 'Actief', disabled: true };
+    }
+    
+    return { text: 'Upgrade naar Premium', disabled: false };
+  };
+
+  // Helper function to determine if cancel subscription button should be visible
+  const shouldShowCancelButton = () => {
+    const currentAbonnement = instructorData?.abonnement || 'no_subscription';
+    const isStripeValid = instructorData?.stripe_customer_id && instructorData?.subscription_id;
+    const isProefperiodeBeschikbaar = !hasHadFreeTrial && !isStripeValid && instructorData?.subscription_status === 'inactive';
+    const isProefperiodeActief = !isStripeValid && instructorData?.subscription_status === 'active' && 
+      instructorData?.start_free_trial && new Date(instructorData.start_free_trial) <= new Date(Date.now() - 60 * 24 * 60 * 60 * 1000);
+    
+    if (isProefperiodeBeschikbaar || isProefperiodeActief) {
+      return false;
+    }
+    
+    if (currentAbonnement === 'no_subscription') {
+      return false;
+    }
+    
+    const validAbonnementen = ['basic-monthly', 'basic-yearly', 'premium-monthly', 'premium-yearly'];
+    return validAbonnementen.includes(currentAbonnement);
+  };
+
+  // Helper function to get subscription status text
+  const getSubscriptionStatusText = () => {
+    const currentAbonnement = instructorData?.abonnement || 'no_subscription';
+    const isStripeValid = instructorData?.stripe_customer_id && instructorData?.subscription_id;
+    const subscriptionStatus = instructorData?.subscription_status || 'inactive';
+    const startFreeTrial = instructorData?.start_free_trial;
+    
+    // PROEFPERIODE BESCHIKBAAR
+    if (!isStripeValid && subscriptionStatus === 'inactive' && startFreeTrial && 
+        new Date(startFreeTrial) <= new Date(Date.now() - 60 * 24 * 60 * 60 * 1000)) {
+      return "Start 60 dagen gratis";
+    }
+    
+    // PROEFPERIODE ACTIEF
+    if (!isStripeValid && subscriptionStatus === 'active' && startFreeTrial && 
+        new Date(startFreeTrial) <= new Date(Date.now() - 60 * 24 * 60 * 60 * 1000)) {
+      const daysLeft = Math.ceil((60 * 24 * 60 * 60 * 1000 - (Date.now() - new Date(startFreeTrial).getTime())) / (24 * 60 * 60 * 1000));
+      return `Proefperiode actief, nog ${daysLeft} dagen gratis`;
+    }
+    
+    // PROEFPERIODE VERLOPEN
+    if (!isStripeValid && subscriptionStatus === 'active' && startFreeTrial && 
+        new Date(startFreeTrial) > new Date(Date.now() - 60 * 24 * 60 * 60 * 1000)) {
+      return "Proefperiode verlopen, kies een abonnement.";
+    }
+    
+    // GELDIG ABONNEMENT
+    if (isStripeValid) {
+      const abonnementMap: { [key: string]: string } = {
+        'basic-monthly': 'Basic Maandelijks Abonnement',
+        'basic-yearly': 'Basic Jaarlijks Abonnement',
+        'premium-monthly': 'Premium Maandelijks Abonnement',
+        'premium-yearly': 'Premium Jaarlijks Abonnement'
+      };
+      return abonnementMap[currentAbonnement] || 'Abonnement';
+    }
+    
+    // ONGELDIG ABONNEMENT
+    if (!isStripeValid && startFreeTrial && 
+        new Date(startFreeTrial) > new Date(Date.now() - 60 * 24 * 60 * 60 * 1000)) {
+      return "Kies een abonnement.";
+    }
+    
+    return "Kies een abonnement.";
+  };
+
   return (
     <div className="min-h-screen bg-gray-50 py-8">
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -305,20 +487,18 @@ function AbonnementPageContent() {
            </p>
            
            {/* Huidige abonnement status */}
-           {subscriptionDisplayInfo && (
-             <div className="mt-6">
-               <div className={`inline-flex items-center px-4 py-2 rounded-full border ${subscriptionDisplayInfo.color} font-medium`}>
-                 <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                 </svg>
-                 {subscriptionDisplayInfo.text}
-               </div>
+           <div className="mt-6">
+             <div className="inline-flex items-center px-4 py-2 rounded-full border border-blue-200 bg-blue-50 text-blue-800 font-medium">
+               <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+               </svg>
+               {getSubscriptionStatusText()}
              </div>
-           )}
+           </div>
            
            {/* Dashboard knop - alleen zichtbaar als subscription_status = active */}
            {instructorData?.subscription_status === 'active' && (
-             <div className="mt-6">
+             <div className="mt-6 space-y-3">
                <button
                  onClick={() => router.push('/dashboard')}
                  className="inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors"
@@ -328,6 +508,20 @@ function AbonnementPageContent() {
                  </svg>
                  Ga naar Dashboard
                </button>
+               
+               {/* Abonnement opzeggen knop - alleen zichtbaar volgens de logica */}
+               {shouldShowCancelButton() && (
+                 <button
+                   onClick={() => handleCancelSubscription()}
+                   disabled={isCancelling}
+                   className="inline-flex items-center px-6 py-3 border border-red-300 text-base font-medium rounded-md text-red-700 bg-red-50 hover:bg-red-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                 >
+                   <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                   </svg>
+                   {isCancelling ? 'Bezig...' : 'Abonnement opzeggen'}
+                 </button>
+               )}
              </div>
            )}
          </div>
@@ -362,6 +556,12 @@ function AbonnementPageContent() {
             const currentCycle = billingCycle[planCard.type];
             const currentPlan = currentCycle === 'monthly' ? planCard.monthly : planCard.yearly;
             const isPopular = currentCycle === 'yearly' ? planCard.yearly.popular : false;
+            
+            // Get button info based on plan type
+            const buttonInfo = planCard.type === 'basic' 
+              ? getBasicButtonInfo(currentCycle)
+              : getPremiumButtonInfo(currentCycle);
+            
             return (
               <div
                 key={planCard.type}
@@ -432,17 +632,16 @@ function AbonnementPageContent() {
 
                 <button
                   onClick={() => handleStartSubscription(planCard.type)}
-                  disabled={(isLoadingMonthly && planCard.type === 'basic') || (isLoadingYearly && planCard.type === 'premium')}
+                  disabled={buttonInfo.disabled || (isLoadingMonthly && planCard.type === 'basic') || (isLoadingYearly && planCard.type === 'premium')}
                   className={`w-full py-3 px-4 rounded-lg font-semibold transition duration-200 ${
-                    isPopular
-                      ? 'bg-blue-600 hover:bg-blue-700 text-white'
-                      : 'bg-gray-100 hover:bg-gray-200 text-gray-900'
+                    buttonInfo.disabled
+                      ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                      : 'bg-blue-600 hover:bg-blue-700 text-white'
                   } disabled:opacity-50 disabled:cursor-not-allowed`}
                 >
-                  {(isLoadingMonthly && planCard.type === 'basic') || (isLoadingYearly && planCard.type === 'premium') ? 'Bezig...' : 
-                    planCard.type === 'basic' && !hasHadFreeTrial 
-                      ? 'Start proefperiode' 
-                      : 'Kies abonnement'
+                  {buttonInfo.disabled ? buttonInfo.text : 
+                    (isLoadingMonthly && planCard.type === 'basic') || (isLoadingYearly && planCard.type === 'premium') ? 'Bezig...' : 
+                    buttonInfo.text
                   }
                 </button>
               </div>
