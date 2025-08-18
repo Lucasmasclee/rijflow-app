@@ -436,22 +436,22 @@ function AbonnementPageContent() {
     const subscriptionStatus = instructorData?.subscription_status || 'inactive';
     const startFreeTrial = instructorData?.start_free_trial;
     
-    // PROEFPERIODE BESCHIKBAAR
+    // PROEFPERIODE BESCHIKBAAR (nog niet gestart)
     if (!isStripeValid && subscriptionStatus === 'inactive' && startFreeTrial && 
-        new Date(startFreeTrial) <= new Date(Date.now() - 60 * 24 * 60 * 60 * 1000)) {
+        new Date(startFreeTrial) > new Date()) {
       return "Start 60 dagen gratis";
     }
     
-    // PROEFPERIODE ACTIEF
-    if (!isStripeValid && subscriptionStatus === 'active' && startFreeTrial && 
-        new Date(startFreeTrial) <= new Date(Date.now() - 60 * 24 * 60 * 60 * 1000)) {
-      const daysLeft = Math.ceil((60 * 24 * 60 * 60 * 1000 - (Date.now() - new Date(startFreeTrial).getTime())) / (24 * 60 * 60 * 1000));
-      return `Proefperiode actief, nog ${daysLeft} dagen gratis`;
-    }
-    
-    // PROEFPERIODE VERLOPEN
+    // PROEFPERIODE ACTIEF (geldig - minder dan 60 dagen geleden gestart)
     if (!isStripeValid && subscriptionStatus === 'active' && startFreeTrial && 
         new Date(startFreeTrial) > new Date(Date.now() - 60 * 24 * 60 * 60 * 1000)) {
+      const daysLeft = Math.ceil((60 * 24 * 60 * 60 * 1000 - (Date.now() - new Date(startFreeTrial).getTime())) / (24 * 60 * 60 * 1000));
+      return `Nog ${daysLeft} dagen proefperiode`;
+    }
+    
+    // PROEFPERIODE VERLOPEN (meer dan 60 dagen geleden gestart)
+    if (!isStripeValid && subscriptionStatus === 'active' && startFreeTrial && 
+        new Date(startFreeTrial) <= new Date(Date.now() - 60 * 24 * 60 * 60 * 1000)) {
       return "Proefperiode verlopen, kies een abonnement.";
     }
     
@@ -466,9 +466,9 @@ function AbonnementPageContent() {
       return abonnementMap[currentAbonnement] || 'Abonnement';
     }
     
-    // ONGELDIG ABONNEMENT
+    // ONGELDIG ABONNEMENT (proefperiode verlopen)
     if (!isStripeValid && startFreeTrial && 
-        new Date(startFreeTrial) > new Date(Date.now() - 60 * 24 * 60 * 60 * 1000)) {
+        new Date(startFreeTrial) <= new Date(Date.now() - 60 * 24 * 60 * 60 * 1000)) {
       return "Kies een abonnement.";
     }
     
@@ -496,8 +496,8 @@ function AbonnementPageContent() {
              </div>
            </div>
            
-           {/* Dashboard knop - alleen zichtbaar als subscription_status = active */}
-           {instructorData?.subscription_status === 'active' && (
+           {/* Dashboard knop - alleen zichtbaar als subscription_status = active  && free_trial is geldig (minder dan 60 dagen)*/}
+           {instructorData?.subscription_status === 'active' && instructorData?.start_free_trial && new Date(instructorData.start_free_trial) > new Date(Date.now() - 60 * 24 * 60 * 60 * 1000) && (
              <div className="mt-6 space-y-3">
                <button
                  onClick={() => router.push('/dashboard')}
@@ -543,13 +543,13 @@ function AbonnementPageContent() {
            </div>
          )}
 
-         {hasHadFreeTrial && (
+         {/* {hasHadFreeTrial && (
            <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-8">
              <p className="text-yellow-800">
                Je hebt al een proefperiode gehad. Voor een nieuw abonnement is betaling vereist.
              </p>
            </div>
-         )}
+         )} */}
 
         <div className="grid md:grid-cols-2 gap-8">
           {planCards.map((planCard) => {
