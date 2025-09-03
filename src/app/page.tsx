@@ -4,6 +4,7 @@ import { useAuth } from '@/contexts/AuthContext'
 import { useRouter } from 'next/navigation'
 import { useState, useEffect } from 'react'
 import Image from 'next/image'
+import { analytics } from '@/lib/analytics'
 import { 
   Calendar, 
   Users, 
@@ -25,10 +26,24 @@ export const dynamic = 'force-dynamic'
 // YouTube Video Component
 function YouTubeVideo({ videoId }: { videoId: string }) {
   const [isPlaying, setIsPlaying] = useState(false)
+  const [playStartTime, setPlayStartTime] = useState<number | null>(null)
 
   const handlePlay = () => {
     setIsPlaying(true)
+    setPlayStartTime(Date.now())
+    // Track YouTube video click
+    analytics.trackYouTubeVideoClick(videoId)
   }
+
+  // Track play time when component unmounts or video stops
+  useEffect(() => {
+    return () => {
+      if (playStartTime) {
+        const playTimeSeconds = Math.floor((Date.now() - playStartTime) / 1000)
+        analytics.trackYouTubeVideoPlayTime(videoId, playTimeSeconds)
+      }
+    }
+  }, [videoId, playStartTime])
 
   if (isPlaying) {
     return (
@@ -81,6 +96,7 @@ export default function HomePage() {
   const [email, setEmail] = useState('')
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const [shouldRedirect, setShouldRedirect] = useState(false)
+  const [pageLoadTime] = useState(Date.now())
 
   const handleGetStarted = () => {
     if (email) {
@@ -90,6 +106,19 @@ export default function HomePage() {
       router.push('/auth/signup')
     }
   }
+
+  // Track landing page visit on mount
+  useEffect(() => {
+    analytics.trackLandingPageVisit()
+  }, [])
+
+  // Track time spent on page before unmount
+  useEffect(() => {
+    return () => {
+      const timeSpentSeconds = Math.floor((Date.now() - pageLoadTime) / 1000)
+      analytics.trackLandingPageTimeSpent(timeSpentSeconds)
+    }
+  }, [pageLoadTime])
 
   // Handle redirect when user is logged in
   useEffect(() => {
@@ -121,14 +150,20 @@ export default function HomePage() {
             
             <div className="flex items-center space-x-1.5">
               <button
-                onClick={() => router.push('/auth/signin')}
+                onClick={() => {
+                  analytics.trackPageView('login_button_click', { source: 'landing_nav' })
+                  router.push('/auth/signin')
+                }}
                 className="btn btn-secondary"
                 style={{ padding: '9px 18px', fontSize: '12px', minHeight: '33px' }}
               >
                 Inloggen
               </button>
               <button
-                onClick={() => router.push('/auth/signup')}
+                onClick={() => {
+                  analytics.trackPageView('signup_button_click', { source: 'landing_nav' })
+                  router.push('/auth/signup')
+                }}
                 className="btn btn-primary"
                 style={{ padding: '9px 18px', fontSize: '12px', minHeight: '33px' }}
               >
@@ -286,7 +321,10 @@ export default function HomePage() {
             Deze tool is nog in ontwikkeling, en om die reden volledig gratis.
           </p> */}
           <button
-            onClick={() => router.push('/auth/signup')}
+            onClick={() => {
+              analytics.trackPageView('signup_button_click', { source: 'landing_cta' })
+              router.push('/auth/signup')
+            }}
             className="btn bg-white hover:bg-gray-100 text-blue-600 text-lg btn-mobile-full md:w-auto"
           >
             Registreren

@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useAuth } from '@/contexts/AuthContext'
 import { useRouter } from 'next/navigation'
 import { Car, ArrowLeft } from 'lucide-react'
@@ -10,6 +10,7 @@ import ClientOnly from '@/components/ClientOnly'
 import PasswordInput from '@/components/PasswordInput'
 import ErrorBoundary from '@/components/ErrorBoundary'
 import DebugPanel from '@/components/DebugPanel'
+import { analytics } from '@/lib/analytics'
 
 // Force dynamic rendering to prevent static generation issues
 export const dynamic = 'force-dynamic'
@@ -24,6 +25,11 @@ export default function SignUpPage() {
     role: 'instructor' as 'instructor' | 'student'
   })
   const [emailSent, setEmailSent] = useState(false)
+
+  // Track signup page visit
+  useEffect(() => {
+    analytics.trackSignupPageVisit()
+  }, [])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()

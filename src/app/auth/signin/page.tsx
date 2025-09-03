@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useAuth } from '@/contexts/AuthContext'
 import { useRouter } from 'next/navigation'
 import { Car, ArrowLeft } from 'lucide-react'
@@ -8,6 +8,7 @@ import Link from 'next/link'
 import toast from 'react-hot-toast'
 import ClientOnly from '@/components/ClientOnly'
 import PasswordInput from '@/components/PasswordInput'
+import { analytics } from '@/lib/analytics'
 
 // Force dynamic rendering to prevent static generation issues
 export const dynamic = 'force-dynamic'
@@ -20,6 +21,11 @@ export default function SignInPage() {
     email: '',
     password: ''
   })
+
+  // Track login page visit
+  useEffect(() => {
+    analytics.trackLoginPageVisit()
+  }, [])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
