@@ -103,14 +103,13 @@ export default function SignUpPage() {
           {emailSent ? (
             <div className="card text-center">
               <div className="text-2xl mb-2">📧</div>
-              <h3 className="text-lg font-semibold mb-2">Bevestig je e-mailadres</h3>
+              <h3 className="text-lg font-semibold mb-2">Succesvol geregistreerd!</h3>
               <p className="text-gray-700 mb-4">
-                We hebben een bevestigingsmail gestuurd naar <span className="font-semibold">{formData.email}</span>.<br />
-                Klik op de link in de e-mail om je account te activeren.
+                Je kunt RijFlow nu gebruiken. 
               </p>
-              <p className="text-gray-500 text-sm">
+              {/* <p className="text-gray-500 text-sm">
                 Geen e-mail ontvangen? Controleer je spamfolder of probeer het opnieuw.
-              </p>
+              </p> */}
               <Link href="/auth/signin" className="mt-4 inline-block text-blue-600 hover:underline font-medium">
                 Naar inloggen
               </Link>

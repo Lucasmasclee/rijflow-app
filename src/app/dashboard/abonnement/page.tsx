@@ -368,7 +368,7 @@ function AbonnementPageContent() {
       instructorData?.start_free_trial && new Date(instructorData.start_free_trial) <= new Date(Date.now() - 60 * 24 * 60 * 60 * 1000);
     
     if (isProefperiodeBeschikbaar) {
-      return { text: 'Start 60 dagen proefperiode', disabled: false };
+      return { text: 'Start 60 dagen gratis', disabled: false };
     }
     
     if (isProefperiodeActief) {
@@ -620,7 +620,14 @@ function AbonnementPageContent() {
                 </div>
 
                 <ul className="space-y-3 mb-8">
-                  {planCard.features.map((feature, index) => (
+                  {planCard.features.map((feature, index) => feature === 'Alles uit Basic' ? (
+                    <li key={index} className="flex items-center font-bold text-gray-600">
+                      <svg className="h-4 w-4 text-green-500 mr-3 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                        <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                      </svg>
+                      {feature}
+                    </li>
+                  ) : (
                     <li key={index} className="flex items-center text-sm text-gray-600">
                       <svg className="h-4 w-4 text-green-500 mr-3 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
                         <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
