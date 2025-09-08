@@ -651,10 +651,97 @@ function AbonnementPageContent() {
                     buttonInfo.text
                   }
                 </button>
+
+                {/* Betalingsopties informatie - alleen tonen voor betaalde abonnementen */}
+                {/* {!buttonInfo.disabled && !buttonInfo.text.includes('gratis') && (
+                  <div className="mt-4 p-3 bg-gray-50 rounded-lg">
+                    <p className="text-xs text-gray-600 text-center mb-2">
+                      Beschikbare betalingsopties:
+                    </p>
+                    <div className="flex justify-center items-center space-x-3">
+                      <div className="flex items-center space-x-1">
+                        <svg className="w-4 h-4 text-gray-500" fill="currentColor" viewBox="0 0 24 24">
+                          <path d="M2 10h20v8a2 2 0 01-2 2H4a2 2 0 01-2-2v-8zm18-4a2 2 0 012 2v2H2V8a2 2 0 012-2h16z"/>
+                        </svg>
+                        <span className="text-xs text-gray-600">Creditcard</span>
+                      </div>
+                      <div className="flex items-center space-x-1">
+                        <svg className="w-4 h-4 text-blue-600" fill="currentColor" viewBox="0 0 24 24">
+                          <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
+                        </svg>
+                        <span className="text-xs text-blue-600 font-medium">iDEAL</span>
+                      </div>
+                      <div className="flex items-center space-x-1">
+                        <svg className="w-4 h-4 text-green-600" fill="currentColor" viewBox="0 0 24 24">
+                          <path d="M19 14V6c0-1.1-.9-2-2-2H3c-1.1 0-2 .9-2 2v8c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2zm-7-7c1.66 0 3 1.34 3 3s-1.34 3-3 3-3-1.34-3-3 1.34-3 3-3z"/>
+                        </svg>
+                        <span className="text-xs text-green-600 font-medium">Automatische incasso</span>
+                      </div>
+                    </div>
+                  </div>
+                )} */}
               </div>
             );
           })}
         </div>
+
+        {/* Betalingsopties uitleg sectie */}
+        {/* <div className="mt-12 bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+          <h3 className="text-lg font-semibold text-gray-900 mb-4 text-center">
+            Flexibele betalingsopties
+          </h3>
+          <div className="grid md:grid-cols-3 gap-6">
+            <div className="text-center">
+              <div className="w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-3">
+                <svg className="w-6 h-6 text-gray-600" fill="currentColor" viewBox="0 0 24 24">
+                  <path d="M2 10h20v8a2 2 0 01-2 2H4a2 2 0 01-2-2v-8zm18-4a2 2 0 012 2v2H2V8a2 2 0 012-2h16z"/>
+                </svg>
+              </div>
+              <h4 className="font-medium text-gray-900 mb-2">Creditcard</h4>
+              <p className="text-sm text-gray-600">
+                Betaal veilig met je Visa, Mastercard of American Express. Directe activatie van je abonnement.
+              </p>
+            </div>
+            
+            <div className="text-center">
+              <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-3">
+                <svg className="w-6 h-6 text-blue-600" fill="currentColor" viewBox="0 0 24 24">
+                  <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
+                </svg>
+              </div>
+              <h4 className="font-medium text-gray-900 mb-2">iDEAL</h4>
+              <p className="text-sm text-gray-600">
+                Betaal direct vanuit je Nederlandse bankrekening. Geen creditcard nodig, veilig via je eigen bank.
+              </p>
+            </div>
+            
+            <div className="text-center">
+              <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-3">
+                <svg className="w-6 h-6 text-green-600" fill="currentColor" viewBox="0 0 24 24">
+                  <path d="M19 14V6c0-1.1-.9-2-2-2H3c-1.1 0-2 .9-2 2v8c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2zm-7-7c1.66 0 3 1.34 3 3s-1.34 3-3 3-3-1.34-3-3 1.34-3 3-3z"/>
+                </svg>
+              </div>
+              <h4 className="font-medium text-gray-900 mb-2">Automatische incasso</h4>
+              <p className="text-sm text-gray-600">
+                Handige maandelijkse afschrijving van je bankrekening. Geen gedoe met handmatige betalingen.
+              </p>
+            </div>
+          </div>
+          
+          <div className="mt-6 p-4 bg-blue-50 rounded-lg">
+            <div className="flex items-start">
+              <svg className="w-5 h-5 text-blue-600 mt-0.5 mr-3 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
+              </svg>
+              <div>
+                <h5 className="font-medium text-blue-900 mb-1">Geen creditcard? Geen probleem!</h5>
+                <p className="text-sm text-blue-800">
+                  Je kunt nu ook betalen met iDEAL of automatische incasso. Kies tijdens het afrekenen de betaalmethode die het beste bij je past.
+                </p>
+              </div>
+            </div>
+          </div>
+        </div> */}
 
         <div className="mt-8 text-center">
           <p className="text-sm text-gray-500">

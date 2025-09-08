@@ -24,7 +24,7 @@ export async function POST(request: NextRequest) {
     }
 
     const session = await stripe.checkout.sessions.create({
-      payment_method_types: ['card'],
+      payment_method_types: ['card', 'ideal', 'sepa_debit'],
       line_items: [
         {
           price: stripePriceId,
