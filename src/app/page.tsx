@@ -181,26 +181,12 @@ export default function HomePage() {
               RijFlow - Bespaar 10 uur per maand
             </h2>
             <p className="text-mobile-lg md:text-xl text-gray-600">
-              Gemaakt door een leerling, die voor zijn instructeur deze tool heeft gemaakt.
+              Geen eindeloze appjes, geen gepuzzel met lessen, en geen afzeggingen meer.
+              {/* <br />
               <br />
-              <br />
-            </p>
-            
+              <br /> */}
               
-             
-             {/* YouTube Video Embed */}
-             <div className="w-full max-w-2xl mx-auto mb-8">
-               <div className="relative pb-[56.25%] h-0">
-                 <iframe
-                   src="https://www.youtube.com/embed/QN72hoa6YLw"
-                   title="RijFlow Demo Video"
-                   className="absolute top-0 left-0 w-full h-full rounded-lg"
-                   allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                   allowFullScreen
-                   loading="lazy"
-                 />
-               </div>
-             </div>
+            </p>
           </div>
 
           <div className="mobile-grid md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
@@ -210,17 +196,17 @@ export default function HomePage() {
                 <h3 className="text-sm md:text-base font-semibold text-gray-900">Automatische Beschikbaarheid</h3>
               </div>
               <p className="text-gray-600 text-sm">
-                Verzamel de beschikbaarheid van je leerlingen in slechts 10 seconden.
+                Verzamel binnen 1 minuut de beschikbaarheid van je leerlingen.
               </p>
             </div>
 
             <div className="card" style={{ padding: '11px', marginBottom: '11px' }}>
               <div className="flex items-center mb-3">
-                <Users className="h-8 w-8 text-blue-600 mr-2" />
+                <Clock className="h-8 w-8 text-blue-600 mr-2" />
                 <h3 className="text-sm md:text-base font-semibold text-gray-900">Automatische Weekplanning</h3>
               </div>
               <p className="text-gray-600 text-sm">
-                Maak een perfecte weekplanning op basis van de beschikbaarheid van je leerlingen.
+                Maak binnen 1 minuut een perfecte weekplanning.
               </p>
             </div>
 
@@ -246,7 +232,7 @@ export default function HomePage() {
 
             <div className="card" style={{ padding: '11px', marginBottom: '11px' }}>
               <div className="flex items-center mb-3">
-                <Clock className="h-8 w-8 text-blue-600 mr-2" />
+                <Users className="h-8 w-8 text-blue-600 mr-2" />
                 <h3 className="text-sm md:text-base font-semibold text-gray-900">Leerlingbeheer</h3>
               </div>
               <p className="text-gray-600 text-sm">
@@ -264,6 +250,21 @@ export default function HomePage() {
               </p>
             </div>
           </div>
+          {/* YouTube Video Embed */}
+          <div className="w-full max-w-2xl mx-auto mb-8">
+            <br/>
+            <br/>
+               <div className="relative pb-[56.25%] h-0">
+                 <iframe
+                   src="https://www.youtube.com/embed/QN72hoa6YLw"
+                   title="RijFlow Demo Video"
+                   className="absolute top-0 left-0 w-full h-full rounded-lg"
+                   allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                   allowFullScreen
+                   loading="lazy"
+                 />
+               </div>
+             </div>
         </div>
       </div>
 
@@ -274,7 +275,7 @@ export default function HomePage() {
             Download de app
           </h2>
           <p className="text-mobile-lg md:text-xl text-gray-600 mb-8">
-            Download RijFlow in de Playstore en Appstore.
+            Download RijFlow als app op je telefoon, zodat je jouw planning altijd bij je hebt.
           </p>
           
           <div className="flex flex-col items-center gap-4">
@@ -314,8 +315,8 @@ export default function HomePage() {
       {/* CTA Section */}
       <div className="bg-blue-600 py-6 md:py-10">
         <div className="container-mobile text-center">
-          <h2 className="text-mobile-xl md:text-3xl font-bold text-white mb-4">
-            Klaar om te beginnen?
+          <h2 className="text-mobile-xl md:text-3xl text-white mb-4">
+            Klaar om te beginnen? Probeer nu 60 dagen gratis.
           </h2>
           {/* <p className="text-mobile-lg md:text-xl text-blue-100 mb-8">
             Deze tool is nog in ontwikkeling, en om die reden volledig gratis.
@@ -327,7 +328,7 @@ export default function HomePage() {
             }}
             className="btn bg-white hover:bg-gray-100 text-blue-600 text-lg btn-mobile-full md:w-auto"
           >
-            Registreren
+            Start nu
           </button>
         </div>
       </div>
